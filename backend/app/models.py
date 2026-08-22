@@ -142,6 +142,28 @@ class ImpactEvidence(BaseModel):
     )
 
 
+class ImpactMetric(BaseModel):
+    """A measurable outcome associated with an Impact Receipt."""
+
+    label: str = Field(
+        ...,
+        min_length=1,
+        max_length=120,
+        examples=["Repeat incidents reduced"],
+    )
+    value: str = Field(
+        ...,
+        min_length=1,
+        max_length=120,
+        examples=["25%"],
+    )
+    context: Optional[str] = Field(
+        default=None,
+        max_length=300,
+        examples=["Compared with the previous 30-day period"],
+    )
+
+
 class ImpactCredit(BaseModel):
     """Credit for another person who contributed to the outcome."""
 
@@ -171,6 +193,19 @@ class ImpactConfirmation(BaseModel):
     confirmed_at: Optional[datetime] = None
 
 
+class ImpactReceiptCreate(BaseModel):
+    """Create a standalone evidence-backed Impact Receipt."""
+
+    accomplishment: str = Field(..., min_length=1, max_length=300)
+    contribution: str = Field(..., min_length=1, max_length=2000)
+    result: str = Field(..., min_length=1, max_length=2000)
+    metrics: list[ImpactMetric] = Field(default_factory=list)
+    evidence: list[ImpactEvidence] = Field(default_factory=list, min_length=1)
+    skills: list[str] = Field(default_factory=list, min_length=1)
+    credit: list[ImpactCredit] = Field(default_factory=list)
+    is_public: bool = False
+
+
 class ImpactReceiptFromEntryCreate(BaseModel):
     """Request used to turn an existing brag entry into a receipt."""
 
@@ -192,9 +227,8 @@ class ImpactReceiptFromEntryCreate(BaseModel):
         ),
     )
 
-    evidence: list[ImpactEvidence] = Field(
-        default_factory=list,
-    )
+    metrics: list[ImpactMetric] = Field(default_factory=list)
+    evidence: list[ImpactEvidence] = Field(default_factory=list)
 
     skills: list[str] = Field(
         default_factory=list,
@@ -234,6 +268,7 @@ class ImpactReceiptUpdate(BaseModel):
         max_length=2000,
     )
 
+    metrics: Optional[list[ImpactMetric]] = None
     evidence: Optional[list[ImpactEvidence]] = None
     skills: Optional[list[str]] = None
     credit: Optional[list[ImpactCredit]] = None
@@ -244,11 +279,12 @@ class ImpactReceiptResponse(BaseModel):
     """Complete Impact Receipt returned by the API."""
 
     id: str
-    source_entry_id: str
+    source_entry_id: Optional[str] = None
 
     accomplishment: str
     contribution: str
     result: str
+    metrics: list[ImpactMetric] = Field(default_factory=list)
 
     evidence: list[ImpactEvidence]
     skills: list[str]
@@ -258,7 +294,7 @@ class ImpactReceiptResponse(BaseModel):
     trust_signals: list[TrustSignal]
 
     is_public: bool = False
-    schema_version: int = 1
+    schema_version: int = 2
 
     created_at: datetime
     updated_at: datetime

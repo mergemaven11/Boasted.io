@@ -2,8 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth_routes import router as auth_router
+from app.beta_metrics_routes import router as beta_metrics_router
 from app.certification_packet_export_routes import router as certification_packet_export_router
 from app.certification_packet_routes import router as certification_packet_router
+from app.core_output_routes import router as core_output_router
 from app.impact_receipt_routes import router as impact_receipts_router
 from app.interview_packet_export_routes import router as interview_packet_export_router
 from app.interview_packet_routes import router as interview_packet_router
@@ -43,6 +45,8 @@ app.include_router(entries_router)
 app.include_router(public_router)
 app.include_router(public_slug_router)
 app.include_router(impact_receipts_router)
+app.include_router(core_output_router)
+app.include_router(beta_metrics_router)
 app.include_router(reports_router)
 app.include_router(performance_packet_router)
 app.include_router(performance_packet_export_router)

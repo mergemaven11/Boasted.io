@@ -126,8 +126,10 @@ export async function getPublicWeeklyReport(slug) { const response = await api.g
 export async function getPublicTagsSummary(slug) { const response = await api.get(getPublicBragPath(slug, "/tags/summary")); return response.data; }
 export async function getPublicCategoriesSummary(slug) { const response = await api.get(getPublicBragPath(slug, "/categories/summary")); return response.data; }
 export async function getImpactReceipts() { const response = await api.get("/impact-receipts?limit=20&skip=0"); return response.data; }
+export async function createImpactReceipt(payload) { const response = await api.post("/impact-receipts", payload); return response.data; }
 export async function createImpactReceiptFromEntry(entryId, payload) { const response = await api.post(`/impact-receipts/from-entry/${entryId}`, payload); return response.data; }
 export async function updateImpactReceipt(receiptId, payload) { const response = await api.patch(`/impact-receipts/${receiptId}`, payload); return response.data; }
+export async function deleteImpactReceipt(receiptId) { await api.delete(`/impact-receipts/${receiptId}`); }
 export async function getWeeklyCareerReport() { const response = await api.get("/reports/weekly"); return response.data; }
 export async function getAllTimeCareerReport() { const response = await api.get("/reports/all-time"); return response.data; }
 export async function getCustomCareerReport(startDate, endDate) { const response = await api.get("/reports/custom", { params: { start_date: startDate, end_date: endDate } }); return response.data; }
