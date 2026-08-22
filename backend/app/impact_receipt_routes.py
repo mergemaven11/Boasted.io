@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.auth import get_current_user
 from app.database import entries_collection, impact_receipts_collection
 from app.models import (
+    ImpactReceiptCreate,
     ImpactReceiptFromEntryCreate,
     ImpactReceiptResponse,
     ImpactReceiptUpdate,
@@ -32,6 +33,49 @@ def clean_string_list(values: list[str]) -> list[str]:
             seen_values.add(cleaned_value)
 
     return cleaned_values
+
+
+def clean_evidence(items) -> list[dict]:
+    """Normalize evidence while preserving owner-controlled visibility."""
+
+    cleaned = []
+    for item in items:
+        raw = item.model_dump() if hasattr(item, "model_dump") else dict(item)
+        title = str(raw.get("title", "")).strip()
+        if not title:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Evidence title cannot be blank.",
+            )
+        raw["title"] = title
+        if raw.get("reference") is not None:
+            raw["reference"] = str(raw["reference"]).strip() or None
+        if raw.get("description") is not None:
+            raw["description"] = str(raw["description"]).strip() or None
+        raw["is_public"] = bool(raw.get("is_public", False))
+        cleaned.append(raw)
+    return cleaned
+
+
+def clean_metrics(items) -> list[dict]:
+    """Normalize measurable impact fields."""
+
+    cleaned = []
+    for item in items:
+        raw = item.model_dump() if hasattr(item, "model_dump") else dict(item)
+        label = str(raw.get("label", "")).strip()
+        value = str(raw.get("value", "")).strip()
+        if not label or not value:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Impact metrics require both a label and value.",
+            )
+        raw["label"] = label
+        raw["value"] = value
+        if raw.get("context") is not None:
+            raw["context"] = str(raw["context"]).strip() or None
+        cleaned.append(raw)
+    return cleaned
 
 
 def build_trust_signals(
@@ -66,10 +110,11 @@ def serialize_impact_receipt(receipt: dict) -> dict:
 
     return {
         "id": str(receipt["_id"]),
-        "source_entry_id": receipt["source_entry_id"],
+        "source_entry_id": receipt.get("source_entry_id"),
         "accomplishment": receipt["accomplishment"],
         "contribution": receipt["contribution"],
         "result": receipt["result"],
+        "metrics": receipt.get("metrics", []),
         "evidence": receipt.get("evidence", []),
         "skills": receipt.get("skills", []),
         "credit": receipt.get("credit", []),
@@ -83,6 +128,85 @@ def serialize_impact_receipt(receipt: dict) -> dict:
         "created_at": receipt["created_at"],
         "updated_at": receipt["updated_at"],
     }
+
+
+def build_receipt_document(
+    *,
+    user_id: str,
+    accomplishment: str,
+    contribution: str,
+    result: str,
+    evidence: list[dict],
+    skills: list[str],
+    metrics: list[dict] | None = None,
+    credit: list[dict] | None = None,
+    is_public: bool = False,
+    source_entry_id: str | None = None,
+) -> dict:
+    """Create the canonical v2 Mongo document for an Impact Receipt."""
+
+    now = datetime.now(timezone.utc)
+    return {
+        "user_id": user_id,
+        "source_entry_id": source_entry_id,
+        "accomplishment": accomplishment.strip(),
+        "contribution": contribution.strip(),
+        "result": result.strip(),
+        "metrics": metrics or [],
+        "evidence": evidence,
+        "skills": skills,
+        "credit": credit or [],
+        "confirmations": [],
+        "trust_signals": build_trust_signals(evidence),
+        "is_public": is_public,
+        "schema_version": 2,
+        "created_at": now,
+        "updated_at": now,
+    }
+
+
+@router.post(
+    "",
+    response_model=ImpactReceiptResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_impact_receipt(
+    payload: ImpactReceiptCreate,
+    current_user: dict = Depends(get_current_user),
+):
+    """Create a standalone evidence-backed Impact Receipt."""
+
+    skills = clean_string_list(payload.skills)
+    if not skills:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="At least one skill is required.",
+        )
+
+    evidence = clean_evidence(payload.evidence)
+    if not evidence:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="At least one evidence item is required.",
+        )
+
+    receipt_document = build_receipt_document(
+        user_id=str(current_user["_id"]),
+        accomplishment=payload.accomplishment,
+        contribution=payload.contribution,
+        result=payload.result,
+        metrics=clean_metrics(payload.metrics),
+        evidence=evidence,
+        skills=skills,
+        credit=[item.model_dump() for item in payload.credit],
+        is_public=payload.is_public,
+    )
+
+    insert_result = impact_receipts_collection.insert_one(receipt_document)
+    created_receipt = impact_receipts_collection.find_one(
+        {"_id": insert_result.inserted_id}
+    )
+    return serialize_impact_receipt(created_receipt)
 
 
 @router.post(
@@ -172,38 +296,22 @@ def create_impact_receipt_from_entry(
             ),
         )
 
-    evidence = [
-        evidence_item.model_dump()
-        for evidence_item in payload.evidence
-    ]
+    evidence = clean_evidence(payload.evidence)
+    credit = [credit_item.model_dump() for credit_item in payload.credit]
+    skills = clean_string_list(payload.skills or entry.get("tags", []))
 
-    credit = [
-        credit_item.model_dump()
-        for credit_item in payload.credit
-    ]
-
-    skills = clean_string_list(
-        payload.skills or entry.get("tags", [])
+    receipt_document = build_receipt_document(
+        user_id=user_id,
+        source_entry_id=entry_id,
+        accomplishment=accomplishment,
+        contribution=contribution,
+        result=result_text,
+        metrics=clean_metrics(payload.metrics),
+        evidence=evidence,
+        skills=skills,
+        credit=credit,
+        is_public=payload.is_public,
     )
-
-    now = datetime.now(timezone.utc)
-
-    receipt_document = {
-        "user_id": user_id,
-        "source_entry_id": entry_id,
-        "accomplishment": accomplishment,
-        "contribution": contribution,
-        "result": result_text,
-        "evidence": evidence,
-        "skills": skills,
-        "credit": credit,
-        "confirmations": [],
-        "trust_signals": build_trust_signals(evidence),
-        "is_public": payload.is_public,
-        "schema_version": 1,
-        "created_at": now,
-        "updated_at": now,
-    }
 
     insert_result = impact_receipts_collection.insert_one(receipt_document)
 
@@ -301,11 +409,11 @@ def update_impact_receipt(
     if "skills" in raw_updates and raw_updates["skills"] is not None:
         updates["skills"] = clean_string_list(raw_updates["skills"])
 
+    if "metrics" in raw_updates and raw_updates["metrics"] is not None:
+        updates["metrics"] = clean_metrics(payload.metrics or [])
+
     if "evidence" in raw_updates and raw_updates["evidence"] is not None:
-        updates["evidence"] = [
-            item.model_dump() if hasattr(item, "model_dump") else item
-            for item in payload.evidence or []
-        ]
+        updates["evidence"] = clean_evidence(payload.evidence or [])
 
     if "credit" in raw_updates and raw_updates["credit"] is not None:
         updates["credit"] = [
@@ -325,3 +433,35 @@ def update_impact_receipt(
 
     updated_receipt = impact_receipts_collection.find_one(query)
     return serialize_impact_receipt(updated_receipt)
+
+
+@router.delete(
+    "/{receipt_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_impact_receipt(
+    receipt_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """Permanently delete an Impact Receipt owned by the current user."""
+
+    if not ObjectId.is_valid(receipt_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid Impact Receipt ID",
+        )
+
+    result = impact_receipts_collection.delete_one(
+        {
+            "_id": ObjectId(receipt_id),
+            "user_id": str(current_user["_id"]),
+        }
+    )
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Impact Receipt not found",
+        )
+
+    return None
