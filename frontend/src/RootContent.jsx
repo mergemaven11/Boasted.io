@@ -4,6 +4,7 @@ import AccomplishmentsPage from "./AccomplishmentsPage.jsx";
 import App from "./App.jsx";
 import AppSidebar from "./AppSidebar.jsx";
 import ImpactReceiptsPage from "./ImpactReceiptsPage.jsx";
+import UpgradePage from "./UpgradePage.jsx";
 import { getCurrentUser } from "./api.js";
 
 function ProRequired() {
@@ -20,6 +21,7 @@ function ProRequired() {
 
 function RootContent() {
   const path = window.location.pathname;
+  const isUpgradePage = path === "/upgrade" || path === "/upgrade/";
   const isAuthenticatedApp = path.startsWith("/app");
   const [user, setUser] = useState(null);
   const [planLoaded, setPlanLoaded] = useState(!isAuthenticatedApp);
@@ -49,6 +51,10 @@ function RootContent() {
     void loadPlan();
     return () => { active = false; };
   }, [isAuthenticatedApp]);
+
+  if (isUpgradePage) {
+    return <UpgradePage />;
+  }
 
   let Content = App;
 
