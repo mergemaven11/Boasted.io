@@ -136,7 +136,7 @@ function AccomplishmentsPage() {
   }
 
   function openEdit(entry) {
-    const editWindow = getEditWindow(entry, Date.now());
+    const editWindow = getEditWindow(entry, nowMs);
     if (!editWindow.editable) return;
     setCreateError("");
     setEditingEntry(entry);
@@ -174,7 +174,7 @@ function AccomplishmentsPage() {
       };
 
       if (editingEntry) {
-        const editWindow = getEditWindow(editingEntry, Date.now());
+        const editWindow = getEditWindow(editingEntry, nowMs);
         if (!editWindow.editable) {
           setCreateError("The 60-minute edit window for this accomplishment has ended.");
           return;
@@ -184,10 +184,11 @@ function AccomplishmentsPage() {
         await createEntry(payload);
       }
 
+      const wasEditing = Boolean(editingEntry);
       setForm(emptyForm());
       closeCreate();
-      if (!editingEntry) setPage(1);
-      await loadPage(editingEntry ? page : 1);
+      if (!wasEditing) setPage(1);
+      await loadPage(wasEditing ? page : 1);
     } catch (requestError) {
       setCreateError(requestError.response?.data?.detail || `Your accomplishment could not be ${editingEntry ? "updated" : "saved"}.`);
     } finally {
