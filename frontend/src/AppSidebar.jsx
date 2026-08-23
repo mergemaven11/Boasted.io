@@ -88,7 +88,11 @@ function AppSidebar() {
 
         <div className="sidebar-footer">
           <a className="sidebar-user" href="/app/profile" aria-label="Edit profile">
-            <span className="sidebar-user-avatar">{user?.name?.charAt(0).toUpperCase() || "B"}</span>
+            {user?.avatar_url ? (
+              <img className="sidebar-user-avatar sidebar-user-avatar-image" src={user.avatar_url} alt="" />
+            ) : (
+              <span className="sidebar-user-avatar">{user?.name?.charAt(0).toUpperCase() || "B"}</span>
+            )}
             <span><strong>{user?.name || "BragStack member"}</strong><small>{user?.plan === "pro" ? "Pro plan · Edit profile" : "Free plan · Edit profile"}</small></span>
           </a>
           <button type="button" onClick={logout}><LogOut size={17} />Sign out</button>

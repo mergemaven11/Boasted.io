@@ -18,8 +18,14 @@
 .sidebar-brand,
 .sidebar-nav a,
 .sidebar-add,
-.mobile-brand {
-  text-decoration: none;
+.mobile-brand,
+.sidebar-user,
+.sidebar-user:hover,
+.sidebar-user:focus,
+.sidebar-user:visited,
+.sidebar-user strong,
+.sidebar-user small {
+  text-decoration: none !important;
 }
 
 .sidebar-brand {
@@ -67,6 +73,7 @@
 
 .sidebar-logo { object-fit: contain; background: #111; }
 .sidebar-user-avatar { color: #0b0b0b; background: #ffb184; }
+.sidebar-user-avatar-image { object-fit: cover; overflow: hidden; }
 
 .sidebar-plan-row {
   display: flex;
@@ -156,6 +163,17 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
+  padding: 8px;
+  margin: -8px;
+  border-radius: 10px;
+  color: inherit;
+  transition: background 150ms ease;
+}
+
+.sidebar-user:hover,
+.sidebar-user:focus-visible {
+  background: rgba(255,255,255,.05);
+  outline: none;
 }
 
 .sidebar-user-avatar { width: 34px; height: 34px; border-radius: 8px; }
