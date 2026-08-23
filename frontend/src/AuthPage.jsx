@@ -27,15 +27,27 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
   const [resetEmail, setResetEmail] = useState("");
   const [resetMessage, setResetMessage] = useState("");
   const [resetSubmitting, setResetSubmitting] = useState(false);
+  const [resetToken, setResetToken] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
     const hash = new URLSearchParams(window.location.hash.slice(1));
     const oauthToken = hash.get("oauth_token");
-    if (!oauthToken) return;
+    const passwordResetToken = hash.get("reset_token");
 
-    localStorage.setItem("bragstack_token", oauthToken);
-    history.replaceState(null, "", "/login");
-    window.location.replace("/app");
+    if (oauthToken) {
+      localStorage.setItem("bragstack_token", oauthToken);
+      history.replaceState(null, "", "/login");
+      window.location.replace("/app");
+      return;
+    }
+
+    if (passwordResetToken) {
+      setResetToken(passwordResetToken);
+      setShowReset(true);
+      history.replaceState(null, "", "/login");
+    }
   }, []);
 
   function handleChange(event) {
@@ -96,6 +108,39 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
       setResetMessage("If that email belongs to an account, we sent a password reset link.");
     } catch (error) {
       setResetMessage(error.message || "Password reset is unavailable right now.");
+    } finally {
+      setResetSubmitting(false);
+    }
+  }
+
+  async function handleResetConfirm(event) {
+    event.preventDefault();
+    setResetMessage("");
+
+    if (newPassword.length < 8) {
+      setResetMessage("Your new password must be at least 8 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setResetMessage("The passwords do not match.");
+      return;
+    }
+
+    setResetSubmitting(true);
+    try {
+      const response = await fetch(`${apiBaseUrl}/auth/password-reset/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: resetToken, password: newPassword }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || "This reset link is invalid or expired.");
+      setResetMessage("Password updated. You can sign in now.");
+      setResetToken("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      setResetMessage(error.message || "This reset link is invalid or expired.");
     } finally {
       setResetSubmitting(false);
     }
@@ -175,14 +220,30 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
 
           {showReset && !isRegister && (
             <div className="auth-reset-panel">
-              <strong>Reset your password</strong>
-              <p>Enter the email address on your BragStack account.</p>
-              <div className="auth-reset-row">
-                <input type="email" value={resetEmail} onChange={(event) => setResetEmail(event.target.value)} placeholder="you@example.com" required />
-                <button type="button" onClick={handleResetRequest} disabled={resetSubmitting || !resetEmail}>
-                  {resetSubmitting ? "Sending..." : "Send link"}
-                </button>
-              </div>
+              {resetToken ? (
+                <>
+                  <strong>Choose a new password</strong>
+                  <p>This reset link can be used once and expires after 30 minutes.</p>
+                  <div className="auth-reset-stack">
+                    <input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="New password" minLength={8} />
+                    <input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Confirm new password" minLength={8} />
+                    <button type="button" onClick={handleResetConfirm} disabled={resetSubmitting || !newPassword || !confirmPassword}>
+                      {resetSubmitting ? "Updating..." : "Update password"}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <strong>Reset your password</strong>
+                  <p>Enter the email address on your BragStack account.</p>
+                  <div className="auth-reset-row">
+                    <input type="email" value={resetEmail} onChange={(event) => setResetEmail(event.target.value)} placeholder="you@example.com" />
+                    <button type="button" onClick={handleResetRequest} disabled={resetSubmitting || !resetEmail}>
+                      {resetSubmitting ? "Sending..." : "Send link"}
+                    </button>
+                  </div>
+                </>
+              )}
               {resetMessage && <small>{resetMessage}</small>}
             </div>
           )}
