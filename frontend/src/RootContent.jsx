@@ -4,6 +4,7 @@ import AccomplishmentsPage from "./AccomplishmentsPage.jsx";
 import App from "./App.jsx";
 import AppSidebar from "./AppSidebar.jsx";
 import ImpactReceiptsPage from "./ImpactReceiptsPage.jsx";
+import SeoLandingPage, { getSeoLandingPage } from "./SeoLandingPages.jsx";
 import UpgradePage from "./UpgradePage.jsx";
 import { getCurrentUser } from "./api.js";
 
@@ -20,8 +21,9 @@ function ProRequired() {
 }
 
 function RootContent() {
-  const path = window.location.pathname;
-  const isUpgradePage = path === "/upgrade" || path === "/upgrade/";
+  const path = window.location.pathname.replace(/\/$/, "") || "/";
+  const seoLandingContent = getSeoLandingPage(path);
+  const isUpgradePage = path === "/upgrade";
   const isAuthenticatedApp = path.startsWith("/app");
   const [user, setUser] = useState(null);
   const [planLoaded, setPlanLoaded] = useState(!isAuthenticatedApp);
@@ -54,6 +56,10 @@ function RootContent() {
 
   if (isUpgradePage) {
     return <UpgradePage />;
+  }
+
+  if (seoLandingContent) {
+    return <SeoLandingPage content={seoLandingContent} />;
   }
 
   let Content = App;
