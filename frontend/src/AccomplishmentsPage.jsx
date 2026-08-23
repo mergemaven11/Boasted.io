@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, Search, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, Plus, Search, X } from "lucide-react";
 
-import { createEntry, getEntries } from "./api";
+import { createEntry, getEntries, updateEntry } from "./api";
 import "./AccomplishmentsPage.css";
 
 const PAGE_SIZE = 10;
+const EDIT_WINDOW_MS = 60 * 60 * 1000;
 const ENTRY_TYPES = [
   "Current Job",
   "Previous Job",
@@ -28,6 +29,32 @@ const emptyForm = () => ({
   is_public: false,
 });
 
+function entryToForm(entry) {
+  return {
+    title: entry.title || "",
+    category: entry.category || "",
+    entry_date: entry.entry_date || today(),
+    entry_type: entry.entry_type || "Current Job",
+    situation: entry.situation || "",
+    action: entry.action || "",
+    impact: entry.impact || "",
+    lesson: entry.lesson || "",
+    tags: (entry.tags || []).join(", "),
+    is_public: Boolean(entry.is_public),
+  };
+}
+
+function getEditWindow(entry, nowMs) {
+  if (!entry?.created_at) return { editable: false, minutesLeft: 0 };
+  const createdAtMs = new Date(entry.created_at).getTime();
+  if (!Number.isFinite(createdAtMs)) return { editable: false, minutesLeft: 0 };
+  const remainingMs = EDIT_WINDOW_MS - (nowMs - createdAtMs);
+  return {
+    editable: remainingMs > 0,
+    minutesLeft: Math.max(0, Math.ceil(remainingMs / 60000)),
+  };
+}
+
 function AccomplishmentsPage() {
   const [entries, setEntries] = useState([]);
   const [page, setPage] = useState(1);
@@ -36,9 +63,11 @@ function AccomplishmentsPage() {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreate, setShowCreate] = useState(() => new URLSearchParams(window.location.search).get("create") === "1");
+  const [editingEntry, setEditingEntry] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [isSaving, setIsSaving] = useState(false);
   const [createError, setCreateError] = useState("");
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
   async function loadPage(targetPage = page) {
     setIsLoading(true);
@@ -66,6 +95,11 @@ function AccomplishmentsPage() {
     return () => window.clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => setNowMs(Date.now()), 30000);
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(totalEntries / PAGE_SIZE));
   const startEntry = totalEntries === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
@@ -95,13 +129,25 @@ function AccomplishmentsPage() {
 
   function openCreate() {
     setCreateError("");
+    setEditingEntry(null);
     setForm(emptyForm());
     setShowCreate(true);
     window.history.replaceState({}, "", "/app/accomplishments?create=1");
   }
 
+  function openEdit(entry) {
+    const editWindow = getEditWindow(entry, Date.now());
+    if (!editWindow.editable) return;
+    setCreateError("");
+    setEditingEntry(entry);
+    setForm(entryToForm(entry));
+    setShowCreate(true);
+    window.history.replaceState({}, "", `/app/accomplishments?edit=${encodeURIComponent(entry.id)}`);
+  }
+
   function closeCreate() {
     setShowCreate(false);
+    setEditingEntry(null);
     setCreateError("");
     window.history.replaceState({}, "", "/app/accomplishments");
   }
@@ -117,25 +163,39 @@ function AccomplishmentsPage() {
     setForm((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
   }
 
-  async function handleCreate(event) {
+  async function handleSave(event) {
     event.preventDefault();
     setIsSaving(true);
     setCreateError("");
     try {
-      await createEntry({
+      const payload = {
         ...form,
         tags: form.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
-      });
+      };
+
+      if (editingEntry) {
+        const editWindow = getEditWindow(editingEntry, Date.now());
+        if (!editWindow.editable) {
+          setCreateError("The 60-minute edit window for this accomplishment has ended.");
+          return;
+        }
+        await updateEntry(editingEntry.id, payload);
+      } else {
+        await createEntry(payload);
+      }
+
       setForm(emptyForm());
       closeCreate();
-      setPage(1);
-      await loadPage(1);
+      if (!editingEntry) setPage(1);
+      await loadPage(editingEntry ? page : 1);
     } catch (requestError) {
-      setCreateError(requestError.response?.data?.detail || "Your accomplishment could not be saved.");
+      setCreateError(requestError.response?.data?.detail || `Your accomplishment could not be ${editingEntry ? "updated" : "saved"}.`);
     } finally {
       setIsSaving(false);
     }
   }
+
+  const editingWindow = editingEntry ? getEditWindow(editingEntry, nowMs) : null;
 
   return (
     <main className="accomplishments-page">
@@ -153,11 +213,12 @@ function AccomplishmentsPage() {
 
       {showCreate && (
         <section className="modal-backdrop" onMouseDown={closeCreate}>
-          <form className="modal-card" onSubmit={handleCreate} onMouseDown={(event) => event.stopPropagation()}>
+          <form className="modal-card" onSubmit={handleSave} onMouseDown={(event) => event.stopPropagation()}>
             <div className="modal-header">
               <div>
-                <p className="mini-label">New career proof</p>
-                <h2>Create accomplishment</h2>
+                <p className="mini-label">{editingEntry ? "Edit career proof" : "New career proof"}</p>
+                <h2>{editingEntry ? "Edit accomplishment" : "Create accomplishment"}</h2>
+                {editingWindow?.editable && <p className="edit-window-note">Editable for about {editingWindow.minutesLeft} more minute{editingWindow.minutesLeft === 1 ? "" : "s"}.</p>}
               </div>
               <button type="button" className="icon-button" onClick={closeCreate} aria-label="Close">
                 <X size={20} />
@@ -181,7 +242,9 @@ function AccomplishmentsPage() {
 
             <div className="modal-actions">
               <button type="button" className="btn secondary" onClick={closeCreate}>Cancel</button>
-              <button type="submit" className="btn primary" disabled={isSaving}>{isSaving ? "Saving…" : "Create accomplishment"}</button>
+              <button type="submit" className="btn primary" disabled={isSaving || (editingEntry && !editingWindow?.editable)}>
+                {isSaving ? "Saving…" : editingEntry ? "Save changes" : "Create accomplishment"}
+              </button>
             </div>
           </form>
         </section>
@@ -207,22 +270,34 @@ function AccomplishmentsPage() {
         </section>
       ) : (
         <section className="accomplishments-list">
-          {visibleEntries.map((entry) => (
-            <article className="accomplishment-card" key={entry.id}>
-              <div className="accomplishment-card-top">
-                <div><p className="mini-label">{entry.category} • {entry.entry_type} • {entry.entry_date}</p><h2>{entry.title}</h2></div>
-                <span className={entry.is_public ? "proof-public" : "proof-private"}>{entry.is_public ? "Public proof" : "Private proof"}</span>
-              </div>
-              <p className="accomplishment-bullet">{entry.resume_bullet}</p>
-              <div className="accomplishment-proof-grid">
-                <div><strong>Situation</strong><p>{entry.situation}</p></div>
-                <div><strong>Action</strong><p>{entry.action}</p></div>
-                <div><strong>Impact</strong><p>{entry.impact}</p></div>
-                {entry.lesson && <div><strong>Lesson</strong><p>{entry.lesson}</p></div>}
-              </div>
-              <div className="accomplishment-tags">{entry.tags?.map((tag) => <span key={tag}>{tag}</span>)}</div>
-            </article>
-          ))}
+          {visibleEntries.map((entry) => {
+            const editWindow = getEditWindow(entry, nowMs);
+            return (
+              <article className="accomplishment-card" key={entry.id}>
+                <div className="accomplishment-card-top">
+                  <div><p className="mini-label">{entry.category} • {entry.entry_type} • {entry.entry_date}</p><h2>{entry.title}</h2></div>
+                  <div className="accomplishment-card-actions">
+                    {editWindow.editable ? (
+                      <button type="button" className="btn secondary accomplishment-edit" onClick={() => openEdit(entry)}>
+                        <Pencil size={15} /> Edit · {editWindow.minutesLeft}m left
+                      </button>
+                    ) : entry.created_at ? (
+                      <span className="edit-window-locked">Edit window closed</span>
+                    ) : null}
+                    <span className={entry.is_public ? "proof-public" : "proof-private"}>{entry.is_public ? "Public proof" : "Private proof"}</span>
+                  </div>
+                </div>
+                <p className="accomplishment-bullet">{entry.resume_bullet}</p>
+                <div className="accomplishment-proof-grid">
+                  <div><strong>Situation</strong><p>{entry.situation}</p></div>
+                  <div><strong>Action</strong><p>{entry.action}</p></div>
+                  <div><strong>Impact</strong><p>{entry.impact}</p></div>
+                  {entry.lesson && <div><strong>Lesson</strong><p>{entry.lesson}</p></div>}
+                </div>
+                <div className="accomplishment-tags">{entry.tags?.map((tag) => <span key={tag}>{tag}</span>)}</div>
+              </article>
+            );
+          })}
         </section>
       )}
 
