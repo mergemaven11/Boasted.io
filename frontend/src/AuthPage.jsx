@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Lock, Mail, Sparkles, UserPlus } from "lucide-react";
 import "./AuthPage.css";
 
@@ -9,13 +9,7 @@ function getApiBaseUrl() {
 
 function GitHubMark() {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
-      fill="currentColor"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
       <path d="M12 .7a11.5 11.5 0 0 0-3.64 22.41c.58.11.79-.25.79-.56v-2.02c-3.22.7-3.9-1.37-3.9-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.72 1.27 3.38.97.1-.75.4-1.27.74-1.56-2.57-.29-5.27-1.29-5.27-5.74 0-1.27.45-2.3 1.2-3.11-.12-.3-.52-1.48.11-3.08 0 0 .98-.31 3.16 1.19a10.9 10.9 0 0 1 5.75 0c2.19-1.5 3.16-1.19 3.16-1.19.63 1.6.23 2.78.11 3.08.75.81 1.2 1.84 1.2 3.11 0 4.46-2.71 5.45-5.29 5.74.42.36.79 1.07.79 2.16v3.02c0 .31.21.68.8.56A11.5 11.5 0 0 0 12 .7Z" />
     </svg>
   );
@@ -25,13 +19,24 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
   const isRegister = mode === "register";
   const apiBaseUrl = getApiBaseUrl().replace(/\/$/, "");
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [connectingProvider, setConnectingProvider] = useState("");
+  const [showReset, setShowReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetMessage, setResetMessage] = useState("");
+  const [resetSubmitting, setResetSubmitting] = useState(false);
+
+  useEffect(() => {
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    const oauthToken = hash.get("oauth_token");
+    if (!oauthToken) return;
+
+    localStorage.setItem("bragstack_token", oauthToken);
+    history.replaceState(null, "", "/login");
+    window.location.replace("/app");
+  }, []);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -52,12 +57,47 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
     } catch (error) {
       console.error(error);
       setErrorMessage(
-        isRegister
-          ? "Could not create your account. Try again."
-          : "Could not log you in. Check your email and password."
+        error.response?.data?.detail ||
+          (isRegister
+            ? "Could not create your account. Try again."
+            : "Could not log you in. Check your email and password.")
       );
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function startOAuth(provider) {
+    setConnectingProvider(provider);
+    setErrorMessage("");
+
+    try {
+      await fetch(`${apiBaseUrl}/`, { method: "GET", mode: "cors", cache: "no-store" });
+    } catch (error) {
+      console.warn("API warm-up request did not complete before OAuth navigation", error);
+    }
+
+    window.location.assign(`${apiBaseUrl}/auth/${provider}/login`);
+  }
+
+  async function handleResetRequest(event) {
+    event.preventDefault();
+    setResetSubmitting(true);
+    setResetMessage("");
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/auth/password-reset/request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || "Password reset is unavailable right now.");
+      setResetMessage("If that email belongs to an account, we sent a password reset link.");
+    } catch (error) {
+      setResetMessage(error.message || "Password reset is unavailable right now.");
+    } finally {
+      setResetSubmitting(false);
     }
   }
 
@@ -87,34 +127,13 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
             {isRegister ? <UserPlus size={24} /> : <Sparkles size={24} />}
           </div>
 
-          <p className="mini-label">
-            {isRegister ? "Create account" : "Welcome back"}
-          </p>
+          <p className="mini-label">{isRegister ? "Create account" : "Welcome back"}</p>
           <h2>{isRegister ? "Start your BragStack" : "Log in to BragStack"}</h2>
           <p className="auth-muted">
             {isRegister
               ? "Create your private workspace for career proof."
               : "Open your dashboard and keep building your proof."}
           </p>
-
-          <div className="auth-oauth-grid">
-            <a
-              className="auth-oauth-button auth-oauth-google"
-              href={`${apiBaseUrl}/auth/google/login`}
-            >
-              <span className="auth-google-mark" aria-hidden="true">G</span>
-              <span>Continue with Google</span>
-            </a>
-            <a
-              className="auth-oauth-button auth-oauth-github"
-              href={`${apiBaseUrl}/auth/github/login`}
-            >
-              <GitHubMark />
-              <span>Continue with GitHub</span>
-            </a>
-          </div>
-
-          <div className="auth-divider"><span>or use email</span></div>
 
           {errorMessage && <div className="auth-error">{errorMessage}</div>}
 
@@ -123,13 +142,7 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
               Name
               <div>
                 <UserPlus size={17} />
-                <input
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Tee"
-                  required
-                />
+                <input name="name" value={formData.name} onChange={handleChange} placeholder="Tee" required />
               </div>
             </label>
           )}
@@ -138,14 +151,7 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
             Email
             <div>
               <Mail size={17} />
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-                required
-              />
+              <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required />
             </div>
           </label>
 
@@ -153,27 +159,50 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
             Password
             <div>
               <Lock size={17} />
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                minLength={8}
-                required
-              />
+              <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" minLength={8} required />
             </div>
           </label>
 
-          <button className="btn primary auth-submit" disabled={isSubmitting}>
+          {!isRegister && (
+            <button type="button" className="auth-forgot-link" onClick={() => setShowReset((current) => !current)}>
+              Forgot password?
+            </button>
+          )}
+
+          <button className="btn primary auth-submit" disabled={isSubmitting || Boolean(connectingProvider)}>
             {isSubmitting ? "Working..." : isRegister ? "Create account" : "Log in"}
           </button>
 
+          {showReset && !isRegister && (
+            <div className="auth-reset-panel">
+              <strong>Reset your password</strong>
+              <p>Enter the email address on your BragStack account.</p>
+              <div className="auth-reset-row">
+                <input type="email" value={resetEmail} onChange={(event) => setResetEmail(event.target.value)} placeholder="you@example.com" required />
+                <button type="button" onClick={handleResetRequest} disabled={resetSubmitting || !resetEmail}>
+                  {resetSubmitting ? "Sending..." : "Send link"}
+                </button>
+              </div>
+              {resetMessage && <small>{resetMessage}</small>}
+            </div>
+          )}
+
+          <div className="auth-divider"><span>or continue with</span></div>
+
+          <div className="auth-oauth-grid">
+            <button type="button" className="auth-oauth-button auth-oauth-google" onClick={() => startOAuth("google")} disabled={Boolean(connectingProvider)}>
+              <span className="auth-google-mark" aria-hidden="true">G</span>
+              <span>{connectingProvider === "google" ? "Connecting to Google..." : "Continue with Google"}</span>
+            </button>
+            <button type="button" className="auth-oauth-button auth-oauth-github" onClick={() => startOAuth("github")} disabled={Boolean(connectingProvider)}>
+              <GitHubMark />
+              <span>{connectingProvider === "github" ? "Connecting to GitHub..." : "Continue with GitHub"}</span>
+            </button>
+          </div>
+
           <p className="auth-switch">
             {isRegister ? "Already have an account?" : "New to BragStack?"}{" "}
-            <a href={isRegister ? "/login" : "/register"}>
-              {isRegister ? "Log in" : "Create one"}
-            </a>
+            <a href={isRegister ? "/login" : "/register"}>{isRegister ? "Log in" : "Create one"}</a>
           </p>
         </form>
       </section>
