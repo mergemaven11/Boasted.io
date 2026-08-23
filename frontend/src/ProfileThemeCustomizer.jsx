@@ -1,23 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { getCurrentUser, updateCurrentUserProfile } from "./api";
+import { PROFILE_THEMES as THEME_OBJECTS } from "./profileThemes";
 
-export const PROFILE_THEMES = [
-  ["default", "BragStack Default"], ["clinical", "Clinical"], ["educator", "Educator"],
-  ["engineer", "Engineer"], ["designer", "Designer"], ["executive", "Executive"],
-  ["trades", "Trades"], ["creator", "Creator"], ["hospitality", "Hospitality"],
-  ["finance", "Finance"], ["legal", "Legal"], ["public-service", "Public Service"],
-];
+const PROFILE_THEMES = THEME_OBJECTS.map((theme) => [theme.id, theme.name]);
+const THEME_COLORS = Object.fromEntries(THEME_OBJECTS.map((theme) => [theme.id, [theme.primary, theme.secondary, theme.background]]));
 
-const THEME_COLORS = {
-  default:["#7dd3fc","#c4b5fd","#050816"], clinical:["#5eead4","#67e8f9","#06151a"],
-  educator:["#fbbf24","#fb7185","#181006"], engineer:["#60a5fa","#94a3b8","#07111f"],
-  designer:["#f472b6","#c084fc","#17091a"], executive:["#d4af37","#e2e8f0","#090b10"],
-  trades:["#fb923c","#facc15","#171008"], creator:["#a78bfa","#22d3ee","#10091c"],
-  hospitality:["#fb7185","#fda4af","#190b10"], finance:["#34d399","#93c5fd","#07150f"],
-  legal:["#c4b5fd","#e5e7eb","#0d0b16"], "public-service":["#38bdf8","#f8fafc","#07121b"],
-};
-
-export function getProfileThemeStyle(profile) {
+function getProfileThemeStyle(profile) {
   const defaults = THEME_COLORS[profile?.profile_theme] || THEME_COLORS.default;
   return {
     "--theme-accent": profile?.profile_primary_color || defaults[0],
@@ -35,14 +23,12 @@ export default function ProfileThemeCustomizer({ publicSlug, profile, onSaved })
   useEffect(() => {
     if (!localStorage.getItem("bragstack_token")) return;
     getCurrentUser().then((user) => {
-      if (user.public_slug === publicSlug) setOwner(user);
+      if (user.public_slug === publicSlug) {
+        setOwner(user);
+        setForm({ ...user });
+      }
     }).catch(() => {});
   }, [publicSlug]);
-
-  useEffect(() => {
-    if (!owner) return;
-    setForm({ ...owner });
-  }, [owner]);
 
   const previewStyle = useMemo(() => getProfileThemeStyle(form || profile), [form, profile]);
   if (!owner || !form) return null;
@@ -65,7 +51,7 @@ export default function ProfileThemeCustomizer({ publicSlug, profile, onSaved })
         profile_theme: form.profile_theme, profile_primary_color: form.profile_primary_color,
         profile_secondary_color: form.profile_secondary_color, profile_background_color: form.profile_background_color,
       });
-      setOwner(updated); onSaved?.(updated); setOpen(false);
+      setOwner(updated); setForm({ ...updated }); onSaved?.(updated); setOpen(false);
     } finally { setSaving(false); }
   }
 
