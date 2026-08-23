@@ -1,0 +1,374 @@
+/* BragStack production polish: shared brand mark + responsive safety net. */
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+/* Reuse the existing BragStack SVG mark everywhere the public brand appears. */
+.landing-logo {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  letter-spacing: 0.08em !important;
+}
+
+.landing-logo::before {
+  content: "";
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  display: block;
+  background: url('/favicon.svg') center / contain no-repeat;
+  filter: drop-shadow(0 8px 18px rgba(126, 20, 255, 0.3));
+}
+
+.sidebar-logo {
+  color: transparent !important;
+  background:
+    url('/favicon.svg') center / 62% auto no-repeat,
+    linear-gradient(135deg, rgba(248,250,252,0.98), rgba(186,230,253,0.92), rgba(196,181,253,0.92)) !important;
+}
+
+/* Prevent wide children from forcing horizontal scrolling. */
+.landing-page,
+.auth-page,
+.auth-shell,
+.auth-copy,
+.auth-card,
+.authenticated-content,
+.landing-hero,
+.landing-feature-section,
+.career-intelligence-demo,
+.mock-analytics-panel,
+.feature-dashboard-preview,
+.proof-preview-card,
+.pricing-card,
+.mega-footer {
+  min-width: 0;
+}
+
+.auth-card input,
+.auth-card button,
+.auth-card a,
+.auth-field,
+.auth-field div {
+  max-width: 100%;
+}
+
+@media (max-width: 980px) {
+  .landing-nav {
+    top: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .landing-hero {
+    min-height: auto !important;
+    padding-top: 4rem !important;
+    gap: 2rem !important;
+  }
+
+  .landing-proof-preview {
+    min-height: 440px !important;
+  }
+
+  .authenticated-content {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+}
+
+@media (max-width: 720px) {
+  .landing-nav {
+    width: calc(100% - 0.75rem) !important;
+    padding: 0.62rem 0.65rem 0.62rem 0.75rem !important;
+    border-radius: 15px !important;
+    gap: 0.45rem;
+  }
+
+  .landing-logo {
+    gap: 0.48rem;
+    font-size: 0.76rem !important;
+    letter-spacing: 0.055em !important;
+    white-space: nowrap;
+  }
+
+  .landing-logo::before {
+    width: 25px;
+    height: 25px;
+    flex-basis: 25px;
+  }
+
+  .landing-nav-actions {
+    gap: 0.4rem !important;
+  }
+
+  .landing-btn-small {
+    min-height: 36px !important;
+    padding: 0.45rem 0.72rem !important;
+    font-size: 0.72rem !important;
+    white-space: nowrap;
+  }
+
+  .landing-hero,
+  .landing-problem-section,
+  .landing-use-cases,
+  .landing-workflow,
+  .landing-pricing,
+  .landing-feature-section,
+  .landing-final-cta,
+  .landing-use-strip,
+  .landing-footer,
+  .mega-footer {
+    width: calc(100% - 1rem) !important;
+  }
+
+  .landing-hero {
+    padding: 3rem 0 2.5rem !important;
+  }
+
+  .landing-hero-copy h1 {
+    font-size: clamp(2.75rem, 14vw, 4.25rem) !important;
+    line-height: 0.98 !important;
+    letter-spacing: -0.06em !important;
+  }
+
+  .landing-hero-description,
+  .landing-section-heading > span,
+  .landing-feature-copy > p:not(.landing-mini-label) {
+    font-size: 0.98rem !important;
+    line-height: 1.62 !important;
+  }
+
+  .landing-hero-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .landing-hero-actions .landing-btn {
+    width: 100%;
+  }
+
+  .landing-trust-line {
+    gap: 0.35rem !important;
+    font-size: 0.72rem !important;
+  }
+
+  .landing-proof-preview {
+    min-height: auto !important;
+    padding: 1rem 0 0;
+  }
+
+  .proof-preview-card {
+    width: 100% !important;
+    padding: 1.15rem !important;
+    border-radius: 20px !important;
+    transform: none !important;
+  }
+
+  .proof-preview-card h2 {
+    font-size: 1.45rem !important;
+  }
+
+  .landing-use-strip {
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .landing-use-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .landing-use-strip span {
+    flex: 0 0 auto;
+  }
+
+  .landing-problem-section,
+  .landing-use-cases,
+  .landing-workflow,
+  .landing-pricing {
+    padding: 3.5rem 0 !important;
+  }
+
+  .landing-feature-section,
+  .landing-final-cta {
+    padding: 1.35rem !important;
+    border-radius: 22px !important;
+  }
+
+  .career-intelligence-demo {
+    padding: 1rem !important;
+    border-radius: 22px !important;
+  }
+
+  .mock-analytics-header,
+  .pricing-card-header,
+  .pricing-conversion-note {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  .mock-chart {
+    overflow-x: auto;
+  }
+
+  .pricing-card {
+    padding: 1.35rem !important;
+  }
+
+  .pricing-card-header {
+    min-height: auto !important;
+    gap: 0.65rem !important;
+  }
+
+  .pricing-card-header > span {
+    max-width: none !important;
+    text-align: left !important;
+  }
+
+  .mega-footer {
+    margin-top: 3.5rem !important;
+  }
+
+  .mega-footer-columns {
+    gap: 1.5rem !important;
+  }
+
+  /* Auth: stack cleanly and keep the form reachable above the fold. */
+  .auth-page {
+    width: calc(100% - 1rem) !important;
+    padding: 1rem 0 2rem !important;
+  }
+
+  .auth-shell {
+    min-height: auto !important;
+    gap: 0.8rem !important;
+  }
+
+  .auth-copy {
+    padding: 1.25rem !important;
+    border-radius: 22px !important;
+  }
+
+  .auth-copy h1 {
+    margin: 0.9rem 0 0.8rem !important;
+    font-size: clamp(2.2rem, 12vw, 3.5rem) !important;
+    line-height: 0.98 !important;
+  }
+
+  .auth-copy p {
+    font-size: 0.95rem !important;
+    line-height: 1.55 !important;
+  }
+
+  .auth-proof-list {
+    margin-top: 1rem !important;
+  }
+
+  .auth-card {
+    width: 100%;
+    padding: 1.15rem !important;
+    border-radius: 22px !important;
+  }
+
+  .auth-oauth-button {
+    min-height: 48px !important;
+    padding: 0.65rem 0.75rem;
+    text-align: center;
+  }
+
+  /* Logged-in app: use the horizontal nav as a touch-friendly strip. */
+  .app-sidebar {
+    padding: 0.55rem 0.6rem !important;
+    border-radius: 0 0 16px 16px !important;
+  }
+
+  .sidebar-nav {
+    gap: 0.35rem !important;
+    padding-bottom: 0.1rem;
+  }
+
+  .sidebar-nav a {
+    min-height: 40px;
+    padding: 0.55rem 0.7rem !important;
+    border-radius: 11px !important;
+    font-size: 0.8rem;
+  }
+
+  .sidebar-nav a svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .authenticated-content {
+    padding-left: 0 !important;
+  }
+
+  .authenticated-content > * {
+    max-width: 100%;
+  }
+
+  table {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .landing-logo {
+    font-size: 0.69rem !important;
+  }
+
+  .landing-logo::before {
+    width: 23px;
+    height: 23px;
+    flex-basis: 23px;
+  }
+
+  .landing-btn-small {
+    padding-inline: 0.6rem !important;
+  }
+
+  .landing-section-heading h2,
+  .landing-feature-copy h2,
+  .landing-final-cta h2,
+  .career-intelligence-copy h2 {
+    font-size: clamp(2rem, 10vw, 2.8rem) !important;
+  }
+
+  .feature-preview-header {
+    grid-template-columns: 1fr !important;
+  }
+
+  .proof-preview-header {
+    gap: 0.75rem;
+  }
+
+  .proof-preview-avatar {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 13px !important;
+  }
+
+  .auth-card h2 {
+    font-size: 1.65rem !important;
+  }
+}
