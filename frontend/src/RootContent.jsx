@@ -5,6 +5,7 @@ import App from "./App.jsx";
 import AppSidebar from "./AppSidebar.jsx";
 import DocsPage from "./DocsPage.jsx";
 import ImpactReceiptsPage from "./ImpactReceiptsPage.jsx";
+import { PrivacyPolicyPage, PublicFooter, TermsPage } from "./LegalPages.jsx";
 import NDAGuidancePage from "./NDAGuidancePage.jsx";
 import SeoLandingPage from "./SeoLandingPages.jsx";
 import UpgradePage from "./UpgradePage.jsx";
@@ -20,16 +21,6 @@ function ProRequired() {
         <a className="btn primary" href="/upgrade">Upgrade to Pro</a>
       </section>
     </main>
-  );
-}
-
-function PublicLegalFooter() {
-  return (
-    <footer style={{ borderTop: "1px solid rgba(148,163,184,.16)", padding: "20px 24px 28px", textAlign: "center", fontSize: 14, opacity: .9 }}>
-      <a href="/docs" style={{ marginRight: 18 }}>Docs</a>
-      <a href="/nda-safety" style={{ marginRight: 18 }}>NDA & confidential work</a>
-      <a href="mailto:Tobias.scott@usebragstack.com">Support</a>
-    </footer>
   );
 }
 
@@ -69,10 +60,12 @@ function RootContent() {
     return () => { active = false; };
   }, [isAuthenticatedApp]);
 
+  if (path === "/privacy") return <PrivacyPolicyPage />;
+  if (path === "/terms") return <TermsPage />;
   if (isUpgradePage) return <UpgradePage />;
-  if (isDocsPage) return <><DocsPage /><PublicLegalFooter /></>;
-  if (isNdaPage) return <><NDAGuidancePage /><PublicLegalFooter /></>;
-  if (seoLandingContent) return <><SeoLandingPage content={seoLandingContent} /><PublicLegalFooter /></>;
+  if (isDocsPage) return <><DocsPage /><PublicFooter /></>;
+  if (isNdaPage) return <><NDAGuidancePage /><PublicFooter /></>;
+  if (seoLandingContent) return <><SeoLandingPage content={seoLandingContent} /><PublicFooter /></>;
 
   let Content = App;
   if (path === "/app/accomplishments") {
@@ -83,7 +76,7 @@ function RootContent() {
     Content = ProRequired;
   }
 
-  if (!isAuthenticatedApp) return <><Content /><PublicLegalFooter /></>;
+  if (!isAuthenticatedApp) return <><Content /><PublicFooter /></>;
   if (!planLoaded) return <div className="app-shell"><div className="authenticated-content" /></div>;
 
   return (
