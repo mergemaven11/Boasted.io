@@ -10,7 +10,10 @@ from passlib.context import CryptContext
 from app.database import users_collection
 from app.plans import get_entitlements_for_user, get_plan_for_user
 
-SECRET_KEY = os.getenv("JWT_SECRET", "change-this-dev-secret")
+SECRET_KEY = os.getenv("JWT_SECRET")
+if not SECRET_KEY:
+    raise RuntimeError("JWT_SECRET environment variable is required")
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(
     os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440")
