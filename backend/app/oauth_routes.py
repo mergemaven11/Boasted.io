@@ -92,7 +92,7 @@ def _find_or_create_oauth_user(
 def _frontend_success_redirect(user: dict) -> RedirectResponse:
     token = create_access_token({"sub": str(user["_id"])})
     return RedirectResponse(
-        url=f"{FRONTEND_URL}/auth/callback#token={token}",
+        url=f"{FRONTEND_URL}/login#oauth_token={token}",
         status_code=status.HTTP_302_FOUND,
     )
 
@@ -223,7 +223,7 @@ async def github_callback(request: Request, code: str, state: str | None = None)
 
     verified_emails = [item for item in emails if item.get("verified") and item.get("email")]
     primary = next((item for item in verified_emails if item.get("primary")), None)
-    selected_email = (primary or (verified_emails[0] if verified_emails else None))
+    selected_email = primary or (verified_emails[0] if verified_emails else None)
     if not selected_email:
         raise HTTPException(status_code=400, detail="GitHub account must have a verified email")
 
