@@ -102,7 +102,7 @@ function AppSidebar() {
 
         <button type="button" onClick={logout}>
           <LogOut size={17} />
-          Logout
+          Sign out
         </button>
       </div>
     </aside>
