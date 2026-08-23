@@ -18,23 +18,23 @@ function GitHubMark() {
 function AuthPage({ mode = "login", onLogin, onRegister }) {
   const isRegister = mode === "register";
   const apiBaseUrl = getApiBaseUrl().replace(/\/$/, "");
+  const initialResetToken = new URLSearchParams(window.location.hash.slice(1)).get("reset_token") || "";
 
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [connectingProvider, setConnectingProvider] = useState("");
-  const [showReset, setShowReset] = useState(false);
+  const [showReset, setShowReset] = useState(Boolean(initialResetToken));
   const [resetEmail, setResetEmail] = useState("");
   const [resetMessage, setResetMessage] = useState("");
   const [resetSubmitting, setResetSubmitting] = useState(false);
-  const [resetToken, setResetToken] = useState("");
+  const [resetToken, setResetToken] = useState(initialResetToken);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
     const hash = new URLSearchParams(window.location.hash.slice(1));
     const oauthToken = hash.get("oauth_token");
-    const passwordResetToken = hash.get("reset_token");
 
     if (oauthToken) {
       localStorage.setItem("bragstack_token", oauthToken);
@@ -43,9 +43,7 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
       return;
     }
 
-    if (passwordResetToken) {
-      setResetToken(passwordResetToken);
-      setShowReset(true);
+    if (hash.get("reset_token")) {
       history.replaceState(null, "", "/login");
     }
   }, []);
