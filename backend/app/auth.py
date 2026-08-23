@@ -15,37 +15,28 @@ if not SECRET_KEY:
     raise RuntimeError("JWT_SECRET environment variable is required")
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = int(
-    os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440")
-)
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 def hash_password(password: str) -> str:
-    """Hash a plain-text password."""
     return password_context.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a plain-text password against a stored password hash."""
     return password_context.verify(plain_password, hashed_password)
 
 
 def create_access_token(data: dict) -> str:
-    """Create a signed JWT access token."""
     payload = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(
-        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     payload.update({"exp": expire})
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def serialize_user(user: dict) -> dict:
-    """Convert a MongoDB user document into an API-safe response dictionary."""
     return {
         "id": str(user["_id"]),
         "name": user.get("name", ""),
@@ -55,6 +46,7 @@ def serialize_user(user: dict) -> dict:
         "headline": user.get("headline", ""),
         "bio": user.get("bio", ""),
         "location": user.get("location", ""),
+        "avatar_url": user.get("avatar_url", ""),
         "github_url": user.get("github_url", ""),
         "portfolio_url": user.get("portfolio_url", ""),
         "resume_url": user.get("resume_url", ""),
@@ -65,7 +57,6 @@ def serialize_user(user: dict) -> dict:
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
-    """Return the currently authenticated user from a JWT bearer token."""
     credentials_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
