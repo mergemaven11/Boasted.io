@@ -5,17 +5,17 @@ import {
   ListChecks,
   LogOut,
   ReceiptText,
+  Sparkles,
   UserRound,
 } from "lucide-react";
 
 import { getCurrentUser } from "./api";
 import "./AppShell.css";
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { href: "/app", label: "Overview", icon: Home },
   { href: "/app/accomplishments", label: "Accomplishments", icon: ListChecks },
   { href: "/app/impact-receipts", label: "Impact Receipts", icon: ReceiptText },
-  { href: "/app/reports", label: "Reports", icon: FileText },
 ];
 
 function AppSidebar() {
@@ -28,9 +28,7 @@ function AppSidebar() {
     async function loadUser() {
       try {
         const data = await getCurrentUser();
-        if (isMounted) {
-          setUser(data);
-        }
+        if (isMounted) setUser(data);
       } catch (error) {
         if (error.response?.status === 401) {
           localStorage.removeItem("bragstack_token");
@@ -40,15 +38,17 @@ function AppSidebar() {
     }
 
     void loadUser();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []);
 
   function logout() {
     localStorage.removeItem("bragstack_token");
     window.location.assign("/login");
+  }
+
+  const navItems = [...BASE_NAV_ITEMS];
+  if (user?.entitlements?.advanced_reports) {
+    navItems.push({ href: "/app/reports", label: "Reports", icon: FileText });
   }
 
   return (
@@ -57,18 +57,15 @@ function AppSidebar() {
         <span className="sidebar-logo">B</span>
         <span>
           <strong>BragStack</strong>
-          <small>Career proof</small>
+          <small>{user?.plan === "pro" ? "Pro career proof" : "Career proof"}</small>
         </span>
       </a>
 
-      <a className="sidebar-add" href="/app#entries">
-        + Add accomplishment
-      </a>
+      <a className="sidebar-add" href="/app#entries">+ Add accomplishment</a>
 
       <nav className="sidebar-nav" aria-label="BragStack navigation">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+        {navItems.map(({ href, label, icon: Icon }) => {
           const isActive = path === href;
-
           return (
             <a className={isActive ? "active" : ""} href={href} key={href}>
               <Icon size={18} />
@@ -83,6 +80,13 @@ function AppSidebar() {
             <span>Proof Profile</span>
           </a>
         )}
+
+        {user && user.plan !== "pro" && (
+          <a href="/upgrade">
+            <Sparkles size={18} />
+            <span>Upgrade to Pro</span>
+          </a>
+        )}
       </nav>
 
       <div className="sidebar-footer">
@@ -92,7 +96,7 @@ function AppSidebar() {
           </span>
           <span>
             <strong>{user?.name || "BragStack member"}</strong>
-            <small>{user?.headline || "Build your proof"}</small>
+            <small>{user?.plan === "pro" ? "Pro plan" : "Free plan"}</small>
           </span>
         </div>
 

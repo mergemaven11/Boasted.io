@@ -1,10 +1,24 @@
 import { useState } from "react";
-import { Github, Lock, Mail, Sparkles, UserPlus } from "lucide-react";
+import { Lock, Mail, Sparkles, UserPlus } from "lucide-react";
 import "./AuthPage.css";
 
 function getApiBaseUrl() {
   if (window.location.hostname.endsWith(".app.github.dev")) return "/api";
   return import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8000";
+}
+
+function GitHubMark() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      fill="currentColor"
+    >
+      <path d="M12 .7a11.5 11.5 0 0 0-3.64 22.41c.58.11.79-.25.79-.56v-2.02c-3.22.7-3.9-1.37-3.9-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.72 1.27 3.38.97.1-.75.4-1.27.74-1.56-2.57-.29-5.27-1.29-5.27-5.74 0-1.27.45-2.3 1.2-3.11-.12-.3-.52-1.48.11-3.08 0 0 .98-.31 3.16 1.19a10.9 10.9 0 0 1 5.75 0c2.19-1.5 3.16-1.19 3.16-1.19.63 1.6.23 2.78.11 3.08.75.81 1.2 1.84 1.2 3.11 0 4.46-2.71 5.45-5.29 5.74.42.36.79 1.07.79 2.16v3.02c0 .31.21.68.8.56A11.5 11.5 0 0 0 12 .7Z" />
+    </svg>
+  );
 }
 
 function AuthPage({ mode = "login", onLogin, onRegister }) {
@@ -95,7 +109,7 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
               className="auth-oauth-button auth-oauth-github"
               href={`${apiBaseUrl}/auth/github/login`}
             >
-              <Github size={20} aria-hidden="true" />
+              <GitHubMark />
               <span>Continue with GitHub</span>
             </a>
           </div>

@@ -4,6 +4,10 @@
   padding: 34px 0 72px;
 }
 
+body[data-bragstack-plan="free"] a[href="/app/reports"] {
+  display: none !important;
+}
+
 .product-page-hero {
   display: flex;
   justify-content: space-between;

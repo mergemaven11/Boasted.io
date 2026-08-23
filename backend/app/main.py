@@ -1,14 +1,17 @@
 import os
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.auth import get_current_user
 from app.auth_routes import router as auth_router
 from app.oauth_routes import router as oauth_router
+from app.billing_routes import router as billing_router
 from app.beta_metrics_routes import router as beta_metrics_router
 from app.certification_packet_export_routes import router as certification_packet_export_router
 from app.certification_packet_routes import router as certification_packet_router
 from app.core_output_routes import router as core_output_router
+from app.database import entries_collection, impact_receipts_collection
 from app.impact_receipt_routes import router as impact_receipts_router
 from app.interview_packet_export_routes import router as interview_packet_export_router
 from app.interview_packet_routes import router as interview_packet_router
@@ -18,6 +21,7 @@ from app.packet_platform_routes import router as packet_platform_router
 from app.packet_share_routes import router as packet_share_router
 from app.performance_packet_export_routes import router as performance_packet_export_router
 from app.performance_packet_routes import router as performance_packet_router
+from app.plans import enforce_usage_limit
 from app.promotion_packet_export_routes import router as promotion_packet_export_router
 from app.promotion_packet_routes import router as promotion_packet_router
 from app.public_slug_routes import router as public_slug_router
@@ -46,12 +50,46 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+def enforce_entry_usage(request: Request, current_user: dict = Depends(get_current_user)):
+    """Enforce the current plan's proof-entry creation limit."""
+    if request.method != "POST" or request.url.path.rstrip("/") != "/entries":
+        return
+
+    user_id = str(current_user["_id"])
+    enforce_usage_limit(
+        user=current_user,
+        entitlement_name="max_entries",
+        current_count=entries_collection.count_documents({"user_id": user_id}),
+        resource_name="proof entries",
+    )
+
+
+def enforce_receipt_usage(request: Request, current_user: dict = Depends(get_current_user)):
+    """Enforce the current plan's Impact Receipt creation limit."""
+    path = request.url.path.rstrip("/")
+    is_create = request.method == "POST" and (
+        path == "/impact-receipts" or path.startswith("/impact-receipts/from-entry/")
+    )
+    if not is_create:
+        return
+
+    user_id = str(current_user["_id"])
+    enforce_usage_limit(
+        user=current_user,
+        entitlement_name="max_impact_receipts",
+        current_count=impact_receipts_collection.count_documents({"user_id": user_id}),
+        resource_name="Impact Receipts",
+    )
+
+
 app.include_router(auth_router)
 app.include_router(oauth_router)
-app.include_router(entries_router)
+app.include_router(billing_router)
+app.include_router(entries_router, dependencies=[Depends(enforce_entry_usage)])
 app.include_router(public_router)
 app.include_router(public_slug_router)
-app.include_router(impact_receipts_router)
+app.include_router(impact_receipts_router, dependencies=[Depends(enforce_receipt_usage)])
 app.include_router(core_output_router)
 app.include_router(beta_metrics_router)
 app.include_router(reports_router)

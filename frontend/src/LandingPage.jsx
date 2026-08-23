@@ -56,7 +56,7 @@ const plans = [
     badge: "Best for your career",
     features: ["Unlimited proof + Impact Receipts", "Advanced career analytics", "Performance Review Builder", "Promotion Packet", "PDF and career exports", "Integrations and advanced public profile"],
     cta: "Unlock BragStack Pro",
-    href: "/register",
+    href: "/upgrade",
   },
   {
     name: "Team",
@@ -75,6 +75,62 @@ const plans = [
     features: ["Everything in Team", "SSO / SCIM", "Audit logs", "Retention controls", "Advanced admin policies", "Custom integrations and support"],
     cta: "Contact us",
     href: "mailto:hello@bragstack.app?subject=BragStack%20Enterprise",
+  },
+];
+
+const productDetails = [
+  {
+    id: "product-impact-receipts",
+    title: "Impact Receipts",
+    description: "Turn an accomplishment into structured proof: what happened, what you contributed, the result, skills used, evidence references, measurable outcomes, shared credit, and optional trust signals. Receipts remain private unless you explicitly make them public.",
+  },
+  {
+    id: "product-career-analytics",
+    title: "Career Analytics",
+    description: "See patterns across the work you capture: recurring skills, categories of impact, evidence coverage, activity over time, and the kinds of ownership your proof demonstrates. Advanced analytics are part of Pro.",
+  },
+  {
+    id: "product-reports",
+    title: "Reports",
+    description: "Free accounts get basic proof summaries. Pro unlocks deeper career reports and packaging designed for review cycles, promotion conversations, interviews, exports, and repeatable career storytelling.",
+  },
+  {
+    id: "product-public-profiles",
+    title: "Public Proof Profiles",
+    description: "Your account is private by default. A public proof profile only exposes the entries and Impact Receipts you intentionally mark public, so you can share selected evidence without publishing your entire work history.",
+  },
+  {
+    id: "product-pricing",
+    title: "Pricing",
+    description: "Free includes 5 proof entries and 1 Impact Receipt. Pro is $9/month and unlocks unlimited proof, advanced reports, review and promotion builders, PDF exports, integrations, and advanced profile capabilities.",
+  },
+];
+
+const solutionDetails = [
+  {
+    id: "solution-performance-reviews",
+    title: "Performance Reviews",
+    description: "Capture wins throughout the cycle, then use the evidence later instead of reconstructing months of work from memory. Pro review builders organize documented impact into review-ready material.",
+  },
+  {
+    id: "solution-promotions",
+    title: "Promotions",
+    description: "Build a record of scope, ownership, outcomes, leadership, and growth. Promotion packets help organize those receipts into a clearer case for the next level.",
+  },
+  {
+    id: "solution-interviews",
+    title: "Interviews",
+    description: "Keep real situations, actions, outcomes, skills, and metrics close at hand so interview stories come from documented work rather than last-minute memory searches.",
+  },
+  {
+    id: "solution-freelancers",
+    title: "Freelancers",
+    description: "Track project outcomes, client value, measurable results, testimonials or evidence references, and reusable case-study material across engagements.",
+  },
+  {
+    id: "solution-teams",
+    title: "Teams",
+    description: "The planned Team tier focuses on shared review templates, optional verification, review-cycle packets, organization-level analytics, and centralized billing without turning BragStack into employee surveillance.",
   },
 ];
 
@@ -146,11 +202,9 @@ function LandingPage() {
 
       <section className="landing-workflow premium-workflow" id="how-it-works">
         <div className="landing-section-heading"><p>HOW IT WORKS</p><h2>Capture once. Turn it into career leverage again and again.</h2><span>BragStack connects the daily work you are already doing to the career artifacts you usually scramble to create later.</span></div>
-
         <div className="career-flow" aria-label="BragStack career proof workflow">
           <span>Daily work</span><ArrowRight size={18} /><span>Proof entries</span><ArrowRight size={18} /><span>Impact Receipts</span><ArrowRight size={18} /><span>Career analytics</span><ArrowRight size={18} /><span>Reviews · promotions · interviews</span>
         </div>
-
         <div className="premium-workflow-grid">{workflowSteps.map((step) => <article className="workflow-card premium-workflow-card" key={step.number}><span className="workflow-number">{step.number}</span><h3>{step.title}</h3><p>{step.description}</p></article>)}</div>
 
         <div className="career-intelligence-demo">
@@ -188,6 +242,35 @@ function LandingPage() {
         <div className="feature-dashboard-preview"><div className="feature-preview-header"><div><span>Entries this quarter</span><strong>12</strong></div><div><span>Evidence coverage</span><strong>83%</strong></div></div><div className="feature-preview-entry"><div><span className="feature-preview-badge">Impact Receipt</span><small>Reliability · Current Job</small></div><h3>Improved escalation response process</h3><p>Reduced repeated troubleshooting and gave the team a clearer path for complex customer cases.</p><div className="feature-preview-tags"><span>Leadership</span><span>Communication</span><span>Process</span></div></div></div>
       </section>
 
+      <section className="landing-use-cases" id="product">
+        <div className="landing-section-heading"><p>PRODUCT</p><h2>Career proof that stays useful after the moment passes.</h2><span>Each part of BragStack is designed to move from private capture to reusable evidence without forcing you to publish your whole work history.</span></div>
+        <div className="use-case-grid">{productDetails.map((item) => <article className="use-case-card" id={item.id} key={item.id}><div className="use-case-icon"><ReceiptText size={21} /></div><h3>{item.title}</h3><p>{item.description}</p></article>)}</div>
+      </section>
+
+      <section className="landing-use-cases" id="solutions">
+        <div className="landing-section-heading"><p>SOLUTIONS</p><h2>Use the same proof across the moments that shape your career.</h2><span>Capture once, then organize the evidence differently depending on the conversation in front of you.</span></div>
+        <div className="use-case-grid">{solutionDetails.map((item) => <article className="use-case-card" id={item.id} key={item.id}><div className="use-case-icon"><Target size={21} /></div><h3>{item.title}</h3><p>{item.description}</p></article>)}</div>
+      </section>
+
+      <section className="landing-feature-section" id="security">
+        <div className="landing-feature-copy">
+          <p className="landing-mini-label">PRIVACY & SECURITY</p>
+          <h2>Your career record starts private.</h2>
+          <p>BragStack stores the account information and career-proof content you submit so the app can provide your private workspace. Proof entries and Impact Receipts are private by default. Content only appears on a public proof profile when you intentionally mark that item public.</p>
+          <div className="landing-feature-list">
+            <div><ShieldCheck size={17} /> Authentication is required for private account data and private proof APIs.</div>
+            <div><ShieldCheck size={17} /> Google and GitHub sign-in use OAuth; BragStack does not need your provider password.</div>
+            <div><ShieldCheck size={17} /> BragStack stores billing status and Stripe identifiers needed to enforce your plan; card details are entered with Stripe and are not stored in the BragStack database.</div>
+            <div><ShieldCheck size={17} /> Paid features are enforced on the server, so hiding a button is not the security boundary.</div>
+            <div><ShieldCheck size={17} /> Public sharing is opt-in at the item level; your unshared entries and receipts remain behind authentication.</div>
+          </div>
+        </div>
+        <div className="feature-dashboard-preview">
+          <div className="feature-preview-header"><div><span>Default visibility</span><strong>Private</strong></div><div><span>Public sharing</span><strong>User controlled</strong></div></div>
+          <div className="feature-preview-entry"><div><span className="feature-preview-badge">Security note</span><small>Specific, not inflated</small></div><h3>We do not claim certifications we have not earned.</h3><p>As the product matures, formal security documentation, retention controls, audit features, and enterprise identity capabilities can be added and documented when they are actually implemented.</p><div className="feature-preview-tags"><span>Private by default</span><span>OAuth</span><span>Stripe-hosted payment</span></div></div>
+        </div>
+      </section>
+
       <section className="landing-pricing" id="pricing">
         <div className="landing-section-heading"><p>PRICING</p><h2>Start with proof. Upgrade when you want leverage.</h2><span>Free lets you experience the workflow. Pro unlocks the tools designed to turn a growing work history into reviews, promotion evidence, analytics, exports, and integrations.</span></div>
         <div className="pricing-grid pricing-grid-four">{plans.map((plan) => <article className={`pricing-card ${plan.featured ? "pricing-card-featured pricing-card-pro" : ""}`} key={plan.name}>{plan.badge && <div className="pricing-popular-label">{plan.badge}</div>}<div className="pricing-card-header"><div><p>{plan.name}</p><h3>{plan.price}{plan.suffix && <span>{plan.suffix}</span>}</h3></div></div><p className="pricing-tagline">{plan.tagline}</p><ul>{plan.features.map((feature) => <li key={feature}><Check size={17} />{feature}</li>)}</ul><a className={`landing-btn pricing-button ${plan.featured ? "" : "landing-btn-secondary"}`} href={plan.href}>{plan.cta}{plan.featured && <ArrowRight size={17} />}</a></article>)}</div>
@@ -199,10 +282,10 @@ function LandingPage() {
       <footer className="mega-footer">
         <div className="mega-footer-brand"><a className="landing-logo" href="/">BragStack</a><p>Turn everyday work into career proof you can use when it matters.</p><a className="footer-cta" href="/register">Start building proof <ArrowRight size={15} /></a></div>
         <div className="mega-footer-columns">
-          <div><h3>Product</h3><a href="#how-it-works">Impact Receipts</a><a href="#how-it-works">Career Analytics</a><a href="#how-it-works">Reports</a><a href="#how-it-works">Public Proof Profiles</a><a href="#pricing">Pricing</a></div>
-          <div><h3>Solutions</h3><a href="#use-cases">Performance Reviews</a><a href="#use-cases">Promotions</a><a href="#use-cases">Interviews</a><a href="#use-cases">Freelancers</a><a href="#pricing">Teams</a></div>
+          <div><h3>Product</h3><a href="#product-impact-receipts">Impact Receipts</a><a href="#product-career-analytics">Career Analytics</a><a href="#product-reports">Reports</a><a href="#product-public-profiles">Public Proof Profiles</a><a href="#pricing">Pricing</a></div>
+          <div><h3>Solutions</h3><a href="#solution-performance-reviews">Performance Reviews</a><a href="#solution-promotions">Promotions</a><a href="#solution-interviews">Interviews</a><a href="#solution-freelancers">Freelancers</a><a href="#solution-teams">Teams</a></div>
           <div><h3>Resources</h3><a href="#how-it-works">How it works</a><a href="#use-cases">Use cases</a><a href="/login">Sign in</a><a href="/register">Create account</a><span>Docs · coming soon</span></div>
-          <div><h3>Company</h3><a href="mailto:hello@bragstack.app">Contact</a><a href="mailto:hello@bragstack.app?subject=BragStack%20Team%20waitlist">Team waitlist</a><a href="mailto:hello@bragstack.app?subject=BragStack%20Enterprise">Enterprise</a><span>Changelog · coming soon</span><span>Security · coming soon</span></div>
+          <div><h3>Company</h3><a href="mailto:hello@bragstack.app">Contact</a><a href="mailto:hello@bragstack.app?subject=BragStack%20Team%20waitlist">Team waitlist</a><a href="mailto:hello@bragstack.app?subject=BragStack%20Enterprise">Enterprise</a><span>Changelog · coming soon</span><a href="#security">Security</a></div>
         </div>
         <div className="mega-footer-bottom"><span>© 2026 BragStack</span><span>Private by default · Your proof stays yours.</span><div><a href="/login">Log in</a><a href="/register">Start free</a></div></div>
       </footer>
