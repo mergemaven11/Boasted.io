@@ -4,7 +4,6 @@ import {
   CircleHelp,
   CreditCard,
   FileText,
-  LockKeyhole,
   Plug,
   ReceiptText,
   Search,
