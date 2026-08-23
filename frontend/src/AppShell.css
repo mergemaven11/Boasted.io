@@ -18,7 +18,8 @@
 .sidebar-brand,
 .sidebar-nav a,
 .sidebar-add,
-.mobile-brand {
+.mobile-brand,
+.sidebar-user {
   text-decoration: none;
 }
 
@@ -67,6 +68,7 @@
 
 .sidebar-logo { object-fit: contain; background: #111; }
 .sidebar-user-avatar { color: #0b0b0b; background: #ffb184; }
+.sidebar-user-avatar-image { object-fit: cover; overflow: hidden; }
 
 .sidebar-plan-row {
   display: flex;
