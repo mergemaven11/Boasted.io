@@ -53,8 +53,10 @@ function UpgradePage() {
   }
 
   useEffect(() => {
-    void startCheckout();
-    // Checkout should start only once on page load.
+    const timeoutId = window.setTimeout(() => {
+      void startCheckout();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
