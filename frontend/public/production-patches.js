@@ -52,12 +52,23 @@
     const logo = nav.querySelector(".landing-logo");
     if (logo) { logo.textContent = ""; logo.setAttribute("aria-label", "BragStack home"); }
     const actions = nav.querySelector(".landing-nav-actions");
-    if (actions && !actions.querySelector('a[href="/docs"]')) {
-      const docs = document.createElement("a");
-      docs.href = "/docs";
-      docs.className = "landing-login-link landing-docs-link";
-      docs.textContent = "Docs";
-      actions.prepend(docs);
+    if (actions) {
+      if (!actions.querySelector('a[href="/docs"]')) {
+        const docs = document.createElement("a");
+        docs.href = "/docs";
+        docs.className = "landing-login-link landing-docs-link";
+        docs.textContent = "Docs";
+        actions.prepend(docs);
+      }
+      if (!actions.querySelector('a[href="/#pricing"]')) {
+        const pricing = document.createElement("a");
+        pricing.href = "/#pricing";
+        pricing.className = "landing-login-link landing-pricing-link";
+        pricing.textContent = "Pricing";
+        const login = actions.querySelector('a[href="/login"]');
+        if (login) actions.insertBefore(pricing, login);
+        else actions.appendChild(pricing);
+      }
     }
     nav.dataset.brandPatched = "true";
   }
