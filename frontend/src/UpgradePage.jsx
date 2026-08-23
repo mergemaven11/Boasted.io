@@ -3,6 +3,9 @@ import { ArrowLeft, CreditCard, ShieldCheck, Sparkles } from "lucide-react";
 
 function getApiBaseUrl() {
   if (window.location.hostname.endsWith(".app.github.dev")) return "/api";
+  if (window.location.hostname === "usebragstack.com" || window.location.hostname === "www.usebragstack.com") {
+    return import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://api.usebragstack.com";
+  }
   return import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8000";
 }
 
