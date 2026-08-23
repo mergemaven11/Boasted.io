@@ -1,0 +1,10 @@
+BragStack primary branded-search sitelink candidates
+
+/how-it-works
+/impact-receipts
+/resume-accomplishments
+/performance-reviews
+/career-portfolio
+/pricing
+
+These are real public URLs, internally linked from the SEO landing-page navigation and Explore BragStack section, and included in sitemap.xml. Google ultimately chooses whether and which sitelinks to display.
