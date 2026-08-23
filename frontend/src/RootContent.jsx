@@ -3,8 +3,12 @@ import { useEffect, useState } from "react";
 import AccomplishmentsPage from "./AccomplishmentsPage.jsx";
 import App from "./App.jsx";
 import AppSidebar from "./AppSidebar.jsx";
+import DocsPage from "./DocsPage.jsx";
 import ImpactReceiptsPage from "./ImpactReceiptsPage.jsx";
+import SeoLandingPage from "./SeoLandingPages.jsx";
+import UpgradePage from "./UpgradePage.jsx";
 import { getCurrentUser } from "./api.js";
+import { getSeoLandingPage } from "./seoLandingContent.js";
 
 function ProRequired() {
   return (
@@ -19,7 +23,10 @@ function ProRequired() {
 }
 
 function RootContent() {
-  const path = window.location.pathname;
+  const path = window.location.pathname.replace(/\/$/, "") || "/";
+  const seoLandingContent = getSeoLandingPage(path);
+  const isUpgradePage = path === "/upgrade";
+  const isDocsPage = path === "/docs";
   const isAuthenticatedApp = path.startsWith("/app");
   const [user, setUser] = useState(null);
   const [planLoaded, setPlanLoaded] = useState(!isAuthenticatedApp);
@@ -50,8 +57,11 @@ function RootContent() {
     return () => { active = false; };
   }, [isAuthenticatedApp]);
 
-  let Content = App;
+  if (isUpgradePage) return <UpgradePage />;
+  if (isDocsPage) return <DocsPage />;
+  if (seoLandingContent) return <SeoLandingPage content={seoLandingContent} />;
 
+  let Content = App;
   if (path === "/app/accomplishments") {
     Content = AccomplishmentsPage;
   } else if (path === "/app/impact-receipts") {
@@ -60,20 +70,13 @@ function RootContent() {
     Content = ProRequired;
   }
 
-  if (!isAuthenticatedApp) {
-    return <Content />;
-  }
-
-  if (!planLoaded) {
-    return <div className="app-shell"><div className="authenticated-content" /></div>;
-  }
+  if (!isAuthenticatedApp) return <Content />;
+  if (!planLoaded) return <div className="app-shell"><div className="authenticated-content" /></div>;
 
   return (
     <div className="app-shell">
       <AppSidebar />
-      <div className="authenticated-content">
-        <Content />
-      </div>
+      <div className="authenticated-content"><Content /></div>
     </div>
   );
 }
