@@ -1,6 +1,6 @@
 import os
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth import get_current_user
@@ -11,6 +11,7 @@ from app.beta_metrics_routes import router as beta_metrics_router
 from app.certification_packet_export_routes import router as certification_packet_export_router
 from app.certification_packet_routes import router as certification_packet_router
 from app.core_output_routes import router as core_output_router
+from app.database import entries_collection, impact_receipts_collection
 from app.impact_receipt_routes import router as impact_receipts_router
 from app.interview_packet_export_routes import router as interview_packet_export_router
 from app.interview_packet_routes import router as interview_packet_router
@@ -20,7 +21,7 @@ from app.packet_platform_routes import router as packet_platform_router
 from app.packet_share_routes import router as packet_share_router
 from app.performance_packet_export_routes import router as performance_packet_export_router
 from app.performance_packet_routes import router as performance_packet_router
-from app.plans import require_feature
+from app.plans import enforce_usage_limit, require_feature
 from app.promotion_packet_export_routes import router as promotion_packet_export_router
 from app.promotion_packet_routes import router as promotion_packet_router
 from app.public_slug_routes import router as public_slug_router
@@ -50,6 +51,30 @@ app.add_middleware(
 )
 
 
+def enforce_entry_usage(request: Request, current_user: dict = Depends(get_current_user)):
+    if request.method != "POST" or request.url.path.rstrip("/") != "/entries":
+        return
+    user_id = str(current_user["_id"])
+    enforce_usage_limit(
+        user=current_user,
+        entitlement_name="max_entries",
+        current_count=entries_collection.count_documents({"user_id": user_id}),
+        resource_name="proof entries",
+    )
+
+
+def enforce_receipt_usage(request: Request, current_user: dict = Depends(get_current_user)):
+    if request.method != "POST":
+        return
+    user_id = str(current_user["_id"])
+    enforce_usage_limit(
+        user=current_user,
+        entitlement_name="max_impact_receipts",
+        current_count=impact_receipts_collection.count_documents({"user_id": user_id}),
+        resource_name="Impact Receipts",
+    )
+
+
 def require_advanced_reports(current_user: dict = Depends(get_current_user)):
     require_feature(current_user, "advanced_reports")
 
@@ -77,10 +102,10 @@ def require_pdf_export(current_user: dict = Depends(get_current_user)):
 app.include_router(auth_router)
 app.include_router(oauth_router)
 app.include_router(billing_router)
-app.include_router(entries_router)
+app.include_router(entries_router, dependencies=[Depends(enforce_entry_usage)])
 app.include_router(public_router)
 app.include_router(public_slug_router)
-app.include_router(impact_receipts_router)
+app.include_router(impact_receipts_router, dependencies=[Depends(enforce_receipt_usage)])
 app.include_router(core_output_router, dependencies=[Depends(require_performance_builder)])
 app.include_router(beta_metrics_router)
 app.include_router(reports_router, dependencies=[Depends(require_advanced_reports)])
