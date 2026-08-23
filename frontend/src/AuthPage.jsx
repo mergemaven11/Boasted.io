@@ -84,13 +84,19 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
           </p>
 
           <div className="auth-oauth-grid">
-            <a className="auth-oauth-button" href={`${apiBaseUrl}/auth/google/login`}>
-              <span className="auth-google-mark">G</span>
-              Continue with Google
+            <a
+              className="auth-oauth-button auth-oauth-google"
+              href={`${apiBaseUrl}/auth/google/login`}
+            >
+              <span className="auth-google-mark" aria-hidden="true">G</span>
+              <span>Continue with Google</span>
             </a>
-            <a className="auth-oauth-button" href={`${apiBaseUrl}/auth/github/login`}>
-              <Github size={18} />
-              Continue with GitHub
+            <a
+              className="auth-oauth-button auth-oauth-github"
+              href={`${apiBaseUrl}/auth/github/login`}
+            >
+              <Github size={20} aria-hidden="true" />
+              <span>Continue with GitHub</span>
             </a>
           </div>
 
