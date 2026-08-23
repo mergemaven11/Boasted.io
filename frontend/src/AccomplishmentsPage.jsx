@@ -35,7 +35,7 @@ function AccomplishmentsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [showCreate, setShowCreate] = useState(false);
+  const [showCreate, setShowCreate] = useState(() => new URLSearchParams(window.location.search).get("create") === "1");
   const [form, setForm] = useState(emptyForm);
   const [isSaving, setIsSaving] = useState(false);
   const [createError, setCreateError] = useState("");
@@ -60,7 +60,10 @@ function AccomplishmentsPage() {
   }
 
   useEffect(() => {
-    void loadPage(page);
+    const timeoutId = window.setTimeout(() => {
+      void loadPage(page);
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
@@ -90,6 +93,19 @@ function AccomplishmentsPage() {
     return Array.from({ length: last - adjustedFirst + 1 }, (_, index) => adjustedFirst + index);
   }, [page, totalPages]);
 
+  function openCreate() {
+    setCreateError("");
+    setForm(emptyForm());
+    setShowCreate(true);
+    window.history.replaceState({}, "", "/app/accomplishments?create=1");
+  }
+
+  function closeCreate() {
+    setShowCreate(false);
+    setCreateError("");
+    window.history.replaceState({}, "", "/app/accomplishments");
+  }
+
   function goToPage(nextPage) {
     const safePage = Math.min(Math.max(nextPage, 1), totalPages);
     setPage(safePage);
@@ -111,7 +127,7 @@ function AccomplishmentsPage() {
         tags: form.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
       });
       setForm(emptyForm());
-      setShowCreate(false);
+      closeCreate();
       setPage(1);
       await loadPage(1);
     } catch (requestError) {
@@ -130,20 +146,20 @@ function AccomplishmentsPage() {
           <p>Browse the complete record of situations, actions, outcomes, skills, and public proof you have captured in BragStack.</p>
         </div>
 
-        <button className="accomplishments-add" type="button" onClick={() => setShowCreate(true)}>
+        <button className="accomplishments-add" type="button" onClick={openCreate}>
           <Plus size={18} /> Add accomplishment
         </button>
       </header>
 
       {showCreate && (
-        <section className="modal-backdrop" onMouseDown={() => setShowCreate(false)}>
+        <section className="modal-backdrop" onMouseDown={closeCreate}>
           <form className="modal-card" onSubmit={handleCreate} onMouseDown={(event) => event.stopPropagation()}>
             <div className="modal-header">
               <div>
                 <p className="mini-label">New career proof</p>
                 <h2>Create accomplishment</h2>
               </div>
-              <button type="button" className="icon-button" onClick={() => setShowCreate(false)} aria-label="Close">
+              <button type="button" className="icon-button" onClick={closeCreate} aria-label="Close">
                 <X size={20} />
               </button>
             </div>
@@ -164,7 +180,7 @@ function AccomplishmentsPage() {
             <label className="checkbox-row"><input type="checkbox" name="is_public" checked={form.is_public} onChange={handleFormChange} /> Make this accomplishment public</label>
 
             <div className="modal-actions">
-              <button type="button" className="btn secondary" onClick={() => setShowCreate(false)}>Cancel</button>
+              <button type="button" className="btn secondary" onClick={closeCreate}>Cancel</button>
               <button type="submit" className="btn primary" disabled={isSaving}>{isSaving ? "Saving…" : "Create accomplishment"}</button>
             </div>
           </form>
@@ -187,7 +203,7 @@ function AccomplishmentsPage() {
         <section className="accomplishments-empty">
           <h2>No accomplishments found.</h2>
           <p>{searchTerm ? "Try a different search on this page." : "Add your first accomplishment here to start building career proof."}</p>
-          {!searchTerm && <button className="btn primary" type="button" onClick={() => setShowCreate(true)}>Create accomplishment</button>}
+          {!searchTerm && <button className="btn primary" type="button" onClick={openCreate}>Create accomplishment</button>}
         </section>
       ) : (
         <section className="accomplishments-list">
