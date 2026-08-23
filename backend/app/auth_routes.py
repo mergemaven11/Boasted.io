@@ -23,12 +23,21 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 PASSWORD_RESET_FROM = os.getenv("PASSWORD_RESET_FROM", "BragStack <noreply@usebragstack.com>")
+EMAIL_VERIFICATION_FROM = os.getenv("EMAIL_VERIFICATION_FROM", PASSWORD_RESET_FROM)
 
 
 class RegisterRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=80)
     email: EmailStr
     password: str = Field(..., min_length=8)
+
+
+class EmailVerificationRequest(BaseModel):
+    email: EmailStr
+
+
+class EmailVerificationConfirm(BaseModel):
+    token: str = Field(..., min_length=20, max_length=300)
 
 
 class PasswordResetRequest(BaseModel):
@@ -64,30 +73,17 @@ def generate_unique_public_slug(name: str) -> str:
             return slug
 
 
-def _hash_reset_token(token: str) -> str:
+def _hash_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
-async def _send_password_reset_email(email: str, reset_url: str) -> None:
+async def _send_email(to_email: str, subject: str, html: str, from_value: str) -> None:
     if not RESEND_API_KEY:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Password reset email is not configured yet.",
+            detail="Email delivery is not configured yet.",
         )
 
-    payload = {
-        "from": PASSWORD_RESET_FROM,
-        "to": [email],
-        "subject": "Reset your BragStack password",
-        "html": (
-            "<div style='font-family:Arial,sans-serif;line-height:1.6'>"
-            "<h2>Reset your BragStack password</h2>"
-            "<p>We received a request to reset your password.</p>"
-            f"<p><a href='{reset_url}'>Reset password</a></p>"
-            "<p>This link expires in 30 minutes. If you did not request it, you can ignore this email.</p>"
-            "</div>"
-        ),
-    }
     async with httpx.AsyncClient(timeout=15.0) as client:
         response = await client.post(
             "https://api.resend.com/emails",
@@ -95,17 +91,65 @@ async def _send_password_reset_email(email: str, reset_url: str) -> None:
                 "Authorization": f"Bearer {RESEND_API_KEY}",
                 "Content-Type": "application/json",
             },
-            json=payload,
+            json={"from": from_value, "to": [to_email], "subject": subject, "html": html},
         )
     if response.status_code >= 400:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Password reset email could not be sent.",
+            detail="Email could not be sent.",
         )
 
 
+async def _send_verification_email(email: str, verification_url: str) -> None:
+    await _send_email(
+        email,
+        "Verify your BragStack email",
+        (
+            "<div style='font-family:Arial,sans-serif;line-height:1.6'>"
+            "<h2>Verify your BragStack email</h2>"
+            "<p>Confirm your email address to finish creating your BragStack account.</p>"
+            f"<p><a href='{verification_url}'>Verify email</a></p>"
+            "<p>This link expires in 24 hours.</p>"
+            "</div>"
+        ),
+        EMAIL_VERIFICATION_FROM,
+    )
+
+
+async def _send_password_reset_email(email: str, reset_url: str) -> None:
+    await _send_email(
+        email,
+        "Reset your BragStack password",
+        (
+            "<div style='font-family:Arial,sans-serif;line-height:1.6'>"
+            "<h2>Reset your BragStack password</h2>"
+            "<p>We received a request to reset your password.</p>"
+            f"<p><a href='{reset_url}'>Reset password</a></p>"
+            "<p>This link expires in 30 minutes. If you did not request it, you can ignore this email.</p>"
+            "</div>"
+        ),
+        PASSWORD_RESET_FROM,
+    )
+
+
+def _issue_verification_token(user: dict) -> tuple[str, datetime]:
+    raw_token = secrets.token_urlsafe(48)
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
+    users_collection.update_one(
+        {"_id": user["_id"]},
+        {
+            "$set": {
+                "email_verification_required": True,
+                "email_verification_token_hash": _hash_token(raw_token),
+                "email_verification_expires_at": expires_at.isoformat(),
+            }
+        },
+    )
+    return raw_token, expires_at
+
+
 @router.post("/register")
-def register_user(payload: RegisterRequest):
+async def register_user(payload: RegisterRequest):
     normalized_email = payload.email.lower().strip()
     existing_user = users_collection.find_one({"email": normalized_email})
     if existing_user:
@@ -119,15 +163,77 @@ def register_user(payload: RegisterRequest):
         "email": normalized_email,
         "public_slug": generate_unique_public_slug(payload.name),
         "hashed_password": hash_password(payload.password),
+        "email_verification_required": True,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     result = users_collection.insert_one(user_doc)
-    access_token = create_access_token({"sub": str(result.inserted_id)})
     created_user = users_collection.find_one({"_id": result.inserted_id})
+    raw_token, _ = _issue_verification_token(created_user)
+    verification_url = f"{FRONTEND_URL}/login#verify_token={raw_token}"
+
+    try:
+        await _send_verification_email(normalized_email, verification_url)
+        email_sent = True
+    except HTTPException:
+        email_sent = False
+
+    return {
+        "verification_required": True,
+        "email_sent": email_sent,
+        "message": "Account created. Check your email to verify your account.",
+    }
+
+
+@router.post("/email-verification/resend")
+async def resend_email_verification(payload: EmailVerificationRequest):
+    normalized_email = payload.email.lower().strip()
+    user = users_collection.find_one({"email": normalized_email})
+
+    if not user or user.get("email_verified_at") or not user.get("email_verification_required", False):
+        return {"message": "If that account needs verification, a new email has been sent."}
+
+    raw_token, _ = _issue_verification_token(user)
+    verification_url = f"{FRONTEND_URL}/login#verify_token={raw_token}"
+    await _send_verification_email(normalized_email, verification_url)
+    return {"message": "If that account needs verification, a new email has been sent."}
+
+
+@router.post("/email-verification/confirm")
+def confirm_email_verification(payload: EmailVerificationConfirm):
+    token_hash = _hash_token(payload.token)
+    user = users_collection.find_one({"email_verification_token_hash": token_hash})
+    if not user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This verification link is invalid or expired.")
+
+    expires_raw = user.get("email_verification_expires_at")
+    try:
+        expires_at = datetime.fromisoformat(expires_raw)
+    except (TypeError, ValueError):
+        expires_at = datetime.min.replace(tzinfo=timezone.utc)
+
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This verification link is invalid or expired.")
+
+    verified_at = datetime.now(timezone.utc).isoformat()
+    users_collection.update_one(
+        {"_id": user["_id"]},
+        {
+            "$set": {
+                "email_verified_at": verified_at,
+                "email_verification_required": False,
+            },
+            "$unset": {
+                "email_verification_token_hash": "",
+                "email_verification_expires_at": "",
+            },
+        },
+    )
+    updated_user = users_collection.find_one({"_id": user["_id"]})
+    access_token = create_access_token({"sub": str(user["_id"])})
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": serialize_user(created_user),
+        "user": serialize_user(updated_user),
     }
 
 
@@ -143,6 +249,12 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
             detail="Invalid email or password",
         )
 
+    if user.get("email_verification_required", False) and not user.get("email_verified_at"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Please verify your email before signing in.",
+        )
+
     access_token = create_access_token({"sub": str(user["_id"])})
     return {
         "access_token": access_token,
@@ -156,7 +268,6 @@ async def request_password_reset(payload: PasswordResetRequest):
     normalized_email = payload.email.lower().strip()
     user = users_collection.find_one({"email": normalized_email})
 
-    # Do not reveal whether an account exists.
     if not user:
         return {"message": "If that email belongs to an account, a reset link has been sent."}
 
@@ -166,7 +277,7 @@ async def request_password_reset(payload: PasswordResetRequest):
         {"_id": user["_id"]},
         {
             "$set": {
-                "password_reset_token_hash": _hash_reset_token(raw_token),
+                "password_reset_token_hash": _hash_token(raw_token),
                 "password_reset_expires_at": expires_at.isoformat(),
             }
         },
@@ -187,7 +298,7 @@ async def request_password_reset(payload: PasswordResetRequest):
 
 @router.post("/password-reset/confirm")
 def confirm_password_reset(payload: PasswordResetConfirm):
-    token_hash = _hash_reset_token(payload.token)
+    token_hash = _hash_token(payload.token)
     user = users_collection.find_one({"password_reset_token_hash": token_hash})
     if not user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This reset link is invalid or expired.")
