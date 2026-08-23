@@ -21,7 +21,7 @@ from app.packet_platform_routes import router as packet_platform_router
 from app.packet_share_routes import router as packet_share_router
 from app.performance_packet_export_routes import router as performance_packet_export_router
 from app.performance_packet_routes import router as performance_packet_router
-from app.plans import enforce_usage_limit, require_feature
+from app.plans import enforce_usage_limit
 from app.promotion_packet_export_routes import router as promotion_packet_export_router
 from app.promotion_packet_routes import router as promotion_packet_router
 from app.public_slug_routes import router as public_slug_router
@@ -52,8 +52,10 @@ app.add_middleware(
 
 
 def enforce_entry_usage(request: Request, current_user: dict = Depends(get_current_user)):
+    """Enforce the current plan's proof-entry creation limit."""
     if request.method != "POST" or request.url.path.rstrip("/") != "/entries":
         return
+
     user_id = str(current_user["_id"])
     enforce_usage_limit(
         user=current_user,
@@ -64,6 +66,7 @@ def enforce_entry_usage(request: Request, current_user: dict = Depends(get_curre
 
 
 def enforce_receipt_usage(request: Request, current_user: dict = Depends(get_current_user)):
+    """Enforce the current plan's Impact Receipt creation limit."""
     path = request.url.path.rstrip("/")
     is_create = request.method == "POST" and (
         path == "/impact-receipts" or path.startswith("/impact-receipts/from-entry/")
@@ -80,30 +83,6 @@ def enforce_receipt_usage(request: Request, current_user: dict = Depends(get_cur
     )
 
 
-def require_advanced_reports(current_user: dict = Depends(get_current_user)):
-    require_feature(current_user, "advanced_reports")
-
-
-def require_performance_builder(current_user: dict = Depends(get_current_user)):
-    require_feature(current_user, "performance_review_builder")
-
-
-def require_promotion_packet(current_user: dict = Depends(get_current_user)):
-    require_feature(current_user, "promotion_packet")
-
-
-def require_interview_packet(current_user: dict = Depends(get_current_user)):
-    require_feature(current_user, "interview_packet")
-
-
-def require_certification_packet(current_user: dict = Depends(get_current_user)):
-    require_feature(current_user, "certification_packet")
-
-
-def require_pdf_export(current_user: dict = Depends(get_current_user)):
-    require_feature(current_user, "export_pdf")
-
-
 app.include_router(auth_router)
 app.include_router(oauth_router)
 app.include_router(billing_router)
@@ -111,21 +90,21 @@ app.include_router(entries_router, dependencies=[Depends(enforce_entry_usage)])
 app.include_router(public_router)
 app.include_router(public_slug_router)
 app.include_router(impact_receipts_router, dependencies=[Depends(enforce_receipt_usage)])
-app.include_router(core_output_router, dependencies=[Depends(require_performance_builder)])
+app.include_router(core_output_router)
 app.include_router(beta_metrics_router)
-app.include_router(reports_router, dependencies=[Depends(require_advanced_reports)])
-app.include_router(performance_packet_router, dependencies=[Depends(require_performance_builder)])
-app.include_router(performance_packet_export_router, dependencies=[Depends(require_pdf_export)])
-app.include_router(packet_platform_router, dependencies=[Depends(require_performance_builder)])
-app.include_router(packet_platform_export_router, dependencies=[Depends(require_pdf_export)])
-app.include_router(packet_audit_router, dependencies=[Depends(require_performance_builder)])
-app.include_router(packet_share_router, dependencies=[Depends(require_performance_builder)])
-app.include_router(promotion_packet_router, dependencies=[Depends(require_promotion_packet)])
-app.include_router(promotion_packet_export_router, dependencies=[Depends(require_pdf_export)])
-app.include_router(interview_packet_router, dependencies=[Depends(require_interview_packet)])
-app.include_router(interview_packet_export_router, dependencies=[Depends(require_pdf_export)])
-app.include_router(certification_packet_router, dependencies=[Depends(require_certification_packet)])
-app.include_router(certification_packet_export_router, dependencies=[Depends(require_pdf_export)])
+app.include_router(reports_router)
+app.include_router(performance_packet_router)
+app.include_router(performance_packet_export_router)
+app.include_router(packet_platform_router)
+app.include_router(packet_platform_export_router)
+app.include_router(packet_audit_router)
+app.include_router(packet_share_router)
+app.include_router(promotion_packet_router)
+app.include_router(promotion_packet_export_router)
+app.include_router(interview_packet_router)
+app.include_router(interview_packet_export_router)
+app.include_router(certification_packet_router)
+app.include_router(certification_packet_export_router)
 
 
 @app.get("/")
