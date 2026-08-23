@@ -57,7 +57,7 @@ export function PrivacyPolicyPage() {
       <section><h2>12. Children</h2><p>BragStack is intended for people who are at least 13 years old, or the higher minimum age required to use online services in their jurisdiction.</p></section>
       <section><h2>13. International use</h2><p>If you access BragStack from outside the United States, your information may be processed in the United States and other countries where our service providers operate.</p></section>
       <section><h2>14. Changes to this policy</h2><p>We may update this Privacy Policy as BragStack evolves. We will post the revised policy with a new “Last updated” date and, when required, provide additional notice of material changes.</p></section>
-      <section><h2>15. Contact</h2><p>Questions or privacy requests can be sent to <a href="mailto:privacy@usebragstack.com">privacy@usebragstack.com</a>.</p></section>
+      <section><h2>15. Contact</h2><p>Questions or privacy requests can be sent to <a href="mailto:Tobias.scott@usebragstack.com?subject=BragStack%20privacy%20request">Tobias.scott@usebragstack.com</a>.</p></section>
     </LegalLayout>
   );
 }
@@ -82,7 +82,7 @@ export function TermsPage() {
       <section><h2>15. Governing law and disputes</h2><p>These Terms are governed by the laws of the State of Georgia, United States, without regard to conflict-of-law principles, except where applicable consumer law requires otherwise. Before filing a formal claim, you and BragStack agree to make a good-faith effort to resolve the dispute informally.</p></section>
       <section><h2>16. Changes to these Terms</h2><p>We may update these Terms as the Service changes. We will post revised Terms with a new effective date and provide additional notice when required.</p></section>
       <section><h2>17. General terms</h2><p>If a provision is unenforceable, the remaining provisions remain effective. Failure to enforce a provision is not a waiver. These Terms and incorporated policies form the agreement between you and BragStack concerning the Service.</p></section>
-      <section><h2>18. Contact</h2><p>Questions about these Terms can be sent to <a href="mailto:legal@usebragstack.com">legal@usebragstack.com</a>.</p></section>
+      <section><h2>18. Contact</h2><p>Questions about these Terms can be sent to <a href="mailto:Tobias.scott@usebragstack.com?subject=BragStack%20terms">Tobias.scott@usebragstack.com</a>.</p></section>
     </LegalLayout>
   );
 }
