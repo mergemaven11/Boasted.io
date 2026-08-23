@@ -2,10 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="stylesheet" href="/bragstack-polish.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#070b14" />
+    <meta name="application-name" content="BragStack" />
+    <meta name="apple-mobile-web-app-title" content="BragStack" />
+    <meta name="color-scheme" content="dark light" />
+
+    <link rel="icon" type="image/svg+xml" sizes="any" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="mask-icon" href="/favicon.svg" color="#3478FF" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="stylesheet" href="/bragstack-polish.css" />
 
     <title>BragStack | Resume Accomplishments, Career Portfolio & Job Search Proof</title>
     <meta name="description" content="BragStack helps professionals capture work accomplishments, build evidence-backed resume bullets, create career portfolios, prepare for interviews, performance reviews, promotions, and job searches." />
@@ -16,42 +24,63 @@
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="BragStack" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:title" content="BragStack | Turn Work Accomplishments Into Career Proof" />
     <meta property="og:description" content="Capture accomplishments once and reuse them for resumes, portfolios, interviews, performance reviews, promotions, and job searches." />
     <meta property="og:url" content="https://usebragstack.com/" />
-    <meta property="og:image" content="https://usebragstack.com/favicon.svg" />
+    <meta property="og:image" content="https://usebragstack.com/social-card.svg" />
+    <meta property="og:image:type" content="image/svg+xml" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="BragStack — Turn your work into opportunities. Capture accomplishments, attach evidence, and build career proof." />
 
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="BragStack | Career Proof for Resumes, Portfolios & Hiring" />
     <meta name="twitter:description" content="Build evidence-backed career proof for resumes, portfolios, interviews, reviews, promotions, and job searches." />
-    <meta name="twitter:image" content="https://usebragstack.com/favicon.svg" />
+    <meta name="twitter:image" content="https://usebragstack.com/social-card.svg" />
+    <meta name="twitter:image:alt" content="BragStack — Turn your work into opportunities." />
 
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@graph": [
           {
+            "@type": "ImageObject",
+            "@id": "https://usebragstack.com/#logo",
+            "url": "https://usebragstack.com/brandmark.svg",
+            "contentUrl": "https://usebragstack.com/brandmark.svg",
+            "width": 128,
+            "height": 128,
+            "caption": "BragStack"
+          },
+          {
             "@type": "Organization",
             "@id": "https://usebragstack.com/#organization",
             "name": "BragStack",
+            "alternateName": "BragStack Career Proof",
             "url": "https://usebragstack.com/",
             "email": "mailto:Tobias.scott@usebragstack.com",
-            "logo": "https://usebragstack.com/favicon.svg"
+            "logo": { "@id": "https://usebragstack.com/#logo" }
           },
           {
             "@type": "WebSite",
             "@id": "https://usebragstack.com/#website",
             "url": "https://usebragstack.com/",
             "name": "BragStack",
+            "alternateName": "BragStack Career Proof",
             "publisher": { "@id": "https://usebragstack.com/#organization" },
-            "description": "Career proof software for resumes, portfolios, job searches, interviews, performance reviews, promotions, and hiring conversations."
+            "description": "Career proof software for resumes, portfolios, job searches, interviews, performance reviews, promotions, and hiring conversations.",
+            "inLanguage": "en-US"
           },
           {
             "@type": "SoftwareApplication",
+            "@id": "https://usebragstack.com/#app",
             "name": "BragStack",
             "applicationCategory": "BusinessApplication",
             "operatingSystem": "Web",
             "url": "https://usebragstack.com/",
+            "image": "https://usebragstack.com/social-card.svg",
+            "publisher": { "@id": "https://usebragstack.com/#organization" },
             "description": "Capture work accomplishments and evidence, then turn them into resume material, career portfolios, interview stories, performance-review packets, and promotion proof.",
             "offers": [
               { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD" },
