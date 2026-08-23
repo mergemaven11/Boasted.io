@@ -5,6 +5,7 @@ import App from "./App.jsx";
 import AppSidebar from "./AppSidebar.jsx";
 import DocsPage from "./DocsPage.jsx";
 import ImpactReceiptsPage from "./ImpactReceiptsPage.jsx";
+import { PrivacyPolicyPage, TermsPage } from "./LegalPages.jsx";
 import SeoLandingPage from "./SeoLandingPages.jsx";
 import UpgradePage from "./UpgradePage.jsx";
 import { getCurrentUser } from "./api.js";
@@ -57,6 +58,8 @@ function RootContent() {
     return () => { active = false; };
   }, [isAuthenticatedApp]);
 
+  if (path === "/privacy") return <PrivacyPolicyPage />;
+  if (path === "/terms") return <TermsPage />;
   if (isUpgradePage) return <UpgradePage />;
   if (isDocsPage) return <DocsPage />;
   if (seoLandingContent) return <SeoLandingPage content={seoLandingContent} />;
