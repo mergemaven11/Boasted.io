@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upgrade to BragStack Pro</title>
+    <style>
+      body{margin:0;min-height:100vh;display:grid;place-items:center;background:#020617;color:#f8fafc;font-family:Inter,system-ui,sans-serif}.card{width:min(92vw,520px);padding:32px;border:1px solid rgba(148,163,184,.2);border-radius:28px;background:rgba(15,23,42,.88);box-shadow:0 30px 90px rgba(0,0,0,.45)}h1{margin:0 0 12px;font-size:2.2rem}p{color:#cbd5e1;line-height:1.6}.price{font-size:1.4rem;font-weight:800;color:#c4b5fd}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}a,button{border:0;border-radius:14px;padding:12px 18px;font-weight:800;text-decoration:none;cursor:pointer}.primary{background:linear-gradient(135deg,#93c5fd,#c084fc);color:#020617}.secondary{background:#1e293b;color:#f8fafc}.error{margin-top:16px;color:#fecaca}
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="price">BragStack Pro · $9/month</div>
+      <h1>Unlock your full career proof system.</h1>
+      <p>Pro includes unlimited proof entries and Impact Receipts, advanced career reports, performance review and promotion packets, PDF exports, integrations, and advanced public profile features.</p>
+      <div id="status">Checking your account…</div>
+      <div id="actions" class="actions"></div>
+      <div id="error" class="error"></div>
+    </main>
+    <script>
+      (() => {
+        const token = localStorage.getItem('bragstack_token');
+        const status = document.getElementById('status');
+        const actions = document.getElementById('actions');
+        const error = document.getElementById('error');
+        const apiBase = location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://api.usebragstack.com';
+
+        if (!token) {
+          status.textContent = 'Sign in or create a free account first. Then you can continue to secure Stripe Checkout.';
+          actions.innerHTML = '<a class="primary" href="/register">Create account</a><a class="secondary" href="/login">Sign in</a>';
+          return;
+        }
+
+        async function startCheckout() {
+          status.textContent = 'Opening secure Stripe Checkout…';
+          error.textContent = '';
+          actions.innerHTML = '';
+          try {
+            const response = await fetch(`${apiBase}/billing/checkout-session`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.status === 401) {
+              localStorage.removeItem('bragstack_token');
+              location.replace('/login');
+              return;
+            }
+            const data = await response.json();
+            if (!response.ok || !data.url) throw new Error(data.detail || 'Checkout is not available yet.');
+            location.replace(data.url);
+          } catch (err) {
+            status.textContent = 'We could not open checkout.';
+            error.textContent = typeof err.message === 'string' ? err.message : 'Please try again.';
+            actions.innerHTML = '<button class="primary" id="retry">Try again</button><a class="secondary" href="/">Back to pricing</a>';
+            document.getElementById('retry')?.addEventListener('click', startCheckout);
+          }
+        }
+
+        void startCheckout();
+      })();
+    </script>
+  </body>
+</html>
