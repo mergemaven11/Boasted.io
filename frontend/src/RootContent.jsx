@@ -5,9 +5,10 @@ import App from "./App.jsx";
 import AppSidebar from "./AppSidebar.jsx";
 import DocsPage from "./DocsPage.jsx";
 import ImpactReceiptsPage from "./ImpactReceiptsPage.jsx";
-import SeoLandingPage, { getSeoLandingPage } from "./SeoLandingPages.jsx";
+import SeoLandingPage from "./SeoLandingPages.jsx";
 import UpgradePage from "./UpgradePage.jsx";
 import { getCurrentUser } from "./api.js";
+import { getSeoLandingPage } from "./seoLandingContent.js";
 
 function ProRequired() {
   return (
@@ -56,20 +57,11 @@ function RootContent() {
     return () => { active = false; };
   }, [isAuthenticatedApp]);
 
-  if (isUpgradePage) {
-    return <UpgradePage />;
-  }
-
-  if (isDocsPage) {
-    return <DocsPage />;
-  }
-
-  if (seoLandingContent) {
-    return <SeoLandingPage content={seoLandingContent} />;
-  }
+  if (isUpgradePage) return <UpgradePage />;
+  if (isDocsPage) return <DocsPage />;
+  if (seoLandingContent) return <SeoLandingPage content={seoLandingContent} />;
 
   let Content = App;
-
   if (path === "/app/accomplishments") {
     Content = AccomplishmentsPage;
   } else if (path === "/app/impact-receipts") {
@@ -78,20 +70,13 @@ function RootContent() {
     Content = ProRequired;
   }
 
-  if (!isAuthenticatedApp) {
-    return <Content />;
-  }
-
-  if (!planLoaded) {
-    return <div className="app-shell"><div className="authenticated-content" /></div>;
-  }
+  if (!isAuthenticatedApp) return <Content />;
+  if (!planLoaded) return <div className="app-shell"><div className="authenticated-content" /></div>;
 
   return (
     <div className="app-shell">
       <AppSidebar />
-      <div className="authenticated-content">
-        <Content />
-      </div>
+      <div className="authenticated-content"><Content /></div>
     </div>
   );
 }
