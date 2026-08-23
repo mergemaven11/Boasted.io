@@ -65,7 +65,7 @@ function RootContent() {
   if (isUpgradePage) return <UpgradePage />;
   if (isDocsPage) return <><DocsPage /><PublicFooter /></>;
   if (isNdaPage) return <><NDAGuidancePage /><PublicFooter /></>;
-  if (seoLandingContent) return <><SeoLandingPage content={seoLandingContent} /><PublicFooter /></>;
+  if (seoLandingContent) return <SeoLandingPage content={seoLandingContent} />;
 
   let Content = App;
   if (path === "/app/accomplishments") {
@@ -76,7 +76,7 @@ function RootContent() {
     Content = ProRequired;
   }
 
-  if (!isAuthenticatedApp) return <><Content /><PublicFooter /></>;
+  if (!isAuthenticatedApp) return <Content />;
   if (!planLoaded) return <div className="app-shell"><div className="authenticated-content" /></div>;
 
   return (
