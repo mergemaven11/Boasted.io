@@ -3,7 +3,6 @@ import hmac
 import json
 import os
 import time
-from urllib.parse import parse_qs
 
 import httpx
 from bson import ObjectId
@@ -122,10 +121,30 @@ def _user_id_from_subscription(subscription: dict) -> str | None:
     return str(user["_id"]) if user else None
 
 
+def _find_user_for_invoice(invoice: dict) -> dict | None:
+    subscription_id = invoice.get("subscription")
+    customer_id = invoice.get("customer")
+    user = None
+    if subscription_id:
+        user = users_collection.find_one({"stripe_subscription_id": subscription_id})
+    if user is None and customer_id:
+        user = users_collection.find_one({"stripe_customer_id": customer_id})
+    return user
+
+
 @router.post("/checkout-session")
 async def create_checkout_session(current_user: dict = Depends(get_current_user)):
     """Create a Stripe Checkout subscription session for BragStack Pro."""
     _require_stripe_checkout_config()
+
+    if get_plan_for_user(current_user) == "pro" and current_user.get("billing_status") in {
+        "active",
+        "trialing",
+    }:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This account already has an active BragStack Pro subscription.",
+        )
 
     user_id = str(current_user["_id"])
     form = {
@@ -221,20 +240,25 @@ async def stripe_webhook(request: Request):
             )
 
     elif event_type == "invoice.payment_failed":
-        subscription_id = obj.get("subscription")
-        customer_id = obj.get("customer")
-        user = None
-        if subscription_id:
-            user = users_collection.find_one({"stripe_subscription_id": subscription_id})
-        if user is None and customer_id:
-            user = users_collection.find_one({"stripe_customer_id": customer_id})
+        user = _find_user_for_invoice(obj)
         if user:
             _set_subscription_state(
                 str(user["_id"]),
                 plan="free",
                 billing_status="payment_failed",
-                customer_id=customer_id,
-                subscription_id=subscription_id,
+                customer_id=obj.get("customer"),
+                subscription_id=obj.get("subscription"),
+            )
+
+    elif event_type == "invoice.paid":
+        user = _find_user_for_invoice(obj)
+        if user:
+            _set_subscription_state(
+                str(user["_id"]),
+                plan="pro",
+                billing_status="active",
+                customer_id=obj.get("customer"),
+                subscription_id=obj.get("subscription"),
             )
 
     return {"received": True}
