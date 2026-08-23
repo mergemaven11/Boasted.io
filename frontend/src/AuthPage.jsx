@@ -1,26 +1,27 @@
 import { useState } from "react";
-import { Lock, Mail, Sparkles, UserPlus } from "lucide-react";
+import { Github, Lock, Mail, Sparkles, UserPlus } from "lucide-react";
 import "./AuthPage.css";
+
+function getApiBaseUrl() {
+  if (window.location.hostname.endsWith(".app.github.dev")) return "/api";
+  return import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8000";
+}
 
 function AuthPage({ mode = "login", onLogin, onRegister }) {
   const isRegister = mode === "register";
+  const apiBaseUrl = getApiBaseUrl().replace(/\/$/, "");
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
   });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   function handleChange(event) {
     const { name, value } = event.target;
-
-    setFormData((current) => ({
-      ...current,
-      [name]: value,
-    }));
+    setFormData((current) => ({ ...current, [name]: value }));
   }
 
   async function handleSubmit(event) {
@@ -32,10 +33,7 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
       if (isRegister) {
         await onRegister(formData);
       } else {
-        await onLogin({
-          email: formData.email,
-          password: formData.password,
-        });
+        await onLogin({ email: formData.email, password: formData.password });
       }
     } catch (error) {
       console.error(error);
@@ -54,18 +52,15 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
       <section className="auth-shell">
         <div className="auth-copy">
           <p className="mini-label">BragStack</p>
-
           <h1>
             Save your wins before
             <span> they disappear.</span>
           </h1>
-
           <p>
             Track technical work, turn progress into resume bullets, and build a
             private career proof system you can reuse for reviews, interviews,
             raises, and job searches.
           </p>
-
           <div className="auth-proof-list">
             <span>Private by default</span>
             <span>Resume-ready proof</span>
@@ -81,14 +76,25 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
           <p className="mini-label">
             {isRegister ? "Create account" : "Welcome back"}
           </p>
-
           <h2>{isRegister ? "Start your BragStack" : "Log in to BragStack"}</h2>
-
           <p className="auth-muted">
             {isRegister
               ? "Create your private workspace for career proof."
               : "Open your dashboard and keep building your proof."}
           </p>
+
+          <div className="auth-oauth-grid">
+            <a className="auth-oauth-button" href={`${apiBaseUrl}/auth/google/login`}>
+              <span className="auth-google-mark">G</span>
+              Continue with Google
+            </a>
+            <a className="auth-oauth-button" href={`${apiBaseUrl}/auth/github/login`}>
+              <Github size={18} />
+              Continue with GitHub
+            </a>
+          </div>
+
+          <div className="auth-divider"><span>or use email</span></div>
 
           {errorMessage && <div className="auth-error">{errorMessage}</div>}
 
@@ -140,11 +146,7 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
           </label>
 
           <button className="btn primary auth-submit" disabled={isSubmitting}>
-            {isSubmitting
-              ? "Working..."
-              : isRegister
-              ? "Create account"
-              : "Log in"}
+            {isSubmitting ? "Working..." : isRegister ? "Create account" : "Log in"}
           </button>
 
           <p className="auth-switch">
