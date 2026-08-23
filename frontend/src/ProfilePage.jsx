@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { ExternalLink, Save, UserRound } from "lucide-react";
+import { ExternalLink, ImagePlus, Save, UserRound } from "lucide-react";
 
 import { getCurrentUser, updateCurrentUserProfile } from "./api";
+import { updateProfileAvatar } from "./profileApi";
 import "./ProfilePage.css";
 
 const EMPTY_PROFILE = {
@@ -9,6 +10,7 @@ const EMPTY_PROFILE = {
   headline: "",
   bio: "",
   location: "",
+  avatar_url: "",
   github_url: "",
   portfolio_url: "",
   resume_url: "",
@@ -34,6 +36,7 @@ function ProfilePage() {
           headline: data.headline ?? "",
           bio: data.bio ?? "",
           location: data.location ?? "",
+          avatar_url: data.avatar_url ?? "",
           github_url: data.github_url ?? "",
           portfolio_url: data.portfolio_url ?? "",
           resume_url: data.resume_url ?? "",
@@ -64,7 +67,9 @@ function ProfilePage() {
     setMessage("");
     setError("");
     try {
-      const updated = await updateCurrentUserProfile(form);
+      const { avatar_url: avatarUrl, ...profileFields } = form;
+      await updateCurrentUserProfile(profileFields);
+      const updated = await updateProfileAvatar(avatarUrl);
       setUser(updated);
       setMessage("Profile saved.");
     } catch (requestError) {
@@ -75,6 +80,8 @@ function ProfilePage() {
   }
 
   if (loading) return <main className="profile-settings"><div className="profile-loading">Loading profile…</div></main>;
+
+  const avatarLetter = form.name?.charAt(0).toUpperCase() || "B";
 
   return (
     <main className="profile-settings">
@@ -93,8 +100,13 @@ function ProfilePage() {
 
       <form className="profile-settings-card" onSubmit={handleSubmit}>
         <div className="profile-avatar-row">
-          <div className="profile-settings-avatar">{form.name?.charAt(0).toUpperCase() || <UserRound size={26} />}</div>
-          <div><strong>{form.name || "Your profile"}</strong><span>{form.headline || "Add a headline that explains what you do."}</span></div>
+          <div className="profile-settings-avatar">
+            {form.avatar_url ? <img src={form.avatar_url} alt="Profile preview" /> : (avatarLetter || <UserRound size={26} />)}
+          </div>
+          <div>
+            <strong>{form.name || "Your profile"}</strong>
+            <span>{form.headline || "Add a headline that explains what you do."}</span>
+          </div>
         </div>
 
         {message && <div className="profile-save-success">{message}</div>}
@@ -105,6 +117,13 @@ function ProfilePage() {
           <label>Location<input name="location" value={form.location} onChange={handleChange} placeholder="Atlanta, GA" /></label>
           <label className="profile-wide">Professional headline<input name="headline" value={form.headline} onChange={handleChange} placeholder="Platform Support Engineer · Docker · Cloud" /></label>
           <label className="profile-wide">Bio<textarea name="bio" value={form.bio} onChange={handleChange} rows={5} placeholder="A short professional introduction." /></label>
+
+          <label className="profile-wide profile-image-field">
+            <span><ImagePlus size={16} /> Profile image URL</span>
+            <input type="url" name="avatar_url" value={form.avatar_url} onChange={handleChange} placeholder="https://.../profile-photo.jpg" />
+            <small>Use a direct HTTPS image URL. Clear this field to return to your initial avatar.</small>
+          </label>
+
           <label>GitHub URL<input type="url" name="github_url" value={form.github_url} onChange={handleChange} placeholder="https://github.com/..." /></label>
           <label>Portfolio URL<input type="url" name="portfolio_url" value={form.portfolio_url} onChange={handleChange} placeholder="https://..." /></label>
           <label className="profile-wide">Resume URL<input type="url" name="resume_url" value={form.resume_url} onChange={handleChange} placeholder="https://..." /></label>
