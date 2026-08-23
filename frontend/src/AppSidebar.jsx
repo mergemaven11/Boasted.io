@@ -54,14 +54,14 @@ function AppSidebar() {
   return (
     <aside className="app-sidebar">
       <a className="sidebar-brand" href="/app">
-        <span className="sidebar-logo">B</span>
+        <img className="sidebar-logo" src="/brandmark.svg" alt="BragStack" />
         <span>
           <strong>BragStack</strong>
           <small>{user?.plan === "pro" ? "Pro career proof" : "Career proof"}</small>
         </span>
       </a>
 
-      <a className="sidebar-add" href="/app#entries">+ Add accomplishment</a>
+      <a className="sidebar-add" href="/app/accomplishments?create=1">+ Add accomplishment</a>
 
       <nav className="sidebar-nav" aria-label="BragStack navigation">
         {navItems.map(({ href, label, icon: Icon }) => {
