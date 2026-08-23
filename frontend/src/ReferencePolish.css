@@ -1,24 +1,25 @@
-/* Reference-driven polish: brand lockup, BragStack gradients, mobile nav placement. */
-:root{--brag-blue:#18a8ff;--brag-cyan:#18d7f3;--brag-purple:#8f4dff;--brag-indigo:#4f5dff}
+/* Reference-driven polish: BragStack brand lockup, gradients, and responsive layout. */
+:root{--brag-blue:#00C6FF;--brag-cyan:#00D9FF;--brag-purple:#7B5CFF;--brag-violet:#B86BFF;--brag-navy:#0B1020}
 
 /* Landing brand lockup */
 .landing-logo{position:relative;display:inline-flex;align-items:center;min-height:44px;padding-left:52px;font-size:1.08rem!important;font-weight:950!important;letter-spacing:-.035em!important;text-transform:none!important;background:linear-gradient(90deg,#fff 0 38%,var(--brag-cyan) 55%,var(--brag-purple) 100%);-webkit-background-clip:text;background-clip:text;color:transparent!important}
 .landing-logo::before{content:"";position:absolute;left:0;width:42px;height:42px;background:url('/brandmark.svg') center/contain no-repeat;filter:drop-shadow(0 5px 14px rgba(49,119,255,.3))}
 .landing-nav{border-color:rgba(44,164,255,.18)!important;background:rgba(4,10,24,.86)!important}
 
-/* Make the hero visually match the BragStack concept without disturbing the rest of the page. */
-.landing-hero{align-items:center!important;padding-top:5.5rem!important}
-.landing-hero-copy{position:relative;padding-top:92px}
-.landing-hero-copy::before{content:"BragStack";position:absolute;top:0;left:0;padding-left:86px;min-height:72px;display:flex;align-items:center;background:linear-gradient(90deg,#fff 0 45%,var(--brag-cyan) 64%,var(--brag-purple) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:clamp(2.8rem,5vw,5.2rem);font-weight:950;letter-spacing:-.065em;line-height:1}
-.landing-hero-copy::after{content:"";position:absolute;top:-2px;left:0;width:70px;height:70px;background:url('/brandmark.svg') center/contain no-repeat;filter:drop-shadow(0 12px 28px rgba(70,80,255,.35))}
-.landing-eyebrow{position:absolute;top:72px;left:87px;margin:0!important;padding:0!important;border:0!important;background:transparent!important;color:#bcc7dc!important;font-size:.66rem!important;letter-spacing:.26em!important}
-.landing-eyebrow svg{display:none}
-.landing-eyebrow{font-size:0!important}.landing-eyebrow::before{content:"PROVE  •  GROW  •  GET HIRED";font-size:.66rem}
-.landing-hero-copy h1{margin-top:38px!important;font-size:0!important;line-height:.98!important;letter-spacing:-.06em!important}
-.landing-hero-copy h1::before{content:"Turn Your Work";display:block;color:#fff;font-size:clamp(3.2rem,6vw,6.2rem);font-weight:950}
-.landing-hero-copy h1::after{content:"Into Opportunities.";display:block;background:linear-gradient(90deg,var(--brag-blue),var(--brag-cyan) 48%,var(--brag-purple));-webkit-background-clip:text;background-clip:text;color:transparent;font-size:clamp(3.2rem,6vw,6.2rem);font-weight:950}
+/* Hero brand lockup */
+.landing-hero{grid-template-columns:minmax(0,1.18fr) minmax(360px,.82fr)!important;align-items:center!important;padding-top:4.25rem!important;padding-bottom:3.5rem!important;gap:2.5rem!important;overflow:visible!important}
+.landing-hero-copy{position:relative;min-width:0;padding-top:112px;overflow:visible!important}
+.landing-hero-copy::before{content:"BragStack";position:absolute;top:0;left:0;padding-left:78px;min-height:66px;display:flex;align-items:center;background:linear-gradient(90deg,#fff 0 43%,var(--brag-cyan) 61%,var(--brag-purple) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:clamp(2.65rem,4.6vw,4.7rem);font-weight:950;letter-spacing:-.065em;line-height:1;white-space:nowrap}
+.landing-hero-copy::after{content:"";position:absolute;top:0;left:0;width:64px;height:64px;background:url('/brandmark.svg') center/contain no-repeat;filter:drop-shadow(0 12px 28px rgba(70,80,255,.35))}
+.landing-eyebrow{position:absolute;top:73px;left:79px;margin:0!important;padding:0!important;border:0!important;background:transparent!important;color:#aebbd2!important;font-size:0!important;letter-spacing:.22em!important;line-height:1.4!important;white-space:nowrap}
+.landing-eyebrow svg{display:none!important}
+.landing-eyebrow::before{content:"PROVE  •  GROW  •  GET HIRED";font-size:.66rem;font-weight:900}
+
+.landing-hero-copy h1{max-width:760px!important;margin:18px 0 20px!important;padding:0 0 .1em!important;font-size:0!important;line-height:1.03!important;letter-spacing:-.06em!important;overflow:visible!important}
+.landing-hero-copy h1::before{content:"Turn Your Work";display:block;color:#fff;font-size:clamp(3rem,5.2vw,5.25rem);font-weight:950;line-height:1.02}
+.landing-hero-copy h1::after{content:"Into Opportunities.";display:block;max-width:100%;padding:0 0 .08em;background:linear-gradient(90deg,var(--brag-blue),var(--brag-cyan) 48%,var(--brag-purple));-webkit-background-clip:text;background-clip:text;color:transparent;font-size:clamp(3rem,5.2vw,5.25rem);font-weight:950;line-height:1.04;letter-spacing:-.055em;overflow:visible;white-space:normal}
 .landing-hero-copy h1 span{display:none!important}
-.landing-hero-description{max-width:610px!important}
+.landing-hero-description{max-width:650px!important;margin-top:1.4rem!important}
 .landing-btn{background:linear-gradient(100deg,var(--brag-purple),var(--brag-blue),var(--brag-cyan))!important;color:white!important;box-shadow:0 14px 38px rgba(64,101,255,.28)!important}
 .landing-btn-secondary{background:rgba(6,15,35,.72)!important;border-color:rgba(73,175,255,.28)!important}
 
@@ -29,17 +30,21 @@
 .sidebar-plan-row>span.pro{background:linear-gradient(90deg,var(--brag-purple),var(--brag-blue))!important;border-color:transparent!important;color:#fff!important}
 .sidebar-add{background:linear-gradient(90deg,var(--brag-purple),var(--brag-blue),var(--brag-cyan))!important;color:#fff!important}
 
-/* Mobile/tablet: hamburger belongs on the LEFT. */
+/* Tablet/mobile */
 @media(max-width:980px){
   .mobile-app-bar{justify-content:flex-start!important;gap:10px!important}
   .mobile-app-bar>button{order:-1!important;flex:0 0 auto!important}
   .mobile-brand{margin-right:auto!important}
+  .landing-hero{grid-template-columns:1fr!important;padding-top:3.5rem!important;gap:1.5rem!important}
+  .landing-proof-preview{min-height:410px!important}
 }
 
 @media(max-width:700px){
-  .landing-hero-copy{padding-top:78px}
-  .landing-hero-copy::before{padding-left:66px;min-height:58px;font-size:2.6rem}
-  .landing-hero-copy::after{width:54px;height:54px}
-  .landing-eyebrow{top:58px;left:67px}
-  .landing-hero-copy h1{margin-top:34px!important}
+  .landing-hero-copy{padding-top:100px}
+  .landing-hero-copy::before{padding-left:64px;min-height:54px;font-size:2.45rem}
+  .landing-hero-copy::after{width:52px;height:52px}
+  .landing-eyebrow{top:62px;left:65px;letter-spacing:.16em!important}
+  .landing-eyebrow::before{font-size:.58rem}
+  .landing-hero-copy h1{margin-top:14px!important}
+  .landing-hero-copy h1::before,.landing-hero-copy h1::after{font-size:clamp(2.7rem,13vw,4rem);line-height:1.03}
 }

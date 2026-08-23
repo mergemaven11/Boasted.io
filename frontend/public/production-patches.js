@@ -1,6 +1,12 @@
 (() => {
   const SITE_URL = "https://usebragstack.com";
-  const SUPPORT_EMAIL = "Tobias.scott@usebragstack.com";
+  const PERSONAL_EMAIL = "Tobias.scott@usebragstack.com";
+  const CONTACT_EMAIL = "contact@usebragstack.com";
+  const SUPPORT_EMAIL = "support@usebragstack.com";
+  const PRIVACY_EMAIL = "privacy@usebragstack.com";
+  const LEGAL_EMAIL = "legal@usebragstack.com";
+  const SECURITY_EMAIL = "security@usebragstack.com";
+  const BILLING_EMAIL = "billing@usebragstack.com";
 
   const routeMeta = {
     "/": ["BragStack | Resume Accomplishments, Career Portfolio & Job Search Proof", "Capture work accomplishments and turn them into evidence-backed resume bullets, career portfolios, interview stories, performance reviews, promotion packets, and job-search proof."],
@@ -92,13 +98,27 @@
     footer.dataset.legalLinksPatched = "true";
   }
 
+  function roleEmailForLink(link) {
+    const path = window.location.pathname.replace(/\/$/, "") || "/";
+    const text = (link.textContent || "").trim().toLowerCase();
+    const href = (link.getAttribute("href") || "").toLowerCase();
+    if (path === "/privacy" || text.includes("privacy") || href.includes("privacy")) return PRIVACY_EMAIL;
+    if (path === "/terms" || text.includes("legal") || href.includes("legal")) return LEGAL_EMAIL;
+    if (text.includes("security") || href.includes("security")) return SECURITY_EMAIL;
+    if (text.includes("billing") || href.includes("billing")) return BILLING_EMAIL;
+    if (path === "/docs" || text.includes("support") || href.includes("support")) return SUPPORT_EMAIL;
+    return CONTACT_EMAIL;
+  }
+
   function patchLinks(root = document) {
     root.querySelectorAll?.("a[href]").forEach((link) => {
       const href = link.getAttribute("href") || "";
       const text = (link.textContent || "").trim().toLowerCase();
-      if (href.startsWith("mailto:")) {
+      if (href.toLowerCase().startsWith(`mailto:${PERSONAL_EMAIL.toLowerCase()}`)) {
         const query = href.includes("?") ? href.slice(href.indexOf("?")) : "";
-        link.setAttribute("href", `mailto:${SUPPORT_EMAIL}${query}`);
+        const roleEmail = roleEmailForLink(link);
+        link.setAttribute("href", `mailto:${roleEmail}${query}`);
+        if ((link.textContent || "").trim().toLowerCase() === PERSONAL_EMAIL.toLowerCase()) link.textContent = roleEmail;
       }
       if (href === "http://localhost:8000/docs" || href === "https://api.usebragstack.com/docs") {
         link.setAttribute("href", "/docs"); link.removeAttribute("target"); link.removeAttribute("rel"); if (text.includes("api docs")) link.textContent = "Docs";
