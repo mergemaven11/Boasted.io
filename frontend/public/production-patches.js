@@ -88,6 +88,43 @@
     }
   }
 
+  function ensureDarkFooterLinks(root = document) {
+    const footer = root.querySelector?.(".mega-footer") || document.querySelector(".mega-footer");
+    if (!footer || footer.dataset.legalLinksPatched === "true") return;
+
+    const columns = footer.querySelector(".mega-footer-columns");
+    if (!columns) return;
+
+    const resources = Array.from(columns.children).find((column) =>
+      column.querySelector("h3")?.textContent?.trim().toLowerCase() === "resources"
+    );
+    if (resources) {
+      const docsPlaceholder = Array.from(resources.children).find((item) =>
+        item.textContent?.trim().toLowerCase().startsWith("docs")
+      );
+      if (docsPlaceholder) {
+        const docs = document.createElement("a");
+        docs.href = "/docs";
+        docs.textContent = "Docs";
+        docsPlaceholder.replaceWith(docs);
+      }
+      if (!resources.querySelector('a[href="/nda-safety"]')) {
+        const nda = document.createElement("a");
+        nda.href = "/nda-safety";
+        nda.textContent = "NDA & confidential work";
+        resources.appendChild(nda);
+      }
+    }
+
+    if (!Array.from(columns.children).some((column) => column.querySelector("h3")?.textContent?.trim().toLowerCase() === "legal")) {
+      const legal = document.createElement("div");
+      legal.innerHTML = '<h3>Legal</h3><a href="/privacy">Privacy Policy</a><a href="/terms">Terms & Conditions</a><a href="/nda-safety">Confidentiality guidance</a>';
+      columns.appendChild(legal);
+    }
+
+    footer.dataset.legalLinksPatched = "true";
+  }
+
   function patchLinks(root = document) {
     root.querySelectorAll?.("a[href]").forEach((link) => {
       const href = link.getAttribute("href") || "";
@@ -110,6 +147,8 @@
         link.textContent = "Docs";
       }
     });
+
+    ensureDarkFooterLinks(root);
   }
 
   applySeo();
