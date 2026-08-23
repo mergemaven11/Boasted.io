@@ -19,8 +19,13 @@
 .sidebar-nav a,
 .sidebar-add,
 .mobile-brand,
-.sidebar-user {
-  text-decoration: none;
+.sidebar-user,
+.sidebar-user:hover,
+.sidebar-user:focus,
+.sidebar-user:visited,
+.sidebar-user strong,
+.sidebar-user small {
+  text-decoration: none !important;
 }
 
 .sidebar-brand {
@@ -158,6 +163,17 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
+  padding: 8px;
+  margin: -8px;
+  border-radius: 10px;
+  color: inherit;
+  transition: background 150ms ease;
+}
+
+.sidebar-user:hover,
+.sidebar-user:focus-visible {
+  background: rgba(255,255,255,.05);
+  outline: none;
 }
 
 .sidebar-user-avatar { width: 34px; height: 34px; border-radius: 8px; }
