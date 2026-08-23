@@ -65,16 +65,40 @@ def _find_or_create_oauth_user(
 ) -> dict:
     normalized_email = email.lower().strip()
     provider_field = f"oauth.{provider}_id"
+    verified_at = datetime.now(timezone.utc).isoformat()
 
     user = users_collection.find_one({provider_field: provider_user_id})
     if user:
-        return user
+        users_collection.update_one(
+            {"_id": user["_id"]},
+            {
+                "$set": {
+                    "email_verified_at": user.get("email_verified_at") or verified_at,
+                    "email_verification_required": False,
+                },
+                "$unset": {
+                    "email_verification_token_hash": "",
+                    "email_verification_expires_at": "",
+                },
+            },
+        )
+        return users_collection.find_one({"_id": user["_id"]})
 
     user = users_collection.find_one({"email": normalized_email})
     if user:
         users_collection.update_one(
             {"_id": user["_id"]},
-            {"$set": {provider_field: provider_user_id}},
+            {
+                "$set": {
+                    provider_field: provider_user_id,
+                    "email_verified_at": verified_at,
+                    "email_verification_required": False,
+                },
+                "$unset": {
+                    "email_verification_token_hash": "",
+                    "email_verification_expires_at": "",
+                },
+            },
         )
         return users_collection.find_one({"_id": user["_id"]})
 
@@ -83,6 +107,8 @@ def _find_or_create_oauth_user(
         "email": normalized_email,
         "public_slug": _generate_unique_public_slug(name or "user"),
         "oauth": {f"{provider}_id": provider_user_id},
+        "email_verified_at": verified_at,
+        "email_verification_required": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     result = users_collection.insert_one(user_doc)

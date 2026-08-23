@@ -50,6 +50,7 @@ def serialize_user(user: dict) -> dict:
         "id": str(user["_id"]),
         "name": user.get("name", ""),
         "email": user.get("email", ""),
+        "email_verified": bool(user.get("email_verified_at")) or not user.get("email_verification_required", False),
         "public_slug": user.get("public_slug", ""),
         "headline": user.get("headline", ""),
         "bio": user.get("bio", ""),

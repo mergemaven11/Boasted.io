@@ -15,10 +15,12 @@ function GitHubMark() {
   );
 }
 
-function AuthPage({ mode = "login", onLogin, onRegister }) {
+function AuthPage({ mode = "login", onLogin }) {
   const isRegister = mode === "register";
   const apiBaseUrl = getApiBaseUrl().replace(/\/$/, "");
-  const initialResetToken = new URLSearchParams(window.location.hash.slice(1)).get("reset_token") || "";
+  const hashParams = new URLSearchParams(window.location.hash.slice(1));
+  const initialResetToken = hashParams.get("reset_token") || "";
+  const initialVerifyToken = hashParams.get("verify_token") || "";
 
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,10 +33,15 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
   const [resetToken, setResetToken] = useState(initialResetToken);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [verificationMessage, setVerificationMessage] = useState("");
+  const [verificationSubmitting, setVerificationSubmitting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(Boolean(initialVerifyToken));
 
   useEffect(() => {
     const hash = new URLSearchParams(window.location.hash.slice(1));
     const oauthToken = hash.get("oauth_token");
+    const verifyToken = hash.get("verify_token");
 
     if (oauthToken) {
       localStorage.setItem("bragstack_token", oauthToken);
@@ -43,10 +50,31 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
       return;
     }
 
+    if (verifyToken) {
+      history.replaceState(null, "", "/login");
+      void (async () => {
+        try {
+          const response = await fetch(`${apiBaseUrl}/auth/email-verification/confirm`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: verifyToken }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(data.detail || "This verification link is invalid or expired.");
+          localStorage.setItem("bragstack_token", data.access_token);
+          window.location.replace("/app");
+        } catch (error) {
+          setErrorMessage(error.message || "This verification link is invalid or expired.");
+          setIsVerifying(false);
+        }
+      })();
+      return;
+    }
+
     if (hash.get("reset_token")) {
       history.replaceState(null, "", "/login");
     }
-  }, []);
+  }, [apiBaseUrl]);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -57,10 +85,23 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
     event.preventDefault();
     setIsSubmitting(true);
     setErrorMessage("");
+    setVerificationMessage("");
 
     try {
       if (isRegister) {
-        await onRegister(formData);
+        const response = await fetch(`${apiBaseUrl}/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.detail || "Could not create your account. Try again.");
+        setVerificationEmail(formData.email);
+        setVerificationMessage(
+          data.email_sent === false
+            ? "Your account was created, but the verification email could not be sent yet. Use Resend verification below."
+            : "Account created. Check your email and click the verification link before signing in.",
+        );
       } else {
         await onLogin({ email: formData.email, password: formData.password });
       }
@@ -68,12 +109,33 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
       console.error(error);
       setErrorMessage(
         error.response?.data?.detail ||
+          error.message ||
           (isRegister
             ? "Could not create your account. Try again."
-            : "Could not log you in. Check your email and password.")
+            : "Could not log you in. Check your email and password."),
       );
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function resendVerification() {
+    if (!verificationEmail) return;
+    setVerificationSubmitting(true);
+    setVerificationMessage("");
+    try {
+      const response = await fetch(`${apiBaseUrl}/auth/email-verification/resend`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: verificationEmail }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || "Verification email could not be resent.");
+      setVerificationMessage("A new verification email has been sent. Check your inbox.");
+    } catch (error) {
+      setVerificationMessage(error.message || "Verification email could not be resent.");
+    } finally {
+      setVerificationSubmitting(false);
     }
   }
 
@@ -178,7 +240,20 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
               : "Open your dashboard and keep building your proof."}
           </p>
 
+          {isVerifying && <div className="auth-reset-panel"><strong>Verifying your email…</strong><p>One moment while BragStack confirms your account.</p></div>}
           {errorMessage && <div className="auth-error">{errorMessage}</div>}
+
+          {verificationMessage && (
+            <div className="auth-reset-panel">
+              <strong>Email verification</strong>
+              <p>{verificationMessage}</p>
+              {verificationEmail && (
+                <button type="button" onClick={resendVerification} disabled={verificationSubmitting}>
+                  {verificationSubmitting ? "Sending…" : "Resend verification email"}
+                </button>
+              )}
+            </div>
+          )}
 
           {isRegister && (
             <label className="auth-field">
@@ -212,7 +287,7 @@ function AuthPage({ mode = "login", onLogin, onRegister }) {
             </button>
           )}
 
-          <button className="btn primary auth-submit" disabled={isSubmitting || Boolean(connectingProvider)}>
+          <button className="btn primary auth-submit" disabled={isSubmitting || isVerifying || Boolean(connectingProvider)}>
             {isSubmitting ? "Working..." : isRegister ? "Create account" : "Log in"}
           </button>
 
