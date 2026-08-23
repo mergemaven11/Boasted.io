@@ -24,6 +24,7 @@ from app.packet_share_routes import router as packet_share_router
 from app.performance_packet_export_routes import router as performance_packet_export_router
 from app.performance_packet_routes import router as performance_packet_router
 from app.plans import enforce_usage_limit
+from app.profile_media_routes import router as profile_media_router
 from app.promotion_packet_export_routes import router as promotion_packet_export_router
 from app.promotion_packet_routes import router as promotion_packet_router
 from app.public_slug_routes import router as public_slug_router
@@ -42,11 +43,7 @@ ENTRY_EDIT_WINDOW = timedelta(hours=1)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        frontend_url,
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=[frontend_url, "http://localhost:5173", "http://127.0.0.1:5173"],
     allow_origin_regex=r"https://.*\.app\.github\.dev",
     allow_credentials=True,
     allow_methods=["*"],
@@ -55,24 +52,17 @@ app.add_middleware(
 
 
 def _as_utc(value: datetime) -> datetime:
-    """Normalize MongoDB datetimes to timezone-aware UTC."""
     if value.tzinfo is None:
         return value.replace(tzinfo=timezone.utc)
     return value.astimezone(timezone.utc)
 
 
 def enforce_entry_usage(request: Request, current_user: dict = Depends(get_current_user)):
-    """Enforce proof-entry creation limits and the one-hour edit window."""
     path = request.url.path.rstrip("/")
     user_id = str(current_user["_id"])
 
     if request.method == "POST" and path == "/entries":
-        enforce_usage_limit(
-            user=current_user,
-            entitlement_name="max_entries",
-            current_count=entries_collection.count_documents({"user_id": user_id}),
-            resource_name="proof entries",
-        )
+        enforce_usage_limit(user=current_user, entitlement_name="max_entries", current_count=entries_collection.count_documents({"user_id": user_id}), resource_name="proof entries")
         return
 
     if request.method != "PUT" or not path.startswith("/entries/"):
@@ -82,47 +72,31 @@ def enforce_entry_usage(request: Request, current_user: dict = Depends(get_curre
     if not ObjectId.is_valid(entry_id):
         return
 
-    existing_entry = entries_collection.find_one(
-        {"_id": ObjectId(entry_id), "user_id": user_id},
-        {"created_at": 1},
-    )
+    existing_entry = entries_collection.find_one({"_id": ObjectId(entry_id), "user_id": user_id}, {"created_at": 1})
     if not existing_entry:
         return
 
     created_at = existing_entry.get("created_at")
     if not isinstance(created_at, datetime):
-        raise HTTPException(
-            status_code=403,
-            detail="This accomplishment can no longer be edited.",
-        )
+        raise HTTPException(status_code=403, detail="This accomplishment can no longer be edited.")
 
     if datetime.now(timezone.utc) - _as_utc(created_at) >= ENTRY_EDIT_WINDOW:
-        raise HTTPException(
-            status_code=403,
-            detail="The 60-minute edit window for this accomplishment has ended.",
-        )
+        raise HTTPException(status_code=403, detail="The 60-minute edit window for this accomplishment has ended.")
 
 
 def enforce_receipt_usage(request: Request, current_user: dict = Depends(get_current_user)):
-    """Enforce the current plan's Impact Receipt creation limit."""
     path = request.url.path.rstrip("/")
-    is_create = request.method == "POST" and (
-        path == "/impact-receipts" or path.startswith("/impact-receipts/from-entry/")
-    )
+    is_create = request.method == "POST" and (path == "/impact-receipts" or path.startswith("/impact-receipts/from-entry/"))
     if not is_create:
         return
 
     user_id = str(current_user["_id"])
-    enforce_usage_limit(
-        user=current_user,
-        entitlement_name="max_impact_receipts",
-        current_count=impact_receipts_collection.count_documents({"user_id": user_id}),
-        resource_name="Impact Receipts",
-    )
+    enforce_usage_limit(user=current_user, entitlement_name="max_impact_receipts", current_count=impact_receipts_collection.count_documents({"user_id": user_id}), resource_name="Impact Receipts")
 
 
 app.include_router(auth_router)
 app.include_router(oauth_router)
+app.include_router(profile_media_router)
 app.include_router(billing_router)
 app.include_router(entries_router, dependencies=[Depends(enforce_entry_usage)])
 app.include_router(public_router)
@@ -147,5 +121,4 @@ app.include_router(certification_packet_export_router)
 
 @app.get("/")
 def root():
-    """Return a basic API health check."""
     return {"message": "BragStack API is running"}
