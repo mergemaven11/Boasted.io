@@ -13,7 +13,21 @@ function ProfilePage() {
   function handleChange(e){const{name,value}=e.target;setForm(c=>({...c,[name]:value}));}
   function selectTheme(id){setForm(c=>({...c,profile_theme:id,profile_primary_color:"",profile_secondary_color:"",profile_background_color:""}));}
   function resetColors(){setForm(c=>({...c,profile_primary_color:"",profile_secondary_color:"",profile_background_color:""}));}
-  async function handleSubmit(e){e.preventDefault();setSaving(true);setMessage("");setError("");try{const{avatar_url:avatarUrl,id,email,email_verified,public_slug,plan,entitlements,created_at,...profileFields}=form;await updateCurrentUserProfile(profileFields);const updated=await updateProfileAvatar(avatarUrl);setUser(updated);setForm(c=>({...c,...updated,avatar_url:updated.avatar_url??avatarUrl}));setMessage("Profile and appearance saved.");}catch(err){setError(err.response?.data?.detail||"Your profile could not be saved.");}finally{setSaving(false);}}
+  async function handleSubmit(e){
+    e.preventDefault();setSaving(true);setMessage("");setError("");
+    try{
+      const avatarUrl=form.avatar_url;
+      const profileFields={
+        name:form.name,headline:form.headline,bio:form.bio,location:form.location,
+        github_url:form.github_url,portfolio_url:form.portfolio_url,resume_url:form.resume_url,
+        profile_theme:form.profile_theme,profile_primary_color:form.profile_primary_color,
+        profile_secondary_color:form.profile_secondary_color,profile_background_color:form.profile_background_color,
+      };
+      await updateCurrentUserProfile(profileFields);
+      const updated=await updateProfileAvatar(avatarUrl);
+      setUser(updated);setForm(c=>({...c,...updated,avatar_url:updated.avatar_url??avatarUrl}));setMessage("Profile and appearance saved.");
+    }catch(err){setError(err.response?.data?.detail||"Your profile could not be saved.");}finally{setSaving(false);}
+  }
   if(loading)return <main className="profile-settings"><div className="profile-loading">Loading profile…</div></main>;
   const avatarLetter=form.name?.charAt(0).toUpperCase()||"B"; const theme=getProfileTheme(form.profile_theme); const primary=form.profile_primary_color||theme.primary; const secondary=form.profile_secondary_color||theme.secondary; const background=form.profile_background_color||theme.background;
   return <main className="profile-settings">
