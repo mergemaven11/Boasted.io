@@ -19,6 +19,7 @@ const BASE_NAV_ITEMS = [
   { href: "/app", label: "Dashboard", icon: Home },
   { href: "/app/accomplishments", label: "Accomplishments", icon: ListChecks },
   { href: "/app/impact-receipts", label: "Impact Receipts", icon: ReceiptText },
+  { href: "/app/profile", label: "Edit profile", icon: UserRound },
 ];
 
 function AppSidebar() {
@@ -28,7 +29,6 @@ function AppSidebar() {
 
   useEffect(() => {
     let isMounted = true;
-
     async function loadUser() {
       try {
         const data = await getCurrentUser();
@@ -40,7 +40,6 @@ function AppSidebar() {
         }
       }
     }
-
     void loadUser();
     return () => { isMounted = false; };
   }, []);
@@ -51,9 +50,7 @@ function AppSidebar() {
   }
 
   const navItems = [...BASE_NAV_ITEMS];
-  if (user?.entitlements?.advanced_reports) {
-    navItems.push({ href: "/app/reports", label: "Reports", icon: BarChart3 });
-  }
+  if (user?.entitlements?.advanced_reports) navItems.push({ href: "/app/reports", label: "Reports", icon: BarChart3 });
 
   return (
     <>
@@ -67,10 +64,7 @@ function AppSidebar() {
       <aside className={`app-sidebar ${mobileOpen ? "mobile-open" : ""}`}>
         <a className="sidebar-brand" href="/app">
           <img className="sidebar-logo" src="/brandmark.svg" alt="BragStack" />
-          <span>
-            <strong>BragStack</strong>
-            <small>PROVE · GROW · GET HIRED</small>
-          </span>
+          <span><strong>BragStack</strong><small>PROVE · GROW · GET HIRED</small></span>
         </a>
 
         <div className="sidebar-plan-row">
@@ -82,47 +76,22 @@ function AppSidebar() {
 
         <nav className="sidebar-nav" aria-label="BragStack navigation">
           <p className="sidebar-section-label">Workspace</p>
-          {navItems.map(({ href, label, icon: Icon }) => {
-            const isActive = path === href;
-            return (
-              <a className={isActive ? "active" : ""} href={href} key={href}>
-                <Icon size={18} />
-                <span>{label}</span>
-              </a>
-            );
-          })}
+          {navItems.map(({ href, label, icon: Icon }) => (
+            <a className={path === href ? "active" : ""} href={href} key={href}><Icon size={18} /><span>{label}</span></a>
+          ))}
 
           <p className="sidebar-section-label">Career tools</p>
           <a href="/docs"><FileText size={18} /><span>Docs & guides</span></a>
-
-          {user?.public_slug && (
-            <a href={`/brag/${user.public_slug}`} target="_blank" rel="noreferrer">
-              <UserRound size={18} />
-              <span>Public Proof Profile</span>
-            </a>
-          )}
-
-          {user && user.plan !== "pro" && (
-            <a className="sidebar-upgrade" href="/upgrade">
-              <Sparkles size={18} />
-              <span>Upgrade to Pro</span>
-            </a>
-          )}
+          {user?.public_slug && <a href={`/brag/${user.public_slug}`} target="_blank" rel="noreferrer"><UserRound size={18} /><span>Public Proof Profile</span></a>}
+          {user && user.plan !== "pro" && <a className="sidebar-upgrade" href="/upgrade"><Sparkles size={18} /><span>Upgrade to Pro</span></a>}
         </nav>
 
         <div className="sidebar-footer">
-          <div className="sidebar-user">
+          <a className="sidebar-user" href="/app/profile" aria-label="Edit profile">
             <span className="sidebar-user-avatar">{user?.name?.charAt(0).toUpperCase() || "B"}</span>
-            <span>
-              <strong>{user?.name || "BragStack member"}</strong>
-              <small>{user?.plan === "pro" ? "Pro plan" : "Free plan"}</small>
-            </span>
-          </div>
-
-          <button type="button" onClick={logout}>
-            <LogOut size={17} />
-            Sign out
-          </button>
+            <span><strong>{user?.name || "BragStack member"}</strong><small>{user?.plan === "pro" ? "Pro plan · Edit profile" : "Free plan · Edit profile"}</small></span>
+          </a>
+          <button type="button" onClick={logout}><LogOut size={17} />Sign out</button>
         </div>
       </aside>
       {mobileOpen && <button className="sidebar-scrim" type="button" onClick={() => setMobileOpen(false)} aria-label="Close navigation" />}
