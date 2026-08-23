@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth_routes import router as auth_router
+from app.oauth_routes import router as oauth_router
 from app.beta_metrics_routes import router as beta_metrics_router
 from app.certification_packet_export_routes import router as certification_packet_export_router
 from app.certification_packet_routes import router as certification_packet_router
@@ -46,6 +47,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(oauth_router)
 app.include_router(entries_router)
 app.include_router(public_router)
 app.include_router(public_slug_router)
