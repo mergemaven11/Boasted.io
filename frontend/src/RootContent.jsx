@@ -61,6 +61,28 @@ function RootContent() {
     return () => { active = false; };
   }, [isAuthenticatedApp]);
 
+  useEffect(() => {
+    if (path !== "/") return;
+
+    const timeout = window.setTimeout(() => {
+      document.querySelectorAll('a[href*="@bragstack.app"]').forEach((link) => {
+        const href = link.getAttribute("href") || "";
+        const subject = href.includes("?subject=") ? `?${href.split("?")[1]}` : "";
+        link.setAttribute("href", `mailto:Tobias.scott@usebragstack.com${subject}`);
+      });
+
+      document.querySelectorAll(".mega-footer-columns span").forEach((node) => {
+        if (node.textContent?.trim() !== "Docs · coming soon") return;
+        const link = document.createElement("a");
+        link.href = "/docs";
+        link.textContent = "Docs";
+        node.replaceWith(link);
+      });
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
+  }, [path]);
+
   if (path === "/privacy") return <PrivacyPolicyPage />;
   if (path === "/terms") return <TermsPage />;
   if (isUpgradePage) return <UpgradePage />;
