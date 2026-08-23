@@ -64,8 +64,13 @@ def enforce_entry_usage(request: Request, current_user: dict = Depends(get_curre
 
 
 def enforce_receipt_usage(request: Request, current_user: dict = Depends(get_current_user)):
-    if request.method != "POST":
+    path = request.url.path.rstrip("/")
+    is_create = request.method == "POST" and (
+        path == "/impact-receipts" or path.startswith("/impact-receipts/from-entry/")
+    )
+    if not is_create:
         return
+
     user_id = str(current_user["_id"])
     enforce_usage_limit(
         user=current_user,
