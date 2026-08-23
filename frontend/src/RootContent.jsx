@@ -8,6 +8,7 @@ import DocsPage from "./DocsPage.jsx";
 import ImpactReceiptsPage from "./ImpactReceiptsPage.jsx";
 import { PrivacyPolicyPage, PublicFooter, TermsPage } from "./LegalPages.jsx";
 import NDAGuidancePage from "./NDAGuidancePage.jsx";
+import ProfilePage from "./ProfilePage.jsx";
 import SeoLandingPage from "./SeoLandingPages.jsx";
 import UpgradePage from "./UpgradePage.jsx";
 import { getCurrentUser } from "./api.js";
@@ -93,6 +94,8 @@ function RootContent() {
   let Content = App;
   if (path === "/app") {
     Content = DashboardPage;
+  } else if (path === "/app/profile") {
+    Content = ProfilePage;
   } else if (path === "/app/accomplishments") {
     Content = AccomplishmentsPage;
   } else if (path === "/app/impact-receipts") {
