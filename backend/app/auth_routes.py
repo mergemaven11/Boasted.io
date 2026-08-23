@@ -1,7 +1,10 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+import hashlib
+import os
 import re
 import secrets
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr, Field
@@ -17,6 +20,10 @@ from app.database import users_collection
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+PASSWORD_RESET_FROM = os.getenv("PASSWORD_RESET_FROM", "BragStack <noreply@usebragstack.com>")
+
 
 class RegisterRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=80)
@@ -24,9 +31,13 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=8)
 
 
-class LoginRequest(BaseModel):
+class PasswordResetRequest(BaseModel):
     email: EmailStr
-    password: str
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str = Field(..., min_length=20, max_length=300)
+    password: str = Field(..., min_length=8, max_length=256)
 
 
 class ProfileUpdateRequest(BaseModel):
@@ -51,6 +62,46 @@ def generate_unique_public_slug(name: str) -> str:
         slug = f"{base_slug}-{random_suffix}"
         if not users_collection.find_one({"public_slug": slug}):
             return slug
+
+
+def _hash_reset_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+async def _send_password_reset_email(email: str, reset_url: str) -> None:
+    if not RESEND_API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Password reset email is not configured yet.",
+        )
+
+    payload = {
+        "from": PASSWORD_RESET_FROM,
+        "to": [email],
+        "subject": "Reset your BragStack password",
+        "html": (
+            "<div style='font-family:Arial,sans-serif;line-height:1.6'>"
+            "<h2>Reset your BragStack password</h2>"
+            "<p>We received a request to reset your password.</p>"
+            f"<p><a href='{reset_url}'>Reset password</a></p>"
+            "<p>This link expires in 30 minutes. If you did not request it, you can ignore this email.</p>"
+            "</div>"
+        ),
+    }
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        response = await client.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json=payload,
+        )
+    if response.status_code >= 400:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Password reset email could not be sent.",
+        )
 
 
 @router.post("/register")
@@ -98,6 +149,70 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
         "token_type": "bearer",
         "user": serialize_user(user),
     }
+
+
+@router.post("/password-reset/request")
+async def request_password_reset(payload: PasswordResetRequest):
+    normalized_email = payload.email.lower().strip()
+    user = users_collection.find_one({"email": normalized_email})
+
+    # Do not reveal whether an account exists.
+    if not user:
+        return {"message": "If that email belongs to an account, a reset link has been sent."}
+
+    raw_token = secrets.token_urlsafe(48)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=30)
+    users_collection.update_one(
+        {"_id": user["_id"]},
+        {
+            "$set": {
+                "password_reset_token_hash": _hash_reset_token(raw_token),
+                "password_reset_expires_at": expires_at.isoformat(),
+            }
+        },
+    )
+    reset_url = f"{FRONTEND_URL}/login#reset_token={raw_token}"
+
+    try:
+        await _send_password_reset_email(normalized_email, reset_url)
+    except HTTPException:
+        users_collection.update_one(
+            {"_id": user["_id"]},
+            {"$unset": {"password_reset_token_hash": "", "password_reset_expires_at": ""}},
+        )
+        raise
+
+    return {"message": "If that email belongs to an account, a reset link has been sent."}
+
+
+@router.post("/password-reset/confirm")
+def confirm_password_reset(payload: PasswordResetConfirm):
+    token_hash = _hash_reset_token(payload.token)
+    user = users_collection.find_one({"password_reset_token_hash": token_hash})
+    if not user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This reset link is invalid or expired.")
+
+    expires_raw = user.get("password_reset_expires_at")
+    try:
+        expires_at = datetime.fromisoformat(expires_raw)
+    except (TypeError, ValueError):
+        expires_at = datetime.min.replace(tzinfo=timezone.utc)
+
+    if expires_at < datetime.now(timezone.utc):
+        users_collection.update_one(
+            {"_id": user["_id"]},
+            {"$unset": {"password_reset_token_hash": "", "password_reset_expires_at": ""}},
+        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This reset link is invalid or expired.")
+
+    users_collection.update_one(
+        {"_id": user["_id"]},
+        {
+            "$set": {"hashed_password": hash_password(payload.password)},
+            "$unset": {"password_reset_token_hash": "", "password_reset_expires_at": ""},
+        },
+    )
+    return {"message": "Password updated. You can now sign in."}
 
 
 @router.get("/me")
