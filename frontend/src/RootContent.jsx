@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import AccomplishmentsPage from "./AccomplishmentsPage.jsx";
 import App from "./App.jsx";
 import AppSidebar from "./AppSidebar.jsx";
+import DocsPage from "./DocsPage.jsx";
 import ImpactReceiptsPage from "./ImpactReceiptsPage.jsx";
 import SeoLandingPage, { getSeoLandingPage } from "./SeoLandingPages.jsx";
 import UpgradePage from "./UpgradePage.jsx";
@@ -24,6 +25,7 @@ function RootContent() {
   const path = window.location.pathname.replace(/\/$/, "") || "/";
   const seoLandingContent = getSeoLandingPage(path);
   const isUpgradePage = path === "/upgrade";
+  const isDocsPage = path === "/docs";
   const isAuthenticatedApp = path.startsWith("/app");
   const [user, setUser] = useState(null);
   const [planLoaded, setPlanLoaded] = useState(!isAuthenticatedApp);
@@ -56,6 +58,10 @@ function RootContent() {
 
   if (isUpgradePage) {
     return <UpgradePage />;
+  }
+
+  if (isDocsPage) {
+    return <DocsPage />;
   }
 
   if (seoLandingContent) {
