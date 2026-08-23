@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import AccomplishmentsPage from "./AccomplishmentsPage.jsx";
 import App from "./App.jsx";
 import AppSidebar from "./AppSidebar.jsx";
+import DashboardPage from "./DashboardPage.jsx";
 import DocsPage from "./DocsPage.jsx";
 import ImpactReceiptsPage from "./ImpactReceiptsPage.jsx";
 import { PrivacyPolicyPage, PublicFooter, TermsPage } from "./LegalPages.jsx";
@@ -68,7 +69,9 @@ function RootContent() {
   if (seoLandingContent) return <><SeoLandingPage content={seoLandingContent} /><PublicFooter /></>;
 
   let Content = App;
-  if (path === "/app/accomplishments") {
+  if (path === "/app") {
+    Content = DashboardPage;
+  } else if (path === "/app/accomplishments") {
     Content = AccomplishmentsPage;
   } else if (path === "/app/impact-receipts") {
     Content = ImpactReceiptsPage;
