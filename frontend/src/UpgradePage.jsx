@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, CreditCard, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowLeft, CreditCard, ShieldCheck, Sparkles, Video } from "lucide-react";
 
 function getApiBaseUrl() {
   if (window.location.hostname.endsWith(".app.github.dev")) return "/api";
@@ -68,9 +68,10 @@ function UpgradePage() {
           <strong>BragStack Pro · $9/month</strong>
         </div>
         <h1>Unlock your full career proof system.</h1>
-        <p>Unlimited proof and Impact Receipts, advanced career analytics, performance-review and promotion packets, PDF exports, integrations, and advanced public profile features.</p>
+        <p>Unlimited proof and Impact Receipts, the Practice Interviewer, advanced career analytics, performance-review and promotion packets, PDF exports, integrations, and advanced public profile features.</p>
 
         <div style={{ display: "grid", gap: 10, margin: "24px 0" }}>
+          <span><Video size={17} style={{ verticalAlign: "middle", marginRight: 8 }} />Practice role-aware interviews with adaptive answer coaching</span>
           <span><ShieldCheck size={17} style={{ verticalAlign: "middle", marginRight: 8 }} />Secure Stripe-hosted checkout</span>
           <span><CreditCard size={17} style={{ verticalAlign: "middle", marginRight: 8 }} />Subscription access updates through verified billing events</span>
         </div>

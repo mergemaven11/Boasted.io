@@ -15,7 +15,7 @@ def test_health_reports_process_alive():
 
 
 def test_ready_reports_ready_when_mongo_responds(monkeypatch):
-    monkeypatch.setattr(main.mongo_client.admin, "command", lambda command: {"ok": 1.0})
+    monkeypatch.setattr(main.mongo_admin, "command", lambda command: {"ok": 1.0})
 
     response = client.get("/ready")
 
@@ -27,7 +27,7 @@ def test_ready_fails_safely_when_mongo_is_unavailable(monkeypatch):
     def fail_ping(command):
         raise ServerSelectionTimeoutError("mongodb unavailable")
 
-    monkeypatch.setattr(main.mongo_client.admin, "command", fail_ping)
+    monkeypatch.setattr(main.mongo_admin, "command", fail_ping)
 
     response = client.get("/ready")
 

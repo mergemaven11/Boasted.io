@@ -36,6 +36,7 @@ from app.routes import public_router, router as entries_router
 app = FastAPI(title="BragStack API", description="Evidence-backed career proof for accomplishments, impact, and reports.", version="1.0.0")
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 ENTRY_EDIT_WINDOW = timedelta(hours=1)
+mongo_admin = mongo_client.admin
 app.add_middleware(CORSMiddleware, allow_origins=[frontend_url, "http://localhost:5173", "http://127.0.0.1:5173"], allow_origin_regex=r"https://.*\.app\.github\.dev", allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 def _as_utc(value: datetime) -> datetime:
@@ -95,7 +96,7 @@ def health():
 @app.get("/ready")
 def ready():
     try:
-        mongo_client.admin.command("ping")
+        mongo_admin.command("ping")
     except PyMongoError as exc:
         raise HTTPException(status_code=503, detail="Service is not ready") from exc
     return {"status": "ready"}
