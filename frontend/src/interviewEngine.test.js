@@ -1,50 +1,59 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+
 import {
   analyzeAnswer,
   buildInterviewPlan,
   getBrowserInterviewCapabilities,
-  mapCareerFamily,
+  inferCareerFamily,
   summarizeInterview,
 } from "./interviewEngine.js";
-
-const receipts = [
-  { id: "weak", title: "Helped with a task", description: "Assisted the team.", outcome: "Completed work", tags: [] },
-  { id: "strong", title: "Reduced API latency", description: "Diagnosed a caching bottleneck and coordinated a fix.", outcome: "Cut p95 latency by 42%", tags: ["api", "performance"] },
-];
+import { rankImpactReceipts, scoreMeaningAlignment } from "./careerIntelligence.js";
 
 test("maps common careers to a career family while keeping an all-career fallback", () => {
-  assert.equal(mapCareerFamily("Senior Software Engineer"), "technology");
-  assert.equal(mapCareerFamily("Registered Nurse"), "healthcare");
-  assert.equal(mapCareerFamily("Investment Analyst"), "finance");
-  assert.equal(mapCareerFamily("Professional Dog Walker"), "general");
+  assert.equal(inferCareerFamily("Registered Nurse"), "healthcare");
+  assert.equal(inferCareerFamily("Platform Support Engineer"), "technology");
+  assert.equal(inferCareerFamily("High School Teacher"), "education");
+  assert.equal(inferCareerFamily("Funeral Director"), "management");
+  assert.equal(inferCareerFamily("Professional Dog Walker"), "general");
 });
 
 test("builds an exact-length role-aware interview and can personalize from career proof", () => {
   const plan = buildInterviewPlan({
-    roleTitle: "Platform Support Engineer",
-    careerArea: "Technology",
-    experienceLevel: "experienced",
-    interviewType: "mixed",
+    roleTitle: "Registered Nurse",
+    careerArea: "Healthcare",
     questionCount: 8,
-    jobDescription: "Own production incidents, Kubernetes reliability, and customer communication.",
-    receipts,
+    interviewType: "mixed",
+    jobDescription: "Provide safe patient care, communicate with families, and prioritize changing clinical needs.",
+    receipts: [{ id: "r1", accomplishment: "Improved shift handoff documentation for the care team" }],
   });
 
+  assert.equal(plan.family, "healthcare");
   assert.equal(plan.questions.length, 8);
   assert.ok(plan.questions.some((question) => question.source === "impact-receipt"));
   assert.ok(plan.questions.some((question) => question.source === "job-description"));
-  assert.equal(plan.family, "technology");
+  assert.ok(plan.questions.some((question) => question.text.includes("Registered Nurse")));
 });
 
 test("ranks the strongest relevant Impact Receipt instead of taking the first one", () => {
-  const plan = buildInterviewPlan({
-    roleTitle: "Platform Support Engineer",
-    questionCount: 5,
-    receipts,
+  const ranked = rankImpactReceipts([
+    { id: "generic", accomplishment: "Organized a team lunch" },
+    {
+      id: "relevant",
+      accomplishment: "Diagnosed recurring Kubernetes deployment failures",
+      contribution: "I isolated a memory limit issue and implemented a safer deployment configuration",
+      result: "Reduced repeat production deployment failures by 30 percent",
+      evidence: "incident report",
+    },
+  ], {
+    roleTitle: "Platform Engineer",
+    jobDescription: "Own Kubernetes reliability, troubleshoot production incidents, and reduce deployment failures.",
+    competency: "problem_solving",
+    question: "Tell me about a difficult technical problem you diagnosed.",
   });
-  const proofQuestion = plan.questions.find((question) => question.source === "impact-receipt");
-  assert.equal(proofQuestion.receiptId, "strong");
+
+  assert.equal(ranked[0].receipt.id, "relevant");
+  assert.ok(ranked[0].score > ranked[1].score);
 });
 
 test("uses the role itself for careers outside a known family", () => {
@@ -74,54 +83,77 @@ test("recognizes a structured answer with personal action, result, and truthful 
 });
 
 test("distinguishes polished answer form from evidence of the requested competency", () => {
-  const answer = "At my last company, we had a challenging situation. I took ownership and communicated clearly with everyone. I worked hard, stayed organized, and the team was happy with the outcome.";
-  const analysis = analyzeAnswer(answer, {
-    question: "Tell me about a time you used Kubernetes to restore a degraded production service.",
-    competency: "technical_depth",
-    roleTitle: "Platform Engineer",
+  const polishedButWrong = "During a quarterly project I analyzed the schedule, implemented a new checklist, and improved completion time by 25 percent. As a result, the work finished faster and the team met the deadline.";
+  const meaning = scoreMeaningAlignment(polishedButWrong, {
+    question: "Tell me about a time you influenced people without formal authority.",
+    competency: "leadership",
   });
-  assert.ok(analysis.dimensions.relevance.score < 55);
-  assert.ok(analysis.followUp);
+  const analysis = analyzeAnswer(polishedButWrong, {
+    question: "Tell me about a time you influenced people without formal authority.",
+    competency: "leadership",
+  });
+
+  assert.equal(meaning.competency, "leadership");
+  assert.ok(meaning.score < 55);
+  assert.equal(analysis.missingDimension, "relevance");
+  assert.match(analysis.followUp, /leadership/i);
 });
 
 test("rewards evidence that actually demonstrates the requested competency", () => {
-  const answer = "Our Kubernetes service started returning 503s after a deployment. I compared pod restarts and memory limits, found OOMKills in the logs, rolled back the deployment, then raised the limit after load testing. Error rate returned to baseline in 12 minutes and we added an alert for memory saturation.";
+  const answer = "When two teams disagreed on the rollout, I facilitated a working session, listened to each stakeholder's risk concerns, and proposed a phased plan. I influenced both leads to align on the shared reliability goal even though neither reported to me. As a result, we launched on schedule without the expected support escalation.";
   const analysis = analyzeAnswer(answer, {
-    question: "Tell me about a time you used Kubernetes to restore a degraded production service.",
-    competency: "technical_depth",
-    roleTitle: "Platform Engineer",
+    question: "Tell me about a time you influenced people without formal authority.",
+    competency: "leadership",
   });
+
+  assert.equal(analysis.signals.competency, "leadership");
   assert.ok(analysis.dimensions.relevance.score >= 55);
+  assert.ok(analysis.meaning.matchedConceptGroups >= 2);
 });
 
 test("coaches vague answers instead of inventing missing impact", () => {
-  const analysis = analyzeAnswer("I helped the team fix the issue and it went well.", {
-    question: "Tell me about a difficult problem you solved.",
-    competency: "problem_solving",
-    roleTitle: "Support Engineer",
+  const analysis = analyzeAnswer("We handled it and everything was fine.", {
+    question: "Tell me about a difficult customer situation.",
   });
-  assert.ok(analysis.improvements.length > 0);
+
   assert.ok(analysis.followUp);
+  assert.equal(analysis.missingDimension, "relevance");
   assert.equal(analysis.signals.quantified, false);
 });
 
 test("summarizes patterns across an interview without an employability score claim", () => {
-  const responses = [
-    { analysis: analyzeAnswer("I diagnosed the API issue, changed the cache config, and reduced latency by 20 percent.", { question: "Tell me about a problem you solved.", competency: "problem_solving", roleTitle: "Engineer" }) },
-    { analysis: analyzeAnswer("We had a deadline and I helped. It went well.", { question: "Tell me about a deadline.", competency: "execution", roleTitle: "Engineer" }) },
-  ];
-  const summary = summarizeInterview(responses);
-  assert.ok(summary.overallLabel);
-  assert.ok(Array.isArray(summary.patterns));
+  const strong = analyzeAnswer(
+    "During a customer escalation, I reviewed the case history, identified the recurring handoff issue, and created a clearer escalation checklist. As a result, the team reduced repeat handoff errors by 25 percent over six weeks.",
+    { question: "Tell me about a customer problem.", competency: "problem_solving" },
+  );
+  const weak = analyzeAnswer(
+    "I worked with the team on a project and we got it done.",
+    { question: "Tell me about a result you delivered.", competency: "results" },
+  );
+  const summary = summarizeInterview([
+    { answer: "strong", analysis: strong },
+    { answer: "weak", analysis: weak },
+  ]);
+
+  assert.ok(summary.strongestAreas.length > 0);
+  assert.ok(summary.improvementAreas.length > 0);
+  assert.ok(summary.patterns.length > 0);
+  assert.equal(summary.bestAnswerIndex, 0);
+  assert.ok(summary.averageWords > 0);
 });
 
 test("reports local browser capabilities without requiring them", () => {
   const capabilities = getBrowserInterviewCapabilities({
+    navigator: { mediaDevices: { getUserMedia() {} }, gpu: {} },
     speechSynthesis: {},
-    SpeechRecognition: function Recognition() {},
-    navigator: { mediaDevices: { getUserMedia() {} } },
+    SpeechRecognition: function SpeechRecognition() {},
   });
-  assert.equal(capabilities.speechSynthesis, true);
-  assert.equal(capabilities.speechRecognition, true);
-  assert.equal(capabilities.camera, true);
+
+  assert.deepEqual(capabilities, {
+    speechRecognition: true,
+    speechSynthesis: true,
+    camera: true,
+    webGpu: true,
+    localModelEligible: true,
+  });
 });
