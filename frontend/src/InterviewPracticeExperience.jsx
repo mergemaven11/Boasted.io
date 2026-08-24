@@ -6,6 +6,7 @@ import InterviewPracticePage from "./InterviewPracticePage.jsx";
 import "./AnimatedInterviewerAvatar.css";
 import "./InterviewPracticeZoomLayout.css";
 import "./InterviewExperienceV3.css";
+import "./InterviewResponsiveReference.css";
 
 function inferAvatarState() {
   if (window.speechSynthesis?.speaking) return "speaking";
