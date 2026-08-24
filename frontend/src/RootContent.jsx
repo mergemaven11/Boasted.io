@@ -8,8 +8,10 @@ import DocsPage from "./DocsPage.jsx";
 import ImpactReceiptsPage from "./ImpactReceiptsPage.jsx";
 import InterviewPracticePage from "./InterviewPracticePage.jsx";
 import LandingInterviewShowcase from "./LandingInterviewShowcase.jsx";
+import LandingResumeShowcase from "./LandingResumeShowcase.jsx";
 import ReceiptVerificationCenter from "./ReceiptVerificationCenter.jsx";
 import ReceiptVerificationPage from "./ReceiptVerificationPage.jsx";
+import ResumeBuilderPage from "./ResumeBuilderPage.jsx";
 import { PrivacyPolicyPage, PublicFooter, TermsPage } from "./LegalPages.jsx";
 import NDAGuidancePage from "./NDAGuidancePage.jsx";
 import ProductTour from "./ProductTour.jsx";
@@ -68,9 +70,7 @@ function RootContent() {
         if (active) setPlanLoaded(true);
       }
     })();
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [isAuthenticatedApp]);
 
   useEffect(() => {
@@ -99,7 +99,7 @@ function RootContent() {
   if (isDocsPage) return <><DocsPage /><PublicFooter /></>;
   if (isNdaPage) return <><NDAGuidancePage /><PublicFooter /></>;
   if (seoLandingContent) return <SeoLandingPage content={seoLandingContent} />;
-  if (path === "/") return <><App /><LandingInterviewShowcase /></>;
+  if (path === "/") return <><App /><LandingInterviewShowcase /><LandingResumeShowcase /></>;
 
   let Content = App;
   let contentProps = {};
@@ -109,7 +109,10 @@ function RootContent() {
   else if (path === "/app/settings/appearance") Content = AppearanceSettingsPage;
   else if (path === "/app/accomplishments") Content = AccomplishmentsPage;
   else if (path === "/app/impact-receipts") Content = ImpactReceiptsWithVerification;
-  else if (path === "/app/reports" && planLoaded) {
+  else if (path === "/app/resume-builder" && planLoaded) {
+    Content = user?.entitlements?.resume_builder ? ResumeBuilderPage : ProRequired;
+    contentProps = user?.entitlements?.resume_builder ? {} : { feature: "Resume Builder and ATS Guardian" };
+  } else if (path === "/app/reports" && planLoaded) {
     Content = user?.entitlements?.advanced_reports ? ProCareerPage : ProRequired;
     contentProps = user?.entitlements?.advanced_reports ? {} : { feature: "Career analytics and career packets" };
   } else if (path === "/app/interview-practice" && planLoaded) {
@@ -120,13 +123,7 @@ function RootContent() {
   if (!isAuthenticatedApp) return <Content {...contentProps} />;
   if (!planLoaded) return <div className="app-shell"><div className="authenticated-content" /></div>;
 
-  return (
-    <div className="app-shell">
-      <AppSidebar />
-      <div className="authenticated-content"><Content {...contentProps} /></div>
-      <ProductTour user={user} />
-    </div>
-  );
+  return <div className="app-shell"><AppSidebar /><div className="authenticated-content"><Content {...contentProps} /></div><ProductTour user={user} /></div>;
 }
 
 export default RootContent;

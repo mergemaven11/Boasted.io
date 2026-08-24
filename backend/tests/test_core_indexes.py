@@ -10,7 +10,7 @@ def test_core_indexes_are_created_with_expected_shapes():
 
     created = ensure_core_indexes(db)
 
-    assert set(created) == {"users", "entries", "impact_receipts"}
+    assert set(created) == {"users", "entries", "impact_receipts", "resume_documents"}
 
     user_indexes = db.users.index_information()
     assert user_indexes["uniq_users_email"]["key"] == [("email", 1)]
@@ -20,15 +20,14 @@ def test_core_indexes_are_created_with_expected_shapes():
 
     entry_indexes = db.entries.index_information()
     assert entry_indexes["entries_user_created"]["key"] == [("user_id", 1), ("created_at", -1)]
-    assert entry_indexes["entries_user_public_created"]["key"] == [
-        ("user_id", 1),
-        ("is_public", 1),
-        ("created_at", -1),
-    ]
+    assert entry_indexes["entries_user_public_created"]["key"] == [("user_id", 1), ("is_public", 1), ("created_at", -1)]
 
     receipt_indexes = db.impact_receipts.index_information()
     assert receipt_indexes["receipts_user_created"]["key"] == [("user_id", 1), ("created_at", -1)]
     assert receipt_indexes["receipts_source_entry"]["key"] == [("source_entry_id", 1)]
+
+    resume_indexes = db.resume_documents.index_information()
+    assert resume_indexes["resumes_user_updated"]["key"] == [("user_id", 1), ("updated_at", -1)]
 
 
 def test_unique_email_index_rejects_duplicate_accounts():
@@ -52,8 +51,6 @@ def test_sparse_public_slug_allows_missing_values_but_rejects_duplicate_slug():
 
 def test_index_creation_is_idempotent():
     db = mongomock.MongoClient()["bragstack_test"]
-
     first = ensure_core_indexes(db)
     second = ensure_core_indexes(db)
-
     assert first == second
