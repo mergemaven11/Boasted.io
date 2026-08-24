@@ -8,6 +8,8 @@ const STATE_COPY = {
   encouraging: "Follow-up coaching",
 };
 
+const FALLBACK_AISHA = "/assets/aisha-interviewer-concept.jpg";
+
 const rootStyle = {
   position: "absolute",
   inset: 0,
@@ -17,7 +19,7 @@ const rootStyle = {
   minHeight: "100%",
   display: "block",
   overflow: "hidden",
-  backgroundImage: `url(${bundledAishaJordanInterviewer})`,
+  backgroundImage: `url(${bundledAishaJordanInterviewer}), url(${FALLBACK_AISHA})`,
   backgroundSize: "cover",
   backgroundPosition: "center 42%",
   backgroundRepeat: "no-repeat",
@@ -35,6 +37,11 @@ const photoStyle = {
   objectPosition: "center 42%",
 };
 
+function useFallbackImage(event) {
+  const image = event.currentTarget;
+  if (!image.src.endsWith(FALLBACK_AISHA)) image.src = FALLBACK_AISHA;
+}
+
 export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aisha Jordan", reducedMotion = false }) {
   const safeState = STATE_COPY[state] ? state : "idle";
 
@@ -48,16 +55,21 @@ export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aish
       <img
         className="aisha-interviewer-photo"
         src={bundledAishaJordanInterviewer}
+        onError={useFallbackImage}
         alt="Aisha Jordan, BragStack virtual interviewer"
         draggable="false"
+        decoding="sync"
+        fetchPriority="high"
         style={photoStyle}
       />
       <img
         className="aisha-mouth-motion"
         src={bundledAishaJordanInterviewer}
+        onError={useFallbackImage}
         alt=""
         aria-hidden="true"
         draggable="false"
+        decoding="sync"
         style={{ ...photoStyle, opacity: safeState === "speaking" && !reducedMotion ? undefined : 0 }}
       />
       <div className="aisha-photo-vignette" />
