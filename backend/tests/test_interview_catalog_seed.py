@@ -1,30 +1,50 @@
 from app.interview_catalog_seed import build_catalog
+from app.interview_question_rotation import select_rotated_questions
 
 
-def test_catalog_contains_100_careers_and_1200_questions():
+def test_catalog_contains_at_least_500_careers_and_24000_questions():
     catalog = build_catalog()
-
-    assert len(catalog) == 100
-    assert sum(document["question_count"] for document in catalog) == 1200
+    assert len(catalog) >= 500
+    assert sum(document["question_count"] for document in catalog) >= 24000
 
 
 def test_career_slugs_are_unique_and_questions_are_linked():
     catalog = build_catalog()
     slugs = [document["slug"] for document in catalog]
-
     assert len(slugs) == len(set(slugs))
     for document in catalog:
-        assert document["title"]
-        assert document["family"]
-        assert document["question_count"] == len(document["questions"]) == 12
-        assert len({question["question_id"] for question in document["questions"]}) == 12
+        assert document["question_count"] == len(document["questions"]) == 48
+        assert len({question["question_id"] for question in document["questions"]}) == 48
         assert all(question["active"] is True for question in document["questions"])
 
 
-def test_role_specific_questions_include_career_title():
-    catalog = build_catalog()
-    nurse = next(document for document in catalog if document["title"] == "Registered Nurse")
-    software_engineer = next(document for document in catalog if document["title"] == "Software Engineer")
+def test_requested_roles_have_deep_domain_specific_question_banks():
+    by_title = {document["title"]: document for document in build_catalog()}
+    for title in ["Call Center Representative", "Risk Analyst", "Data Analyst"]:
+        assert title in by_title
+        assert by_title[title]["question_count"] == 48
+    assert any("handle-time" in q["text"] or "angry caller" in q["text"] for q in by_title["Call Center Representative"]["questions"])
+    assert any("control" in q["text"].lower() or "risk" in q["text"].lower() for q in by_title["Risk Analyst"]["questions"])
+    assert any("data source" in q["text"].lower() or "query" in q["text"].lower() for q in by_title["Data Analyst"]["questions"])
 
-    assert any("Registered Nurse" in question["text"] for question in nurse["questions"])
-    assert any("Software Engineer" in question["text"] for question in software_engineer["questions"])
+
+def test_four_ten_question_interviews_can_avoid_repeats():
+    career = next(c for c in build_catalog() if c["title"] == "Data Analyst")
+    used = set()
+    for index in range(4):
+        session = select_rotated_questions(career["questions"], count=10, exclude_ids=used, seed=index)
+        ids = {question["question_id"] for question in session}
+        assert len(session) == 10
+        assert used.isdisjoint(ids)
+        used.update(ids)
+    assert len(used) == 40
+
+
+def test_rotation_recycles_only_when_fresh_questions_are_insufficient():
+    career = next(c for c in build_catalog() if c["title"] == "Risk Analyst")
+    excluded = {question["question_id"] for question in career["questions"][:44]}
+    fresh_ids = {question["question_id"] for question in career["questions"][44:]}
+    selected = select_rotated_questions(career["questions"], count=8, exclude_ids=excluded, seed="recycle")
+    selected_ids = {question["question_id"] for question in selected}
+    assert fresh_ids <= selected_ids
+    assert len(selected) == 8
