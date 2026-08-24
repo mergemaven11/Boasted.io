@@ -13,6 +13,7 @@ import ReceiptVerificationCenter from "./ReceiptVerificationCenter.jsx";
 import ReceiptVerificationPage from "./ReceiptVerificationPage.jsx";
 import ResumeBuilderPage from "./ResumeBuilderPage.jsx";
 import SearchSitelinksNav from "./SearchSitelinksNav.jsx";
+import SecurityPage from "./SecurityPage.jsx";
 import { PrivacyPolicyPage, PublicFooter, TermsPage } from "./LegalPages.jsx";
 import NDAGuidancePage from "./NDAGuidancePage.jsx";
 import ProductTour from "./ProductTour.jsx";
@@ -48,6 +49,7 @@ function RootContent() {
   const isUpgradePage = path === "/upgrade";
   const isDocsPage = path === "/docs";
   const isNdaPage = path === "/nda-safety";
+  const isSecurityPage = path === "/security";
   const isVerificationPage = path === "/verify-receipt";
   const isAuthenticatedApp = path.startsWith("/app");
   const [user, setUser] = useState(null);
@@ -77,8 +79,9 @@ function RootContent() {
   }, [isAuthenticatedApp]);
 
   useEffect(() => {
-    if (path !== "/") return undefined;
     const timeout = window.setTimeout(() => {
+      document.querySelectorAll('a[href="/#security"]').forEach((link) => link.setAttribute("href", "/security"));
+      if (path !== "/") return;
       document.querySelectorAll('a[href*="@bragstack.app"]').forEach((link) => {
         const href = link.getAttribute("href") || "";
         const subject = href.includes("?subject=") ? `?${href.split("?")[1]}` : "";
@@ -101,6 +104,7 @@ function RootContent() {
   if (isUpgradePage) return <UpgradePage />;
   if (isDocsPage) return <><DocsPage /><PublicFooter /></>;
   if (isNdaPage) return <><NDAGuidancePage /><PublicFooter /></>;
+  if (isSecurityPage) return <SecurityPage />;
   if (seoLandingContent) return <SeoLandingPage content={seoLandingContent} />;
   if (path === "/") return <><App /><LandingInterviewShowcase /><LandingResumeShowcase /><SearchSitelinksNav /></>;
 
