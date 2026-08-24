@@ -3,17 +3,20 @@ import bundledAishaJordanInterviewer from "./assets/aisha-jordan-interviewer.jpg
 
 const STATE_COPY = {
   idle: "Ready when you are",
-  speaking: "Asking your question",
+  speaking: "Speaking",
   listening: "Listening",
   thinking: "Reviewing your answer",
   encouraging: "Follow-up coaching",
 };
 
-export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aisha Jordan", reducedMotion = false }) {
+export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aisha Jordan", reducedMotion = false, onReady }) {
   const safeState = STATE_COPY[state] ? state : "idle";
-  const [photoSrc, setPhotoSrc] = useState("/assets/aisha-interviewer-concept.jpg");
+  const [photoSrc, setPhotoSrc] = useState(bundledAishaJordanInterviewer);
+
   const handlePhotoError = () => {
-    if (photoSrc !== bundledAishaJordanInterviewer) setPhotoSrc(bundledAishaJordanInterviewer);
+    if (photoSrc !== "/assets/aisha-interviewer-concept.jpg") {
+      setPhotoSrc("/assets/aisha-interviewer-concept.jpg");
+    }
   };
 
   return (
@@ -21,6 +24,7 @@ export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aish
       <img
         className="aisha-interviewer-photo"
         src={photoSrc}
+        onLoad={() => onReady?.()}
         onError={handlePhotoError}
         alt="Aisha Jordan, BragStack virtual interviewer"
       />
