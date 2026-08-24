@@ -17,6 +17,7 @@ from app.core_output_routes import router as core_output_router
 from app.database import client as mongo_client, entries_collection, impact_receipts_collection
 from app.impact_receipt_routes import router as impact_receipts_router
 from app.receipt_verification_routes import router as receipt_verification_router
+from app.interview_catalog_routes import router as interview_catalog_router
 from app.interview_packet_export_routes import router as interview_packet_export_router
 from app.interview_packet_routes import router as interview_packet_router
 from app.packet_audit_routes import router as packet_audit_router
@@ -81,6 +82,7 @@ app.include_router(packet_audit_router)
 app.include_router(packet_share_router)
 app.include_router(promotion_packet_router)
 app.include_router(promotion_packet_export_router)
+app.include_router(interview_catalog_router)
 app.include_router(interview_packet_router)
 app.include_router(interview_packet_export_router)
 app.include_router(certification_packet_router)
