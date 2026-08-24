@@ -28,6 +28,8 @@ const SITELINKS = [
   ["Sign up", "/register"],
 ];
 
+const OFFICIAL_LOGO_URL = "https://usebragstack.com/bragstack-logo-192.png";
+
 function ensureMeta(selector, attributes) {
   let element = document.querySelector(selector);
   if (!element) {
@@ -38,8 +40,34 @@ function ensureMeta(selector, attributes) {
   return element;
 }
 
+function installOfficialIcon() {
+  document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]').forEach((node) => node.remove());
+  const icon = document.createElement("link");
+  icon.rel = "icon";
+  icon.type = "image/png";
+  icon.sizes = "192x192";
+  icon.href = "/bragstack-logo-192.png?v=1";
+  document.head.appendChild(icon);
+
+  const shortcut = document.createElement("link");
+  shortcut.rel = "shortcut icon";
+  shortcut.type = "image/png";
+  shortcut.href = "/bragstack-logo-192.png?v=1";
+  document.head.appendChild(shortcut);
+
+  let appleTouch = document.querySelector('link[rel="apple-touch-icon"]');
+  if (!appleTouch) {
+    appleTouch = document.createElement("link");
+    appleTouch.rel = "apple-touch-icon";
+    document.head.appendChild(appleTouch);
+  }
+  appleTouch.href = "/bragstack-logo-192.png?v=1";
+}
+
 export default function useSearchAppearanceMeta(path) {
   useEffect(() => {
+    installOfficialIcon();
+
     const meta = PUBLIC_META[path];
     if (meta) {
       document.title = meta.title;
@@ -80,8 +108,11 @@ export default function useSearchAppearanceMeta(path) {
           url: "https://usebragstack.com/",
           logo: {
             "@type": "ImageObject",
-            url: "https://usebragstack.com/brandmark.svg",
+            url: OFFICIAL_LOGO_URL,
+            width: 192,
+            height: 192,
           },
+          image: OFFICIAL_LOGO_URL,
         },
         {
           "@type": "ItemList",
