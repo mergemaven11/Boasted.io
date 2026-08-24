@@ -1,0 +1,25 @@
+/* Homepage composition hotfix: RootContent appends marketing showcase sections after
+   LandingPage, while LandingPage owns the mega footer. Flatten the LandingPage box
+   into the homepage flex flow so the footer can be visually ordered after every
+   appended marketing section. */
+#root:has(> .landing-page) {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--landing-text);
+  background:
+    radial-gradient(circle at 15% 5%, rgba(58, 171, 214, 0.17), transparent 28rem),
+    radial-gradient(circle at 90% 10%, rgba(157, 81, 255, 0.16), transparent 30rem),
+    var(--landing-bg);
+}
+
+#root:has(> .landing-page) > .landing-page {
+  display: contents;
+}
+
+#root:has(> .landing-page) > .landing-page > .mega-footer {
+  order: 999;
+  width: 100%;
+  margin-top: auto;
+}
