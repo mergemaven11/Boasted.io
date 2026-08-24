@@ -1,0 +1,228 @@
+/* Responsive layout overrides for the Practice Interview reference design. */
+
+.interview-room-page {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.interview-room-header {
+  width: min(100%, 1480px);
+  margin-inline: auto;
+  padding-inline: clamp(16px, 2vw, 28px);
+  box-sizing: border-box;
+}
+
+.interview-room-grid {
+  width: min(100%, 1480px) !important;
+  margin-inline: auto;
+  padding: 0 clamp(16px, 2vw, 28px) 28px;
+  box-sizing: border-box;
+  display: grid !important;
+  grid-template-columns: minmax(460px, 1.35fr) minmax(360px, 1fr) minmax(260px, .55fr) !important;
+  gap: clamp(16px, 1.5vw, 24px) !important;
+  align-items: start;
+}
+
+.interview-video-stage,
+.interview-answer-panel,
+.interview-right-sidebar,
+.interview-side-card {
+  min-width: 0;
+}
+
+.interview-video-stage {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  min-height: 0 !important;
+  overflow: hidden;
+  border-radius: 24px;
+}
+
+.interview-video-stage .virtual-interviewer,
+.interview-video-stage .animated-interviewer-avatar,
+.interview-video-stage .photo-interviewer {
+  width: 100%;
+  height: 100%;
+  min-height: 0 !important;
+}
+
+.interview-video-stage .aisha-interviewer-photo {
+  object-fit: cover;
+  object-position: center 42%;
+}
+
+.interview-answer-panel {
+  width: 100%;
+}
+
+.interview-answer-panel textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.interview-right-sidebar {
+  grid-column: auto !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 12px;
+  position: sticky;
+  top: 18px;
+}
+
+.candidate-video-tile {
+  width: clamp(110px, 22%, 168px) !important;
+  aspect-ratio: 4 / 3;
+  height: auto !important;
+}
+
+.interview-video-stage .video-controls {
+  max-width: calc(100% - 210px) !important;
+}
+
+.interview-room-header .question-progress {
+  min-width: min(360px, 34vw);
+}
+
+/* iPad Pro / large tablets / smaller laptops */
+@media (max-width: 1180px) {
+  .interview-room-grid {
+    grid-template-columns: minmax(420px, 1.15fr) minmax(340px, 1fr) !important;
+  }
+
+  .interview-right-sidebar {
+    grid-column: 1 / -1 !important;
+    position: static;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+/* iPads and medium tablets */
+@media (max-width: 900px) {
+  .interview-room-header {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .interview-room-header .question-progress {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .interview-room-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .interview-video-stage {
+    aspect-ratio: 16 / 9;
+  }
+
+  .interview-right-sidebar {
+    grid-column: 1 !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .interview-end-button {
+    margin-left: 0;
+  }
+}
+
+/* Phones and narrow portrait tablets */
+@media (max-width: 620px) {
+  .interview-room-header,
+  .interview-room-grid {
+    padding-inline: 12px;
+  }
+
+  .interview-room-grid {
+    gap: 14px !important;
+  }
+
+  .interview-video-stage {
+    aspect-ratio: 4 / 5;
+    min-height: 420px !important;
+    border-radius: 18px;
+  }
+
+  .interview-video-stage .aisha-interviewer-photo {
+    object-position: center 38%;
+  }
+
+  .candidate-video-tile {
+    left: 10px !important;
+    top: 10px !important;
+    width: min(34%, 126px) !important;
+  }
+
+  .animated-avatar-caption {
+    right: 10px !important;
+    top: 10px !important;
+    max-width: 52%;
+  }
+
+  .interview-video-stage .video-controls {
+    left: 10px !important;
+    right: 10px !important;
+    bottom: 10px !important;
+    max-width: none !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .interview-video-stage .video-controls button {
+    width: 100%;
+    justify-content: center;
+    min-width: 0;
+    padding-inline: 10px;
+  }
+
+  .interview-video-stage .avatar-state-pill {
+    right: 10px !important;
+    bottom: 66px !important;
+    max-width: calc(100% - 20px);
+  }
+
+  .interview-right-sidebar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .question-box h1 {
+    font-size: clamp(1.35rem, 7vw, 2rem);
+    line-height: 1.2;
+  }
+
+  .question-meta-row,
+  .answer-tools,
+  .feedback-actions,
+  .interview-exit-actions {
+    align-items: stretch;
+  }
+
+  .answer-tools,
+  .feedback-actions,
+  .interview-exit-actions {
+    flex-direction: column;
+  }
+
+  .answer-tools > *,
+  .feedback-actions > *,
+  .interview-exit-actions > * {
+    width: 100%;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 390px) {
+  .interview-video-stage {
+    min-height: 390px !important;
+  }
+
+  .interview-video-stage .video-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .interview-video-stage .avatar-state-pill {
+    bottom: 112px !important;
+  }
+}
