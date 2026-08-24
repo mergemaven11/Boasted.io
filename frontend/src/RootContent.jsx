@@ -12,6 +12,7 @@ import LandingResumeShowcase from "./LandingResumeShowcase.jsx";
 import ReceiptVerificationCenter from "./ReceiptVerificationCenter.jsx";
 import ReceiptVerificationPage from "./ReceiptVerificationPage.jsx";
 import ResumeBuilderPage from "./ResumeBuilderPage.jsx";
+import SearchSitelinksNav from "./SearchSitelinksNav.jsx";
 import { PrivacyPolicyPage, PublicFooter, TermsPage } from "./LegalPages.jsx";
 import NDAGuidancePage from "./NDAGuidancePage.jsx";
 import ProductTour from "./ProductTour.jsx";
@@ -22,6 +23,7 @@ import SettingsPage from "./SettingsPage.jsx";
 import UpgradePage from "./UpgradePage.jsx";
 import { getCurrentUser } from "./api.js";
 import { getSeoLandingPage } from "./seoLandingContent.js";
+import useSearchAppearanceMeta from "./useSearchAppearanceMeta.js";
 
 function ProRequired({ feature = "This feature" }) {
   return (
@@ -41,6 +43,7 @@ function ImpactReceiptsWithVerification() {
 
 function RootContent() {
   const path = window.location.pathname.replace(/\/$/, "") || "/";
+  useSearchAppearanceMeta(path);
   const seoLandingContent = getSeoLandingPage(path);
   const isUpgradePage = path === "/upgrade";
   const isDocsPage = path === "/docs";
@@ -99,7 +102,7 @@ function RootContent() {
   if (isDocsPage) return <><DocsPage /><PublicFooter /></>;
   if (isNdaPage) return <><NDAGuidancePage /><PublicFooter /></>;
   if (seoLandingContent) return <SeoLandingPage content={seoLandingContent} />;
-  if (path === "/") return <><App /><LandingInterviewShowcase /><LandingResumeShowcase /></>;
+  if (path === "/") return <><App /><LandingInterviewShowcase /><LandingResumeShowcase /><SearchSitelinksNav /></>;
 
   let Content = App;
   let contentProps = {};
