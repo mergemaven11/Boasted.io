@@ -7,12 +7,9 @@ import DashboardPage from "./DashboardPage.jsx";
 import DocsPage from "./DocsPage.jsx";
 import ImpactReceiptsPage from "./ImpactReceiptsPage.jsx";
 import InterviewPracticeExperience from "./InterviewPracticeExperience.jsx";
-import LandingInterviewShowcase from "./LandingInterviewShowcase.jsx";
-import LandingResumeShowcase from "./LandingResumeShowcase.jsx";
 import ReceiptVerificationCenter from "./ReceiptVerificationCenter.jsx";
 import ReceiptVerificationPage from "./ReceiptVerificationPage.jsx";
 import ResumeBuilderPage from "./ResumeBuilderPage.jsx";
-import SearchSitelinksNav from "./SearchSitelinksNav.jsx";
 import { PrivacyPolicyPage, PublicFooter, TermsPage } from "./LegalPages.jsx";
 import NDAGuidancePage from "./NDAGuidancePage.jsx";
 import ProductTour from "./ProductTour.jsx";
@@ -102,7 +99,7 @@ function RootContent() {
   if (isDocsPage) return <><DocsPage /><PublicFooter /></>;
   if (isNdaPage) return <><NDAGuidancePage /><PublicFooter /></>;
   if (seoLandingContent) return <SeoLandingPage content={seoLandingContent} />;
-  if (path === "/") return <><App /><LandingInterviewShowcase /><LandingResumeShowcase /><SearchSitelinksNav /></>;
+  if (path === "/") return <App />;
 
   let Content = App;
   let contentProps = {};
