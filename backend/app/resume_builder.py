@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import re
 from collections import Counter
-from dataclasses import dataclass
 from typing import Iterable
 
 STOPWORDS = {
-    "a","an","and","are","as","at","be","by","for","from","has","have","in","is","it","of","on","or","our","that","the","their","this","to","with","you","your","will","we","using","use","work","role","team","experience","years","required","preferred","skills","responsibilities","including","ability","strong","knowledge"
+    "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "have",
+    "in", "is", "it", "of", "on", "or", "our", "that", "the", "their", "this", "to",
+    "with", "you", "your", "will", "we", "using", "use", "work", "role", "team",
+    "experience", "years", "required", "preferred", "skills", "responsibilities", "including",
+    "ability", "strong", "knowledge",
 }
 
 ALIASES = {
@@ -26,14 +29,18 @@ SECTION_HEADINGS = ("summary", "experience", "skills", "education", "projects")
 def normalize_text(value: str) -> str:
     text = (value or "").lower()
     for alias, expanded in ALIASES.items():
-        text = text.replace(alias, f" {expanded} ")
+        pattern = rf"(?<![a-z0-9]){re.escape(alias)}(?![a-z0-9])"
+        text = re.sub(pattern, f" {expanded} ", text)
     return re.sub(r"[^a-z0-9+#./-]+", " ", text)
 
 
+def _tokens(value: str) -> list[str]:
+    normalized = normalize_text(value)
+    return [token.strip("./-") for token in normalized.split() if token.strip("./-")]
+
+
 def extract_terms(job_description: str, limit: int = 24) -> list[str]:
-    text = normalize_text(job_description)
-    tokens = [token.strip("./-") for token in text.split()]
-    tokens = [token for token in tokens if len(token) >= 3 and token not in STOPWORDS]
+    tokens = [token for token in _tokens(job_description) if len(token) >= 3 and token not in STOPWORDS]
     counts = Counter(tokens)
     first_position = {token: tokens.index(token) for token in counts}
     ranked = sorted(counts, key=lambda token: (-counts[token], first_position[token], token))
@@ -42,7 +49,7 @@ def extract_terms(job_description: str, limit: int = 24) -> list[str]:
 
 def receipt_text(receipt: dict) -> str:
     metric_text = " ".join(
-        f"{metric.get('label','')} {metric.get('value','')} {metric.get('context','')}"
+        f"{metric.get('label', '')} {metric.get('value', '')} {metric.get('context', '')}"
         for metric in receipt.get("metrics", [])
     )
     return " ".join(
@@ -57,18 +64,24 @@ def receipt_text(receipt: dict) -> str:
 
 
 def _term_matches(term: str, text: str) -> bool:
-    normalized = normalize_text(text)
-    return term in normalized.split() or term in normalized
+    # Keep requirement matching token-aware. Substring matching caused false
+    # positives such as "sql" matching unrelated words that merely contained
+    # the same characters.
+    return term in set(_tokens(text))
 
 
 def score_receipt(receipt: dict, terms: Iterable[str]) -> tuple[int, list[str]]:
     text = receipt_text(receipt)
     matches = [term for term in terms if _term_matches(term, text)]
     score = len(matches) * 4
-    if receipt.get("result"): score += 2
-    if receipt.get("metrics"): score += 3
-    if receipt.get("evidence"): score += 2
-    if any(signal != "self-documented" for signal in receipt.get("trust_signals", [])): score += 2
+    if receipt.get("result"):
+        score += 2
+    if receipt.get("metrics"):
+        score += 3
+    if receipt.get("evidence"):
+        score += 2
+    if any(signal != "self-documented" for signal in receipt.get("trust_signals", [])):
+        score += 2
     return score, matches
 
 
@@ -98,8 +111,15 @@ def build_summary(target_role: str, matched_receipts: list[dict]) -> str:
     evidence_count = len(matched_receipts)
     skill_phrase = ", ".join(skills[:5])
     if skill_phrase:
-        return f"Evidence-backed {target_role} candidate with documented impact across {skill_phrase}. Brings {evidence_count} relevant accomplishment{'s' if evidence_count != 1 else ''} with traceable career proof."
-    return f"Evidence-backed {target_role} candidate with {evidence_count} relevant documented accomplishment{'s' if evidence_count != 1 else ''} and a focus on measurable, verifiable impact."
+        return (
+            f"Evidence-backed {target_role} candidate with documented impact across {skill_phrase}. "
+            f"Brings {evidence_count} relevant accomplishment{'s' if evidence_count != 1 else ''} "
+            "with traceable career proof."
+        )
+    return (
+        f"Evidence-backed {target_role} candidate with {evidence_count} relevant documented "
+        f"accomplishment{'s' if evidence_count != 1 else ''} and a focus on measurable, verifiable impact."
+    )
 
 
 def analyze_resume(*, target_role: str, job_description: str, receipts: list[dict]) -> dict:
@@ -111,10 +131,7 @@ def analyze_resume(*, target_role: str, job_description: str, receipts: list[dic
             scored.append({"receipt": receipt, "score": score, "matches": matches})
     scored.sort(key=lambda item: (-item["score"], str(item["receipt"].get("accomplishment", ""))))
 
-    supported_terms = []
-    for term in terms:
-        if any(term in item["matches"] for item in scored):
-            supported_terms.append(term)
+    supported_terms = [term for term in terms if any(term in item["matches"] for item in scored)]
     unsupported_terms = [term for term in terms if term not in supported_terms]
 
     selected = scored[:10]
@@ -126,6 +143,7 @@ def analyze_resume(*, target_role: str, job_description: str, receipts: list[dic
             "matched_terms": item["matches"],
             "evidence_count": len(item["receipt"].get("evidence", [])),
             "has_metrics": bool(item["receipt"].get("metrics")),
+            "edited": False,
         }
         for item in selected
     ]
@@ -135,11 +153,11 @@ def analyze_resume(*, target_role: str, job_description: str, receipts: list[dic
     evidence_backed = sum(1 for item in selected if item["receipt"].get("evidence"))
 
     readiness = {
-        "parser_safety": "Excellent",
+        "format_readiness": "Strong",
         "requirement_coverage": "Strong" if coverage >= 65 else "Moderate" if coverage >= 35 else "Needs work",
         "evidence_strength": "Strong" if evidence_backed >= max(1, len(selected) // 2) else "Moderate",
         "quantified_impact": "Strong" if quantified >= 3 else "Moderate" if quantified else "Needs work",
-        "unsupported_claims": 0,
+        "source_linked_draft": True,
         "coverage_percent": coverage,
     }
 
@@ -153,4 +171,5 @@ def analyze_resume(*, target_role: str, job_description: str, receipts: list[dic
         "skills": list(dict.fromkeys(skill for item in selected for skill in item["receipt"].get("skills", []) if skill))[:18],
         "readiness": readiness,
         "ats_preview_sections": list(SECTION_HEADINGS),
+        "ats_note": "ATS-friendly preview only; BragStack does not simulate every employer ATS parser.",
     }
