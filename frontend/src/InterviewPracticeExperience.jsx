@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import AnimatedInterviewerAvatar from "./AnimatedInterviewerAvatar.jsx";
 import InterviewPracticePage from "./InterviewPracticePage.jsx";
 import "./AnimatedInterviewerAvatar.css";
+import "./InterviewPracticeZoomLayout.css";
 
 function inferAvatarState() {
   if (window.speechSynthesis?.speaking) return "speaking";
