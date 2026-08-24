@@ -27,6 +27,7 @@ const WORKSPACE_ITEMS = [
 ];
 
 const PRO_TOOLS = [
+  { href: "/app/resume-builder", label: "Resume Builder", icon: FileText },
   { href: "/app/interview-practice", label: "Practice interview", icon: Video },
   { href: "/app/reports", label: "Career analytics", icon: BarChart3 },
   { href: "/app/reports?packet=performance-review#packet-builder", label: "Performance review", icon: FileCheck2 },
@@ -54,9 +55,7 @@ function AppSidebar() {
         }
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
   function logout() {
@@ -71,62 +70,26 @@ function AppSidebar() {
 
   const isPro = Boolean(user?.entitlements?.advanced_reports);
 
-  return (
-    <>
-      <header className="mobile-app-bar">
-        <a className="mobile-brand" href="/app"><img src="/brandmark.svg" alt="" /><strong>BragStack</strong></a>
-        <button type="button" onClick={() => setMobileOpen((open) => !open)} aria-label="Toggle navigation">
-          {mobileOpen ? <X size={21} /> : <Menu size={21} />}
-        </button>
-      </header>
-
-      <aside className={`app-sidebar ${mobileOpen ? "mobile-open" : ""}`}>
-        <a className="sidebar-brand" href="/app">
-          <img className="sidebar-logo" src="/brandmark.svg" alt="BragStack" />
-          <span><strong>BragStack</strong><small>PROVE · GROW · GET HIRED</small></span>
-        </a>
-
-        <div className="sidebar-plan-row">
-          <span className={isPro ? "pro" : "free"}>{isPro ? "PRO" : "FREE"}</span>
-          <small>{isPro ? "Advanced career proof" : "Core career proof"}</small>
-        </div>
-
-        <a className="sidebar-add" href="/app/accomplishments?create=1">+ Create accomplishment</a>
-
-        <nav className="sidebar-nav" aria-label="BragStack navigation">
-          <p className="sidebar-section-label">Workspace</p>
-          {WORKSPACE_ITEMS.map(({ href, label, icon: Icon }) => (
-            <a className={path === href ? "active" : ""} href={href} key={href}><Icon size={18} /><span>{label}</span></a>
-          ))}
-
-          {isPro && (
-            <>
-              <p className="sidebar-section-label">Pro career tools</p>
-              {PRO_TOOLS.map(({ href, label, icon: Icon }) => (
-                <a className={proToolIsActive(href) ? "active" : ""} href={href} key={`${href}-${label}`}><Icon size={18} /><span>{label}</span></a>
-              ))}
-            </>
-          )}
-
-          <p className="sidebar-section-label">Account & tools</p>
-          <a className={path.startsWith("/app/settings") || path === "/app/profile" ? "active" : ""} href="/app/settings"><Settings size={18} /><span>Settings</span></a>
-          <a href="/docs"><FileText size={18} /><span>Docs & guides</span></a>
-          {user?.public_slug && <a href={`/brag/${user.public_slug}`} target="_blank" rel="noreferrer"><UserRound size={18} /><span>Public Proof Profile</span></a>}
-          {user && !isPro && <a className="sidebar-upgrade" href="/upgrade"><Sparkles size={18} /><span>Upgrade to Pro</span></a>}
-        </nav>
-
-        <div className="sidebar-footer">
-          <a className="sidebar-user" href="/app/settings" aria-label="Account settings">
-            {user?.avatar_url ? <img className="sidebar-user-avatar sidebar-user-avatar-image" src={user.avatar_url} alt="" /> : <span className="sidebar-user-avatar">{user?.name?.charAt(0).toUpperCase() || "B"}</span>}
-            <span><strong>{user?.name || "BragStack member"}</strong><small>{isPro ? "Pro plan · Settings" : "Free plan · Settings"}</small></span>
-          </a>
-          <button type="button" onClick={logout}><LogOut size={17} />Sign out</button>
-        </div>
-      </aside>
-
-      {mobileOpen && <button className="sidebar-scrim" type="button" onClick={() => setMobileOpen(false)} aria-label="Close navigation" />}
-    </>
-  );
+  return <>
+    <header className="mobile-app-bar"><a className="mobile-brand" href="/app"><img src="/brandmark.svg" alt="" /><strong>BragStack</strong></a><button type="button" onClick={() => setMobileOpen((open) => !open)} aria-label="Toggle navigation">{mobileOpen ? <X size={21} /> : <Menu size={21} />}</button></header>
+    <aside className={`app-sidebar ${mobileOpen ? "mobile-open" : ""}`}>
+      <a className="sidebar-brand" href="/app"><img className="sidebar-logo" src="/brandmark.svg" alt="BragStack" /><span><strong>BragStack</strong><small>PROVE · GROW · GET HIRED</small></span></a>
+      <div className="sidebar-plan-row"><span className={isPro ? "pro" : "free"}>{isPro ? "PRO" : "FREE"}</span><small>{isPro ? "Advanced career proof" : "Core career proof"}</small></div>
+      <a className="sidebar-add" href="/app/accomplishments?create=1">+ Create accomplishment</a>
+      <nav className="sidebar-nav" aria-label="BragStack navigation">
+        <p className="sidebar-section-label">Workspace</p>
+        {WORKSPACE_ITEMS.map(({ href, label, icon: Icon }) => <a className={path === href ? "active" : ""} href={href} key={href}><Icon size={18} /><span>{label}</span></a>)}
+        {isPro && <><p className="sidebar-section-label">Pro career tools</p>{PRO_TOOLS.map(({ href, label, icon: Icon }) => <a className={proToolIsActive(href) ? "active" : ""} href={href} key={`${href}-${label}`}><Icon size={18} /><span>{label}</span></a>)}</>}
+        <p className="sidebar-section-label">Account & tools</p>
+        <a className={path.startsWith("/app/settings") || path === "/app/profile" ? "active" : ""} href="/app/settings"><Settings size={18} /><span>Settings</span></a>
+        <a href="/docs"><FileText size={18} /><span>Docs & guides</span></a>
+        {user?.public_slug && <a href={`/brag/${user.public_slug}`} target="_blank" rel="noreferrer"><UserRound size={18} /><span>Public Proof Profile</span></a>}
+        {user && !isPro && <a className="sidebar-upgrade" href="/upgrade"><Sparkles size={18} /><span>Upgrade to Pro</span></a>}
+      </nav>
+      <div className="sidebar-footer"><a className="sidebar-user" href="/app/settings" aria-label="Account settings">{user?.avatar_url ? <img className="sidebar-user-avatar sidebar-user-avatar-image" src={user.avatar_url} alt="" /> : <span className="sidebar-user-avatar">{user?.name?.charAt(0).toUpperCase() || "B"}</span>}<span><strong>{user?.name || "BragStack member"}</strong><small>{isPro ? "Pro plan · Settings" : "Free plan · Settings"}</small></span></a><button type="button" onClick={logout}><LogOut size={17} />Sign out</button></div>
+    </aside>
+    {mobileOpen && <button className="sidebar-scrim" type="button" onClick={() => setMobileOpen(false)} aria-label="Close navigation" />}
+  </>;
 }
 
 export default AppSidebar;
