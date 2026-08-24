@@ -1,54 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { LogOut, X } from "lucide-react";
-import AnimatedInterviewerAvatar from "./AnimatedInterviewerAvatar.jsx";
 import InterviewPracticePage from "./InterviewPracticePage.jsx";
-import { useInterviewSequence } from "./interviewSequence.js";
 import "./AnimatedInterviewerAvatar.css";
 import "./InterviewPracticeZoomLayout.css";
 import "./InterviewExperienceV3.css";
 import "./InterviewResponsiveReference.css";
-
-function inferAvatarState() {
-  if (window.speechSynthesis?.speaking) return "speaking";
-  if (document.querySelector(".dictation-button.active")) return "listening";
-  if (document.querySelector(".follow-up-card")) return "encouraging";
-  if (document.querySelector(".answer-feedback-panel")) return "thinking";
-  return "idle";
-}
-
-function AvatarPortal() {
-  const [host, setHost] = useState(null);
-  const [state, setState] = useState("idle");
-  const reducedMotion = useMemo(() => window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false, []);
-
-  useEffect(() => {
-    document.body.classList.add("animated-interviewer-enabled");
-    const sync = () => {
-      const nextHost = document.querySelector(".virtual-interviewer");
-      setHost((current) => current === nextHost ? current : nextHost);
-      setState(inferAvatarState());
-    };
-    sync();
-    const interval = window.setInterval(sync, 180);
-    const observer = new MutationObserver(sync);
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
-    return () => {
-      window.clearInterval(interval);
-      observer.disconnect();
-      document.body.classList.remove("animated-interviewer-enabled");
-    };
-  }, []);
-
-  if (!host) return null;
-  return createPortal(
-    <>
-      <AnimatedInterviewerAvatar state={state} reducedMotion={reducedMotion} />
-      <div className="animated-avatar-caption" aria-hidden="true"><strong>Aisha Jordan</strong><span>Senior Technical Recruiter</span></div>
-    </>,
-    host,
-  );
-}
 
 function InterviewSidebarPortal() {
   const [host, setHost] = useState(null);
@@ -156,6 +113,5 @@ function InterviewExitGuard() {
 }
 
 export default function InterviewPracticeExperience() {
-  useInterviewSequence();
-  return <><InterviewPracticePage /><AvatarPortal /><InterviewSidebarPortal /><InterviewExitGuard /></>;
+  return <><InterviewPracticePage /><InterviewSidebarPortal /><InterviewExitGuard /></>;
 }
