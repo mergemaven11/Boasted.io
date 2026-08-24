@@ -6,12 +6,41 @@ import "./AnimatedInterviewerAvatar.css";
 import "./InterviewPracticeZoomLayout.css";
 import "./InterviewExperienceV3.css";
 
+const SOFT_VOICE_HINTS = ["samantha", "ava", "aria", "serena", "moira", "tessa", "karen", "susan", "zira", "google us english"];
+
+function chooseSoftEnglishVoice() {
+  const voices = window.speechSynthesis?.getVoices?.() || [];
+  const english = voices.filter((voice) => /^en[-_]/i.test(voice.lang || ""));
+  return SOFT_VOICE_HINTS.map((hint) => english.find((voice) => voice.name.toLowerCase().includes(hint))).find(Boolean) || english.find((voice) => voice.localService) || english[0] || null;
+}
+
 function inferAvatarState() {
   if (window.speechSynthesis?.speaking) return "speaking";
   if (document.querySelector(".dictation-button.active")) return "listening";
   if (document.querySelector(".follow-up-card")) return "encouraging";
   if (document.querySelector(".answer-feedback-panel")) return "thinking";
   return "idle";
+}
+
+function NaturalVoiceTuning() {
+  useEffect(() => {
+    const synth = window.speechSynthesis;
+    if (!synth?.speak) return undefined;
+    const originalSpeak = synth.speak.bind(synth);
+    const tunedSpeak = (utterance) => {
+      if (utterance instanceof SpeechSynthesisUtterance) {
+        const voice = chooseSoftEnglishVoice();
+        if (voice) utterance.voice = voice;
+        utterance.rate = 0.9;
+        utterance.pitch = 0.96;
+        utterance.volume = 0.9;
+      }
+      return originalSpeak(utterance);
+    };
+    try { synth.speak = tunedSpeak; } catch { return undefined; }
+    return () => { try { synth.speak = originalSpeak; } catch { /* browser may lock this property */ } };
+  }, []);
+  return null;
 }
 
 function AvatarPortal() {
@@ -48,5 +77,5 @@ function AvatarPortal() {
 }
 
 export default function InterviewPracticeExperience() {
-  return <><InterviewPracticePage /><AvatarPortal /></>;
+  return <><NaturalVoiceTuning /><InterviewPracticePage /><AvatarPortal /></>;
 }
