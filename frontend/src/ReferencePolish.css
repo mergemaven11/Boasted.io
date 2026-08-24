@@ -1,65 +1,11 @@
-/* Reference-driven polish: BragStack brand lockup, gradients, and responsive layout. */
+/* BragStack brand + responsive polish */
 :root{--brag-blue:#00C6FF;--brag-cyan:#00D9FF;--brag-purple:#7B5CFF;--brag-violet:#B86BFF;--brag-navy:#0B1020}
-
-/* Landing brand lockup */
-.landing-logo{position:relative;display:inline-flex;align-items:center;min-height:44px;padding-left:52px;font-size:1.08rem!important;font-weight:950!important;letter-spacing:-.035em!important;text-transform:none!important;background:linear-gradient(90deg,#fff 0 38%,var(--brag-cyan) 55%,var(--brag-purple) 100%);-webkit-background-clip:text;background-clip:text;color:transparent!important}
-.landing-logo::before{content:"";position:absolute;left:0;width:42px;height:42px;background:url('/brandmark.svg') center/contain no-repeat;filter:drop-shadow(0 5px 14px rgba(49,119,255,.3))}
-.landing-nav{border-color:rgba(44,164,255,.18)!important;background:rgba(4,10,24,.86)!important}
-
-/* Hero brand lockup */
-.landing-hero{grid-template-columns:minmax(0,1fr)!important;align-items:start!important;padding-top:4.25rem!important;padding-bottom:4rem!important;gap:2rem!important;overflow:visible!important}
-.landing-hero-copy{position:relative;width:min(100%,1220px);max-width:1220px;min-width:0;padding-top:132px;padding-right:2rem;overflow:visible!important}
-.landing-hero-copy::before{content:"BragStack";position:absolute;top:0;left:0;padding-left:96px;padding-right:.18em;min-height:78px;display:flex;align-items:center;background:linear-gradient(90deg,#fff 0 43%,var(--brag-cyan) 61%,var(--brag-purple) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:clamp(3rem,4.7vw,4.7rem);font-weight:950;letter-spacing:-.052em;line-height:1;white-space:nowrap;overflow:visible}
-.landing-hero-copy::after{content:"";position:absolute;top:0;left:0;width:78px;height:78px;background:url('/brandmark.svg') center/contain no-repeat;filter:drop-shadow(0 10px 24px rgba(70,80,255,.32))}
-.landing-eyebrow{position:absolute;top:92px;left:96px;margin:0!important;padding:0!important;border:0!important;background:transparent!important;color:#c6d4ea!important;font-size:0!important;letter-spacing:.16em!important;line-height:1.4!important;white-space:nowrap}
-.landing-eyebrow svg{display:none!important}
-.landing-eyebrow::before{content:"PROVE  •  GROW  •  GET HIRED";font-size:.9rem;font-weight:900}
-
-.landing-hero-copy h1{width:100%;max-width:none!important;margin:30px 0 22px!important;padding:0 .2em .1em 0!important;font-size:0!important;line-height:1!important;letter-spacing:-.055em!important;overflow:visible!important}
-.landing-hero-copy h1::before{content:"Turn Your Work";display:block;color:#fff;font-size:clamp(3.8rem,7.1vw,6.9rem);font-weight:950;line-height:1.02;white-space:nowrap}
-.landing-hero-copy h1::after{content:"Into Opportunities";display:block;width:100%;padding:0 .12em .1em 0;background:linear-gradient(90deg,var(--brag-blue),var(--brag-cyan) 48%,var(--brag-purple));-webkit-background-clip:text;background-clip:text;color:transparent;font-size:clamp(3.55rem,6.65vw,6.45rem);font-weight:950;line-height:1.04;letter-spacing:-.055em;overflow:visible;white-space:nowrap}
-.landing-hero-copy h1 span{display:none!important}
-.landing-hero-description{max-width:1080px!important;margin-top:1.35rem!important;font-size:1.18rem!important;line-height:1.7!important}
-.landing-hero-actions{margin-top:1.9rem!important}
-.landing-trust-line{margin-top:1.15rem!important}
-.landing-btn{background:linear-gradient(100deg,var(--brag-purple),var(--brag-blue),var(--brag-cyan))!important;color:white!important;box-shadow:0 14px 38px rgba(64,101,255,.28)!important}
-.landing-btn-secondary{background:rgba(6,15,35,.72)!important;border-color:rgba(73,175,255,.28)!important}
-
-/* The reference hero is intentionally text-led; keep any legacy preview from competing with it. */
-.landing-proof-preview{display:none!important}
-
-/* BragStack theme colors across authenticated surfaces */
-.dashboard-accent,.dashboard-page a,.dashboard-page button:not(.dashboard-secondary),.sidebar-nav a.active svg{color:var(--brag-cyan)}
-.sidebar-nav a.active::before{background:linear-gradient(180deg,var(--brag-cyan),var(--brag-purple))!important}
-.sidebar-user-avatar{background:linear-gradient(135deg,var(--brag-cyan),var(--brag-purple))!important;color:#fff!important}
-.sidebar-plan-row>span.pro{background:linear-gradient(90deg,var(--brag-purple),var(--brag-blue))!important;border-color:transparent!important;color:#fff!important}
-.sidebar-add{background:linear-gradient(90deg,var(--brag-purple),var(--brag-blue),var(--brag-cyan))!important;color:#fff!important}
-
-/* Tablet/mobile */
-@media(max-width:1100px){
-  .landing-hero-copy{padding-right:1.25rem}
-  .landing-hero-copy h1::before{font-size:clamp(3.4rem,7.4vw,5.6rem)}
-  .landing-hero-copy h1::after{font-size:clamp(3.15rem,6.9vw,5.2rem)}
-}
-
-@media(max-width:980px){
-  .mobile-app-bar{justify-content:flex-start!important;gap:10px!important}
-  .mobile-app-bar>button{order:-1!important;flex:0 0 auto!important}
-  .mobile-brand{margin-right:auto!important}
-  .landing-hero{grid-template-columns:1fr!important;padding-top:3rem!important;gap:1.5rem!important}
-}
-
-@media(max-width:760px){
-  .landing-hero-copy h1::before,.landing-hero-copy h1::after{white-space:normal}
-}
-
-@media(max-width:700px){
-  .landing-hero-copy{padding-top:108px;padding-right:.5rem}
-  .landing-hero-copy::before{padding-left:66px;padding-right:.14em;min-height:54px;font-size:2.25rem}
-  .landing-hero-copy::after{width:52px;height:52px}
-  .landing-eyebrow{top:68px;left:67px;letter-spacing:.14em!important}
-  .landing-eyebrow::before{font-size:.64rem}
-  .landing-hero-copy h1{margin-top:16px!important}
-  .landing-hero-copy h1::before,.landing-hero-copy h1::after{font-size:clamp(2.55rem,12vw,3.65rem);line-height:1.04}
-  .landing-hero-description{font-size:.98rem!important}
-}
+.landing-logo{position:relative;display:inline-flex;align-items:center;min-height:44px;padding-left:52px;font-size:1.08rem!important;font-weight:950!important;letter-spacing:-.035em!important;text-transform:none!important;background:linear-gradient(90deg,#fff 0 38%,var(--brag-cyan) 55%,var(--brag-purple) 100%);-webkit-background-clip:text;background-clip:text;color:transparent!important}.landing-logo::before{content:"";position:absolute;left:0;width:42px;height:42px;background:url('/brandmark.svg') center/contain no-repeat;filter:drop-shadow(0 5px 14px rgba(49,119,255,.3))}.landing-nav{border-color:rgba(44,164,255,.18)!important;background:rgba(4,10,24,.86)!important}
+.landing-hero{grid-template-columns:minmax(0,1fr)!important;align-items:start!important;padding-top:3.25rem!important;padding-bottom:3.5rem!important;gap:1.5rem!important;overflow:visible!important}.landing-hero-copy{position:relative;width:min(100%,1120px);max-width:1120px;min-width:0;padding-top:116px;padding-right:1.5rem;overflow:visible!important}.landing-hero-copy::before{content:"BragStack";position:absolute;top:0;left:0;padding-left:88px;padding-right:.28em;min-height:72px;display:flex;align-items:center;background:linear-gradient(90deg,#fff 0 43%,var(--brag-cyan) 61%,var(--brag-purple) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:clamp(2.8rem,4.3vw,4.2rem);font-weight:950;letter-spacing:-.045em;line-height:1.05;white-space:nowrap;overflow:visible}.landing-hero-copy::after{content:"";position:absolute;top:0;left:0;width:72px;height:72px;background:url('/brandmark.svg') center/contain no-repeat;filter:drop-shadow(0 10px 24px rgba(70,80,255,.32))}.landing-eyebrow{position:absolute;top:82px;left:88px;margin:0!important;padding:0!important;border:0!important;background:transparent!important;color:#c6d4ea!important;font-size:0!important;letter-spacing:.16em!important;line-height:1.4!important;white-space:nowrap}.landing-eyebrow svg{display:none!important}.landing-eyebrow::before{content:"PROVE  •  GROW  •  GET HIRED";font-size:.82rem;font-weight:900}
+.landing-hero-copy h1{width:100%;max-width:none!important;margin:26px 0 18px!important;padding:0 .28em .08em 0!important;font-size:0!important;line-height:1!important;letter-spacing:-.05em!important;overflow:visible!important}.landing-hero-copy h1::before{content:"Turn Your Work";display:block;color:#fff;font-size:clamp(3.35rem,6.25vw,6rem);font-weight:950;line-height:1.02}.landing-hero-copy h1::after{content:"Into Opportunities";display:block;width:100%;padding:0 .2em .08em 0;background:linear-gradient(90deg,var(--brag-blue),var(--brag-cyan) 48%,var(--brag-purple));-webkit-background-clip:text;background-clip:text;color:transparent;font-size:clamp(3.15rem,5.85vw,5.65rem);font-weight:950;line-height:1.04;letter-spacing:-.05em;overflow:visible}.landing-hero-copy h1 span{display:none!important}.landing-hero-description{max-width:1040px!important;margin-top:1.15rem!important;font-size:1.1rem!important;line-height:1.65!important}.landing-hero-actions{margin-top:1.6rem!important}.landing-trust-line{margin-top:1rem!important}.landing-btn{background:linear-gradient(100deg,var(--brag-purple),var(--brag-blue),var(--brag-cyan))!important;color:white!important;box-shadow:0 14px 38px rgba(64,101,255,.28)!important}.landing-btn-secondary{background:rgba(6,15,35,.72)!important;border-color:rgba(73,175,255,.28)!important}.landing-proof-preview{display:none!important}
+.dashboard-accent,.dashboard-page a,.dashboard-page button:not(.dashboard-secondary),.sidebar-nav a.active svg{color:var(--brag-cyan)}.sidebar-nav a.active::before{background:linear-gradient(180deg,var(--brag-cyan),var(--brag-purple))!important}.sidebar-user-avatar{background:linear-gradient(135deg,var(--brag-cyan),var(--brag-purple))!important;color:#fff!important}.sidebar-plan-row>span.pro{background:linear-gradient(90deg,var(--brag-purple),var(--brag-blue))!important;border-color:transparent!important;color:#fff!important}.sidebar-add{background:linear-gradient(90deg,var(--brag-purple),var(--brag-blue),var(--brag-cyan))!important;color:#fff!important}
+@media(max-width:1100px){.landing-hero-copy{padding-right:1rem}.landing-hero-copy h1::before{font-size:clamp(3.1rem,7vw,5.2rem)}.landing-hero-copy h1::after{font-size:clamp(2.95rem,6.5vw,4.9rem)}}
+@media(max-width:980px){.mobile-app-bar{justify-content:flex-start!important;gap:10px!important}.mobile-app-bar>button{order:-1!important;flex:0 0 auto!important}.mobile-brand{margin-right:auto!important}.landing-hero{grid-template-columns:1fr!important;padding-top:2.5rem!important;gap:1.25rem!important}}
+@media(max-width:760px){.landing-hero-copy h1::before,.landing-hero-copy h1::after{white-space:normal}.landing-hero-actions{display:grid!important;grid-template-columns:1fr!important;gap:10px!important}.landing-hero-actions a{width:100%!important;box-sizing:border-box;justify-content:center!important}.landing-trust-line{display:flex!important;flex-wrap:wrap!important;gap:6px 12px!important}}
+@media(max-width:700px){.landing-hero{padding-top:1.75rem!important;padding-bottom:2.5rem!important}.landing-hero-copy{padding-top:94px;padding-right:0}.landing-hero-copy::before{padding-left:60px;padding-right:.3em;min-height:50px;font-size:2.05rem;letter-spacing:-.035em}.landing-hero-copy::after{width:48px;height:48px}.landing-eyebrow{top:61px;left:60px;letter-spacing:.12em!important}.landing-eyebrow::before{font-size:.59rem}.landing-hero-copy h1{margin-top:12px!important;padding-right:.08em!important}.landing-hero-copy h1::before,.landing-hero-copy h1::after{font-size:clamp(2.45rem,12.4vw,3.45rem);line-height:1.01;letter-spacing:-.045em}.landing-hero-description{font-size:.98rem!important;line-height:1.58!important}.landing-nav{min-height:58px!important}.landing-nav .landing-nav-center{display:none!important}}
+@media(max-width:390px){.landing-hero-copy::before{font-size:1.8rem;padding-left:54px}.landing-hero-copy::after{width:44px;height:44px}.landing-eyebrow{left:54px}.landing-hero-copy h1::before,.landing-hero-copy h1::after{font-size:2.35rem}}
