@@ -37,12 +37,16 @@ def is_internal_user(user: dict) -> bool:
 
 
 def get_plan_for_user(user: dict) -> str:
+    """Internal users present as Pro so existing UI plan checks behave correctly."""
     if is_internal_user(user):
-        return "enterprise"
+        return "pro"
     return normalize_plan(user.get("plan"))
 
 
 def get_entitlements_for_user(user: dict) -> dict[str, Any]:
+    """Internal users receive the complete feature set, including future staff testing gates."""
+    if is_internal_user(user):
+        return dict(PLAN_FEATURES["enterprise"])
     return dict(PLAN_FEATURES[get_plan_for_user(user)])
 
 
