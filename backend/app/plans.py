@@ -16,10 +16,86 @@ PLAN_PRICING: dict[str, dict[str, Any]] = {
 }
 
 PLAN_FEATURES: dict[str, dict[str, Any]] = {
-    "free": {"max_entries": FREE_ENTRY_LIMIT,"max_impact_receipts": FREE_IMPACT_RECEIPT_LIMIT,"advanced_reports": False,"performance_review_builder": False,"promotion_packet": False,"interview_packet": False,"certification_packet": False,"integrations": False,"advanced_public_analytics": False,"export_pdf": False,"team_review_packets": False,"shared_templates": False,"manager_verification": False,"org_analytics": False,"sso": False,"audit_logs": False,"retention_controls": False},
-    "pro": {"max_entries": None,"max_impact_receipts": None,"advanced_reports": True,"performance_review_builder": True,"promotion_packet": True,"interview_packet": True,"certification_packet": True,"integrations": True,"advanced_public_analytics": True,"export_pdf": True,"team_review_packets": False,"shared_templates": False,"manager_verification": False,"org_analytics": False,"sso": False,"audit_logs": False,"retention_controls": False},
-    "team": {"max_entries": None,"max_impact_receipts": None,"advanced_reports": True,"performance_review_builder": True,"promotion_packet": True,"interview_packet": True,"certification_packet": True,"integrations": True,"advanced_public_analytics": True,"export_pdf": True,"team_review_packets": True,"shared_templates": True,"manager_verification": True,"org_analytics": True,"sso": False,"audit_logs": False,"retention_controls": False},
-    "enterprise": {"max_entries": None,"max_impact_receipts": None,"advanced_reports": True,"performance_review_builder": True,"promotion_packet": True,"interview_packet": True,"certification_packet": True,"integrations": True,"advanced_public_analytics": True,"export_pdf": True,"team_review_packets": True,"shared_templates": True,"manager_verification": True,"org_analytics": True,"sso": True,"audit_logs": True,"retention_controls": True},
+    "free": {
+        "max_entries": FREE_ENTRY_LIMIT,
+        "max_impact_receipts": FREE_IMPACT_RECEIPT_LIMIT,
+        "advanced_reports": False,
+        "performance_review_builder": False,
+        "promotion_packet": False,
+        "interview_packet": False,
+        "interview_practice": False,
+        "certification_packet": False,
+        "integrations": False,
+        "advanced_public_analytics": False,
+        "export_pdf": False,
+        "team_review_packets": False,
+        "shared_templates": False,
+        "manager_verification": False,
+        "org_analytics": False,
+        "sso": False,
+        "audit_logs": False,
+        "retention_controls": False,
+    },
+    "pro": {
+        "max_entries": None,
+        "max_impact_receipts": None,
+        "advanced_reports": True,
+        "performance_review_builder": True,
+        "promotion_packet": True,
+        "interview_packet": True,
+        "interview_practice": True,
+        "certification_packet": True,
+        "integrations": True,
+        "advanced_public_analytics": True,
+        "export_pdf": True,
+        "team_review_packets": False,
+        "shared_templates": False,
+        "manager_verification": False,
+        "org_analytics": False,
+        "sso": False,
+        "audit_logs": False,
+        "retention_controls": False,
+    },
+    "team": {
+        "max_entries": None,
+        "max_impact_receipts": None,
+        "advanced_reports": True,
+        "performance_review_builder": True,
+        "promotion_packet": True,
+        "interview_packet": True,
+        "interview_practice": True,
+        "certification_packet": True,
+        "integrations": True,
+        "advanced_public_analytics": True,
+        "export_pdf": True,
+        "team_review_packets": True,
+        "shared_templates": True,
+        "manager_verification": True,
+        "org_analytics": True,
+        "sso": False,
+        "audit_logs": False,
+        "retention_controls": False,
+    },
+    "enterprise": {
+        "max_entries": None,
+        "max_impact_receipts": None,
+        "advanced_reports": True,
+        "performance_review_builder": True,
+        "promotion_packet": True,
+        "interview_packet": True,
+        "interview_practice": True,
+        "certification_packet": True,
+        "integrations": True,
+        "advanced_public_analytics": True,
+        "export_pdf": True,
+        "team_review_packets": True,
+        "shared_templates": True,
+        "manager_verification": True,
+        "org_analytics": True,
+        "sso": True,
+        "audit_logs": True,
+        "retention_controls": True,
+    },
 }
 
 
@@ -60,7 +136,15 @@ def require_feature(user: dict, feature_name: str) -> None:
     entitlements = get_entitlements_for_user(user)
     if entitlements.get(feature_name):
         return
-    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail={"code":"paid_feature_required","message":"This feature is not included in your BragStack plan.","feature":feature_name,"plan":get_plan_for_user(user)})
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail={
+            "code": "paid_feature_required",
+            "message": "This feature is not included in your BragStack plan.",
+            "feature": feature_name,
+            "plan": get_plan_for_user(user),
+        },
+    )
 
 
 def enforce_usage_limit(*, user: dict, entitlement_name: str, current_count: int, resource_name: str) -> None:
@@ -68,4 +152,14 @@ def enforce_usage_limit(*, user: dict, entitlement_name: str, current_count: int
     limit = entitlements.get(entitlement_name)
     if limit is None or current_count < limit:
         return
-    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail={"code":"plan_limit_reached","message":f"Your {get_plan_for_user(user).title()} plan includes {limit} {resource_name}. Upgrade for unlimited access.","resource":resource_name,"limit":limit,"current":current_count,"plan":get_plan_for_user(user)})
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail={
+            "code": "plan_limit_reached",
+            "message": f"Your {get_plan_for_user(user).title()} plan includes {limit} {resource_name}. Upgrade for unlimited access.",
+            "resource": resource_name,
+            "limit": limit,
+            "current": current_count,
+            "plan": get_plan_for_user(user),
+        },
+    )
