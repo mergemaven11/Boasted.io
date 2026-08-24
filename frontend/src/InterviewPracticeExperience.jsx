@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { LogOut, X } from "lucide-react";
 import AnimatedInterviewerAvatar from "./AnimatedInterviewerAvatar.jsx";
 import InterviewPracticePage from "./InterviewPracticePage.jsx";
+import { useInterviewAutopilot } from "./interviewAutopilot.js";
 import "./AnimatedInterviewerAvatar.css";
 import "./InterviewPracticeZoomLayout.css";
 import "./InterviewExperienceV3.css";
@@ -18,9 +19,10 @@ function inferAvatarState() {
 
 function pickSofterVoice() {
   const voices = window.speechSynthesis?.getVoices?.() || [];
-  const preferred = ["Samantha", "Ava", "Serena", "Karen", "Moira", "Tessa", "Microsoft Aria", "Google US English"];
+  const preferred = ["Ava (Premium)", "Samantha (Enhanced)", "Ava", "Samantha", "Serena", "Tessa", "Moira", "Microsoft Aria Online", "Microsoft Aria", "Google US English"];
   return preferred.map((name) => voices.find((voice) => voice.name.includes(name) && voice.lang?.startsWith("en"))).find(Boolean)
-    || voices.find((voice) => voice.lang?.startsWith("en-US") && /female|natural|enhanced|premium/i.test(voice.name))
+    || voices.find((voice) => voice.lang?.startsWith("en-US") && /premium|enhanced|natural|neural/i.test(voice.name))
+    || voices.find((voice) => voice.lang?.startsWith("en-US"))
     || voices.find((voice) => voice.lang?.startsWith("en"))
     || null;
 }
@@ -35,9 +37,9 @@ function useGreetingAndVoicePolish() {
     const tune = (utterance) => {
       const voice = pickSofterVoice();
       if (voice) utterance.voice = voice;
-      utterance.rate = 0.9;
-      utterance.pitch = 1.02;
-      utterance.volume = 0.92;
+      utterance.rate = 0.84;
+      utterance.pitch = 1;
+      utterance.volume = 0.88;
       return utterance;
     };
 
@@ -45,8 +47,9 @@ function useGreetingAndVoicePolish() {
       const inInterview = Boolean(document.querySelector(".interview-room-page"));
       if (inInterview && !greeted) {
         greeted = true;
-        const greeting = tune(new SpeechSynthesisUtterance("Hi, I’m Aisha Jordan, your BragStack interviewer. I’ll ask one question at a time. Take a moment to think, answer naturally, and I’ll give you specific coaching after each response. Let’s get started."));
-        greeting.onend = () => originalSpeak(tune(utterance));
+        const greetingText = "Hi, I’m Aisha Jordan. Welcome to your BragStack practice interview. Here’s how this works. I’ll ask one question at a time, then your response timer will start after I finish speaking. Answer naturally, just like you would in a real interview. I’ll listen to your response, look for your situation, your specific actions, and the result, and I may ask a short follow-up if an important detail is missing. When your time ends, you’ll hear a soft chime and I’ll let you know. At the end, you’ll get a score, strengths, and specific ways to improve. Take your time, be yourself, and don’t worry about being perfect. Ready? Let’s begin.";
+        const greeting = tune(new SpeechSynthesisUtterance(greetingText));
+        greeting.onend = () => window.setTimeout(() => originalSpeak(tune(utterance)), 450);
         greeting.onerror = () => originalSpeak(tune(utterance));
         originalSpeak(greeting);
         return;
@@ -156,13 +159,11 @@ function InterviewExitGuard() {
 
   useEffect(() => {
     if (!active) return undefined;
-
     const beforeUnload = (event) => {
       if (bypassRef.current) return;
       event.preventDefault();
       event.returnValue = "";
     };
-
     const interceptNavigation = (event) => {
       if (bypassRef.current || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const anchor = event.target.closest?.("a[href]");
@@ -175,7 +176,6 @@ function InterviewExitGuard() {
       event.stopPropagation();
       setPendingHref(destination.href);
     };
-
     window.addEventListener("beforeunload", beforeUnload);
     document.addEventListener("click", interceptNavigation, true);
     return () => {
@@ -193,32 +193,21 @@ function InterviewExitGuard() {
   };
 
   if (!active) return null;
-
   return <>
-    {headerHost && createPortal(
-      <button className="interview-end-button" type="button" onClick={requestEnd}><LogOut size={17} /> End Interview</button>,
-      headerHost,
-    )}
+    {headerHost && createPortal(<button className="interview-end-button" type="button" onClick={requestEnd}><LogOut size={17} /> End Interview</button>, headerHost)}
     {pendingHref && createPortal(
       <div className="interview-exit-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) keepInterview(); }}>
         <section className="interview-exit-modal" role="dialog" aria-modal="true" aria-labelledby="interview-exit-title">
           <button className="interview-exit-close" type="button" onClick={keepInterview} aria-label="Keep interview open"><X size={18} /></button>
-          <div className="interview-exit-icon"><LogOut size={24} /></div>
-          <span>INTERVIEW IN PROGRESS</span>
-          <h2 id="interview-exit-title">End this interview?</h2>
-          <p>Your current answer and remaining questions will be abandoned. You can stay and finish, or end the session now.</p>
-          <div className="interview-exit-actions">
-            <button className="secondary-interview-button" type="button" onClick={keepInterview}>Keep Interview</button>
-            <button className="interview-end-confirm" type="button" onClick={confirmEnd}>End Interview</button>
-          </div>
+          <div className="interview-exit-icon"><LogOut size={24} /></div><span>INTERVIEW IN PROGRESS</span><h2 id="interview-exit-title">End this interview?</h2><p>Your current answer and remaining questions will be abandoned. You can stay and finish, or end the session now.</p>
+          <div className="interview-exit-actions"><button className="secondary-interview-button" type="button" onClick={keepInterview}>Keep Interview</button><button className="interview-end-confirm" type="button" onClick={confirmEnd}>End Interview</button></div>
         </section>
-      </div>,
-      document.body,
-    )}
+      </div>, document.body)}
   </>;
 }
 
 export default function InterviewPracticeExperience() {
   useGreetingAndVoicePolish();
+  useInterviewAutopilot();
   return <><InterviewPracticePage /><AvatarPortal /><InterviewSidebarPortal /><InterviewExitGuard /></>;
 }
