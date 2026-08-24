@@ -1,0 +1,2 @@
+BragStack official search icon: /bragstack-logo-192.png
+Preferred branded search sitelinks: Resume Builder, Practice Interviewer, Pricing, Docs, Log in, Sign up.

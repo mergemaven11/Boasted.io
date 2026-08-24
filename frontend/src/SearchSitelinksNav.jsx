@@ -13,7 +13,7 @@ export default function SearchSitelinksNav() {
   return (
     <section className="search-sitelinks" aria-labelledby="search-sitelinks-title">
       <div className="search-sitelinks-heading">
-        <span className="search-sitelinks-mark" aria-hidden="true">B</span>
+        <img className="search-sitelinks-logo" src="/bragstack-logo-192.png" alt="BragStack" width="48" height="48" />
         <div>
           <p>EXPLORE BRAGSTACK</p>
           <h2 id="search-sitelinks-title">Career proof, resume building, and interview practice in one place.</h2>
