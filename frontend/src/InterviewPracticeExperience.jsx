@@ -112,6 +112,83 @@ function InterviewExitGuard() {
   </>;
 }
 
+function AishaAutostartBridge() {
+  const introPacingRef = useRef(false);
+  const lastPrimeRef = useRef(0);
+
+  useEffect(() => {
+    const nativeSetTimeout = window.setTimeout.bind(window);
+    const existingSetTimeout = window.setTimeout;
+
+    const patchedSetTimeout = (handler, delay, ...args) => {
+      const requestedDelay = Number(delay);
+      const adjustedDelay = introPacingRef.current && requestedDelay === 5000 ? 2000 : delay;
+      return nativeSetTimeout(handler, adjustedDelay, ...args);
+    };
+
+    window.setTimeout = patchedSetTimeout;
+
+    const primeBrowserSpeech = () => {
+      const now = Date.now();
+      if (now - lastPrimeRef.current < 600) return;
+      lastPrimeRef.current = now;
+      introPacingRef.current = true;
+
+      const synth = window.speechSynthesis;
+      if (synth?.speak) {
+        try {
+          const unlock = new SpeechSynthesisUtterance(" ");
+          unlock.volume = 0;
+          unlock.rate = 10;
+          unlock.pitch = 1;
+          synth.speak(unlock);
+          synth.resume?.();
+        } catch {
+          // A later automatic retry still gets a chance if this browser ignores the primer.
+        }
+      }
+
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          const context = new AudioContext();
+          void context.resume?.();
+          nativeSetTimeout(() => context.close?.(), 650);
+        }
+      } catch {
+        // Audio priming is best-effort and must not block the interview.
+      }
+
+      nativeSetTimeout(() => { introPacingRef.current = false; }, 45000);
+    };
+
+    const handleStartGesture = (event) => {
+      const target = event.target;
+      const startButton = target?.closest?.(".interview-setup-card .start-interview-button");
+      if (startButton) primeBrowserSpeech();
+    };
+
+    const observer = new MutationObserver(() => {
+      if (document.querySelector(".dictation-button.active")) introPacingRef.current = false;
+    });
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+
+    document.addEventListener("pointerdown", handleStartGesture, true);
+    document.addEventListener("touchstart", handleStartGesture, true);
+    document.addEventListener("click", handleStartGesture, true);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleStartGesture, true);
+      document.removeEventListener("touchstart", handleStartGesture, true);
+      document.removeEventListener("click", handleStartGesture, true);
+      observer.disconnect();
+      if (window.setTimeout === patchedSetTimeout) window.setTimeout = existingSetTimeout;
+    };
+  }, []);
+
+  return null;
+}
+
 export default function InterviewPracticeExperience() {
-  return <><InterviewPracticePage /><InterviewSidebarPortal /><InterviewExitGuard /></>;
+  return <><AishaAutostartBridge /><InterviewPracticePage /><InterviewSidebarPortal /><InterviewExitGuard /></>;
 }
