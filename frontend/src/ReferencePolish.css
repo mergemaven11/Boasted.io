@@ -8,12 +8,12 @@
 
 /* Hero brand lockup */
 .landing-hero{grid-template-columns:minmax(0,1.05fr) minmax(390px,.95fr)!important;align-items:center!important;padding-top:3.5rem!important;padding-bottom:3rem!important;gap:3rem!important;overflow:visible!important}
-.landing-hero-copy{position:relative;min-width:0;padding-top:102px;overflow:visible!important}
-.landing-hero-copy::before{content:"BragStack";position:absolute;top:0;left:0;padding-left:70px;min-height:58px;display:flex;align-items:center;background:linear-gradient(90deg,#fff 0 43%,var(--brag-cyan) 61%,var(--brag-purple) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:clamp(2.35rem,3.8vw,3.9rem);font-weight:950;letter-spacing:-.06em;line-height:1;white-space:nowrap}
-.landing-hero-copy::after{content:"";position:absolute;top:1px;left:0;width:56px;height:56px;background:url('/brandmark.svg') center/contain no-repeat;filter:drop-shadow(0 10px 24px rgba(70,80,255,.32))}
-.landing-eyebrow{position:absolute;top:64px;left:71px;margin:0!important;padding:0!important;border:0!important;background:transparent!important;color:#aebbd2!important;font-size:0!important;letter-spacing:.2em!important;line-height:1.4!important;white-space:nowrap}
+.landing-hero-copy{position:relative;min-width:0;padding-top:116px;overflow:visible!important}
+.landing-hero-copy::before{content:"BragStack";position:absolute;top:0;left:0;padding-left:76px;padding-right:.14em;min-height:62px;display:flex;align-items:center;background:linear-gradient(90deg,#fff 0 43%,var(--brag-cyan) 61%,var(--brag-purple) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:clamp(2.35rem,3.8vw,3.9rem);font-weight:950;letter-spacing:-.052em;line-height:1;white-space:nowrap;overflow:visible}
+.landing-hero-copy::after{content:"";position:absolute;top:1px;left:0;width:60px;height:60px;background:url('/brandmark.svg') center/contain no-repeat;filter:drop-shadow(0 10px 24px rgba(70,80,255,.32))}
+.landing-eyebrow{position:absolute;top:76px;left:76px;margin:0!important;padding:0!important;border:0!important;background:transparent!important;color:#c6d4ea!important;font-size:0!important;letter-spacing:.19em!important;line-height:1.4!important;white-space:nowrap}
 .landing-eyebrow svg{display:none!important}
-.landing-eyebrow::before{content:"PROVE  •  GROW  •  GET HIRED";font-size:.61rem;font-weight:900}
+.landing-eyebrow::before{content:"PROVE  •  GROW  •  GET HIRED";font-size:.72rem;font-weight:900}
 
 .landing-hero-copy h1{max-width:690px!important;margin:24px 0 18px!important;padding:0 0 .08em!important;font-size:0!important;line-height:1.02!important;letter-spacing:-.055em!important;overflow:visible!important}
 .landing-hero-copy h1::before{content:"Turn Your Work";display:block;color:#fff;font-size:clamp(3.05rem,4.35vw,4.55rem);font-weight:950;line-height:1.02;white-space:nowrap}
@@ -51,11 +51,11 @@
 }
 
 @media(max-width:700px){
-  .landing-hero-copy{padding-top:94px}
-  .landing-hero-copy::before{padding-left:62px;min-height:50px;font-size:2.25rem}
-  .landing-hero-copy::after{width:50px;height:50px}
-  .landing-eyebrow{top:58px;left:63px;letter-spacing:.15em!important}
-  .landing-eyebrow::before{font-size:.56rem}
+  .landing-hero-copy{padding-top:108px}
+  .landing-hero-copy::before{padding-left:66px;padding-right:.14em;min-height:54px;font-size:2.25rem}
+  .landing-hero-copy::after{width:52px;height:52px}
+  .landing-eyebrow{top:68px;left:67px;letter-spacing:.14em!important}
+  .landing-eyebrow::before{font-size:.64rem}
   .landing-hero-copy h1{margin-top:16px!important}
   .landing-hero-copy h1::before,.landing-hero-copy h1::after{font-size:clamp(2.55rem,12vw,3.65rem);line-height:1.04}
   .landing-hero-description{font-size:.98rem!important}
