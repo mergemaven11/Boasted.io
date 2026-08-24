@@ -1,97 +1,345 @@
+import { useMemo, useState } from "react";
 import {
+  ArrowRight,
   BookOpen,
+  BrainCircuit,
   BriefcaseBusiness,
   CircleHelp,
   CreditCard,
   FileText,
+  Mic2,
   Plug,
   ReceiptText,
   Search,
   ShieldCheck,
   UserRound,
   Wrench,
+  X,
 } from "lucide-react";
 import "./DocsPage.css";
 
 const sections = [
-  { id: "getting-started", icon: BookOpen, title: "Getting started", blurb: "Set up BragStack and capture your first win in minutes.", text: "Create an account, sign in, and begin capturing accomplishments. BragStack is designed around one repeatable loop: capture the work, add evidence, describe measurable impact, connect skills, and reuse that proof later.", bullets: ["Create an account with Google, GitHub, or email/password", "Add your first accomplishment with enough context to remember what happened later", "Attach evidence or references that support the accomplishment", "Turn important wins into Impact Receipts", "Keep everything private until you deliberately choose to share it"] },
-  { id: "user-guide", icon: UserRound, title: "Daily workflow", blurb: "Build the habit without turning BragStack into another chore.", text: "Use BragStack shortly after meaningful work happens. A useful entry usually captures the situation, what you personally did, what changed because of it, the skills involved, and where supporting evidence can be found.", bullets: ["Capture wins while details and metrics are still fresh", "Edit newly created accomplishments during the available edit window", "Use clear, factual language instead of inflated claims", "Add metrics only when you can reasonably support them", "Tag skills consistently so patterns become useful later"] },
-  { id: "features", icon: ReceiptText, title: "Impact Receipts", blurb: "Turn a good accomplishment into structured, reusable proof.", text: "Impact Receipts are the core evidence object in BragStack. They organize a meaningful accomplishment into a clear record of contribution, measurable result, supporting evidence, skills, credit, and visibility.", bullets: ["Accomplishment: what happened", "Contribution: what you personally owned or changed", "Result: what improved, shipped, saved, grew, reduced, or enabled", "Evidence: files, links, ticket references, messages, dashboards, or notes you are permitted to retain", "Skills: capabilities demonstrated by the work", "Credit: acknowledge collaborators where appropriate", "Visibility: keep the receipt private or intentionally make selected proof public"] },
-  { id: "evidence", icon: ShieldCheck, title: "Evidence quality", blurb: "Use evidence that makes your career claims easier to trust.", text: "Evidence does not have to be dramatic. Useful evidence is simply material that helps support the claim you are recording. A ticket ID, approved screenshot, launch note, customer message, metric snapshot, commit, or manager feedback can all be useful when you are allowed to retain them.", bullets: ["Prefer contemporaneous evidence created near the time of the work", "Keep evidence specific enough to support the claim", "Do not upload secrets, credentials, customer data, source code, or restricted internal material", "Use references or sanitized notes when the underlying material cannot leave a workplace system", "A missing evidence attachment is better than storing something you are not allowed to keep"] },
-  { id: "impact", icon: BriefcaseBusiness, title: "Writing measurable impact", blurb: "Describe outcomes without inventing numbers.", text: "Measurable impact can be quantitative or qualitative. Use numbers when they are available and defensible. When they are not, describe observable outcomes such as reduced escalation, faster handoff, lower rework, stronger reliability, improved adoption, clearer ownership, or better customer outcomes.", bullets: ["Use before/after comparisons when available", "Separate your contribution from the team result", "Avoid guessing percentages or dollar values", "Explain the mechanism: what changed and why it mattered", "Prefer a smaller accurate claim over a larger unsupported one"] },
-  { id: "career-tools", icon: BriefcaseBusiness, title: "Career tools", blurb: "Turn recorded evidence into review, resume, promotion, and interview material.", text: "BragStack is intended to generate career material from the evidence you have already recorded. The goal is to reduce blank-page work without creating accomplishments that never happened.", bullets: ["Performance-review packets organized from recorded evidence", "Promotion material highlighting scope, ownership, leadership, and results", "Job-targeted resume material grounded in your actual accomplishments", "Interview stories built from real situations, actions, and results", "Exports and advanced career packaging available through applicable plans"] },
-  { id: "resume", icon: FileText, title: "Resume material", blurb: "Create stronger bullets without turning the resume into fiction.", text: "When using BragStack for resume material, start with evidence that matches the target role. Strong bullets usually identify the action, technical or business context, and result. BragStack should not add employers, dates, credentials, tools, metrics, or outcomes that you did not record.", bullets: ["Choose accomplishments relevant to the target job", "Prioritize outcomes over task lists", "Keep numbers traceable to recorded evidence", "Use role-appropriate terminology without overstating ownership", "Review every generated bullet before submitting an application"] },
-  { id: "reviews", icon: FileText, title: "Performance reviews & promotions", blurb: "Use proof captured throughout the cycle instead of rebuilding the year from memory.", text: "Review and promotion material is strongest when it shows patterns over time. BragStack can help organize evidence by impact, scope, skills, leadership, execution, reliability, and growth, but the underlying claims should still come from your recorded work.", bullets: ["Capture praise and outcomes throughout the year", "Show repeated ownership, not just isolated wins", "Include shared credit where appropriate", "Use evidence to support growth in scope or responsibility", "Review the final packet for company-specific expectations"] },
-  { id: "public-profiles", icon: FileText, title: "Public Proof Profile", blurb: "Share selected proof without exposing your private workspace.", text: "A public Proof Profile exposes only entries and Impact Receipts you intentionally mark public. Your private workspace remains separate. Public sharing is useful for recruiters, hiring managers, clients, collaborators, or a portfolio, but only publish information you are comfortable making broadly accessible.", bullets: ["Selective item-level sharing", "Portfolio-style proof of impact", "Private entries are not automatically published", "Remove confidential details before publishing", "Assume public content can be copied by others"] },
-  { id: "billing", icon: CreditCard, title: "Billing & Pro", blurb: "Understand Free, Pro, checkout, renewal, and access.", text: "BragStack may offer Free and paid plans. Paid checkout is handled through the configured payment provider, and BragStack updates account access after verified billing events.", bullets: ["Free plan for learning the core proof workflow", "Pro currently listed at $9/month where offered", "Paid plan features are enforced using account entitlements", "Cancel future renewal through available billing controls or support", "A canceled subscription generally remains active through the paid billing period unless otherwise stated", "Taxes and payment-provider terms may apply"] },
-  { id: "integrations", icon: Plug, title: "Integrations", blurb: "Bring useful work signals into BragStack without losing control.", text: "Integrations are intended to reduce manual capture by surfacing possible work signals. A signal is not automatically career proof. You should review, edit, and approve information before it becomes part of your career record.", bullets: ["OAuth-based connections where available", "Suggestions remain subject to user review", "No automatic public posting", "Disconnect integrations you no longer use", "More integrations may be introduced over time"] },
-  { id: "privacy", icon: ShieldCheck, title: "Privacy & NDA safety", blurb: "Protect confidential work while still documenting your impact.", text: "Career evidence can contain sensitive work history, so BragStack is built around user-controlled visibility. If your work is covered by an NDA or internal security policy, document the impact at the safest level that still preserves its career value.", bullets: ["Private by default", "Explicit sharing controls", "Generalize customer names, internal systems, unreleased products, and sensitive metrics", "Do not upload restricted screenshots, logs, code, credentials, or proprietary documents", "Use evidence references when the source must remain inside your employer’s systems", "Review the dedicated NDA guidance before publishing anything sensitive"] },
-  { id: "security", icon: ShieldCheck, title: "Account & security basics", blurb: "Simple practices that protect your career record.", text: "Your BragStack account can contain meaningful professional history. Protect it the same way you would protect other important work accounts.", bullets: ["Use a strong unique password if you sign in with email/password", "Protect your Google or GitHub account if you use OAuth", "Sign out on shared devices", "Do not paste credentials, API keys, access tokens, or customer secrets into accomplishment evidence", "Contact support if you suspect unauthorized access"] },
-  { id: "deletion", icon: UserRound, title: "Data access, export & deletion", blurb: "Understand what to do when you want a copy of your data or want to leave.", text: "Where available, use product controls to update or remove content. For account-level access, export, correction, or deletion requests, contact BragStack support. Some limited records may need to be retained for billing, fraud prevention, legal compliance, security, or backup retention.", bullets: ["Request a copy of personal information", "Request correction of inaccurate account information", "Request deletion of your account", "Remove public visibility before deleting when appropriate", "Back up career material you want to keep before closing your account"] },
-  { id: "api", icon: Wrench, title: "API", blurb: "Developer access is planned, not exposed as customer documentation yet.", text: "BragStack's customer documentation does not send users to raw localhost or backend API pages. Public API documentation will be published here only when it is ready for supported customer use.", bullets: ["Customer-safe documentation", "No localhost links", "Versioned API docs planned", "Authentication, rate limits, and examples will be documented with the API", "Private internal endpoints should not be treated as a supported public API"] },
+  {
+    id: "getting-started",
+    icon: BookOpen,
+    title: "Start here",
+    blurb: "The simplest way to understand BragStack.",
+    text: "BragStack helps you remember what you did, prove the impact, and reuse that proof later for resumes, interviews, reviews, promotions, and your public career story.",
+    bullets: [
+      "Capture a real accomplishment while the details are fresh.",
+      "Add the result, evidence, and skills that make the accomplishment believable.",
+      "Turn important wins into Impact Receipts.",
+      "Reuse your career proof instead of starting from a blank page every time.",
+      "Keep your workspace private unless you deliberately choose to share something.",
+    ],
+  },
+  {
+    id: "daily-workflow",
+    icon: UserRound,
+    title: "Your everyday workflow",
+    blurb: "A five-minute habit after meaningful work happens.",
+    text: "You do not need to document every task. Save the work that shows growth, ownership, problem solving, leadership, customer impact, technical skill, or measurable improvement.",
+    bullets: [
+      "What happened? Give enough context for future-you to understand it.",
+      "What did you personally do? Separate your contribution from the team result.",
+      "What changed? Add a metric when you have one, or a concrete outcome when you do not.",
+      "What proves it? Add safe evidence, a reference, or a note about where the source lives.",
+      "What skill did this demonstrate? Tag skills consistently so patterns become useful later.",
+    ],
+  },
+  {
+    id: "impact-receipts",
+    icon: ReceiptText,
+    title: "Impact Receipts",
+    blurb: "Your reusable record of career proof.",
+    text: "An Impact Receipt turns a memory into structured proof. Think of it like a receipt for work you actually did: the contribution, result, evidence, skills, credit, and visibility all stay together.",
+    bullets: [
+      "Accomplishment — what happened.",
+      "Contribution — what you personally owned, changed, fixed, built, or influenced.",
+      "Result — what improved, shipped, saved, grew, reduced, or became easier.",
+      "Evidence — files, links, tickets, messages, dashboards, commits, or safe references.",
+      "Skills and credit — what the work demonstrates and who else deserves recognition.",
+    ],
+  },
+  {
+    id: "resume-builder",
+    icon: FileText,
+    title: "Resume Builder",
+    blurb: "Build an ATS-friendly resume from proof you already captured.",
+    text: "The Resume Builder starts with your Impact Receipts and target job. It helps turn real accomplishments into stronger resume bullets without inventing employers, dates, tools, metrics, or outcomes.",
+    bullets: [
+      "Enter the target role and, when available, paste the job description.",
+      "Choose the career proof that best matches the opportunity, or use all relevant receipts.",
+      "BragStack builds role-aware bullets from your recorded evidence.",
+      "Review every bullet before using it. Edit anything that does not sound like you.",
+      "Keep the strongest bullets focused on action, context, and result — not task lists.",
+    ],
+  },
+  {
+    id: "career-intelligence",
+    icon: BrainCircuit,
+    title: "BragStack Career Intelligence™",
+    blurb: "Career-aware reasoning that connects your evidence to the skill being tested.",
+    text: "Career Intelligence is the reasoning layer behind BragStack's newer career tools. It looks beyond answer shape and asks whether your evidence actually supports the competency, role, or career goal in front of you.",
+    bullets: [
+      "Matches career proof to role and competency context.",
+      "Looks for ownership, specificity, evidence, result, impact, and relevance.",
+      "Uses your saved career proof when personalization is enabled.",
+      "Keeps the focus on what you actually did instead of generic career advice.",
+      "Supports adaptive coaching in Interview Practice.",
+    ],
+  },
+  {
+    id: "interviewer",
+    icon: Mic2,
+    title: "Practice Interview",
+    blurb: "Practice real questions and get evidence-aware coaching.",
+    text: "The BragStack Interviewer creates a role-aware practice session, evaluates whether your answer actually proves the skill being tested, and can ask a follow-up when your answer needs more evidence or clarity.",
+    bullets: [
+      "Choose a target role, experience level, interview type, and number of questions.",
+      "Paste a job description when you want tighter role alignment.",
+      "Personalize with Impact Receipts when you want the session connected to your own career proof.",
+      "Answer naturally by typing or speaking where your browser supports it.",
+      "Use the feedback to strengthen context, ownership, specificity, impact, relevance, and communication.",
+      "Finish with a strengths-and-improvement summary you can use for your next practice round.",
+    ],
+  },
+  {
+    id: "evidence",
+    icon: ShieldCheck,
+    title: "Evidence without oversharing",
+    blurb: "Prove your work while protecting confidential information.",
+    text: "Evidence should support your claim, not create a security problem. A reference to where evidence lives can be better than uploading something you are not allowed to keep.",
+    bullets: [
+      "Good evidence can be a ticket ID, approved screenshot, launch note, customer message, metric snapshot, commit, or manager feedback.",
+      "Never upload passwords, credentials, API keys, customer secrets, restricted code, or confidential documents.",
+      "Generalize customer names, internal systems, unreleased products, and sensitive metrics when needed.",
+      "When the source must stay at work, save a sanitized reference instead of the restricted material itself.",
+    ],
+  },
+  {
+    id: "reviews",
+    icon: BriefcaseBusiness,
+    title: "Reviews, promotions & career packets",
+    blurb: "Use proof captured all year instead of rebuilding your story from memory.",
+    text: "BragStack can organize your recorded work into material for performance reviews, promotion conversations, interview packets, and other career moments.",
+    bullets: [
+      "Show repeated ownership and growth over time, not just isolated wins.",
+      "Use evidence to support scope, leadership, execution, reliability, and impact.",
+      "Include shared credit where appropriate.",
+      "Review the final material for company-specific expectations before submitting it.",
+    ],
+  },
+  {
+    id: "public-profile",
+    icon: FileText,
+    title: "Public Proof Profile",
+    blurb: "Share selected proof without exposing your private workspace.",
+    text: "Your public profile should be a curated window into your work, not a mirror of everything you have saved privately.",
+    bullets: [
+      "Only intentionally public proof should appear on a public profile.",
+      "Use it as a portfolio-style view for recruiters, hiring managers, clients, or collaborators.",
+      "Remove confidential details before publishing.",
+      "Assume anything public can be copied or reshared by someone else.",
+    ],
+  },
+  {
+    id: "billing",
+    icon: CreditCard,
+    title: "Billing & Pro",
+    blurb: "Understand paid access without billing jargon.",
+    text: "Some BragStack features are available through Pro. Checkout and subscription billing are handled through the configured payment provider, while BragStack controls feature access from your verified account entitlement.",
+    bullets: [
+      "Free access covers the core career-proof workflow where offered.",
+      "Pro is currently listed at $9/month where offered.",
+      "Canceling normally stops future renewal while access continues through the paid period.",
+      "Taxes and payment-provider terms may apply.",
+      "Contact support if your payment succeeded but your Pro access does not update.",
+    ],
+  },
+  {
+    id: "integrations",
+    icon: Plug,
+    title: "Connections & sign-in",
+    blurb: "Use Google, GitHub, and other connections safely.",
+    text: "Connections help with sign-in or bring useful signals into BragStack. A connected service does not automatically make your work public.",
+    bullets: [
+      "Use Google, GitHub, or email/password where available.",
+      "Review imported or suggested information before treating it as career proof.",
+      "Disconnect integrations you no longer use.",
+      "Protect the Google or GitHub account you use for sign-in.",
+    ],
+  },
+  {
+    id: "privacy",
+    icon: ShieldCheck,
+    title: "Privacy & NDA safety",
+    blurb: "Keep the career value. Leave the secrets behind.",
+    text: "BragStack is built around user-controlled visibility, but you are still responsible for following employer policy, client agreements, NDAs, and applicable law.",
+    bullets: [
+      "Private by default.",
+      "Share selectively.",
+      "Do not store material you are not authorized to retain.",
+      "Use safe summaries and references for restricted work.",
+      "Review the NDA guidance before publishing sensitive career proof.",
+    ],
+  },
+  {
+    id: "account",
+    icon: UserRound,
+    title: "Account, export & deletion",
+    blurb: "What to do when you need your data or want to leave.",
+    text: "Use product controls to update or remove content where available. For account-level access, export, correction, or deletion requests, contact BragStack support.",
+    bullets: [
+      "Request a copy of your personal information.",
+      "Request correction of inaccurate account information.",
+      "Request deletion of your account.",
+      "Back up career material you want to keep before closing the account.",
+      "Some limited records may be retained when required for billing, fraud prevention, security, legal compliance, or backups.",
+    ],
+  },
+  {
+    id: "api",
+    icon: Wrench,
+    title: "API",
+    blurb: "Developer access is planned, not part of the everyday user guide.",
+    text: "BragStack does not send non-technical users into raw backend endpoints. Public API documentation will be added when a supported customer API is ready.",
+    bullets: [
+      "No localhost links in customer docs.",
+      "Authentication, limits, and examples will be documented when the public API launches.",
+      "Private internal endpoints are not a supported customer API.",
+    ],
+  },
 ];
 
-const quickLinks = sections.slice(0, 6);
+const quickLinks = ["impact-receipts", "resume-builder", "interviewer", "career-intelligence", "evidence", "privacy"]
+  .map((id) => sections.find((section) => section.id === id))
+  .filter(Boolean);
+
+const journey = [
+  { title: "Capture", detail: "Save a real accomplishment" },
+  { title: "Prove", detail: "Add result + evidence" },
+  { title: "Package", detail: "Create an Impact Receipt" },
+  { title: "Reuse", detail: "Resume, interview, review, profile" },
+];
+
+function searchableText(section) {
+  return [section.title, section.blurb, section.text, ...(section.bullets || [])].join(" ").toLowerCase();
+}
 
 function DocsPage() {
+  const [query, setQuery] = useState("");
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredSections = useMemo(
+    () => normalizedQuery ? sections.filter((section) => searchableText(section).includes(normalizedQuery)) : sections,
+    [normalizedQuery],
+  );
+
+  function jumpTo(sectionId) {
+    window.requestAnimationFrame(() => {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   return (
     <main className="docs-page">
       <header className="docs-topbar">
-        <a className="docs-brand" href="/"><img src="/brandmark.svg" alt="" /><span><strong>BragStack</strong><small>Docs</small></span></a>
+        <a className="docs-brand" href="/"><img src="/brandmark.svg" alt="" /><span><strong>BragStack</strong><small>Help Center</small></span></a>
         <nav aria-label="Documentation header"><a href="/">Product</a><a href="/#pricing">Pricing</a><a href="/nda-safety">NDA guidance</a><a href="/privacy">Privacy</a><a href="/login">Sign in</a></nav>
       </header>
 
       <div className="docs-shell">
         <aside className="docs-sidebar" aria-label="Documentation sections">
-          <p>BragStack Docs</p>
-          <a href="#getting-started"><BookOpen size={16} />Getting Started</a>
-          <a href="#user-guide"><UserRound size={16} />Daily Workflow</a>
-          <a href="#features"><ReceiptText size={16} />Impact Receipts</a>
-          <a href="#evidence"><ShieldCheck size={16} />Evidence Quality</a>
-          <a href="#career-tools"><BriefcaseBusiness size={16} />Career Tools</a>
-          <a href="#billing"><CreditCard size={16} />Billing & Pro</a>
+          <p>Learn BragStack</p>
+          <a href="#getting-started"><BookOpen size={16} />Start Here</a>
+          <a href="#impact-receipts"><ReceiptText size={16} />Impact Receipts</a>
+          <a href="#resume-builder"><FileText size={16} />Resume Builder</a>
+          <a href="#interviewer"><Mic2 size={16} />Practice Interview</a>
+          <a href="#career-intelligence"><BrainCircuit size={16} />Career Intelligence</a>
           <a href="#privacy"><ShieldCheck size={16} />Privacy & NDA</a>
-          <a href="#api"><Wrench size={16} />API <span>Coming</span></a>
+          <a href="#billing"><CreditCard size={16} />Billing & Pro</a>
           <a href="#faq"><CircleHelp size={16} />FAQ</a>
           <a href="#contact"><FileText size={16} />Contact</a>
         </aside>
 
         <article className="docs-content">
           <section className="docs-hero">
-            <p className="docs-kicker">CUSTOMER-FACING DOCUMENTATION</p>
-            <h1>BragStack Docs</h1>
-            <p>Learn how to capture accomplishments, attach evidence, write measurable impact, create Impact Receipts, build career material, share proof safely, manage billing, and protect confidential work.</p>
-            <label className="docs-search"><Search size={18} /><input aria-label="Search documentation" placeholder="Search docs..." /></label>
+            <p className="docs-kicker">BRAGSTACK HELP CENTER</p>
+            <h1>Career proof, explained simply.</h1>
+            <p>No technical background needed. Pick what you are trying to do and BragStack will show you the shortest path.</p>
+            <label className="docs-search">
+              <Search size={18} />
+              <input
+                aria-label="Search documentation"
+                placeholder="Try “resume”, “interview”, “evidence”, “billing”…"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
+              {query && <button type="button" onClick={() => setQuery("")} aria-label="Clear documentation search"><X size={17} /></button>}
+            </label>
+            {normalizedQuery && (
+              <div className="docs-search-summary" role="status">
+                <strong>{filteredSections.length}</strong> {filteredSections.length === 1 ? "guide" : "guides"} found for “{query.trim()}”
+              </div>
+            )}
           </section>
 
-          <section className="docs-card-grid" aria-label="Popular documentation">
-            {quickLinks.map(({ id, icon: Icon, title, blurb }) => (
-              <a className="docs-card" href={`#${id}`} key={id}><Icon size={20} /><div><strong>{title}</strong><span>{blurb}</span></div></a>
-            ))}
-          </section>
+          {!normalizedQuery && (
+            <>
+              <section className="docs-journey" aria-label="How BragStack works">
+                <div className="docs-journey-heading"><span>THE BIG PICTURE</span><h2>One career-proof loop</h2><p>Capture once. Reuse when it matters.</p></div>
+                <div className="docs-flow">
+                  {journey.map((step, index) => (
+                    <div className="docs-flow-step" key={step.title}>
+                      <span>{index + 1}</span><div><strong>{step.title}</strong><small>{step.detail}</small></div>
+                      {index < journey.length - 1 && <ArrowRight className="docs-flow-arrow" size={18} />}
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="docs-card-grid" aria-label="Popular documentation">
+                {quickLinks.map(({ id, icon: Icon, title, blurb }) => (
+                  <a className="docs-card" href={`#${id}`} key={id}><Icon size={20} /><div><strong>{title}</strong><span>{blurb}</span></div></a>
+                ))}
+              </section>
+            </>
+          )}
 
           <div className="docs-body">
-            {sections.map(({ id, icon: Icon, title, text, bullets }) => (
+            {filteredSections.length ? filteredSections.map(({ id, icon: Icon, title, blurb, text, bullets }) => (
               <section className="docs-section" id={id} key={id}>
-                <div className="docs-section-title"><Icon size={21} /><h2>{title}</h2></div>
+                <div className="docs-section-title"><Icon size={21} /><div><h2>{title}</h2><span>{blurb}</span></div></div>
                 <p>{text}</p>
                 <ul>{bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul>
+                {normalizedQuery && <button className="docs-jump-button" type="button" onClick={() => { setQuery(""); jumpTo(id); }}>Open full guide <ArrowRight size={15} /></button>}
               </section>
-            ))}
+            )) : (
+              <section className="docs-empty-state">
+                <Search size={28} />
+                <h2>No guide matched that search.</h2>
+                <p>Try a simpler word like <button type="button" onClick={() => setQuery("resume")}>resume</button>, <button type="button" onClick={() => setQuery("interview")}>interview</button>, <button type="button" onClick={() => setQuery("evidence")}>evidence</button>, or <button type="button" onClick={() => setQuery("billing")}>billing</button>.</p>
+              </section>
+            )}
 
-            <section className="docs-section" id="faq">
-              <div className="docs-section-title"><CircleHelp size={21} /><h2>FAQ</h2></div>
-              <p><strong>Is my work public?</strong> No. BragStack is private by default. Only proof you deliberately mark public should appear on a public profile or shareable surface.</p>
-              <p><strong>Can I use BragStack for confidential work?</strong> Yes, but only at a level permitted by your employer, client, NDA, and applicable policy. Generalize restricted details and avoid uploading materials you are not authorized to retain.</p>
-              <p><strong>What counts as evidence?</strong> Evidence can be a file, approved screenshot, ticket reference, commit, metric, message, launch note, feedback, or a private reference to information that remains in an employer-controlled system.</p>
-              <p><strong>Do I need a metric for every accomplishment?</strong> No. Quantitative evidence is useful when available, but qualitative outcomes can also be meaningful if they are concrete and supportable.</p>
-              <p><strong>Will BragStack invent resume bullets for me?</strong> It should draft from the evidence you recorded. Always review generated content and remove anything that is inaccurate or unsupported.</p>
-              <p><strong>Can I share only one accomplishment?</strong> Yes. Public sharing should be selective; you do not need to expose your whole private career history.</p>
-              <p><strong>What happens if I cancel Pro?</strong> Future renewal should stop according to the billing flow, while paid access generally continues through the current paid period unless otherwise stated. Core account data should remain associated with your account subject to the applicable plan and retention rules.</p>
-              <p><strong>How do I delete my account or request my data?</strong> Contact support using the address below. Identity verification may be required before account-level privacy requests are completed.</p>
-            </section>
+            {!normalizedQuery && (
+              <>
+                <section className="docs-section" id="faq">
+                  <div className="docs-section-title"><CircleHelp size={21} /><div><h2>Quick answers</h2><span>The questions people usually mean when they open documentation.</span></div></div>
+                  <div className="docs-faq-grid">
+                    <article><strong>Is my work public?</strong><p>No. BragStack is private by default. Only proof you deliberately make public should appear on a public surface.</p></article>
+                    <article><strong>Will BragStack invent resume claims?</strong><p>It should build from the evidence you recorded. Always review generated material and remove anything inaccurate or unsupported.</p></article>
+                    <article><strong>Do I need numbers for every accomplishment?</strong><p>No. Use defensible numbers when you have them. Otherwise describe a concrete, observable outcome.</p></article>
+                    <article><strong>Can I use confidential work?</strong><p>Yes, at a safe level allowed by your employer, client, NDA, and policy. Generalize restricted details and never upload material you cannot retain.</p></article>
+                  </div>
+                </section>
 
-            <section className="docs-section" id="contact"><div className="docs-section-title"><FileText size={21} /><h2>Contact & support</h2></div><p>For account, billing, product, documentation, privacy, deletion, or security questions, contact <a href="mailto:Tobias.scott@usebragstack.com">Tobias.scott@usebragstack.com</a>. Include enough context to identify the issue, but do not email passwords, access tokens, API keys, or confidential evidence.</p></section>
+                <section className="docs-section" id="contact">
+                  <div className="docs-section-title"><FileText size={21} /><div><h2>Still stuck?</h2><span>Tell us what you were trying to do, not just the error message.</span></div></div>
+                  <p>For account, billing, product, documentation, privacy, deletion, or security questions, contact <a href="mailto:Tobias.scott@usebragstack.com">Tobias.scott@usebragstack.com</a>. Include enough context to identify the issue, but never email passwords, access tokens, API keys, or confidential evidence.</p>
+                </section>
+              </>
+            )}
           </div>
         </article>
       </div>
