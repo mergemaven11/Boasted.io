@@ -1,4 +1,5 @@
 import { CAREER_FAMILIES, CORE_QUESTIONS, FOLLOW_UPS } from "./interviewKnowledgeBase.js";
+import { rankImpactReceipts, scoreMeaningAlignment } from "./careerIntelligence.js";
 
 const STOP_WORDS = new Set(["a", "an", "and", "are", "as", "at", "be", "for", "from", "how", "i", "in", "is", "it", "me", "my", "of", "on", "or", "that", "the", "this", "to", "was", "we", "were", "what", "when", "with", "you", "your"]);
 const ACTION_WORDS = ["built", "created", "changed", "fixed", "implemented", "led", "owned", "organized", "resolved", "designed", "diagnosed", "improved", "coordinated", "introduced", "negotiated", "trained", "taught", "analyzed", "decided", "prioritized", "communicated"];
@@ -49,15 +50,23 @@ export function inferCareerFamily(roleTitle = "", careerArea = "") {
   return bestFamily;
 }
 
-function receiptQuestion(receipts = [], roleTitle = "") {
-  const receipt = receipts.find((item) => item?.accomplishment || item?.result);
-  if (!receipt) return null;
-  const accomplishment = String(receipt.accomplishment || receipt.result).trim();
+function receiptQuestion(receipts = [], roleTitle = "", jobDescription = "") {
+  const ranked = rankImpactReceipts(receipts, {
+    roleTitle,
+    jobDescription,
+    competency: "career_evidence",
+    question: `What career evidence best supports a ${roleTitle || "target"} role?`,
+  });
+  const best = ranked[0];
+  if (!best) return null;
+  const receipt = best.receipt;
+  const accomplishment = String(receipt.accomplishment || receipt.result || receipt.contribution || "").trim();
   if (!accomplishment) return null;
   return {
     id: `receipt-${receipt.id || "personalized"}`,
     competency: "career_evidence",
     source: "impact-receipt",
+    evidenceScore: best.score,
     text: `Your BragStack includes this accomplishment: “${accomplishment}” Walk me through the situation, what you personally owned, and the result that would matter to someone hiring a ${roleTitle || "candidate"}.`,
   };
 }
@@ -94,7 +103,7 @@ export function buildInterviewPlan({
   const intro = CORE_QUESTIONS.find((question) => question.id === "intro-role");
   if (intro) pool.push({ ...intro, source: "core", text: formatRole(intro.text, role) });
 
-  const personalized = receiptQuestion(receipts, role);
+  const personalized = receiptQuestion(receipts, role, jobDescription);
   if (personalized) pool.push(personalized);
 
   const jdQuestion = jobDescriptionQuestion(jobDescription, role);
@@ -135,6 +144,7 @@ export function buildInterviewPlan({
     experienceLevel,
     interviewType,
     questionCount: questions.length,
+    jobDescription,
     questions,
   };
 }
@@ -149,16 +159,6 @@ function dimension(score, note) {
   return { score, label: labelFor(score), note };
 }
 
-function lexicalRelevance(question, answer) {
-  const questionWords = new Set(tokenize(question));
-  const answerWords = new Set(tokenize(answer));
-  if (!questionWords.size || !answerWords.size) return 0;
-  let matches = 0;
-  for (const word of questionWords) if (answerWords.has(word)) matches += 1;
-  const overlap = matches / Math.min(questionWords.size, 8);
-  return Math.min(100, Math.round(45 + overlap * 55));
-}
-
 function countFillers(answer) {
   const normalized = ` ${normalize(answer)} `;
   return FILLERS.reduce((total, filler) => {
@@ -167,7 +167,13 @@ function countFillers(answer) {
   }, 0);
 }
 
-export function analyzeAnswer(answer = "", { question = "", durationSeconds = 0 } = {}) {
+export function analyzeAnswer(answer = "", {
+  question = "",
+  competency = "",
+  roleTitle = "",
+  jobDescription = "",
+  durationSeconds = 0,
+} = {}) {
   const text = String(answer).trim();
   const words = text ? text.split(/\s+/).filter(Boolean) : [];
   const wordCount = words.length;
@@ -178,7 +184,8 @@ export function analyzeAnswer(answer = "", { question = "", durationSeconds = 0 
   const quantified = /(?:\$\s?\d|\b\d+(?:\.\d+)?\s?(?:%|percent|hours?|days?|weeks?|months?|years?|people|customers?|patients?|students?|tickets?|cases?|minutes?|seconds?|x\b))/i.test(text);
   const specific = wordCount >= 45 && (actionFound || quantified || /\b(because|so that|which meant|for example)\b/i.test(text));
   const fillerCount = countFillers(text);
-  const relevanceScore = wordCount < 10 ? 20 : lexicalRelevance(question, text);
+  const meaning = scoreMeaningAlignment(text, { question, competency, roleTitle, jobDescription });
+  const relevanceScore = wordCount < 10 ? Math.min(meaning.score, 25) : meaning.score;
   const concisionScore = wordCount < 20 ? 35 : wordCount <= 220 ? 90 : wordCount <= 320 ? 70 : 45;
   const structureScore = Math.round(([contextFound, actionFound, resultFound].filter(Boolean).length / 3) * 100);
   const specificityScore = specific ? 90 : wordCount >= 30 ? 60 : 30;
@@ -188,7 +195,14 @@ export function analyzeAnswer(answer = "", { question = "", durationSeconds = 0 
   const wordsPerMinute = durationSeconds > 5 ? Math.round(wordCount / (durationSeconds / 60)) : null;
 
   const dimensions = {
-    relevance: dimension(relevanceScore, relevanceScore >= 55 ? "Your example connects to the question." : "Make the connection to the question more explicit."),
+    relevance: dimension(
+      relevanceScore,
+      relevanceScore >= 80
+        ? `Your evidence strongly supports the ${meaning.competency.replaceAll("_", " ")} competency being tested.`
+        : relevanceScore >= 55
+          ? `Your example partly supports the ${meaning.competency.replaceAll("_", " ")} competency; make the connection more explicit.`
+          : `Show evidence of ${meaning.competency.replaceAll("_", " ")}, not just a generally good story.`,
+    ),
     structure: dimension(structureScore, structureScore >= 80 ? "Your answer contains context, action, and result signals." : "Use a clearer situation → action → result arc."),
     ownership: dimension(ownershipScore, actionFound ? "Your personal contribution is clear." : "Clarify what you personally decided or did."),
     specificity: dimension(specificityScore, specific ? "Concrete details make the story believable." : "Add one or two concrete details."),
@@ -200,7 +214,7 @@ export function analyzeAnswer(answer = "", { question = "", durationSeconds = 0 
   let missingDimension = null;
   if (wordCount < 12 || relevanceScore < 45) {
     missingDimension = "relevance";
-    followUp = FOLLOW_UPS.relevance;
+    followUp = `Give me evidence that specifically demonstrates ${meaning.competency.replaceAll("_", " ")}. What did you do that proves that skill?`;
   } else if (!actionFound) {
     missingDimension = "action";
     followUp = FOLLOW_UPS.action;
@@ -222,10 +236,23 @@ export function analyzeAnswer(answer = "", { question = "", durationSeconds = 0 
     overallScore,
     overallLabel: labelFor(overallScore),
     dimensions,
-    signals: { wordCount, fillerCount, wordsPerMinute, contextFound, actionFound, resultFound, quantified },
+    meaning,
+    signals: {
+      wordCount,
+      fillerCount,
+      wordsPerMinute,
+      contextFound,
+      actionFound,
+      resultFound,
+      quantified,
+      competency: meaning.competency,
+      conceptCoverage: meaning.conceptCoverage,
+      causalEvidence: meaning.causalEvidence,
+      concreteExample: meaning.concreteExample,
+    },
     missingDimension,
     followUp,
-    coaching: followUp || "Strong foundation. On a second attempt, make the story a little tighter while keeping the same evidence and result.",
+    coaching: followUp || `Strong foundation. Keep the evidence tied to ${meaning.competency.replaceAll("_", " ")} and make the story a little tighter on a second attempt.`,
   };
 }
 
@@ -242,11 +269,13 @@ export function summarizeInterview(responses = []) {
   const resultMissing = scored.filter((response) => !response.analysis.signals.resultFound).length;
   const actionMissing = scored.filter((response) => !response.analysis.signals.actionFound).length;
   const quantMissing = scored.filter((response) => response.analysis.signals.resultFound && !response.analysis.signals.quantified).length;
+  const weakMeaning = scored.filter((response) => (response.analysis.meaning?.score || 0) < 55).length;
   const patterns = [];
+  if (weakMeaning) patterns.push(`${weakMeaning} of ${scored.length} answers were structurally usable but did not strongly prove the competency being tested.`);
   if (resultMissing) patterns.push(`${resultMissing} of ${scored.length} answers would be stronger with a clearer result.`);
   if (actionMissing) patterns.push(`${actionMissing} of ${scored.length} answers did not make your personal action clear enough.`);
   if (quantMissing) patterns.push(`${quantMissing} answers had a result but no concrete scale or metric. Add one only when it is truthful and known.`);
-  if (!patterns.length) patterns.push("Your answers consistently showed context, personal action, and outcomes.");
+  if (!patterns.length) patterns.push("Your answers consistently showed relevant evidence, personal action, and outcomes.");
 
   let bestAnswerIndex = 0;
   scored.forEach((response, index) => {
