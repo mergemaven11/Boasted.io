@@ -3,50 +3,24 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from re import sub
 
-CATALOG_VERSION = 1
+from app.interview_catalog_phase2 import PHASE2_CAREER_FAMILIES
+
+CATALOG_VERSION = 2
 
 CAREER_FAMILIES = {
-    "software-platform": [
-        "Software Engineer", "Frontend Engineer", "Backend Engineer", "Full Stack Engineer", "DevOps Engineer",
-        "Site Reliability Engineer", "Platform Engineer", "Cloud Engineer", "QA Engineer", "Security Engineer",
-    ],
-    "data-ai": [
-        "Data Analyst", "Data Engineer", "Data Scientist", "Machine Learning Engineer", "AI Engineer",
-        "Business Intelligence Analyst", "Analytics Engineer", "Database Administrator", "Research Scientist", "MLOps Engineer",
-    ],
-    "it-support": [
-        "Technical Support Engineer", "IT Support Specialist", "Systems Administrator", "Network Engineer", "NOC Engineer",
-        "SOC Analyst", "Help Desk Technician", "Desktop Support Engineer", "Solutions Engineer", "Implementation Engineer",
-    ],
-    "healthcare": [
-        "Registered Nurse", "Licensed Practical Nurse", "Medical Assistant", "Physical Therapist", "Occupational Therapist",
-        "Pharmacist", "Radiologic Technologist", "Respiratory Therapist", "Dental Hygienist", "Healthcare Administrator",
-    ],
-    "business-finance": [
-        "Accountant", "Financial Analyst", "Auditor", "Controller", "Bookkeeper",
-        "Investment Analyst", "Risk Analyst", "Compliance Analyst", "Operations Analyst", "Business Analyst",
-    ],
-    "product-project": [
-        "Product Manager", "Product Owner", "Project Manager", "Program Manager", "Scrum Master",
-        "Technical Program Manager", "Business Operations Manager", "Strategy Manager", "Chief of Staff", "Operations Manager",
-    ],
-    "sales-customer": [
-        "Account Executive", "Sales Development Representative", "Customer Success Manager", "Account Manager", "Sales Engineer",
-        "Customer Support Specialist", "Retail Sales Associate", "Business Development Manager", "Partnerships Manager", "Client Services Manager",
-    ],
-    "marketing-design": [
-        "Marketing Manager", "Content Strategist", "SEO Specialist", "Social Media Manager", "Brand Manager",
-        "Graphic Designer", "UX Designer", "UI Designer", "UX Researcher", "Product Designer",
-    ],
-    "education-public-service": [
-        "Teacher", "School Counselor", "Instructional Designer", "Academic Advisor", "Professor",
-        "Social Worker", "Case Manager", "Nonprofit Program Manager", "Public Policy Analyst", "Government Program Analyst",
-    ],
-    "skilled-trades": [
-        "Electrician", "Plumber", "HVAC Technician", "Automotive Technician", "Welder",
-        "Carpenter", "Machinist", "Industrial Maintenance Technician", "Construction Supervisor", "Field Service Technician",
-    ],
+    "software-platform": ["Software Engineer", "Frontend Engineer", "Backend Engineer", "Full Stack Engineer", "DevOps Engineer", "Site Reliability Engineer", "Platform Engineer", "Cloud Engineer", "QA Engineer", "Security Engineer"],
+    "data-ai": ["Data Analyst", "Data Engineer", "Data Scientist", "Machine Learning Engineer", "AI Engineer", "Business Intelligence Analyst", "Analytics Engineer", "Database Administrator", "Research Scientist", "MLOps Engineer"],
+    "it-support": ["Technical Support Engineer", "IT Support Specialist", "Systems Administrator", "Network Engineer", "NOC Engineer", "SOC Analyst", "Help Desk Technician", "Desktop Support Engineer", "Solutions Engineer", "Implementation Engineer"],
+    "healthcare": ["Registered Nurse", "Licensed Practical Nurse", "Medical Assistant", "Physical Therapist", "Occupational Therapist", "Pharmacist", "Radiologic Technologist", "Respiratory Therapist", "Dental Hygienist", "Healthcare Administrator"],
+    "business-finance": ["Accountant", "Financial Analyst", "Auditor", "Controller", "Bookkeeper", "Investment Analyst", "Risk Analyst", "Compliance Analyst", "Operations Analyst", "Business Analyst"],
+    "product-project": ["Product Manager", "Product Owner", "Project Manager", "Program Manager", "Scrum Master", "Technical Program Manager", "Business Operations Manager", "Strategy Manager", "Chief of Staff", "Operations Manager"],
+    "sales-customer": ["Account Executive", "Sales Development Representative", "Customer Success Manager", "Account Manager", "Sales Engineer", "Customer Support Specialist", "Retail Sales Associate", "Business Development Manager", "Partnerships Manager", "Client Services Manager"],
+    "marketing-design": ["Marketing Manager", "Content Strategist", "SEO Specialist", "Social Media Manager", "Brand Manager", "Graphic Designer", "UX Designer", "UI Designer", "UX Researcher", "Product Designer"],
+    "education-public-service": ["Teacher", "School Counselor", "Instructional Designer", "Academic Advisor", "Professor", "Social Worker", "Case Manager", "Nonprofit Program Manager", "Public Policy Analyst", "Government Program Analyst"],
+    "skilled-trades": ["Electrician", "Plumber", "HVAC Technician", "Automotive Technician", "Welder", "Carpenter", "Machinist", "Industrial Maintenance Technician", "Construction Supervisor", "Field Service Technician"],
 }
+
+CAREER_FAMILIES.update(PHASE2_CAREER_FAMILIES)
 
 FAMILY_SCENARIOS = {
     "software-platform": ["debugged a difficult production problem", "improved reliability or performance", "made a technical tradeoff", "reduced repeated operational work", "worked across teams on a technical dependency", "handled an incident under pressure", "improved developer or user experience", "introduced automation safely"],
@@ -61,9 +35,13 @@ FAMILY_SCENARIOS = {
     "skilled-trades": ["diagnosed a difficult equipment or field problem", "prevented a safety issue", "completed high-quality work under time pressure", "explained a repair or technical decision to a customer", "found the root cause of a recurring failure", "worked around an unexpected constraint safely", "improved a maintenance or installation process", "coordinated with other trades or teams"],
 }
 
+DEFAULT_SCENARIOS = ["solved a difficult problem", "handled a high-pressure situation", "worked with a difficult customer, client, patient, student, or stakeholder", "improved a process or workflow", "caught or prevented an important mistake", "balanced competing priorities", "worked effectively with a team", "took ownership of an outcome"]
+for _family in CAREER_FAMILIES:
+    FAMILY_SCENARIOS.setdefault(_family, DEFAULT_SCENARIOS)
+
 UNIVERSAL_QUESTIONS = [
-    ("motivation", "Why are you interested in working as a {role}, and what makes this role a strong next step for you?"),
-    ("strength", "What is one strength you would bring to a {role} position, and what evidence best demonstrates it?"),
+    ("motivation", "Why are you interested in working as {article} {role}, and what makes this role a strong next step for you?"),
+    ("strength", "What is one strength you would bring to {article} {role} position, and what evidence best demonstrates it?"),
     ("growth", "Tell me about a skill you had to develop to become more effective in your work."),
     ("reflection", "Tell me about a mistake or setback. What did you learn, and what did you change afterward?"),
 ]
@@ -73,51 +51,33 @@ def slugify(value: str) -> str:
     return sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
 
 
+def indefinite_article(role: str) -> str:
+    return "an" if role[:1].lower() in "aeiou" else "a"
+
+
 def _question(question_id: str, text: str, category: str, competencies: list[str], difficulty: str = "standard") -> dict:
-    return {
-        "question_id": question_id,
-        "text": text,
-        "category": category,
-        "competencies": competencies,
-        "difficulty": difficulty,
-        "active": True,
-    }
+    return {"question_id": question_id, "text": text, "category": category, "competencies": competencies, "difficulty": difficulty, "active": True}
 
 
 def build_career_document(role: str, family: str) -> dict:
     scenarios = FAMILY_SCENARIOS[family]
     questions = []
     for index, scenario in enumerate(scenarios, start=1):
-        questions.append(_question(
-            f"behavioral-{index:02d}",
-            f"Tell me about a time you {scenario}. What was the situation, what did you personally do, and what changed as a result?",
-            "behavioral",
-            ["ownership", "specificity", "impact", "communication"],
-            "standard" if index <= 5 else "stretch",
-        ))
+        questions.append(_question(f"behavioral-{index:02d}", f"Tell me about a time you {scenario}. What was the situation, what did you personally do, and what changed as a result?", "behavioral", ["ownership", "specificity", "impact", "communication"], "standard" if index <= 5 else "stretch"))
+    article = indefinite_article(role)
     for index, (category, template) in enumerate(UNIVERSAL_QUESTIONS, start=1):
-        questions.append(_question(
-            f"{category}-{index:02d}",
-            template.format(role=role),
-            category,
-            ["communication", "self-awareness", "role-alignment"],
-        ))
-    return {
-        "schema_version": 1,
-        "catalog_version": CATALOG_VERSION,
-        "slug": slugify(role),
-        "title": role,
-        "family": family,
-        "aliases": [],
-        "active": True,
-        "questions": questions,
-        "question_count": len(questions),
-        "updated_at": datetime.now(timezone.utc),
-    }
+        questions.append(_question(f"{category}-{index:02d}", template.format(role=role, article=article), category, ["communication", "self-awareness", "role-alignment"]))
+    return {"schema_version": 1, "catalog_version": CATALOG_VERSION, "slug": slugify(role), "title": role, "family": family, "aliases": [], "active": True, "questions": questions, "question_count": len(questions), "updated_at": datetime.now(timezone.utc)}
 
 
 def build_catalog() -> list[dict]:
     documents = []
+    seen = set()
     for family, roles in CAREER_FAMILIES.items():
-        documents.extend(build_career_document(role, family) for role in roles)
+        for role in roles:
+            slug = slugify(role)
+            if slug in seen:
+                continue
+            seen.add(slug)
+            documents.append(build_career_document(role, family))
     return documents
