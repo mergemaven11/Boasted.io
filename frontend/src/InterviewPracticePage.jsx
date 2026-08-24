@@ -131,7 +131,7 @@ export default function InterviewPracticePage() {
         };
       }
     } catch {
-      // Unknown careers or temporary API issues fall back to the local $0 engine.
+      // Keep interview practice available if the career catalog is temporarily unavailable.
     }
     setPlan(nextPlan);
     setQuestionIndex(0); setResponses([]); setAnswer(""); setFeedback(null); setFollowUpActive(false); setFollowUpUsed(false);
@@ -222,7 +222,7 @@ export default function InterviewPracticePage() {
 
   if (stage === "setup") return (
     <main className="interview-practice-page">
-      <header className="interview-page-header"><div><span className="interview-pro-badge"><Sparkles size={14} /> BRAGSTACK CAREER INTELLIGENCE™</span><h1>Practice Interview</h1><p>Career-aware practice that evaluates the meaning of your evidence, not just answer shape. No paid AI call is required to run an interview.</p></div><div className="zero-cost-card"><strong>$0 inference</strong><span>Career reasoning + evidence intelligence run in the app</span></div></header>
+      <header className="interview-page-header"><div><span className="interview-pro-badge"><Sparkles size={14} /> BRAGSTACK CAREER INTELLIGENCE™</span><h1>Practice Interview</h1><p>Career-aware practice that understands what your experience demonstrates, then coaches you on relevance, ownership, impact, and clarity.</p></div><div className="zero-cost-card"><strong>BragStack Intelligence</strong><span>Evidence-aware coaching personalized to your role and career proof</span></div></header>
       <section className="interview-setup-grid">
         <form className="interview-setup-card" onSubmit={startInterview}>
           <div className="section-kicker">BUILD YOUR INTERVIEW</div>
@@ -237,7 +237,7 @@ export default function InterviewPracticePage() {
           <label className="receipt-personalization"><input type="checkbox" name="useReceipts" checked={setup.useReceipts} onChange={updateSetup} /><span><strong>Personalize with my career proof</strong><small>{receipts.length ? `${receipts.length} Impact Receipt${receipts.length === 1 ? "" : "s"} available` : "No Impact Receipts loaded yet — the interview still works for any career."}</small></span></label>
           <button className="start-interview-button" type="submit">Start practice interview <ChevronRight size={18} /></button>
         </form>
-        <aside className="interview-preview-card"><div className="preview-interviewer-window"><div className="interviewer-avatar">BS</div><div><span>BragStack Interviewer</span><strong>Ready when you are</strong></div></div><div className="preview-question-card"><span>COMPETENCY-AWARE FOLLOW-UP COACHING</span><p>“What did you personally do that proves the skill being tested?”</p></div><div className="preview-capabilities"><div><CheckCircle2 size={17} /><span>Career + competency reasoning</span></div><div><CheckCircle2 size={17} /><span>Evidence relevance analysis</span></div><div><CheckCircle2 size={17} /><span>Situation → action → result analysis</span></div><div><CheckCircle2 size={17} /><span>Impact Receipt evidence ranking</span></div><div><CheckCircle2 size={17} /><span>Camera + voice where supported</span></div><div><CheckCircle2 size={17} /><span>Final strengths + improvement report</span></div></div><div className="local-capability-row"><span>{capabilities.webGpu ? "WebGPU detected · local-model expansion ready" : "Core career intelligence ready"}</span><small>Paid cloud AI required: no</small></div></aside>
+        <aside className="interview-preview-card"><div className="preview-interviewer-window"><div className="interviewer-avatar">BS</div><div><span>BragStack Interviewer</span><strong>Ready when you are</strong></div></div><div className="preview-question-card"><span>COMPETENCY-AWARE FOLLOW-UP COACHING</span><p>“What did you personally do that proves the skill being tested?”</p></div><div className="preview-capabilities"><div><CheckCircle2 size={17} /><span>Role-aware question selection</span></div><div><CheckCircle2 size={17} /><span>Evidence-to-competency matching</span></div><div><CheckCircle2 size={17} /><span>Story structure coaching</span></div><div><CheckCircle2 size={17} /><span>Career proof personalization</span></div><div><CheckCircle2 size={17} /><span>Camera + voice practice</span></div><div><CheckCircle2 size={17} /><span>Strengths + next-step report</span></div></div><div className="local-capability-row"><span>Adaptive coaching ready</span><small>Built around your evidence, role, and interview goals</small></div></aside>
       </section>
     </main>
   );
