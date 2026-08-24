@@ -76,7 +76,8 @@ export function scoreMeaningAlignment(answer = "", { question = "", competency =
   const resolvedCompetency = inferQuestionCompetency(question, competency);
   const groups = COMPETENCY_CONCEPTS[resolvedCompetency] || COMPETENCY_CONCEPTS.role_alignment;
   const groupHits = groups.map((group) => group.some((phrase) => textIncludes(answer, phrase)));
-  const conceptCoverage = Math.round((groupHits.filter(Boolean).length / groups.length) * 100);
+  const matchedConceptGroups = groupHits.filter(Boolean).length;
+  const conceptCoverage = Math.round((matchedConceptGroups / groups.length) * 100);
   const questionOverlap = overlapScore(question, answer);
   const roleOverlap = overlapScore(`${roleTitle} ${jobDescription}`, answer);
   const causalEvidence = /\b(because|so that|which meant|therefore|as a result|resulted in|led to)\b/i.test(answer);
@@ -87,13 +88,14 @@ export function scoreMeaningAlignment(answer = "", { question = "", competency =
   if (causalEvidence) score += 10;
   if (concreteExample) score += 8;
   if (genericOnly) score -= 18;
+  if (matchedConceptGroups < 2 && !["role_alignment", "career_evidence"].includes(resolvedCompetency)) score = Math.min(score, 49);
   score = Math.max(0, Math.min(100, score));
 
   return {
     score,
     competency: resolvedCompetency,
     conceptCoverage,
-    matchedConceptGroups: groupHits.filter(Boolean).length,
+    matchedConceptGroups,
     totalConceptGroups: groups.length,
     questionOverlap,
     roleOverlap,
