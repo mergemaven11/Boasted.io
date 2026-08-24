@@ -17,7 +17,17 @@ router = APIRouter(prefix="/resume-builder", tags=["resume-builder"])
 class ResumeBuildRequest(BaseModel):
     target_role: str = Field(min_length=2, max_length=120)
     job_description: str = Field(min_length=20, max_length=20000)
-    selected_receipt_ids: list[str] = []
+    selected_receipt_ids: list[str] = Field(default_factory=list, max_length=100)
+
+
+class ResumeBulletPayload(BaseModel):
+    text: str = Field(min_length=1, max_length=500)
+    source_receipt_id: str = Field(min_length=1, max_length=64)
+    source_title: str = Field(default="Impact Receipt", max_length=240)
+    matched_terms: list[str] = Field(default_factory=list, max_length=50)
+    evidence_count: int = Field(default=0, ge=0, le=1000)
+    has_metrics: bool = False
+    edited: bool = False
 
 
 class ResumeSaveRequest(BaseModel):
@@ -25,9 +35,8 @@ class ResumeSaveRequest(BaseModel):
     target_role: str = Field(min_length=2, max_length=120)
     job_description: str = Field(min_length=20, max_length=20000)
     summary: str = Field(default="", max_length=1200)
-    bullets: list[dict] = []
-    skills: list[str] = []
-    readiness: dict = {}
+    bullets: list[ResumeBulletPayload] = Field(default_factory=list, max_length=20)
+    skills: list[str] = Field(default_factory=list, max_length=40)
 
 
 def _owned_receipts(user_id: str, selected_ids: list[str]) -> list[dict]:
@@ -38,6 +47,28 @@ def _owned_receipts(user_id: str, selected_ids: list[str]) -> list[dict]:
             return []
         query["_id"] = {"$in": valid_ids}
     return list(impact_receipts_collection.find(query).sort("created_at", -1).limit(100))
+
+
+def _validate_saved_bullet_sources(user_id: str, bullets: list[ResumeBulletPayload]) -> None:
+    source_ids = {bullet.source_receipt_id for bullet in bullets if ObjectId.is_valid(bullet.source_receipt_id)}
+    if len(source_ids) != len({bullet.source_receipt_id for bullet in bullets}):
+        raise HTTPException(status_code=400, detail="Every saved resume bullet must reference a valid Impact Receipt")
+    if not source_ids:
+        return
+    owned_count = impact_receipts_collection.count_documents(
+        {"_id": {"$in": [ObjectId(value) for value in source_ids]}, "user_id": user_id}
+    )
+    if owned_count != len(source_ids):
+        raise HTTPException(status_code=400, detail="Resume bullet source does not belong to this account")
+
+
+def _server_readiness(bullets: list[ResumeBulletPayload]) -> dict:
+    edited_count = sum(1 for bullet in bullets if bullet.edited)
+    return {
+        "source_linked_draft": edited_count == 0,
+        "edited_bullets_needing_review": edited_count,
+        "verification_status": "source-linked" if edited_count == 0 else "needs-review",
+    }
 
 
 @router.post("/build")
@@ -57,17 +88,20 @@ def build_resume(payload: ResumeBuildRequest, current_user: dict = Depends(get_c
 @router.post("/resumes", status_code=status.HTTP_201_CREATED)
 def save_resume(payload: ResumeSaveRequest, current_user: dict = Depends(get_current_user)):
     require_feature(current_user, "resume_builder")
+    user_id = str(current_user["_id"])
+    _validate_saved_bullet_sources(user_id, payload.bullets)
     now = datetime.now(timezone.utc)
+    bullets = [bullet.model_dump() for bullet in payload.bullets]
     document = {
-        "user_id": str(current_user["_id"]),
+        "user_id": user_id,
         "title": payload.title.strip(),
         "target_role": payload.target_role.strip(),
         "job_description": payload.job_description,
         "summary": payload.summary,
-        "bullets": payload.bullets,
-        "skills": payload.skills,
-        "readiness": payload.readiness,
-        "schema_version": 1,
+        "bullets": bullets,
+        "skills": [skill.strip()[:120] for skill in payload.skills if skill.strip()],
+        "readiness": _server_readiness(payload.bullets),
+        "schema_version": 2,
         "created_at": now,
         "updated_at": now,
     }
@@ -102,7 +136,9 @@ def delete_resume(resume_id: str, current_user: dict = Depends(get_current_user)
     require_feature(current_user, "resume_builder")
     if not ObjectId.is_valid(resume_id):
         raise HTTPException(status_code=400, detail="Invalid resume ID")
-    result = resume_documents_collection.delete_one({"_id": ObjectId(resume_id), "user_id": str(current_user["_id"])})
+    result = resume_documents_collection.delete_one(
+        {"_id": ObjectId(resume_id), "user_id": str(current_user["_id"])}
+    )
     if not result.deleted_count:
         raise HTTPException(status_code=404, detail="Resume not found")
     return None
