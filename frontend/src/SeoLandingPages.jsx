@@ -22,12 +22,12 @@ const ICONS = {
 };
 
 const SITELINKS = [
-  ["How BragStack Works", "/how-it-works"],
+  ["Resume Builder", "/resume-accomplishments"],
+  ["Practice Interviewer", "/interview-preparation"],
   ["Impact Receipts", "/impact-receipts"],
-  ["Resume Accomplishments", "/resume-accomplishments"],
-  ["Performance Reviews", "/performance-reviews"],
-  ["Career Portfolio", "/career-portfolio"],
   ["Pricing", "/pricing"],
+  ["Docs", "/docs"],
+  ["How BragStack Works", "/how-it-works"],
 ];
 
 function setMetaContent(selector, value) {
@@ -60,9 +60,10 @@ function SeoLandingPage({ content }) {
       <header className="landing-nav">
         <a className="landing-logo" href="/">BragStack</a>
         <nav className="landing-nav-links" aria-label="BragStack">
-          <a href="/how-it-works">How it works</a>
-          <a href="/impact-receipts">Impact Receipts</a>
+          <a href="/resume-accomplishments">Resume Builder</a>
+          <a href="/interview-preparation">Practice Interviewer</a>
           <a href="/pricing">Pricing</a>
+          <a href="/docs">Docs</a>
         </nav>
         <div className="landing-nav-actions">
           <a className="landing-login-link" href="/login">Log in</a>
