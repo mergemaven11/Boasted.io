@@ -212,7 +212,7 @@ export function analyzeAnswer(answer = "", {
 
   let followUp = null;
   let missingDimension = null;
-  if (wordCount < 12 || relevanceScore < 45) {
+  if (wordCount < 12 || relevanceScore < 55) {
     missingDimension = "relevance";
     followUp = `Give me evidence that specifically demonstrates ${meaning.competency.replaceAll("_", " ")}. What did you do that proves that skill?`;
   } else if (!actionFound) {
