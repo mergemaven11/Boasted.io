@@ -8,6 +8,7 @@ import DocsPage from "./DocsPage.jsx";
 import ImpactReceiptsPage from "./ImpactReceiptsPage.jsx";
 import InterviewPracticePage from "./InterviewPracticePage.jsx";
 import LandingInterviewShowcase from "./LandingInterviewShowcase.jsx";
+import LandingResumeShowcase from "./LandingResumeShowcase.jsx";
 import ReceiptVerificationCenter from "./ReceiptVerificationCenter.jsx";
 import ReceiptVerificationPage from "./ReceiptVerificationPage.jsx";
 import ResumeBuilderPage from "./ResumeBuilderPage.jsx";
@@ -69,9 +70,7 @@ function RootContent() {
         if (active) setPlanLoaded(true);
       }
     })();
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [isAuthenticatedApp]);
 
   useEffect(() => {
@@ -100,7 +99,7 @@ function RootContent() {
   if (isDocsPage) return <><DocsPage /><PublicFooter /></>;
   if (isNdaPage) return <><NDAGuidancePage /><PublicFooter /></>;
   if (seoLandingContent) return <SeoLandingPage content={seoLandingContent} />;
-  if (path === "/") return <><App /><LandingInterviewShowcase /></>;
+  if (path === "/") return <><App /><LandingInterviewShowcase /><LandingResumeShowcase /></>;
 
   let Content = App;
   let contentProps = {};
@@ -124,13 +123,7 @@ function RootContent() {
   if (!isAuthenticatedApp) return <Content {...contentProps} />;
   if (!planLoaded) return <div className="app-shell"><div className="authenticated-content" /></div>;
 
-  return (
-    <div className="app-shell">
-      <AppSidebar />
-      <div className="authenticated-content"><Content {...contentProps} /></div>
-      <ProductTour user={user} />
-    </div>
-  );
+  return <div className="app-shell"><AppSidebar /><div className="authenticated-content"><Content {...contentProps} /></div><ProductTour user={user} /></div>;
 }
 
 export default RootContent;
