@@ -93,6 +93,10 @@ app.include_router(resume_builder_router)
 @app.get("/")
 def root(): return {"message":"BragStack API is running"}
 
+@app.head("/", include_in_schema=False)
+def root_head():
+    return None
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
