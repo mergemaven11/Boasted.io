@@ -355,6 +355,8 @@ export default function InterviewPracticePage() {
 
   useEffect(() => {
     if (stage !== "interview" || !feedback) return undefined;
+    // Feedback is created synchronously by evaluateAnswer; this keeps the visual avatar in review mode while the auto-advance timer runs.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInterviewPhase("reviewing");
     const hasFollowUp = Boolean(feedback.followUp && !followUpUsed);
     const id = window.setTimeout(() => {
