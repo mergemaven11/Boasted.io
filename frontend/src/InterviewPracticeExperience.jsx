@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { LogOut, X } from "lucide-react";
 import AnimatedInterviewerAvatar from "./AnimatedInterviewerAvatar.jsx";
 import InterviewPracticePage from "./InterviewPracticePage.jsx";
-import { useInterviewAutopilot } from "./interviewAutopilot.js";
+import { useInterviewSequence } from "./interviewSequence.js";
 import "./AnimatedInterviewerAvatar.css";
 import "./InterviewPracticeZoomLayout.css";
 import "./InterviewExperienceV3.css";
@@ -15,57 +15,6 @@ function inferAvatarState() {
   if (document.querySelector(".follow-up-card")) return "encouraging";
   if (document.querySelector(".answer-feedback-panel")) return "thinking";
   return "idle";
-}
-
-function pickSofterVoice() {
-  const voices = window.speechSynthesis?.getVoices?.() || [];
-  const preferred = ["Ava (Premium)", "Samantha (Enhanced)", "Ava", "Samantha", "Serena", "Tessa", "Moira", "Microsoft Aria Online", "Microsoft Aria", "Google US English"];
-  return preferred.map((name) => voices.find((voice) => voice.name.includes(name) && voice.lang?.startsWith("en"))).find(Boolean)
-    || voices.find((voice) => voice.lang?.startsWith("en-US") && /premium|enhanced|natural|neural/i.test(voice.name))
-    || voices.find((voice) => voice.lang?.startsWith("en-US"))
-    || voices.find((voice) => voice.lang?.startsWith("en"))
-    || null;
-}
-
-function useGreetingAndVoicePolish() {
-  useEffect(() => {
-    const synth = window.speechSynthesis;
-    if (!synth?.speak) return undefined;
-    const originalSpeak = synth.speak.bind(synth);
-    let greeted = false;
-
-    const tune = (utterance) => {
-      const voice = pickSofterVoice();
-      if (voice) utterance.voice = voice;
-      utterance.rate = 0.84;
-      utterance.pitch = 1;
-      utterance.volume = 0.88;
-      return utterance;
-    };
-
-    const wrappedSpeak = (utterance) => {
-      const inInterview = Boolean(document.querySelector(".interview-room-page"));
-      if (inInterview && !greeted) {
-        greeted = true;
-        const greetingText = "Hi, I’m Aisha Jordan. Welcome to your BragStack practice interview. Here’s how this works. I’ll ask one question at a time, then your response timer will start after I finish speaking. Answer naturally, just like you would in a real interview. I’ll listen to your response, look for your situation, your specific actions, and the result, and I may ask a short follow-up if an important detail is missing. When your time ends, you’ll hear a soft chime and I’ll let you know. At the end, you’ll get a score, strengths, and specific ways to improve. Take your time, be yourself, and don’t worry about being perfect. Ready? Let’s begin.";
-        const greeting = tune(new SpeechSynthesisUtterance(greetingText));
-        greeting.onend = () => window.setTimeout(() => originalSpeak(tune(utterance)), 450);
-        greeting.onerror = () => originalSpeak(tune(utterance));
-        originalSpeak(greeting);
-        return;
-      }
-      originalSpeak(tune(utterance));
-    };
-
-    try {
-      synth.speak = wrappedSpeak;
-    } catch {
-      return undefined;
-    }
-    return () => {
-      try { synth.speak = originalSpeak; } catch { /* browser owns this method */ }
-    };
-  }, []);
 }
 
 function AvatarPortal() {
@@ -207,7 +156,6 @@ function InterviewExitGuard() {
 }
 
 export default function InterviewPracticeExperience() {
-  useGreetingAndVoicePolish();
-  useInterviewAutopilot();
+  useInterviewSequence();
   return <><InterviewPracticePage /><AvatarPortal /><InterviewSidebarPortal /><InterviewExitGuard /></>;
 }
