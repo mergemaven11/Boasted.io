@@ -42,10 +42,16 @@ function AuthPage({ mode = "login", onLogin }) {
     const hash = new URLSearchParams(window.location.hash.slice(1));
     const oauthToken = hash.get("oauth_token");
     const verifyToken = hash.get("verify_token");
+    const resetTokenFromHash = hash.get("reset_token");
 
     if (oauthToken) {
       localStorage.setItem("bragstack_token", oauthToken);
       history.replaceState(null, "", "/login");
+      window.location.replace("/app");
+      return;
+    }
+
+    if (!isRegister && !verifyToken && !resetTokenFromHash && localStorage.getItem("bragstack_token")) {
       window.location.replace("/app");
       return;
     }
@@ -71,10 +77,10 @@ function AuthPage({ mode = "login", onLogin }) {
       return;
     }
 
-    if (hash.get("reset_token")) {
+    if (resetTokenFromHash) {
       history.replaceState(null, "", "/login");
     }
-  }, [apiBaseUrl]);
+  }, [apiBaseUrl, isRegister]);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -139,16 +145,9 @@ function AuthPage({ mode = "login", onLogin }) {
     }
   }
 
-  async function startOAuth(provider) {
+  function startOAuth(provider) {
     setConnectingProvider(provider);
     setErrorMessage("");
-
-    try {
-      await fetch(`${apiBaseUrl}/`, { method: "GET", mode: "cors", cache: "no-store" });
-    } catch (error) {
-      console.warn("API warm-up request did not complete before OAuth navigation", error);
-    }
-
     window.location.assign(`${apiBaseUrl}/auth/${provider}/login`);
   }
 
