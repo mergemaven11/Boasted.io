@@ -13,11 +13,6 @@ export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aish
   return (
     <div className={`animated-interviewer-avatar photo-interviewer state-${safeState} ${reducedMotion ? "reduced-motion" : ""}`} role="img" aria-label={`${name}, virtual interviewer, ${STATE_COPY[safeState]}`}>
       <img className="aisha-interviewer-photo" src={aishaJordanInterviewer} alt="Aisha Jordan, BragStack virtual interviewer" />
-      <div className="aisha-face-motion" aria-hidden="true">
-        <span className="aisha-eye aisha-eye-left" />
-        <span className="aisha-eye aisha-eye-right" />
-        <span className="aisha-mouth-motion" />
-      </div>
       <div className="aisha-photo-vignette" />
       <div className="aisha-speaking-glow" aria-hidden="true" />
       <div className="avatar-state-pill"><span className="avatar-state-dot" /><strong>{STATE_COPY[safeState]}</strong></div>
