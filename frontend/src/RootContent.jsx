@@ -6,7 +6,7 @@ import AppearanceSettingsPage from "./AppearanceSettingsPage.jsx";
 import DashboardPage from "./DashboardPage.jsx";
 import DocsPage from "./DocsPage.jsx";
 import ImpactReceiptsPage from "./ImpactReceiptsPage.jsx";
-import InterviewPracticePage from "./InterviewPracticePage.jsx";
+import InterviewPracticeExperience from "./InterviewPracticeExperience.jsx";
 import LandingInterviewShowcase from "./LandingInterviewShowcase.jsx";
 import LandingResumeShowcase from "./LandingResumeShowcase.jsx";
 import ReceiptVerificationCenter from "./ReceiptVerificationCenter.jsx";
@@ -116,7 +116,7 @@ function RootContent() {
     Content = user?.entitlements?.advanced_reports ? ProCareerPage : ProRequired;
     contentProps = user?.entitlements?.advanced_reports ? {} : { feature: "Career analytics and career packets" };
   } else if (path === "/app/interview-practice" && planLoaded) {
-    Content = user?.entitlements?.interview_practice ? InterviewPracticePage : ProRequired;
+    Content = user?.entitlements?.interview_practice ? InterviewPracticeExperience : ProRequired;
     contentProps = user?.entitlements?.interview_practice ? {} : { feature: "Practice Interviewer" };
   }
 
