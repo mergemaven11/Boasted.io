@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { LogOut, X } from "lucide-react";
 import AnimatedInterviewerAvatar from "./AnimatedInterviewerAvatar.jsx";
 import InterviewPracticePage from "./InterviewPracticePage.jsx";
+import { useInterviewSequence } from "./interviewSequence.js";
 import "./AnimatedInterviewerAvatar.css";
 import "./InterviewPracticeZoomLayout.css";
 import "./InterviewExperienceV3.css";
@@ -155,5 +156,6 @@ function InterviewExitGuard() {
 }
 
 export default function InterviewPracticeExperience() {
+  useInterviewSequence();
   return <><InterviewPracticePage /><AvatarPortal /><InterviewSidebarPortal /><InterviewExitGuard /></>;
 }
