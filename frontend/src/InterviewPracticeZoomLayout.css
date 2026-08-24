@@ -1,0 +1,35 @@
+.candidate-video-tile{
+  left:18px!important;
+  right:auto!important;
+  top:18px!important;
+  bottom:auto!important;
+  width:min(31%,168px)!important;
+  z-index:6;
+  border:2px solid rgba(255,255,255,.28)!important;
+  box-shadow:0 14px 34px rgba(0,0,0,.48)!important;
+}
+
+.animated-avatar-caption{
+  left:auto!important;
+  right:18px!important;
+  top:18px!important;
+}
+
+.camera-error{
+  top:auto!important;
+  bottom:64px!important;
+  z-index:7;
+}
+
+@media(max-width:620px){
+  .candidate-video-tile{
+    left:12px!important;
+    top:12px!important;
+    width:38%!important;
+    max-width:142px;
+  }
+  .animated-avatar-caption{
+    right:12px!important;
+    top:12px!important;
+  }
+}
