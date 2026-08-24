@@ -7,27 +7,80 @@ import "./InterviewPracticeZoomLayout.css";
 import "./InterviewExperienceV3.css";
 import "./InterviewResponsiveReference.css";
 
+function getInterviewerTitle(roleTitle = "", careerArea = "") {
+  const value = ` ${roleTitle} ${careerArea} `.toLowerCase();
+  const has = (...terms) => terms.some((term) => value.includes(term));
+
+  if (has("nurse", "nursing", "registered nurse", "nurse practitioner", " lpn ", " rn ")) return "Senior Nursing Recruiter";
+  if (has("physician", "doctor", "medical", "clinical", "healthcare", "health care", "pharmacy", "therapist", "radiology", "allied health")) return "Senior Healthcare Recruiter";
+  if (has("software", "developer", "engineer", "engineering", "devops", "platform", "cloud", "sre", "site reliability", "cyber", "security", "data", "database", "network", "systems", "technical", "information technology", "support engineer")) return "Senior Technical Recruiter";
+  if (has("finance", "financial", "accounting", "accountant", "banking", "investment", "audit")) return "Senior Finance Recruiter";
+  if (has("product manager", "product management", "product owner", "product design")) return "Senior Product Recruiter";
+  if (has("project manager", "program manager", "program management", "pmo")) return "Senior Program Recruiter";
+  if (has("marketing", "brand", "content strategist", "seo", "communications")) return "Senior Marketing Recruiter";
+  if (has("sales", "account executive", "business development", "customer success")) return "Senior Sales Recruiter";
+  if (has("legal", "attorney", "lawyer", "paralegal", "compliance")) return "Senior Legal Recruiter";
+  if (has("teacher", "education", "educator", "professor", "school", "instructional")) return "Senior Education Recruiter";
+  if (has("operations", "supply chain", "logistics", "warehouse", "procurement")) return "Senior Operations Recruiter";
+  if (has("electrician", "plumber", "mechanic", "welder", "construction", "hvac", "technician")) return "Senior Skilled Trades Recruiter";
+  if (has("human resources", " hr ", "recruiter", "talent", "people operations")) return "Senior People & Talent Recruiter";
+  return "Senior Career Recruiter";
+}
+
+function parseProgress(progressText = "") {
+  const match = String(progressText).match(/Question\s+(\d+)\s+of\s+(\d+)/i);
+  if (!match) return { current: 1, total: 1, percent: 0 };
+  const current = Math.max(1, Number(match[1]) || 1);
+  const total = Math.max(current, Number(match[2]) || current);
+  return { current, total, percent: Math.min(100, Math.round((current / total) * 100)) };
+}
+
 function InterviewSidebarPortal() {
   const [host, setHost] = useState(null);
-  const [snapshot, setSnapshot] = useState({ role: "Target role", progress: "Question 1", timer: "", feedback: [] });
+  const [snapshot, setSnapshot] = useState({
+    role: "Target role",
+    interviewerTitle: "Senior Career Recruiter",
+    progress: "Question 1 of 1",
+    progressPercent: 0,
+    timer: "",
+    feedback: [],
+  });
 
   useEffect(() => {
     const sync = () => {
       const nextHost = document.querySelector(".interview-room-grid");
       setHost((current) => current === nextHost ? current : nextHost);
-      const role = document.querySelector(".interview-room-header span")?.textContent?.trim() || "Target role";
-      const progress = document.querySelector(".question-progress span")?.textContent?.trim() || "Question 1";
+
+      const setupRole = document.querySelector('input[name="roleTitle"]')?.value?.trim() || "";
+      const setupCareerArea = document.querySelector('input[name="careerArea"]')?.value?.trim() || "";
+      const role = document.querySelector(".interview-room-header span")?.textContent?.trim() || setupRole || "Target role";
+      const interviewerTitle = getInterviewerTitle(role === "Target role" ? setupRole : role, setupCareerArea);
+      const progress = document.querySelector(".question-progress span")?.textContent?.trim() || "Question 1 of 1";
+      const progressInfo = parseProgress(progress);
       const timer = document.querySelector(".response-timer")?.textContent?.trim() || "";
       const feedback = [...document.querySelectorAll(".feedback-dimensions article")].slice(0, 4).map((node) => ({
         name: node.querySelector("strong")?.textContent?.trim() || "Coaching",
         score: node.querySelector("span")?.textContent?.trim() || "Live",
       }));
-      setSnapshot({ role, progress, timer, feedback });
+
+      document.querySelectorAll(".animated-avatar-caption span, .preview-interviewer-window strong").forEach((node) => {
+        if (node.textContent !== interviewerTitle) node.textContent = interviewerTitle;
+      });
+
+      setSnapshot({
+        role,
+        interviewerTitle,
+        progress,
+        progressPercent: progressInfo.percent,
+        timer,
+        feedback,
+      });
     };
+
     sync();
     const observer = new MutationObserver(sync);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-    const interval = window.setInterval(sync, 500);
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["value"] });
+    const interval = window.setInterval(sync, 300);
     return () => { observer.disconnect(); window.clearInterval(interval); };
   }, []);
 
@@ -35,9 +88,9 @@ function InterviewSidebarPortal() {
   return createPortal(
     <aside className="interview-right-sidebar" aria-label="Interview context and coaching">
       <section className="interview-side-card"><div className="interview-side-heading"><strong>Interview Context</strong><span>Live</span></div><small>Target Role</small><b>{snapshot.role}</b><small>Response Time</small><b>{snapshot.timer || "Starts after Aisha finishes speaking"}</b></section>
-      <section className="interview-side-card interviewer-profile-card"><div className="interview-side-heading"><strong>Interviewer</strong><span>●</span></div><b>Aisha Jordan</b><small>Senior Technical Recruiter</small><p>“I’m looking for clear examples, your personal contribution, and the result.”</p></section>
+      <section className="interview-side-card interviewer-profile-card"><div className="interview-side-heading"><strong>Interviewer</strong><span>●</span></div><b>Aisha Jordan</b><small>{snapshot.interviewerTitle}</small><p>“I’m looking for clear examples, your personal contribution, and the result.”</p></section>
       <section className="interview-side-card"><div className="interview-side-heading"><strong>Real-time Coaching</strong><span className="live-dot">● Live</span></div>{snapshot.feedback.length ? snapshot.feedback.map((item) => <div className="side-coaching-row" key={item.name}><span>{item.name}</span><b>{item.score}</b></div>) : <><div className="side-coaching-row"><span>Structure (STAR)</span><b>Listening</b></div><div className="side-coaching-row"><span>Specificity</span><b>Listening</b></div><div className="side-coaching-row"><span>Impact</span><b>Listening</b></div><div className="side-coaching-row"><span>Confidence</span><b>Listening</b></div></>}</section>
-      <section className="interview-side-card"><div className="interview-side-heading"><strong>Session Progress</strong></div><b>{snapshot.progress}</b><div className="sidebar-progress-track"><i /></div></section>
+      <section className="interview-side-card"><div className="interview-side-heading"><strong>Session Progress</strong><span>{snapshot.progressPercent}%</span></div><b>{snapshot.progress}</b><div className="sidebar-progress-track"><i style={{ width: `${snapshot.progressPercent}%` }} /></div></section>
     </aside>,
     host,
   );
@@ -112,83 +165,6 @@ function InterviewExitGuard() {
   </>;
 }
 
-function AishaAutostartBridge() {
-  const introPacingRef = useRef(false);
-  const lastPrimeRef = useRef(0);
-
-  useEffect(() => {
-    const nativeSetTimeout = window.setTimeout.bind(window);
-    const existingSetTimeout = window.setTimeout;
-
-    const patchedSetTimeout = (handler, delay, ...args) => {
-      const requestedDelay = Number(delay);
-      const adjustedDelay = introPacingRef.current && requestedDelay === 5000 ? 2000 : delay;
-      return nativeSetTimeout(handler, adjustedDelay, ...args);
-    };
-
-    window.setTimeout = patchedSetTimeout;
-
-    const primeBrowserSpeech = () => {
-      const now = Date.now();
-      if (now - lastPrimeRef.current < 600) return;
-      lastPrimeRef.current = now;
-      introPacingRef.current = true;
-
-      const synth = window.speechSynthesis;
-      if (synth?.speak) {
-        try {
-          const unlock = new SpeechSynthesisUtterance(" ");
-          unlock.volume = 0;
-          unlock.rate = 10;
-          unlock.pitch = 1;
-          synth.speak(unlock);
-          synth.resume?.();
-        } catch {
-          // A later automatic retry still gets a chance if this browser ignores the primer.
-        }
-      }
-
-      try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (AudioContext) {
-          const context = new AudioContext();
-          void context.resume?.();
-          nativeSetTimeout(() => context.close?.(), 650);
-        }
-      } catch {
-        // Audio priming is best-effort and must not block the interview.
-      }
-
-      nativeSetTimeout(() => { introPacingRef.current = false; }, 45000);
-    };
-
-    const handleStartGesture = (event) => {
-      const target = event.target;
-      const startButton = target?.closest?.(".interview-setup-card .start-interview-button");
-      if (startButton) primeBrowserSpeech();
-    };
-
-    const observer = new MutationObserver(() => {
-      if (document.querySelector(".dictation-button.active")) introPacingRef.current = false;
-    });
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
-
-    document.addEventListener("pointerdown", handleStartGesture, true);
-    document.addEventListener("touchstart", handleStartGesture, true);
-    document.addEventListener("click", handleStartGesture, true);
-
-    return () => {
-      document.removeEventListener("pointerdown", handleStartGesture, true);
-      document.removeEventListener("touchstart", handleStartGesture, true);
-      document.removeEventListener("click", handleStartGesture, true);
-      observer.disconnect();
-      if (window.setTimeout === patchedSetTimeout) window.setTimeout = existingSetTimeout;
-    };
-  }, []);
-
-  return null;
-}
-
 export default function InterviewPracticeExperience() {
-  return <><AishaAutostartBridge /><InterviewPracticePage /><InterviewSidebarPortal /><InterviewExitGuard /></>;
+  return <><InterviewPracticePage /><InterviewSidebarPortal /><InterviewExitGuard /></>;
 }

@@ -17,6 +17,7 @@ const INTRO_SEGMENTS = [
   "Take your time and be yourself. Ready? Let’s begin.",
 ];
 const INTRO_PAUSE_MS = 2000;
+const CATALOG_TIMEOUT_MS = 5500;
 
 let cachedSoftVoice = null;
 
@@ -30,6 +31,77 @@ function saveHistory(session) {
     localStorage.setItem(HISTORY_KEY, JSON.stringify([session, ...current].slice(0, 8)));
   } catch {
     // Storage should never block interview practice.
+  }
+}
+
+function recentQuestionIds(roleTitle) {
+  try {
+    const normalized = roleTitle.trim().toLowerCase();
+    const current = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+    return current
+      .filter((session) => String(session?.roleTitle || "").trim().toLowerCase() === normalized)
+      .flatMap((session) => Array.isArray(session?.questionIds) ? session.questionIds : [])
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function slugifyRole(value = "") {
+  return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+function interviewApiBase() {
+  if (window.location.hostname.endsWith(".app.github.dev")) return "/api";
+  return import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8000";
+}
+
+async function getRotatedCatalogQuestions(roleTitle, count, excludeIds = [], signal) {
+  const slug = slugifyRole(roleTitle);
+  if (!slug) throw new Error("Missing role slug");
+  const params = new URLSearchParams({ count: String(count), seed: `${Date.now()}` });
+  if (excludeIds.length) params.set("exclude", [...new Set(excludeIds)].join(","));
+  const token = localStorage.getItem("bragstack_token");
+  const response = await fetch(`${interviewApiBase()}/interview-catalog/careers/${encodeURIComponent(slug)}/questions?${params.toString()}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    signal,
+  });
+  if (!response.ok) throw new Error(`Interview catalog returned ${response.status}`);
+  return response.json();
+}
+
+async function enrichInterviewPlanWithCatalog(fallbackPlan, setup) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), CATALOG_TIMEOUT_MS);
+  try {
+    const desiredCount = Math.max(3, Math.min(15, Number(setup.questionCount) || 8));
+    const catalog = await getRotatedCatalogQuestions(setup.roleTitle, desiredCount, recentQuestionIds(setup.roleTitle), controller.signal);
+    const catalogQuestions = (catalog.questions || []).map((question) => ({
+      ...question,
+      id: question.question_id,
+      competency: String(question.competency || question.competencies?.[0] || question.category || "role_alignment").replaceAll("-", "_"),
+      source: "mongo-catalog",
+    }));
+    const personalized = fallbackPlan.questions.filter((question) => question.source === "impact-receipt" || question.source === "job-description");
+    const seen = new Set();
+    const questions = [...personalized, ...catalogQuestions, ...fallbackPlan.questions].filter((question) => {
+      const key = question.id || question.question_id || question.text;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, desiredCount);
+    if (!questions.length) return fallbackPlan;
+    return {
+      ...fallbackPlan,
+      family: catalog.family || fallbackPlan.family,
+      catalogVersion: catalog.catalog_version,
+      questionCount: questions.length,
+      questions,
+    };
+  } catch {
+    return fallbackPlan;
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 }
 
@@ -82,16 +154,24 @@ function speakSoftText(text, { cancelFirst = false } = {}) {
     utterance.pitch = 0.99;
     utterance.volume = 0.86;
     let settled = false;
+    let timeoutId = null;
+    let resumeId = null;
     const finish = (spoken) => {
       if (settled) return;
       settled = true;
+      if (timeoutId) window.clearTimeout(timeoutId);
+      if (resumeId) window.clearInterval(resumeId);
       resolve(spoken);
     };
     utterance.onend = () => finish(true);
     utterance.onerror = () => finish(false);
+    utterance.onstart = () => synth.resume?.();
     synth.speak(utterance);
     synth.resume?.();
-    window.setTimeout(() => finish(false), Math.max(12000, text.length * 125));
+    resumeId = window.setInterval(() => {
+      if (synth.speaking && synth.paused) synth.resume?.();
+    }, 3500);
+    timeoutId = window.setTimeout(() => finish(false), Math.max(12000, text.length * 125));
   });
 }
 
@@ -100,6 +180,7 @@ function playSoftChime() {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
     const context = new AudioContext();
+    void context.resume?.();
     const now = context.currentTime;
     [783.99, 987.77].forEach((frequency, index) => {
       const oscillator = context.createOscillator();
@@ -145,13 +226,13 @@ export default function InterviewPracticePage() {
 
   const videoRef = useRef(null);
   const recognitionRef = useRef(null);
+  const cameraStreamRef = useRef(null);
   const answerRef = useRef("");
   const phaseRef = useRef("idle");
   const timerRunningRef = useRef(false);
   const sequenceBusyRef = useRef(false);
   const timeoutHandledRef = useRef(false);
   const autoListenRef = useRef(false);
-  const activeRef = useRef(true);
 
   const capabilities = useMemo(() => getBrowserInterviewCapabilities(window), []);
   const currentQuestion = plan?.questions?.[questionIndex] || null;
@@ -165,18 +246,21 @@ export default function InterviewPracticePage() {
   }
 
   useEffect(() => {
-    activeRef.current = true;
     const preload = new Image();
     preload.src = aishaJordanPhoto;
     const cleanupVoices = warmSpeechVoices();
+    const resumeSpeechWhenVisible = () => {
+      if (document.visibilityState === "visible") window.speechSynthesis?.resume?.();
+    };
+    document.addEventListener("visibilitychange", resumeSpeechWhenVisible);
     return () => {
-      activeRef.current = false;
       cleanupVoices();
-      recognitionRef.current?.stop?.();
-      cameraStream?.getTracks().forEach((track) => track.stop());
+      document.removeEventListener("visibilitychange", resumeSpeechWhenVisible);
+      try { recognitionRef.current?.stop?.(); } catch { /* ignore */ }
+      cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
       window.speechSynthesis?.cancel?.();
     };
-  }, [cameraStream]);
+  }, []);
 
   useEffect(() => {
     answerRef.current = answer;
@@ -263,6 +347,7 @@ export default function InterviewPracticePage() {
     } catch {
       recognitionRef.current = null;
       setListening(false);
+      autoListenRef.current = false;
     }
   }
 
@@ -272,11 +357,13 @@ export default function InterviewPracticePage() {
     setQuestionStartedAt(Date.now());
     timerRunningRef.current = true;
     setTimerRunning(true);
-    autoListenRef.current = true;
+    autoListenRef.current = capabilities.speechRecognition;
     setInterviewPhase("listening");
-    window.setTimeout(() => {
-      if (phaseRef.current === "listening" && timerRunningRef.current) startDictation();
-    }, 250);
+    if (capabilities.speechRecognition) {
+      window.setTimeout(() => {
+        if (phaseRef.current === "listening" && timerRunningRef.current) startDictation();
+      }, 250);
+    }
   }
 
   async function speakQuestion(prompt) {
@@ -286,45 +373,57 @@ export default function InterviewPracticePage() {
     setTimerRunning(false);
     setAudioError("");
     setInterviewPhase("speaking");
+
+    if (!capabilities.speechSynthesis || !window.speechSynthesis?.speak) {
+      setAudioError("Spoken audio is not available in this browser, so the interview is continuing in text mode.");
+      beginResponseClock();
+      return true;
+    }
+
     let spoken = await speakSoftText(prompt);
     if (!spoken) {
       await wait(250);
       spoken = await speakSoftText(prompt, { cancelFirst: true });
     }
     if (!spoken) {
-      setAudioError("Aisha’s voice could not start automatically on this browser. Tap Replay question once to continue.");
-      setInterviewPhase("idle");
-      return false;
+      setAudioError("Aisha’s audio was blocked or interrupted. The interview is continuing in text mode; Replay question can retry the audio.");
+      beginResponseClock();
+      return true;
     }
     beginResponseClock();
     return true;
   }
 
-  async function continueGreeting(firstSegmentPromise, firstQuestionPrompt) {
+  async function continueGreeting(firstSegmentPromise, fallbackPlan, catalogPromise) {
     sequenceBusyRef.current = true;
     setInterviewPhase("speaking");
     let spoken = await firstSegmentPromise;
-    if (!spoken) {
+
+    if (!spoken && capabilities.speechSynthesis) {
       await wait(200);
       spoken = await speakSoftText(INTRO_SEGMENTS[0], { cancelFirst: true });
     }
-    if (!spoken) {
-      setAudioError("Aisha’s voice could not start automatically on this browser. Tap Replay question once to continue.");
-      setInterviewPhase("idle");
-      sequenceBusyRef.current = false;
-      return;
-    }
 
-    for (let index = 1; index < INTRO_SEGMENTS.length; index += 1) {
-      await wait(INTRO_PAUSE_MS);
-      const ok = await speakSoftText(INTRO_SEGMENTS[index]);
-      if (!ok) {
-        setAudioError("Aisha’s intro was interrupted. Tap Replay question to continue with the interview question.");
-        break;
+    if (spoken) {
+      for (let index = 1; index < INTRO_SEGMENTS.length; index += 1) {
+        await wait(INTRO_PAUSE_MS);
+        const ok = await speakSoftText(INTRO_SEGMENTS[index]);
+        if (!ok) {
+          setAudioError("Aisha’s intro was interrupted. The interview will continue with the first question.");
+          break;
+        }
       }
+    } else {
+      setAudioError("Spoken audio is unavailable or blocked here. Aisha is still visible and the interview will continue in text mode.");
     }
 
-    await wait(INTRO_PAUSE_MS);
+    const enrichedPlan = await catalogPromise;
+    setPlan(enrichedPlan);
+    const firstQuestionPrompt = enrichedPlan.questions?.[0]?.text
+      || fallbackPlan.questions?.[0]?.text
+      || `Tell me about your background and what interests you in this ${setup.roleTitle} opportunity.`;
+
+    if (spoken) await wait(INTRO_PAUSE_MS);
     await speakQuestion(firstQuestionPrompt);
     sequenceBusyRef.current = false;
   }
@@ -332,8 +431,7 @@ export default function InterviewPracticePage() {
   function startInterview(event) {
     event.preventDefault();
     if (!setup.roleTitle.trim()) return;
-    const nextPlan = buildInterviewPlan({ ...setup, receipts: setup.useReceipts ? receipts : [] });
-    const firstQuestionPrompt = nextPlan.questions?.[0]?.text || `Tell me about your background and what interests you in this ${setup.roleTitle} opportunity.`;
+    const fallbackPlan = buildInterviewPlan({ ...setup, receipts: setup.useReceipts ? receipts : [] });
 
     window.speechSynthesis?.cancel?.();
     stopDictation();
@@ -341,7 +439,7 @@ export default function InterviewPracticePage() {
     setAudioError("");
 
     flushSync(() => {
-      setPlan(nextPlan);
+      setPlan(fallbackPlan);
       setQuestionIndex(0);
       setResponses([]);
       setAnswer("");
@@ -358,10 +456,11 @@ export default function InterviewPracticePage() {
       setStage("interview");
     });
 
-    // This first real sentence is intentionally started inside the user’s Start Interview gesture.
-    // That is the reliable iOS/Safari path; no separate “Start Aisha” button is needed.
-    const firstSegmentPromise = speakSoftText(INTRO_SEGMENTS[0], { cancelFirst: true });
-    void continueGreeting(firstSegmentPromise, firstQuestionPrompt);
+    // Start the first real sentence inside the user's click/tap gesture. This is the reliable
+    // Safari/iOS path. Catalog enrichment runs in parallel while Aisha delivers her greeting.
+    const firstSegmentPromise = speakSoftText(INTRO_SEGMENTS[0]);
+    const catalogPromise = enrichInterviewPlanWithCatalog(fallbackPlan, setup);
+    void continueGreeting(firstSegmentPromise, fallbackPlan, catalogPromise);
   }
 
   async function replayQuestion() {
@@ -462,7 +561,15 @@ export default function InterviewPracticePage() {
 
     if (questionIndex + 1 >= plan.questions.length) {
       const summary = summarizeInterview(nextResponses);
-      saveHistory({ id: Date.now(), completedAt: new Date().toISOString(), roleTitle: plan.roleTitle, family: plan.family, interviewType: plan.interviewType, summary });
+      saveHistory({
+        id: Date.now(),
+        completedAt: new Date().toISOString(),
+        roleTitle: plan.roleTitle,
+        family: plan.family,
+        interviewType: plan.interviewType,
+        questionIds: plan.questions.filter((question) => question.source === "mongo-catalog").map((question) => question.id),
+        summary,
+      });
       setStage("results");
       return;
     }
@@ -477,8 +584,14 @@ export default function InterviewPracticePage() {
 
   async function enableCamera() {
     setCameraError("");
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError("Camera access is not available in this browser. You can still complete the interview normally.");
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
+      cameraStreamRef.current = stream;
       setCameraStream(stream);
       if (videoRef.current) videoRef.current.srcObject = stream;
     } catch {
@@ -487,7 +600,9 @@ export default function InterviewPracticePage() {
   }
 
   function disableCamera() {
-    cameraStream?.getTracks().forEach((track) => track.stop());
+    const stream = cameraStreamRef.current || cameraStream;
+    stream?.getTracks().forEach((track) => track.stop());
+    cameraStreamRef.current = null;
     setCameraStream(null);
   }
 
@@ -511,7 +626,7 @@ export default function InterviewPracticePage() {
 
   if (stage === "setup") return (
     <main className="interview-practice-page">
-      <img src={aishaJordanPhoto} alt="" aria-hidden="true" style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }} />
+      <img src={aishaJordanPhoto} alt="" aria-hidden="true" decoding="sync" fetchPriority="high" style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }} />
       <header className="interview-page-header"><div><span className="interview-pro-badge"><Sparkles size={14} /> BRAGSTACK CAREER INTELLIGENCE™</span><h1>Practice Interview</h1><p>Aisha greets you, asks each question out loud, starts your timer only after she finishes, listens to your response, and gives specific coaching.</p></div><div className="zero-cost-card"><strong>BragStack Intelligence</strong><span>Evidence-aware coaching personalized to your target role</span></div></header>
       <section className="interview-setup-grid">
         <form className="interview-setup-card" onSubmit={startInterview}>
@@ -549,14 +664,14 @@ export default function InterviewPracticePage() {
     <header className="interview-room-header"><div><span>{plan.roleTitle}</span><strong>Practice Interview with Aisha</strong></div><div className="question-progress"><span>Question {questionIndex + 1} of {plan.questions.length}</span><div><i style={{ width: `${((questionIndex + 1) / plan.questions.length) * 100}%` }} /></div></div></header>
     <section className="interview-room-grid">
       <div className="interview-video-stage">
-        <div className="virtual-interviewer"><AnimatedInterviewerAvatar state={avatarState} /><div className="animated-avatar-caption" aria-hidden="true"><strong>Aisha Jordan</strong><span>Senior Technical Recruiter</span></div></div>
+        <div className="virtual-interviewer animated-interviewer-host"><AnimatedInterviewerAvatar state={avatarState} /><div className="animated-avatar-caption" aria-hidden="true"><strong>Aisha Jordan</strong><span>Senior Technical Recruiter</span></div></div>
         <div className="candidate-video-tile">{cameraStream ? <video ref={videoRef} autoPlay muted playsInline /> : <div className="camera-placeholder"><CameraOff size={28} /><span>Your camera is off</span></div>}<div className="candidate-video-label">You</div></div>
         <div className="video-controls">{cameraStream ? <button type="button" onClick={disableCamera}><CameraOff size={17} /> Camera off</button> : <button type="button" onClick={enableCamera} disabled={!capabilities.camera}><Camera size={17} /> Enable camera</button>}<button type="button" onClick={() => { void replayQuestion(); }} disabled={!capabilities.speechSynthesis || sequenceBusyRef.current}><Volume2 size={17} /> Replay question</button></div>
         {cameraError && <p className="camera-error">{cameraError}</p>}
       </div>
       <div className="interview-answer-panel">
         <div className="question-box"><div className="question-meta-row"><span>{followUpActive ? "TARGETED FOLLOW-UP" : `QUESTION ${questionIndex + 1}`}</span><strong className={`response-timer ${secondsLeft <= 20 && timerRunning ? "urgent" : ""}`}><Clock3 size={16} /> {formatTime(secondsLeft)}</strong></div><h1>{currentPrompt}</h1>{followUpActive && <small>This follow-up targets the missing part of your previous answer. You do not need to repeat the whole story.</small>}{audioError && <small>{audioError}</small>}</div>
-        {!feedback ? <form onSubmit={submitAnswer} className="answer-form"><label htmlFor="practice-answer">Your answer</label><textarea id="practice-answer" value={answer} onChange={(event) => setAnswer(event.target.value)} rows="9" placeholder="Answer naturally. Focus on the exact question, what YOU did, and what changed as a result." /><div className="answer-tools">{capabilities.speechRecognition && (listening ? <button className="dictation-button active" type="button" onClick={() => stopDictation()}><Mic size={17} /> Stop dictation</button> : <button className="dictation-button" type="button" onClick={() => { autoListenRef.current = true; startDictation(); }} disabled={interviewPhase !== "listening"}><Mic size={17} /> Speak answer</button>)}<span>{answer.trim() ? answer.trim().split(/\s+/).length : 0} words</span></div><button className="start-interview-button" type="submit" disabled={!answer.trim()}>Review my answer</button></form> : <section className="answer-feedback-panel">{feedback.timedOut && <div className="timeout-warning"><Clock3 size={18} /><span>Time expired. This answer was scored as submitted.</span></div>}<div className="feedback-heading"><div><span>ANSWER FEEDBACK</span><h2>{feedback.overallLabel}</h2></div><strong>{feedback.overallScore}/100</strong></div><div className="answer-coaching-grid"><article className="answer-strengths"><span>WHAT WORKED</span>{feedback.strengths.map((item) => <p key={item}>✓ {item}</p>)}</article><article className="answer-improvements"><span>HOW TO IMPROVE</span>{feedback.improvements.map((item) => <p key={item}>→ {item}</p>)}</article></div><div className="feedback-dimensions">{Object.entries(feedback.dimensions).map(([name, value]) => <article key={name}><div><strong>{prettyDimension(name)}</strong><span className={value.label === "Excellent" || value.label === "Strong" ? "strong" : value.label === "Developing" ? "developing" : "needs-detail"}>{value.score}/100 · {value.label}</span></div><p>{value.note}</p><small><b>Improve:</b> {value.improve}</small></article>)}</div>{feedback.followUp && !followUpUsed && <div className="follow-up-card"><span>TARGETED INTERVIEWER FOLLOW-UP</span><p>{feedback.followUp}</p><button type="button" onClick={beginFollowUp}>Answer targeted follow-up</button></div>}<div className="feedback-actions"><button className="secondary-interview-button" type="button" onClick={retryAnswer}>Try this answer again</button><button className="start-interview-button" type="button" onClick={nextQuestion}>{questionIndex + 1 >= plan.questions.length ? "Finish interview" : "Next question"} <ChevronRight size={17} /></button></div></section>}
+        {!feedback ? <form onSubmit={submitAnswer} className="answer-form"><label htmlFor="practice-answer">Your answer</label><textarea id="practice-answer" value={answer} onChange={(event) => setAnswer(event.target.value)} rows="9" placeholder="Answer naturally. Focus on the exact question, what YOU did, and what changed as a result." /><div className="answer-tools">{capabilities.speechRecognition ? (listening ? <button className="dictation-button active" type="button" onClick={() => stopDictation()}><Mic size={17} /> Stop dictation</button> : <button className="dictation-button" type="button" onClick={() => { autoListenRef.current = true; startDictation(); }} disabled={interviewPhase !== "listening"}><Mic size={17} /> Speak answer</button>) : <span>Voice dictation is unavailable here — typing still works.</span>}<span>{answer.trim() ? answer.trim().split(/\s+/).length : 0} words</span></div><button className="start-interview-button" type="submit" disabled={!answer.trim()}>Review my answer</button></form> : <section className="answer-feedback-panel">{feedback.timedOut && <div className="timeout-warning"><Clock3 size={18} /><span>Time expired. This answer was scored as submitted.</span></div>}<div className="feedback-heading"><div><span>ANSWER FEEDBACK</span><h2>{feedback.overallLabel}</h2></div><strong>{feedback.overallScore}/100</strong></div><div className="answer-coaching-grid"><article className="answer-strengths"><span>WHAT WORKED</span>{feedback.strengths.map((item) => <p key={item}>✓ {item}</p>)}</article><article className="answer-improvements"><span>HOW TO IMPROVE</span>{feedback.improvements.map((item) => <p key={item}>→ {item}</p>)}</article></div><div className="feedback-dimensions">{Object.entries(feedback.dimensions).map(([name, value]) => <article key={name}><div><strong>{prettyDimension(name)}</strong><span className={value.label === "Excellent" || value.label === "Strong" ? "strong" : value.label === "Developing" ? "developing" : "needs-detail"}>{value.score}/100 · {value.label}</span></div><p>{value.note}</p><small><b>Improve:</b> {value.improve}</small></article>)}</div>{feedback.followUp && !followUpUsed && <div className="follow-up-card"><span>TARGETED INTERVIEWER FOLLOW-UP</span><p>{feedback.followUp}</p><button type="button" onClick={beginFollowUp}>Answer targeted follow-up</button></div>}<div className="feedback-actions"><button className="secondary-interview-button" type="button" onClick={retryAnswer}>Try this answer again</button><button className="start-interview-button" type="button" onClick={nextQuestion}>{questionIndex + 1 >= plan.questions.length ? "Finish interview" : "Next question"} <ChevronRight size={17} /></button></div></section>}
       </div>
     </section>
   </main>;
