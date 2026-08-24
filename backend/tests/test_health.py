@@ -7,6 +7,13 @@ import app.main as main
 client = TestClient(main.app)
 
 
+def test_root_supports_head_probe():
+    response = client.head("/")
+
+    assert response.status_code == 200
+    assert response.text == ""
+
+
 def test_health_reports_process_alive():
     response = client.get("/health")
 
