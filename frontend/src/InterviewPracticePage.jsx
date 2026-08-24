@@ -206,7 +206,7 @@ export default function InterviewPracticePage() {
   }
 
   async function askPrompt(prompt, { restartClock = true } = {}) {
-    if (!prompt || sequenceBusyRef.current && interviewPhase !== "transition") return false;
+    if (!prompt) return false;
     const shouldResume = !restartClock && timerRunning;
     stopDictation();
     setTimerRunning(false);
