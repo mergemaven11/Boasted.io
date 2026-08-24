@@ -1,10 +1,10 @@
 from app.interview_catalog_seed import build_catalog
 
 
-def test_catalog_contains_at_least_500_careers_and_6000_questions():
+def test_catalog_contains_at_least_500_careers_and_24000_questions():
     catalog = build_catalog()
     assert len(catalog) >= 500
-    assert sum(document["question_count"] for document in catalog) >= 6000
+    assert sum(document["question_count"] for document in catalog) >= 24000
 
 
 def test_career_slugs_are_unique_and_questions_are_linked():
@@ -14,8 +14,8 @@ def test_career_slugs_are_unique_and_questions_are_linked():
     for document in catalog:
         assert document["title"]
         assert document["family"]
-        assert document["question_count"] == len(document["questions"]) == 12
-        assert len({question["question_id"] for question in document["questions"]}) == 12
+        assert document["question_count"] == len(document["questions"]) == 48
+        assert len({question["question_id"] for question in document["questions"]}) == 48
         assert all(question["active"] is True for question in document["questions"])
 
 
