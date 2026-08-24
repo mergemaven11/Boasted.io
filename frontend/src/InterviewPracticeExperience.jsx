@@ -18,9 +18,14 @@ function inferAvatarState() {
 
 function pickSofterVoice() {
   const voices = window.speechSynthesis?.getVoices?.() || [];
-  const preferred = ["Samantha", "Ava", "Serena", "Karen", "Moira", "Tessa", "Microsoft Aria", "Google US English"];
+  const preferred = [
+    "Ava (Premium)", "Ava", "Samantha (Enhanced)", "Samantha", "Serena",
+    "Tessa", "Moira", "Karen", "Microsoft Aria Online", "Microsoft Aria",
+    "Google US English",
+  ];
   return preferred.map((name) => voices.find((voice) => voice.name.includes(name) && voice.lang?.startsWith("en"))).find(Boolean)
-    || voices.find((voice) => voice.lang?.startsWith("en-US") && /female|natural|enhanced|premium/i.test(voice.name))
+    || voices.find((voice) => voice.lang?.startsWith("en-US") && /premium|enhanced|natural|neural|online/i.test(voice.name))
+    || voices.find((voice) => voice.lang?.startsWith("en-US"))
     || voices.find((voice) => voice.lang?.startsWith("en"))
     || null;
 }
@@ -32,12 +37,12 @@ function useGreetingAndVoicePolish() {
     const originalSpeak = synth.speak.bind(synth);
     let greeted = false;
 
-    const tune = (utterance) => {
+    const tune = (utterance, { greeting = false } = {}) => {
       const voice = pickSofterVoice();
       if (voice) utterance.voice = voice;
-      utterance.rate = 0.9;
-      utterance.pitch = 1.02;
-      utterance.volume = 0.92;
+      utterance.rate = greeting ? 0.84 : 0.88;
+      utterance.pitch = greeting ? 1.01 : 1.0;
+      utterance.volume = 0.86;
       return utterance;
     };
 
@@ -45,7 +50,9 @@ function useGreetingAndVoicePolish() {
       const inInterview = Boolean(document.querySelector(".interview-room-page"));
       if (inInterview && !greeted) {
         greeted = true;
-        const greeting = tune(new SpeechSynthesisUtterance("Hi, I’m Aisha Jordan, your BragStack interviewer. I’ll ask one question at a time. Take a moment to think, answer naturally, and I’ll give you specific coaching after each response. Let’s get started."));
+        const responseTime = document.querySelector(".response-timer")?.textContent?.trim() || "your selected response time";
+        const greetingText = `Hi, I’m Aisha Jordan, your BragStack interviewer. Welcome. Here’s how this will work. I’ll ask you one interview question at a time, then I’ll stop speaking and listen while your response timer runs. You can answer naturally, just like you would in a real interview. When your time is up, I’ll review what you said, look at your structure, specificity, impact, and confidence, and then I’ll move us to the next question. Your current response window is ${responseTime}. If I need one missing detail, I may ask a short targeted follow-up instead of repeating the same question. Take your time, be yourself, and focus on what you personally did and what changed as a result. All right — let’s begin.`;
+        const greeting = tune(new SpeechSynthesisUtterance(greetingText), { greeting: true });
         greeting.onend = () => originalSpeak(tune(utterance));
         greeting.onerror = () => originalSpeak(tune(utterance));
         originalSpeak(greeting);
@@ -54,12 +61,18 @@ function useGreetingAndVoicePolish() {
       originalSpeak(tune(utterance));
     };
 
+    const refreshVoices = () => { synth.getVoices?.(); };
+    refreshVoices();
+    synth.addEventListener?.("voiceschanged", refreshVoices);
+
     try {
       synth.speak = wrappedSpeak;
     } catch {
+      synth.removeEventListener?.("voiceschanged", refreshVoices);
       return undefined;
     }
     return () => {
+      synth.removeEventListener?.("voiceschanged", refreshVoices);
       try { synth.speak = originalSpeak; } catch { /* browser owns this method */ }
     };
   }, []);
