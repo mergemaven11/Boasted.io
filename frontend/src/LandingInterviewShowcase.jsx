@@ -7,7 +7,10 @@ export default function LandingInterviewShowcase() {
   const [target, setTarget] = useState(null);
 
   useEffect(() => {
-    setTarget(document.querySelector(".landing-workflow"));
+    const timeoutId = window.setTimeout(() => {
+      setTarget(document.querySelector(".landing-workflow"));
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   if (!target) return null;
