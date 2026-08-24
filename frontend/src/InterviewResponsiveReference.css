@@ -37,9 +37,28 @@
   min-height: 0 !important;
   overflow: hidden;
   border-radius: 24px;
+  /* Last-resort visual fallback: put the bundled Aisha artwork on the stage itself.
+     This survives browser-specific failures in nested image sizing/stacking. */
+  background-color: #0a0d16 !important;
+  background-image: url("./assets/aisha-jordan-interviewer.jpg") !important;
+  background-size: cover !important;
+  background-position: center 42% !important;
+  background-repeat: no-repeat !important;
 }
 
-.interview-video-stage .virtual-interviewer,
+.interview-video-stage .virtual-interviewer {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  background-color: transparent !important;
+  background-image: url("./assets/aisha-jordan-interviewer.jpg") !important;
+  background-size: cover !important;
+  background-position: center 42% !important;
+  background-repeat: no-repeat !important;
+}
+
 .interview-video-stage .animated-interviewer-avatar,
 .interview-video-stage .photo-interviewer {
   width: 100%;
@@ -47,7 +66,18 @@
   min-height: 0 !important;
 }
 
+.interview-video-stage .animated-interviewer-avatar {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+}
+
 .interview-video-stage .aisha-interviewer-photo {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 1 !important;
+  visibility: visible !important;
   object-fit: cover;
   object-position: center 42%;
 }
@@ -143,6 +173,11 @@
     aspect-ratio: 4 / 5;
     min-height: 420px !important;
     border-radius: 18px;
+    background-position: center 38% !important;
+  }
+
+  .interview-video-stage .virtual-interviewer {
+    background-position: center 38% !important;
   }
 
   .interview-video-stage .aisha-interviewer-photo {
