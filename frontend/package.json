@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "test:interview": "node --test src/interviewEngine*.test.js",
+    "test:interview": "node --test src/interviewEngine.test.js",
     "preview": "vite preview"
   },
   "dependencies": {
