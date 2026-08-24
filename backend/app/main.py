@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from bson import ObjectId
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from pymongo.errors import PyMongoError
 
 from app.auth import get_current_user
 from app.auth_routes import router as auth_router
@@ -13,7 +14,7 @@ from app.beta_metrics_routes import router as beta_metrics_router
 from app.certification_packet_export_routes import router as certification_packet_export_router
 from app.certification_packet_routes import router as certification_packet_router
 from app.core_output_routes import router as core_output_router
-from app.database import entries_collection, impact_receipts_collection
+from app.database import client as mongo_client, entries_collection, impact_receipts_collection
 from app.impact_receipt_routes import router as impact_receipts_router
 from app.receipt_verification_routes import router as receipt_verification_router
 from app.interview_packet_export_routes import router as interview_packet_export_router
@@ -86,3 +87,15 @@ app.include_router(certification_packet_export_router)
 
 @app.get("/")
 def root(): return {"message":"BragStack API is running"}
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+@app.get("/ready")
+def ready():
+    try:
+        mongo_client.admin.command("ping")
+    except PyMongoError as exc:
+        raise HTTPException(status_code=503, detail="Service is not ready") from exc
+    return {"status": "ready"}
