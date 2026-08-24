@@ -32,6 +32,7 @@ from app.promotion_packet_export_routes import router as promotion_packet_export
 from app.promotion_packet_routes import router as promotion_packet_router
 from app.public_slug_routes import router as public_slug_router
 from app.reports_routes import router as reports_router
+from app.resume_builder_routes import router as resume_builder_router
 from app.routes import public_router, router as entries_router
 
 app = FastAPI(title="BragStack API", description="Evidence-backed career proof for accomplishments, impact, and reports.", version="1.0.0")
@@ -87,6 +88,7 @@ app.include_router(interview_packet_router)
 app.include_router(interview_packet_export_router)
 app.include_router(certification_packet_router)
 app.include_router(certification_packet_export_router)
+app.include_router(resume_builder_router)
 
 @app.get("/")
 def root(): return {"message":"BragStack API is running"}
