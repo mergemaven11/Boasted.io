@@ -85,9 +85,15 @@ async def register_user(payload: RegisterRequest):
     return {"verification_required":True,"email_sent":sent,"message":"Account created. Check your email to verify your account."}
 @router.post("/email-verification/resend")
 async def resend_email_verification(payload: EmailVerificationRequest):
+    message = {"message":"If that account needs verification, a new email has been sent."}
     email=payload.email.lower().strip(); user=users_collection.find_one({"email":email})
-    if not user or user.get("email_verified_at") or not user.get("email_verification_required",False): return {"message":"If that account needs verification, a new email has been sent."}
-    raw,_=_issue_verification_token(user); await _send_verification_email(email,f"{FRONTEND_URL}/login#verify_token={raw}"); return {"message":"If that account needs verification, a new email has been sent."}
+    if not user or user.get("email_verified_at") or not user.get("email_verification_required",False): return message
+    raw,_=_issue_verification_token(user)
+    try:
+        await _send_verification_email(email,f"{FRONTEND_URL}/login#verify_token={raw}")
+    except HTTPException:
+        pass
+    return message
 @router.post("/email-verification/confirm")
 def confirm_email_verification(payload: EmailVerificationConfirm):
     user=users_collection.find_one({"email_verification_token_hash":_hash_token(payload.token)})
@@ -105,10 +111,15 @@ def login_user(form_data: OAuth2PasswordRequestForm=Depends()):
     return {"access_token":create_access_token({"sub":str(user["_id"])}),"token_type":"bearer","user":serialize_user(user)}
 @router.post("/password-reset/request")
 async def request_password_reset(payload: PasswordResetRequest):
+    message = {"message":"If that email belongs to an account, a reset link has been sent."}
     email=payload.email.lower().strip(); user=users_collection.find_one({"email":email})
-    if not user: return {"message":"If that email belongs to an account, a reset link has been sent."}
+    if not user: return message
     raw=secrets.token_urlsafe(48); expires=datetime.now(timezone.utc)+timedelta(minutes=30); users_collection.update_one({"_id":user["_id"]},{"$set":{"password_reset_token_hash":_hash_token(raw),"password_reset_expires_at":expires.isoformat()}})
-    await _send_password_reset_email(email,f"{FRONTEND_URL}/login#reset_token={raw}"); return {"message":"If that email belongs to an account, a reset link has been sent."}
+    try:
+        await _send_password_reset_email(email,f"{FRONTEND_URL}/login#reset_token={raw}")
+    except HTTPException:
+        pass
+    return message
 @router.post("/password-reset/confirm")
 def confirm_password_reset(payload: PasswordResetConfirm):
     user=users_collection.find_one({"password_reset_token_hash":_hash_token(payload.token)})
