@@ -14,6 +14,7 @@ from app.database import users_collection
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+OAUTH_CALLBACK_BASE_URL = os.getenv("OAUTH_CALLBACK_BASE_URL", "").rstrip("/")
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "")
@@ -54,6 +55,8 @@ def _require_credentials(provider: str) -> None:
 
 
 def _redirect_uri(request: Request, provider: str) -> str:
+    if OAUTH_CALLBACK_BASE_URL:
+        return f"{OAUTH_CALLBACK_BASE_URL}/auth/{provider}/callback"
     return str(request.url_for(f"{provider}_callback"))
 
 
