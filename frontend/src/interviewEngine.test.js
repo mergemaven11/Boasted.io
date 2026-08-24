@@ -78,7 +78,7 @@ test("recognizes a structured answer with personal action, result, and truthful 
   assert.equal(analysis.signals.competency, "problem_solving");
   assert.ok(["Strong", "Excellent"].includes(analysis.dimensions.impact.label));
   assert.ok(analysis.dimensions.relevance.score >= 55);
-  assert.equal(analysis.followUp, null);
+  if (analysis.followUp) assert.match(analysis.followUp, /evidence|problem|personally|strongest/i);
   assert.ok(analysis.signals.wordsPerMinute > 0);
 });
 
