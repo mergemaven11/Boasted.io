@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { LogOut, X } from "lucide-react";
 import AnimatedInterviewerAvatar from "./AnimatedInterviewerAvatar.jsx";
 import InterviewPracticePage from "./InterviewPracticePage.jsx";
+import { useInterviewAutopilot } from "./interviewAutopilot.js";
 import "./AnimatedInterviewerAvatar.css";
 import "./InterviewPracticeZoomLayout.css";
 import "./InterviewExperienceV3.css";
@@ -18,13 +19,9 @@ function inferAvatarState() {
 
 function pickSofterVoice() {
   const voices = window.speechSynthesis?.getVoices?.() || [];
-  const preferred = [
-    "Ava (Premium)", "Ava", "Samantha (Enhanced)", "Samantha", "Serena",
-    "Tessa", "Moira", "Karen", "Microsoft Aria Online", "Microsoft Aria",
-    "Google US English",
-  ];
+  const preferred = ["Ava (Premium)", "Samantha (Enhanced)", "Ava", "Samantha", "Serena", "Tessa", "Moira", "Microsoft Aria Online", "Microsoft Aria", "Google US English"];
   return preferred.map((name) => voices.find((voice) => voice.name.includes(name) && voice.lang?.startsWith("en"))).find(Boolean)
-    || voices.find((voice) => voice.lang?.startsWith("en-US") && /premium|enhanced|natural|neural|online/i.test(voice.name))
+    || voices.find((voice) => voice.lang?.startsWith("en-US") && /premium|enhanced|natural|neural/i.test(voice.name))
     || voices.find((voice) => voice.lang?.startsWith("en-US"))
     || voices.find((voice) => voice.lang?.startsWith("en"))
     || null;
@@ -37,12 +34,12 @@ function useGreetingAndVoicePolish() {
     const originalSpeak = synth.speak.bind(synth);
     let greeted = false;
 
-    const tune = (utterance, { greeting = false } = {}) => {
+    const tune = (utterance) => {
       const voice = pickSofterVoice();
       if (voice) utterance.voice = voice;
-      utterance.rate = greeting ? 0.84 : 0.88;
-      utterance.pitch = greeting ? 1.01 : 1.0;
-      utterance.volume = 0.86;
+      utterance.rate = 0.84;
+      utterance.pitch = 1;
+      utterance.volume = 0.88;
       return utterance;
     };
 
@@ -50,10 +47,9 @@ function useGreetingAndVoicePolish() {
       const inInterview = Boolean(document.querySelector(".interview-room-page"));
       if (inInterview && !greeted) {
         greeted = true;
-        const responseTime = document.querySelector(".response-timer")?.textContent?.trim() || "your selected response time";
-        const greetingText = `Hi, I’m Aisha Jordan, your BragStack interviewer. Welcome. Here’s how this will work. I’ll ask you one interview question at a time, then I’ll stop speaking and listen while your response timer runs. You can answer naturally, just like you would in a real interview. When your time is up, I’ll review what you said, look at your structure, specificity, impact, and confidence, and then I’ll move us to the next question. Your current response window is ${responseTime}. If I need one missing detail, I may ask a short targeted follow-up instead of repeating the same question. Take your time, be yourself, and focus on what you personally did and what changed as a result. All right — let’s begin.`;
-        const greeting = tune(new SpeechSynthesisUtterance(greetingText), { greeting: true });
-        greeting.onend = () => originalSpeak(tune(utterance));
+        const greetingText = "Hi, I’m Aisha Jordan. Welcome to your BragStack practice interview. Here’s how this works. I’ll ask one question at a time, then your response timer will start after I finish speaking. Answer naturally, just like you would in a real interview. I’ll listen to your response, look for your situation, your specific actions, and the result, and I may ask a short follow-up if an important detail is missing. When your time ends, you’ll hear a soft chime and I’ll let you know. At the end, you’ll get a score, strengths, and specific ways to improve. Take your time, be yourself, and don’t worry about being perfect. Ready? Let’s begin.";
+        const greeting = tune(new SpeechSynthesisUtterance(greetingText));
+        greeting.onend = () => window.setTimeout(() => originalSpeak(tune(utterance)), 450);
         greeting.onerror = () => originalSpeak(tune(utterance));
         originalSpeak(greeting);
         return;
@@ -61,18 +57,12 @@ function useGreetingAndVoicePolish() {
       originalSpeak(tune(utterance));
     };
 
-    const refreshVoices = () => { synth.getVoices?.(); };
-    refreshVoices();
-    synth.addEventListener?.("voiceschanged", refreshVoices);
-
     try {
       synth.speak = wrappedSpeak;
     } catch {
-      synth.removeEventListener?.("voiceschanged", refreshVoices);
       return undefined;
     }
     return () => {
-      synth.removeEventListener?.("voiceschanged", refreshVoices);
       try { synth.speak = originalSpeak; } catch { /* browser owns this method */ }
     };
   }, []);
@@ -169,13 +159,11 @@ function InterviewExitGuard() {
 
   useEffect(() => {
     if (!active) return undefined;
-
     const beforeUnload = (event) => {
       if (bypassRef.current) return;
       event.preventDefault();
       event.returnValue = "";
     };
-
     const interceptNavigation = (event) => {
       if (bypassRef.current || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const anchor = event.target.closest?.("a[href]");
@@ -188,7 +176,6 @@ function InterviewExitGuard() {
       event.stopPropagation();
       setPendingHref(destination.href);
     };
-
     window.addEventListener("beforeunload", beforeUnload);
     document.addEventListener("click", interceptNavigation, true);
     return () => {
@@ -206,32 +193,21 @@ function InterviewExitGuard() {
   };
 
   if (!active) return null;
-
   return <>
-    {headerHost && createPortal(
-      <button className="interview-end-button" type="button" onClick={requestEnd}><LogOut size={17} /> End Interview</button>,
-      headerHost,
-    )}
+    {headerHost && createPortal(<button className="interview-end-button" type="button" onClick={requestEnd}><LogOut size={17} /> End Interview</button>, headerHost)}
     {pendingHref && createPortal(
       <div className="interview-exit-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) keepInterview(); }}>
         <section className="interview-exit-modal" role="dialog" aria-modal="true" aria-labelledby="interview-exit-title">
           <button className="interview-exit-close" type="button" onClick={keepInterview} aria-label="Keep interview open"><X size={18} /></button>
-          <div className="interview-exit-icon"><LogOut size={24} /></div>
-          <span>INTERVIEW IN PROGRESS</span>
-          <h2 id="interview-exit-title">End this interview?</h2>
-          <p>Your current answer and remaining questions will be abandoned. You can stay and finish, or end the session now.</p>
-          <div className="interview-exit-actions">
-            <button className="secondary-interview-button" type="button" onClick={keepInterview}>Keep Interview</button>
-            <button className="interview-end-confirm" type="button" onClick={confirmEnd}>End Interview</button>
-          </div>
+          <div className="interview-exit-icon"><LogOut size={24} /></div><span>INTERVIEW IN PROGRESS</span><h2 id="interview-exit-title">End this interview?</h2><p>Your current answer and remaining questions will be abandoned. You can stay and finish, or end the session now.</p>
+          <div className="interview-exit-actions"><button className="secondary-interview-button" type="button" onClick={keepInterview}>Keep Interview</button><button className="interview-end-confirm" type="button" onClick={confirmEnd}>End Interview</button></div>
         </section>
-      </div>,
-      document.body,
-    )}
+      </div>, document.body)}
   </>;
 }
 
 export default function InterviewPracticeExperience() {
   useGreetingAndVoicePolish();
+  useInterviewAutopilot();
   return <><InterviewPracticePage /><AvatarPortal /><InterviewSidebarPortal /><InterviewExitGuard /></>;
 }
