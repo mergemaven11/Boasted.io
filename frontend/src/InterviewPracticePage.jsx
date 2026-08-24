@@ -14,10 +14,45 @@ function prettyDimension(value = "") {
 function saveHistory(session) {
   try {
     const current = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-    localStorage.setItem(HISTORY_KEY, JSON.stringify([session, ...current].slice(0, 5)));
+    localStorage.setItem(HISTORY_KEY, JSON.stringify([session, ...current].slice(0, 8)));
   } catch {
     // Interview practice must keep working even when browser storage is unavailable.
   }
+}
+
+function recentQuestionIds(roleTitle) {
+  try {
+    const normalized = roleTitle.trim().toLowerCase();
+    const current = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+    return current
+      .filter((session) => String(session?.roleTitle || "").trim().toLowerCase() === normalized)
+      .flatMap((session) => Array.isArray(session?.questionIds) ? session.questionIds : [])
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function slugifyRole(value = "") {
+  return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+function interviewApiBase() {
+  if (window.location.hostname.endsWith(".app.github.dev")) return "/api";
+  return import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8000";
+}
+
+async function getRotatedCatalogQuestions(roleTitle, count, excludeIds = []) {
+  const slug = slugifyRole(roleTitle);
+  if (!slug) throw new Error("Missing role slug");
+  const params = new URLSearchParams({ count: String(count), seed: `${Date.now()}` });
+  if (excludeIds.length) params.set("exclude", [...new Set(excludeIds)].join(","));
+  const token = localStorage.getItem("bragstack_token");
+  const response = await fetch(`${interviewApiBase()}/interview-catalog/careers/${encodeURIComponent(slug)}/questions?${params.toString()}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!response.ok) throw new Error(`Interview catalog returned ${response.status}`);
+  return response.json();
 }
 
 export default function InterviewPracticePage() {
@@ -64,10 +99,40 @@ export default function InterviewPracticePage() {
     setSetup((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
   }
 
-  function startInterview(event) {
+  async function startInterview(event) {
     event.preventDefault();
     if (!setup.roleTitle.trim()) return;
-    setPlan(buildInterviewPlan({ ...setup, receipts: setup.useReceipts ? receipts : [] }));
+    const fallbackPlan = buildInterviewPlan({ ...setup, receipts: setup.useReceipts ? receipts : [] });
+    let nextPlan = fallbackPlan;
+    try {
+      const desiredCount = Math.max(3, Math.min(15, Number(setup.questionCount) || 8));
+      const catalog = await getRotatedCatalogQuestions(setup.roleTitle, desiredCount, recentQuestionIds(setup.roleTitle));
+      const catalogQuestions = (catalog.questions || []).map((question) => ({
+        ...question,
+        id: question.question_id,
+        source: "mongo-catalog",
+      }));
+      const personalized = fallbackPlan.questions.filter((question) => question.source === "impact-receipt" || question.source === "job-description");
+      const seen = new Set();
+      const questions = [...personalized, ...catalogQuestions].filter((question) => {
+        const key = question.id || question.question_id || question.text;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).slice(0, desiredCount);
+      if (questions.length) {
+        nextPlan = {
+          ...fallbackPlan,
+          family: catalog.family || fallbackPlan.family,
+          catalogVersion: catalog.catalog_version,
+          questionCount: questions.length,
+          questions,
+        };
+      }
+    } catch {
+      // Unknown careers or temporary API issues fall back to the local $0 engine.
+    }
+    setPlan(nextPlan);
     setQuestionIndex(0); setResponses([]); setAnswer(""); setFeedback(null); setFollowUpActive(false); setFollowUpUsed(false);
     setQuestionStartedAt(Date.now()); setStage("interview");
   }
@@ -132,7 +197,15 @@ export default function InterviewPracticePage() {
     setResponses(nextResponses); setAnswer(""); setFeedback(null); setBaseAnswer(""); setFollowUpActive(false); setFollowUpPrompt(""); setFollowUpUsed(false);
     if (questionIndex + 1 >= plan.questions.length) {
       const summary = summarizeInterview(nextResponses);
-      saveHistory({ id: Date.now(), completedAt: new Date().toISOString(), roleTitle: plan.roleTitle, family: plan.family, interviewType: plan.interviewType, summary });
+      saveHistory({
+        id: Date.now(),
+        completedAt: new Date().toISOString(),
+        roleTitle: plan.roleTitle,
+        family: plan.family,
+        interviewType: plan.interviewType,
+        questionIds: plan.questions.filter((question) => question.source === "mongo-catalog").map((question) => question.id),
+        summary,
+      });
       setStage("results"); return;
     }
     setQuestionIndex((index) => index + 1); setQuestionStartedAt(Date.now());
