@@ -10,6 +10,7 @@ import InterviewPracticePage from "./InterviewPracticePage.jsx";
 import LandingInterviewShowcase from "./LandingInterviewShowcase.jsx";
 import ReceiptVerificationCenter from "./ReceiptVerificationCenter.jsx";
 import ReceiptVerificationPage from "./ReceiptVerificationPage.jsx";
+import ResumeBuilderPage from "./ResumeBuilderPage.jsx";
 import { PrivacyPolicyPage, PublicFooter, TermsPage } from "./LegalPages.jsx";
 import NDAGuidancePage from "./NDAGuidancePage.jsx";
 import ProductTour from "./ProductTour.jsx";
@@ -109,7 +110,10 @@ function RootContent() {
   else if (path === "/app/settings/appearance") Content = AppearanceSettingsPage;
   else if (path === "/app/accomplishments") Content = AccomplishmentsPage;
   else if (path === "/app/impact-receipts") Content = ImpactReceiptsWithVerification;
-  else if (path === "/app/reports" && planLoaded) {
+  else if (path === "/app/resume-builder" && planLoaded) {
+    Content = user?.entitlements?.resume_builder ? ResumeBuilderPage : ProRequired;
+    contentProps = user?.entitlements?.resume_builder ? {} : { feature: "Resume Builder and ATS Guardian" };
+  } else if (path === "/app/reports" && planLoaded) {
     Content = user?.entitlements?.advanced_reports ? ProCareerPage : ProRequired;
     contentProps = user?.entitlements?.advanced_reports ? {} : { feature: "Career analytics and career packets" };
   } else if (path === "/app/interview-practice" && planLoaded) {
