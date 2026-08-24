@@ -14,7 +14,7 @@ on:
 
 jobs:
   frontend:
-    name: Lint and build frontend
+    name: Test, lint and build frontend
     runs-on: ubuntu-latest
 
     defaults:
@@ -34,6 +34,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Test interview intelligence engine
+        run: npm run test:interview
 
       - name: Lint
         run: npm run lint
