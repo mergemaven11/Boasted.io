@@ -232,3 +232,21 @@
   .aisha-mouth-photo{display:none!important}
   .aisha-speaking-glow{transition:none!important}
 }
+
+/*
+  InterviewResponsiveReference.css previously positioned .virtual-interviewer
+  as a full-size absolute layer with higher selector specificity. Override that
+  legacy rule explicitly so it cannot become Aisha's containing block again.
+  All absolute Aisha children now anchor to .interview-video-stage instead.
+*/
+.interview-video-stage > .virtual-interviewer.animated-interviewer-host{
+  position:static!important;
+  inset:auto!important;
+  width:0!important;
+  height:0!important;
+  min-width:0!important;
+  min-height:0!important;
+  overflow:visible!important;
+  isolation:auto!important;
+  background:transparent!important;
+}
