@@ -1,8 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /app/
-Disallow: /login
-Disallow: /register
 Disallow: /upgrade
 
 Sitemap: https://usebragstack.com/sitemap.xml

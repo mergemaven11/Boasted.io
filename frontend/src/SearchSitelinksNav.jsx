@@ -3,6 +3,7 @@ import "./SearchSitelinksNav.css";
 const LINKS = [
   ["Resume Builder", "/resume-accomplishments", "Build evidence-backed resume material"],
   ["Practice Interviewer", "/interview-preparation", "Practice role-specific interview stories"],
+  ["Impact Receipts", "/impact-receipts", "Turn accomplishments into reusable proof"],
   ["Pricing", "/pricing", "Compare Free and Pro"],
   ["Docs", "/docs", "Learn the BragStack workflow"],
   ["Log in", "/login", "Open your BragStack account"],

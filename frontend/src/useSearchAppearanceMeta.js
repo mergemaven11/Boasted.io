@@ -22,12 +22,15 @@ const PUBLIC_META = {
 const SITELINKS = [
   ["Resume Builder", "/resume-accomplishments"],
   ["Practice Interviewer", "/interview-preparation"],
+  ["Impact Receipts", "/impact-receipts"],
   ["Pricing", "/pricing"],
   ["Docs", "/docs"],
   ["Log in", "/login"],
   ["Sign up", "/register"],
 ];
 
+const NOINDEX_PREFIXES = ["/app"];
+const NOINDEX_PATHS = new Set(["/upgrade", "/verify-receipt"]);
 const OFFICIAL_LOGO_URL = "https://usebragstack.com/bragstack-logo-192.png";
 
 function ensureMeta(selector, attributes) {
@@ -64,9 +67,19 @@ function installOfficialIcon() {
   appleTouch.href = "/bragstack-logo-192.png?v=1";
 }
 
+function isNoindexPath(path) {
+  return NOINDEX_PATHS.has(path) || NOINDEX_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+}
+
 export default function useSearchAppearanceMeta(path) {
   useEffect(() => {
     installOfficialIcon();
+
+    const robots = ensureMeta('meta[name="robots"]', { name: "robots" });
+    robots.setAttribute("content", isNoindexPath(path) ? "noindex, nofollow" : "index, follow, max-image-preview:large");
+
+    const googlebot = ensureMeta('meta[name="googlebot"]', { name: "googlebot" });
+    googlebot.setAttribute("content", isNoindexPath(path) ? "noindex, nofollow" : "index, follow, max-image-preview:large");
 
     const meta = PUBLIC_META[path];
     if (meta) {
@@ -125,6 +138,11 @@ export default function useSearchAppearanceMeta(path) {
             url: `https://usebragstack.com${href}`,
           })),
         },
+        ...SITELINKS.map(([name, href]) => ({
+          "@type": "SiteNavigationElement",
+          name,
+          url: `https://usebragstack.com${href}`,
+        })),
       ],
     };
 
