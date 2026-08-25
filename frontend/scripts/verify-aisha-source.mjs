@@ -4,21 +4,25 @@ import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { createServer } from "vite";
-import { AISHA_PORTRAIT_DATA_URI } from "../src/aishaPortraitData.js";
+import {
+  AISHA_PORTRAIT_DATA_URI,
+  AISHA_PORTRAIT_HEIGHT,
+  AISHA_PORTRAIT_WIDTH,
+} from "../src/aishaPortraitData.js";
 
-const EXPECTED_SHA256 = "a4f88a5fc2bcd437256ca848f1529b120b6dc0af6df2937a552915fa877181a0";
-const EXPECTED_BYTES = 14219;
-const FALLBACK_WIDTH = 640;
-const FALLBACK_HEIGHT = 431;
-const BUNDLED_WIDTH = 816;
-const BUNDLED_HEIGHT = 550;
-const STAGE_HEIGHT = 431;
+const EXPECTED_SHA256 = "c2bc5cb794c7c541a98bde54465c85e1a8070b3cc4cdea70323cee2d77cc5479";
+const EXPECTED_BYTES = 68923;
+const EXPECTED_WIDTH = 816;
+const EXPECTED_HEIGHT = 551;
+const PREFIX = "data:image/jpeg;base64,";
 
-assert.ok(AISHA_PORTRAIT_DATA_URI.startsWith("data:image/jpeg;base64,"), "Aisha fallback source must remain a valid inline JPEG data URI");
-const encoded = AISHA_PORTRAIT_DATA_URI.slice("data:image/jpeg;base64,".length);
-const decoded = Buffer.from(encoded, "base64");
-assert.equal(decoded.length, EXPECTED_BYTES, "Aisha fallback byte length changed or was truncated");
-assert.equal(crypto.createHash("sha256").update(decoded).digest("hex"), EXPECTED_SHA256, "Aisha fallback does not decode to the verified portrait bytes");
+assert.equal(AISHA_PORTRAIT_WIDTH, EXPECTED_WIDTH, "Approved Aisha width contract changed");
+assert.equal(AISHA_PORTRAIT_HEIGHT, EXPECTED_HEIGHT, "Approved Aisha height contract changed");
+assert.ok(AISHA_PORTRAIT_DATA_URI.startsWith(PREFIX), "Aisha must remain an inline JPEG so deploy compression/path changes cannot substitute the image");
+const decoded = Buffer.from(AISHA_PORTRAIT_DATA_URI.slice(PREFIX.length), "base64");
+assert.equal(decoded.length, EXPECTED_BYTES, "Approved Aisha portrait was truncated or recompressed");
+assert.ok(decoded.length >= 60000, "Aisha source is too aggressively compressed for the interview stage");
+assert.equal(crypto.createHash("sha256").update(decoded).digest("hex"), EXPECTED_SHA256, "Aisha no longer matches the user-approved visual master");
 assert.equal(decoded[0], 0xff, "Aisha JPEG SOI marker missing");
 assert.equal(decoded[1], 0xd8, "Aisha JPEG SOI marker missing");
 assert.equal(decoded.at(-2), 0xff, "Aisha JPEG EOI marker missing");
@@ -27,6 +31,7 @@ assert.equal(decoded.at(-1), 0xd9, "Aisha JPEG EOI marker missing");
 const interviewSource = await fs.readFile(path.resolve("src/InterviewPracticePage.jsx"), "utf8");
 const avatarSource = await fs.readFile(path.resolve("src/AnimatedInterviewerAvatar.jsx"), "utf8");
 const avatarCss = await fs.readFile(path.resolve("src/AnimatedInterviewerAvatar.css"), "utf8");
+const responsiveCss = await fs.readFile(path.resolve("src/InterviewResponsiveReference.css"), "utf8");
 const interviewCss = await fs.readFile(path.resolve("src/InterviewPracticePage.css"), "utf8");
 
 assert.match(interviewSource, /function scrollInterviewToTop\(\)/, "Interviewer must explicitly reset the viewport to the top");
@@ -36,11 +41,14 @@ assert.match(interviewSource, /recognition\.continuous = !appleMobile/, "Apple m
 assert.match(interviewSource, /primeMicrophonePermission/, "Interviewer must prime microphone permission on mobile");
 assert.match(interviewSource, /role="dialog"/, "Per-question feedback must render as a modal dialog");
 assert.match(interviewSource, /"Continue"/, "Per-question feedback must wait for an explicit Continue action");
-assert.match(avatarSource, /aishaJordanPhoto/, "Aisha should render from the bundled JPEG asset first");
-assert.match(avatarSource, /aisha-mouth-open-shape/, "Aisha speaking state must include a visible mouth-opening layer");
-assert.match(avatarCss, /@keyframes aisha-mouth-open/, "Aisha must have visible mouth-opening animation keyframes");
-assert.match(interviewCss, /height:431px/, "Aisha stage should stay below the bundled portrait height on desktop to avoid upscaling blur");
-assert.match(interviewCss, /answer-feedback-panel\[role="dialog"\]\{position:fixed/, "Feedback dialog must be centered over the interview instead of appearing at page bottom");
+assert.match(avatarSource, /src=\{AISHA_PORTRAIT_DATA_URI\}/, "Both Aisha paint layers must use the approved portrait source");
+assert.doesNotMatch(avatarSource, /aisha-jordan-interviewer\.jpg/, "Compressed legacy JPEG must not be the live Aisha source");
+assert.match(avatarCss, /\.aisha-stage-photo\{[^}]*transform:none!important;[^}]*filter:none!important;/, "Base portrait must stay static to avoid Safari transform softening");
+assert.doesNotMatch(avatarCss, /\.aisha-stage-photo\.state-(speaking|listening|encouraging)[^{]*\{[^}]*animation:/, "Whole Aisha portrait must never animate; only the mouth region may move");
+assert.match(avatarCss, /clip-path:ellipse\(5\.8% 3\.3% at 51\.4% 44\.7%\)/, "Speaking overlay must remain tightly isolated to Aisha's mouth");
+assert.doesNotMatch(responsiveCss, /background-image\s*:\s*url\([^)]*aisha-jordan-interviewer/i, "Low-quality Aisha background duplicates must not be painted behind the master portrait");
+assert.match(responsiveCss, /aspect-ratio:\s*816\s*\/\s*551/, "Desktop/tablet stage should preserve the approved portrait composition");
+assert.match(interviewCss, /answer-feedback-panel\[role="dialog"\]\{position:fixed/, "Feedback dialog must remain centered over the interview");
 
 const chromeCandidates = ["google-chrome", "chromium", "chromium-browser"];
 const chrome = chromeCandidates.find((name) => spawnSync("which", [name], { encoding: "utf8" }).status === 0);
@@ -59,21 +67,14 @@ function runProcess(command, args, timeoutMs = 30000) {
     child.stderr.setEncoding("utf8");
     child.stdout.on("data", (chunk) => { stdout += chunk; });
     child.stderr.on("data", (chunk) => { stderr += chunk; });
-    child.on("error", (error) => {
-      clearTimeout(timeout);
-      reject(error);
-    });
-    child.on("close", (code) => {
-      clearTimeout(timeout);
-      resolve({ status: code, stdout, stderr });
-    });
+    child.on("error", (error) => { clearTimeout(timeout); reject(error); });
+    child.on("close", (code) => { clearTimeout(timeout); resolve({ status: code, stdout, stderr }); });
   });
 }
 
 const harnessHtml = path.resolve("scripts/.aisha-browser-harness.html");
 const harnessJsx = path.resolve("scripts/.aisha-browser-harness.jsx");
-
-await fs.writeFile(harnessHtml, `<!doctype html><html><head><meta charset="utf-8"><title>Aisha verification</title></head><body><div id="root"></div><script type="module" src="/scripts/.aisha-browser-harness.jsx"></script></body></html>`);
+await fs.writeFile(harnessHtml, `<!doctype html><html><body><div id="root"></div><script type="module" src="/scripts/.aisha-browser-harness.jsx"></script></body></html>`);
 await fs.writeFile(harnessJsx, `
 import React from "react";
 import { createRoot } from "react-dom/client";
@@ -81,76 +82,20 @@ import AnimatedInterviewerAvatar from "../src/AnimatedInterviewerAvatar.jsx";
 import "../src/InterviewPracticePage.css";
 import "../src/AnimatedInterviewerAvatar.css";
 import "../src/InterviewResponsiveReference.css";
-
-createRoot(document.getElementById("root")).render(
-  <div className="interview-video-stage" style={{ width: "640px" }}>
-    <div className="virtual-interviewer animated-interviewer-host">
-      <AnimatedInterviewerAvatar state="speaking" />
-    </div>
-  </div>
-);
-
-(async () => {
-  for (let attempt = 0; attempt < 80; attempt += 1) {
-    const stage = document.querySelector(".interview-video-stage");
-    const image = document.querySelector(".aisha-stage-photo");
-    const mouth = document.querySelector(".aisha-mouth-open-shape");
-    if (stage && image && mouth) {
-      try {
-        await image.decode();
-        const stageRect = stage.getBoundingClientRect();
-        const imageRect = image.getBoundingClientRect();
-        const imageStyle = getComputedStyle(image);
-        const mouthStyle = getComputedStyle(mouth);
-        const fullStage = imageRect.width >= stageRect.width * 0.95 && imageRect.height >= stageRect.height * 0.95;
-        const visible = imageStyle.display !== "none" && imageStyle.visibility === "visible" && Number(imageStyle.opacity) > 0.99;
-        const bundled = image.currentSrc.includes("aisha-jordan-interviewer");
-        const fallback = image.currentSrc.startsWith("data:image/jpeg;base64,");
-        const dimensions = bundled
-          ? image.naturalWidth === ${BUNDLED_WIDTH} && image.naturalHeight === ${BUNDLED_HEIGHT}
-          : image.naturalWidth === ${FALLBACK_WIDTH} && image.naturalHeight === ${FALLBACK_HEIGHT};
-        const mouthAnimated = mouthStyle.animationName.includes("aisha-mouth-open");
-        const renderedStageHeight = Math.round(stageRect.height);
-        const nativeScale = renderedStageHeight >= ${STAGE_HEIGHT} && renderedStageHeight <= ${STAGE_HEIGHT + 2};
-        const ok = fullStage && visible && (bundled || fallback) && dimensions && mouthAnimated && nativeScale;
-        document.body.dataset.aishaResult = ok ? "ok" : "fail";
-        document.body.dataset.aishaDetails = [image.naturalWidth, image.naturalHeight, Math.round(imageRect.width), Math.round(imageRect.height), renderedStageHeight, imageStyle.display, imageStyle.visibility, imageStyle.opacity, bundled || fallback, mouthAnimated].join(":");
-        document.querySelectorAll(".aisha-stage-photo,.aisha-mouth-photo").forEach((node) => node.removeAttribute("src"));
-        return;
-      } catch (error) {
-        document.body.dataset.aishaResult = "decode-error";
-        document.body.dataset.aishaDetails = String(error);
-        return;
-      }
-    }
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-  document.body.dataset.aishaResult = "missing";
-})();
+createRoot(document.getElementById("root")).render(<div className="interview-video-stage" style={{width:"816px"}}><div className="virtual-interviewer animated-interviewer-host"><AnimatedInterviewerAvatar state="speaking" /></div></div>);
+(async()=>{for(let i=0;i<80;i++){const stage=document.querySelector(".interview-video-stage");const image=document.querySelector(".aisha-stage-photo");const mouth=document.querySelector(".aisha-mouth-open-shape");if(stage&&image&&mouth){try{await image.decode();const sr=stage.getBoundingClientRect();const ir=image.getBoundingClientRect();const style=getComputedStyle(image);const mouthStyle=getComputedStyle(mouth);const bg=getComputedStyle(stage).backgroundImage;const ok=image.naturalWidth===816&&image.naturalHeight===551&&ir.width>=sr.width*.99&&ir.height>=sr.height*.99&&style.transform==="none"&&style.filter==="none"&&style.visibility==="visible"&&Number(style.opacity)>.99&&image.currentSrc.startsWith("data:image/jpeg;base64,")&&mouthStyle.animationName.includes("aisha-mouth-open")&&bg==="none";document.body.dataset.aishaResult=ok?"ok":"fail";document.body.dataset.aishaDetails=[image.naturalWidth,image.naturalHeight,Math.round(sr.width),Math.round(sr.height),style.transform,style.filter,bg,mouthStyle.animationName].join(":");return;}catch(e){document.body.dataset.aishaResult="decode-error";return;}}await new Promise(r=>setTimeout(r,50));}document.body.dataset.aishaResult="missing";})();
 `);
 
-const server = await createServer({
-  root: process.cwd(),
-  logLevel: "error",
-  server: { host: "127.0.0.1", port: 41739, strictPort: true },
-});
-
+const server = await createServer({ root: process.cwd(), logLevel: "error", server: { host: "127.0.0.1", port: 41739, strictPort: true } });
 try {
   await server.listen();
-  const run = await runProcess(chrome, [
-    "--headless=new",
-    "--disable-gpu",
-    "--no-sandbox",
-    "--virtual-time-budget=6000",
-    "--dump-dom",
-    "http://127.0.0.1:41739/scripts/.aisha-browser-harness.html",
-  ]);
+  const run = await runProcess(chrome, ["--headless=new", "--disable-gpu", "--no-sandbox", "--virtual-time-budget=6000", "--dump-dom", "http://127.0.0.1:41739/scripts/.aisha-browser-harness.html"]);
   assert.equal(run.status, 0, `Headless browser failed: ${run.stderr || run.stdout}`);
-  assert.match(run.stdout, /data-aisha-result="ok"/, `Aisha did not render correctly in the real browser harness: ${run.stdout.slice(-2000)}`);
-  assert.match(run.stdout, /data-aisha-details="816:550:/, "Browser did not decode the higher-resolution bundled Aisha portrait");
+  assert.match(run.stdout, /data-aisha-result="ok"/, `Aisha browser quality contract failed: ${run.stdout.slice(-1800)}`);
+  assert.match(run.stdout, /data-aisha-details="816:551:/, "Browser did not decode the approved 816x551 Aisha master");
 } finally {
   await server.close();
   await Promise.allSettled([fs.unlink(harnessHtml), fs.unlink(harnessJsx)]);
 }
 
-console.log(`Aisha/interviewer verified: bundled ${BUNDLED_WIDTH}x${BUNDLED_HEIGHT} portrait, native-scale stage, visible mouth motion, mobile dictation safeguards, modal feedback, and top-of-page contract OK.`);
+console.log(`Aisha verified: approved ${EXPECTED_WIDTH}x${EXPECTED_HEIGHT}, ${EXPECTED_BYTES} bytes, static full portrait, isolated mouth motion, no compressed background duplicates.`);
