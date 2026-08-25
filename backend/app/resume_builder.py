@@ -162,11 +162,14 @@ def parse_existing_resume_text(raw_text: str) -> dict:
             if 1 < len(skill) <= 80 and skill.lower() not in {item.lower() for item in skills}:
                 skills.append(skill)
 
+    preview_sections = {key: values[:80] for key, values in sections.items() if values}
     return {
         "summary": summary,
         "bullets": bullets[:20],
         "skills": skills[:40],
         "sections_found": [key for key, values in sections.items() if values],
+        "sections": preview_sections,
+        "header_lines": unsectioned[:12],
         "line_count": len(lines),
         "text": "\n".join(lines)[:50000],
     }
@@ -189,7 +192,7 @@ def build_summary(target_role: str, matched_receipts: list[dict], imported_summa
 def analyze_resume(*, target_role: str, job_description: str, receipts: list[dict], existing_resume_text: str = "") -> dict:
     terms = extract_terms(job_description)
     imported = parse_existing_resume_text(existing_resume_text) if existing_resume_text.strip() else {
-        "summary": "", "bullets": [], "skills": [], "sections_found": [], "line_count": 0, "text": ""
+        "summary": "", "bullets": [], "skills": [], "sections_found": [], "sections": {}, "header_lines": [], "line_count": 0, "text": ""
     }
     imported_text = imported.get("text", "")
 
@@ -259,6 +262,8 @@ def analyze_resume(*, target_role: str, job_description: str, receipts: list[dic
         "imported_resume": {
             "used": bool(existing_resume_text.strip()),
             "sections_found": imported.get("sections_found", []),
+            "sections": imported.get("sections", {}),
+            "header_lines": imported.get("header_lines", []),
             "imported_bullet_count": len(imported_bullets),
         },
         "readiness": readiness,
