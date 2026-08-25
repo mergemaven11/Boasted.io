@@ -9,12 +9,27 @@ import {
   AISHA_PORTRAIT_HEIGHT,
   AISHA_PORTRAIT_WIDTH,
 } from "../src/aishaPortraitData.js";
+import hq1 from "../src/aishaPortraitChunks/hq1.js";
+import hq2 from "../src/aishaPortraitChunks/hq2.js";
+import hq3 from "../src/aishaPortraitChunks/hq3.js";
+import hq4 from "../src/aishaPortraitChunks/hq4.js";
+import hq5 from "../src/aishaPortraitChunks/hq5.js";
 
 const EXPECTED_SHA256 = "c2bc5cb794c7c541a98bde54465c85e1a8070b3cc4cdea70323cee2d77cc5479";
 const EXPECTED_BYTES = 68923;
 const EXPECTED_WIDTH = 816;
 const EXPECTED_HEIGHT = 551;
 const PREFIX = "data:image/jpeg;base64,";
+
+// Diagnostic only: inspect preserved pre-split HQ candidates without changing acceptance criteria.
+for (const [name, candidate] of Object.entries({ hq1, hq2, hq3, hq4, hq5 })) {
+  const bytes = Buffer.from(candidate, "base64");
+  const hash = crypto.createHash("sha256").update(bytes).digest("hex");
+  console.log(`Aisha candidate ${name}: base64=${candidate.length} chars bytes=${bytes.length} sha256=${hash}`);
+}
+const preservedCombined = `${hq1}${hq2}${hq3}${hq4}${hq5}`;
+const preservedCombinedBytes = Buffer.from(preservedCombined, "base64");
+console.log(`Aisha candidate hq1..hq5 combined: base64=${preservedCombined.length} chars bytes=${preservedCombinedBytes.length} sha256=${crypto.createHash("sha256").update(preservedCombinedBytes).digest("hex")}`);
 
 assert.equal(AISHA_PORTRAIT_WIDTH, EXPECTED_WIDTH, "Approved Aisha width contract changed");
 assert.equal(AISHA_PORTRAIT_HEIGHT, EXPECTED_HEIGHT, "Approved Aisha height contract changed");
