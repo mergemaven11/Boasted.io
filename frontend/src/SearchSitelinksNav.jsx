@@ -1,14 +1,5 @@
 import "./SearchSitelinksNav.css";
-
-const LINKS = [
-  ["Resume Builder", "/resume-accomplishments", "Build evidence-backed resume material"],
-  ["Practice Interviewer", "/interview-preparation", "Practice role-specific interview stories"],
-  ["Impact Receipts", "/impact-receipts", "Turn accomplishments into reusable proof"],
-  ["Pricing", "/pricing", "Compare Free and Pro"],
-  ["Docs", "/docs", "Learn the BragStack workflow"],
-  ["Log in", "/login", "Open your BragStack account"],
-  ["Sign up", "/register", "Start free"],
-];
+import { PRIMARY_SITELINKS } from "./primarySitelinks.js";
 
 export default function SearchSitelinksNav() {
   return (
@@ -21,7 +12,7 @@ export default function SearchSitelinksNav() {
         </div>
       </div>
       <nav className="search-sitelinks-grid" aria-label="Popular BragStack pages">
-        {LINKS.map(([label, href, description]) => (
+        {PRIMARY_SITELINKS.map(([label, href, description]) => (
           <a href={href} key={href}>
             <strong>{label}</strong>
             <span>{description}</span>
