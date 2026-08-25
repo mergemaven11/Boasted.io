@@ -134,7 +134,7 @@ export default function ResumeBuilderStructuredPage() {
     return () => { active = false; };
   }, []);
 
-  const parseWarnings = importedResume?.parse_warnings || [];
+  const parseWarnings = useMemo(() => importedResume?.parse_warnings || [], [importedResume]);
   const parseGate = useMemo(() => parseGateStatus(resumeDraft, parseWarnings), [resumeDraft, parseWarnings]);
   const qualificationGate = useMemo(() => qualificationGateStatus(result), [result]);
   const recruiterGate = useMemo(() => recruiterGateStatus(resumeDraft), [resumeDraft]);
@@ -281,8 +281,15 @@ export default function ResumeBuilderStructuredPage() {
     if (!result || !resumeDraft) return;
     const title = `${targetRole} · ${new Date().toLocaleDateString()}`;
     const flattened = flattenExperienceBullets(resumeDraft.experience);
-    const experience = resumeDraft.experience.map(({ id: _id, ...role }) => ({
-      ...role,
+    const experience = resumeDraft.experience.map((role) => ({
+      company: role.company,
+      title: role.title,
+      location: role.location || "",
+      start_date: role.start_date || "",
+      end_date: role.end_date || "",
+      current: Boolean(role.current),
+      dates_raw: role.dates_raw || "",
+      confidence: role.confidence || "low",
       bullets: (role.bullets || []).map((bullet) => ({ ...bullet })),
     }));
     try {
