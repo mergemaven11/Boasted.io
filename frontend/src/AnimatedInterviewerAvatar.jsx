@@ -8,28 +8,57 @@ const STATE_COPY = {
   encouraging: "Follow-up coaching",
 };
 
-// Keep the actual portrait as a normal CSS background layer. This is deliberately
-// not a canvas: browsers can paint the imported asset directly even if animation
-// APIs, image decoding timing, or canvas sizing behave differently.
-const AISHA_BACKGROUND = {
-  backgroundImage: `url("${bundledAishaJordanInterviewer}"), url("/assets/aisha-interviewer-concept.jpg")`,
+const FALLBACK_AISHA = "/assets/aisha-interviewer-concept.jpg";
+
+const BASE_PHOTO_STYLE = {
+  position: "absolute",
+  inset: 0,
+  width: "100%",
+  height: "100%",
+  minWidth: "100%",
+  minHeight: "100%",
+  display: "block",
+  objectFit: "cover",
+  objectPosition: "center 42%",
+  opacity: 1,
+  visibility: "visible",
+  pointerEvents: "none",
 };
+
+function useFallbackImage(event) {
+  const image = event.currentTarget;
+  if (image.dataset.aishaFallback === "true") return;
+  image.dataset.aishaFallback = "true";
+  image.src = FALLBACK_AISHA;
+}
 
 export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aisha Jordan", reducedMotion = false }) {
   const safeState = STATE_COPY[state] ? state : "idle";
+  const motionClass = reducedMotion ? "reduced-motion" : "";
 
   return (
     <>
-      <div
-        className={`aisha-motion-frame state-${safeState} ${reducedMotion ? "reduced-motion" : ""}`}
-        role="img"
-        aria-label={`${name}, virtual interviewer, ${STATE_COPY[safeState]}`}
-      >
-        <div className="aisha-photo-layer" style={AISHA_BACKGROUND} />
-        <div className="aisha-mouth-window" aria-hidden="true">
-          <div className="aisha-mouth-layer" style={AISHA_BACKGROUND} />
-        </div>
-      </div>
+      <img
+        className={`aisha-stage-photo state-${safeState} ${motionClass}`}
+        src={bundledAishaJordanInterviewer}
+        onError={useFallbackImage}
+        alt={`${name}, BragStack virtual interviewer`}
+        draggable="false"
+        decoding="sync"
+        fetchPriority="high"
+        style={{ ...BASE_PHOTO_STYLE, zIndex: 1 }}
+      />
+
+      <img
+        className={`aisha-mouth-photo state-${safeState} ${motionClass}`}
+        src={bundledAishaJordanInterviewer}
+        onError={useFallbackImage}
+        alt=""
+        aria-hidden="true"
+        draggable="false"
+        decoding="sync"
+        style={{ ...BASE_PHOTO_STYLE, zIndex: 2 }}
+      />
 
       <div className="aisha-photo-vignette" aria-hidden="true" />
       <div className={`aisha-speaking-glow state-${safeState}`} aria-hidden="true" />
