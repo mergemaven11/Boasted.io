@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "test:interview": "node --test src/interviewEngine*.test.js",
     "test:resume": "node --test src/resumeStructured.test.js",
+    "test:seo": "node scripts/verify-search-appearance.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
