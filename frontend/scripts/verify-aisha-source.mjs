@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { createServer } from "vite";
@@ -24,6 +24,30 @@ assert.equal(decoded.at(-1), 0xd9, "Aisha JPEG EOI marker missing");
 const chromeCandidates = ["google-chrome", "chromium", "chromium-browser"];
 const chrome = chromeCandidates.find((name) => spawnSync("which", [name], { encoding: "utf8" }).status === 0);
 assert.ok(chrome, "A Chromium/Chrome binary is required for the Aisha browser verification");
+
+function runProcess(command, args, timeoutMs = 30000) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"] });
+    let stdout = "";
+    let stderr = "";
+    const timeout = setTimeout(() => {
+      child.kill("SIGKILL");
+      reject(new Error(`Timed out after ${timeoutMs}ms: ${command}`));
+    }, timeoutMs);
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
+    child.stdout.on("data", (chunk) => { stdout += chunk; });
+    child.stderr.on("data", (chunk) => { stderr += chunk; });
+    child.on("error", (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
+    child.on("close", (code) => {
+      clearTimeout(timeout);
+      resolve({ status: code, stdout, stderr });
+    });
+  });
+}
 
 const harnessHtml = path.resolve("scripts/.aisha-browser-harness.html");
 const harnessJsx = path.resolve("scripts/.aisha-browser-harness.jsx");
@@ -62,6 +86,7 @@ createRoot(document.getElementById("root")).render(
         const ok = fullStage && visible && inlineSource && dimensions;
         document.body.dataset.aishaResult = ok ? "ok" : "fail";
         document.body.dataset.aishaDetails = [image.naturalWidth, image.naturalHeight, Math.round(imageRect.width), Math.round(imageRect.height), style.display, style.visibility, style.opacity, inlineSource].join(":");
+        document.querySelectorAll(".aisha-stage-photo,.aisha-mouth-photo").forEach((node) => node.removeAttribute("src"));
         return;
       } catch (error) {
         document.body.dataset.aishaResult = "decode-error";
@@ -83,14 +108,14 @@ const server = await createServer({
 
 try {
   await server.listen();
-  const run = spawnSync(chrome, [
+  const run = await runProcess(chrome, [
     "--headless=new",
     "--disable-gpu",
     "--no-sandbox",
     "--virtual-time-budget=6000",
     "--dump-dom",
     "http://127.0.0.1:41739/scripts/.aisha-browser-harness.html",
-  ], { encoding: "utf8", timeout: 30000 });
+  ]);
   assert.equal(run.status, 0, `Headless browser failed: ${run.stderr || run.stdout}`);
   assert.match(run.stdout, /data-aisha-result="ok"/, `Aisha did not render correctly in the real browser harness: ${run.stdout.slice(-2000)}`);
   assert.match(run.stdout, new RegExp(`data-aisha-details="${EXPECTED_WIDTH}:${EXPECTED_HEIGHT}:`), "Browser did not decode the verified full portrait dimensions");
