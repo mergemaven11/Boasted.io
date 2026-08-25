@@ -50,11 +50,21 @@ Georgia State University | Computer Science
     assert "Languages | Python, JavaScript, React" in parsed["sections"]["skills"]
     assert all(",," not in line for line in parsed["sections"]["skills"])
 
+    jobs = parsed["experience"]
+    assert len(jobs) == 2
+    assert jobs[0]["company"] == "Robin Powered"
+    assert jobs[0]["title"] == "Senior Support Specialist"
+    assert jobs[0]["start_date"] == "June 2024"
+    assert jobs[0]["end_date"] == "July 2025"
+    assert jobs[0]["bullets"][0]["text"].startswith("Delivered technical support")
+    assert jobs[1]["company"] == "Zingtree"
+    assert jobs[1]["title"] == "Technical Support Engineer"
+
 
 def test_contact_header_does_not_become_resume_section_content():
     raw = """Tobias Scott
 Software Engineer / Technical Support Engineer
-Atlanta, GA | person@example.com | 470-000-0000
+Atlanta, GA | person@example.com | 470-000-0000 | linkedin.com/in/tobias-scott
 PROJECTS
 Personal Website
 • Built a portfolio website.
@@ -67,3 +77,44 @@ August 2021 - August 2022
     assert parsed["header_lines"][0] == "Tobias Scott"
     assert any("person@example.com" in line for line in parsed["header_lines"])
     assert "Personal Website" in parsed["sections"]["projects"]
+    assert parsed["contact"]["name"] == "Tobias Scott"
+    assert parsed["contact"]["email"] == "person@example.com"
+    assert "470-000-0000" in parsed["contact"]["phone"]
+    assert parsed["contact"]["location"] == "Atlanta, GA"
+    assert "linkedin.com/in/tobias-scott" in parsed["contact"]["linkedin"]
+
+
+def test_title_then_company_pair_is_reconstructed():
+    raw = """Jane Doe
+jane@example.com
+EXPERIENCE
+Platform Engineer | Acme Cloud
+Jan 2022 - Present
+Remote
+• Built deployment automation used by engineering teams.
+• Reduced release failures by 30% through pipeline checks.
+EDUCATION
+State University
+"""
+    parsed = parse_existing_resume_text(raw)
+    assert len(parsed["experience"]) == 1
+    job = parsed["experience"][0]
+    assert job["company"] == "Acme Cloud"
+    assert job["title"] == "Platform Engineer"
+    assert job["current"] is True
+    assert job["end_date"] == "present"
+    assert job["location"] == "Remote"
+    assert len(job["bullets"]) == 2
+
+
+def test_missing_company_is_flagged_for_confirmation():
+    raw = """Jane Doe
+EXPERIENCE
+Senior Software Engineer
+2021 - 2024
+• Built internal tooling used across three teams.
+"""
+    parsed = parse_existing_resume_text(raw)
+    assert parsed["experience"][0]["title"] == "Senior Software Engineer"
+    assert parsed["experience"][0]["company"] == ""
+    assert any("Confirm employer" in warning for warning in parsed["parse_warnings"])
