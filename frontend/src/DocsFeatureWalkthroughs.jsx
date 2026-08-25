@@ -17,12 +17,36 @@ import "./DocsCustomerGuide.css";
 
 const featureCards = [
   {
+    icon: BriefcaseBusiness,
+    title: "Career Dashboard",
+    color: "green",
+    what: "See your career proof at a glance.",
+    when: "When you want a quick view of recent accomplishments, skills, evidence, and Impact Receipts.",
+    result: "A simple snapshot of what you have documented and what may deserve more attention.",
+  },
+  {
+    icon: FileText,
+    title: "Accomplishments Library",
+    color: "indigo",
+    what: "Keep your work stories organized instead of relying on memory.",
+    when: "Whenever you finish meaningful work or need to find an older example for a career moment.",
+    result: "A searchable library of situations, actions, outcomes, lessons, skills, and visibility choices.",
+  },
+  {
     icon: ReceiptText,
     title: "Impact Receipts",
     color: "purple",
-    what: "Save a meaningful win while the details are still fresh.",
-    when: "After a project, customer save, launch, fix, improvement, leadership moment, or other work you may want to remember later.",
-    result: "A reusable record of what happened, what you did, and what changed.",
+    what: "Turn an important accomplishment into reusable career proof.",
+    when: "After a project, customer save, launch, fix, improvement, leadership moment, or other work you may want to reuse later.",
+    result: "A focused record of what happened, what you did, what changed, and what safely supports the claim.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Receipt Verification",
+    color: "orange",
+    what: "Ask someone who knows the work to confirm an Impact Receipt.",
+    when: "When a collaborator, manager, stakeholder, or organization can independently confirm the contribution and result.",
+    result: "Optional third-party confirmation without requiring the verifier to create a BragStack account.",
   },
   {
     icon: FileText,
@@ -50,6 +74,14 @@ const featureCards = [
   },
   {
     icon: BriefcaseBusiness,
+    title: "Career Analytics & Packets",
+    color: "blue",
+    what: "See recurring themes in your proof and package the right examples for a specific career moment.",
+    when: "Before a review, promotion, interview, certification conversation, or when you want to understand your strongest demonstrated themes.",
+    result: "Career-proof summaries, skill patterns, and focused packets built from work you already recorded.",
+  },
+  {
+    icon: BriefcaseBusiness,
     title: "Reviews & promotions",
     color: "green",
     what: "Pull together proof from across the year instead of relying on memory at review time.",
@@ -67,9 +99,11 @@ const featureCards = [
 ];
 
 const goalPaths = [
-  { title: "I am applying for a job", steps: ["Save your strongest wins", "Paste the target job", "Build and review the resume", "Practice the interview"] },
+  { title: "I just finished something important", steps: ["Open Accomplishments", "Capture what happened", "Add your action + result", "Create an Impact Receipt for the strongest wins"] },
+  { title: "I am applying for a job", steps: ["Find your strongest proof", "Paste the target job", "Build and review the resume", "Practice the interview"] },
   { title: "I have an interview", steps: ["Choose the target role", "Practice with Aisha", "Read the coaching", "Retry your weakest answers"] },
-  { title: "I have a review or promotion talk", steps: ["Look back at your receipts", "Group repeated impact", "Pull out growth and ownership", "Build your talking points"] },
+  { title: "I have a review or promotion talk", steps: ["Look back at your receipts", "Group repeated impact", "Pull out growth and ownership", "Build your talking points or packet"] },
+  { title: "I want someone to confirm a claim", steps: ["Create an Impact Receipt", "Choose a verifier", "Send the request", "Use confirmed proof where appropriate"] },
   { title: "I want a portfolio", steps: ["Choose safe public proof", "Remove confidential details", "Publish only what you mean to share", "Keep private work private"] },
 ];
 
@@ -153,6 +187,27 @@ export default function DocsFeatureWalkthroughs() {
       </div>
     </article>
 
+    <article className="docs-feature-demo reverse docs-verification-demo" id="verification-demo">
+      <div className="docs-feature-copy">
+        <span><ShieldCheck size={16}/> RECEIPT VERIFICATION</span>
+        <h3>When it makes sense, ask someone else to confirm the claim.</h3>
+        <ol>
+          <li><b>Choose an Impact Receipt.</b> Pick a claim that another person genuinely knows enough about to review.</li>
+          <li><b>Choose the verifier.</b> This could be a collaborator, manager, stakeholder, or organization.</li>
+          <li><b>Send the request.</b> They receive a private link to review the claim.</li>
+          <li><b>They confirm or decline.</b> A verifier does not need a BragStack account to respond.</li>
+          <li><b>Keep the boundary clear.</b> Confirmation supports the specific claim; it does not turn every detail in your workspace into public proof.</li>
+        </ol>
+        <div className="docs-proof-note"><ShieldCheck size={16}/><span>The verifier's email remains private and is not displayed on your public BragStack profile.</span></div>
+      </div>
+      <div className="docs-verification-shot" role="img" aria-label="Example BragStack receipt verification request">
+        <div className="verification-shot-top"><div><ShieldCheck size={15}/><span>Request confirmation</span></div><b>Optional</b></div>
+        <div className="verification-shot-receipt"><small>IMPACT RECEIPT</small><strong>Reduced repeat deployment failures</strong><p>I diagnosed a recurring configuration issue, tested a safer change, and helped roll it out.</p></div>
+        <div className="verification-shot-person"><div className="verification-shot-avatar">JL</div><div><strong>Jordan Lee</strong><span>Manager / stakeholder</span></div><em>Private email</em></div>
+        <div className="verification-shot-status"><CheckCircle2 size={14}/><div><strong>Request ready to send</strong><span>No BragStack account required for the verifier</span></div></div>
+      </div>
+    </article>
+
     <article className="docs-feature-demo reverse" id="interview-demo">
       <div className="docs-feature-copy">
         <span><Mic2 size={16}/> PRACTICE INTERVIEW</span>
@@ -231,6 +286,26 @@ export default function DocsFeatureWalkthroughs() {
           <article className="green"><small>TEAM IMPACT</small><strong>5 examples</strong><p>Shared patterns, coached peers, and improved consistency.</p></article>
         </div>
         <div className="review-shot-bottom"><CheckCircle2 size={14}/><span>Ready to turn into review talking points</span></div>
+      </div>
+    </article>
+
+    <article className="docs-feature-demo docs-analytics-demo" id="analytics-demo">
+      <div className="docs-feature-copy">
+        <span><BriefcaseBusiness size={16}/> CAREER ANALYTICS & PACKETS</span>
+        <h3>See the themes in your proof, then package the right examples for the moment.</h3>
+        <ol>
+          <li><b>Look at the record you have actually built.</b> See accomplishments, receipts, evidence, and recurring skill themes together.</li>
+          <li><b>Notice repeated strengths.</b> If the same skill appears across multiple wins, that pattern can help tell your career story.</li>
+          <li><b>Pick the career moment.</b> Prepare a performance review, promotion case, interview packet, or certification packet.</li>
+          <li><b>Select the proof that belongs.</b> A focused packet is stronger than dumping every accomplishment into one document.</li>
+          <li><b>Review the final artifact.</b> Tailor it to the audience and keep confidential details out.</li>
+        </ol>
+      </div>
+      <div className="docs-analytics-shot" role="img" aria-label="Example BragStack career analytics and packet options">
+        <div className="analytics-shot-top"><div><BriefcaseBusiness size={15}/><span>Career Analytics</span></div><b>Proof, visualized</b></div>
+        <div className="analytics-shot-metrics"><article><strong>18</strong><span>Accomplishments</span></article><article><strong>9</strong><span>Impact Receipts</span></article><article><strong>12</strong><span>Evidence items</span></article></div>
+        <div className="analytics-shot-skills"><small>REPEATED SKILL THEMES</small><div><span>Customer judgment</span><i><u style={{width:"82%"}}/></i></div><div><span>Problem solving</span><i><u style={{width:"70%"}}/></i></div><div><span>Peer coaching</span><i><u style={{width:"56%"}}/></i></div></div>
+        <div className="analytics-shot-packets"><small>BUILD A PACKET</small><div><span>Performance review</span><span>Promotion</span><span>Interview</span><span>Certification</span></div></div>
       </div>
     </article>
 
