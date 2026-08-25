@@ -34,6 +34,13 @@ const QUESTION_HINTS = [
   ["customer_focus", ["customer","client","guest","patient"]],
 ];
 
+const QUESTION_INTENT_OVERRIDES = [
+  { competency: "role_alignment", fragments: ["what is one strength you would bring", "what evidence best demonstrates it"] },
+  { competency: "role_alignment", fragments: ["why are you interested in working as", "strong next step"] },
+  { competency: "learning", fragments: ["tell me about a skill you had to develop", "more effective in your work"] },
+  { competency: "learning", fragments: ["tell me about a mistake or setback", "what did you learn"] },
+];
+
 function normalize(value = "") {
   return String(value).toLowerCase().replace(/[^a-z0-9%$\s-]/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -58,8 +65,10 @@ function overlapScore(left = "", right = "") {
 }
 
 export function inferQuestionCompetency(question = "", explicitCompetency = "") {
-  if (explicitCompetency && COMPETENCY_CONCEPTS[explicitCompetency]) return explicitCompetency;
   const normalized = normalize(question);
+  const intentOverride = QUESTION_INTENT_OVERRIDES.find(({ fragments }) => fragments.every((fragment) => normalized.includes(normalize(fragment))));
+  if (intentOverride) return intentOverride.competency;
+  if (explicitCompetency && COMPETENCY_CONCEPTS[explicitCompetency]) return explicitCompetency;
   let best = explicitCompetency || "role_alignment";
   let score = 0;
   for (const [competency, hints] of QUESTION_HINTS) {
