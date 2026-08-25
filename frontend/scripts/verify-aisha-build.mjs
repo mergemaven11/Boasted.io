@@ -3,8 +3,8 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const EXPECTED_SHA256 = "a4f88a5fc2bcd437256ca848f1529b120b6dc0af6df2937a552915fa877181a0";
-const EXPECTED_BYTES = 14219;
+const EXPECTED_SHA256 = "c2bc5cb794c7c541a98bde54465c85e1a8070b3cc4cdea70323cee2d77cc5479";
+const EXPECTED_BYTES = 68923;
 const PREFIX = "data:image/jpeg;base64,";
 
 async function walk(dir) {
@@ -38,6 +38,7 @@ for (const file of jsFiles) {
   if (found) break;
 }
 
-assert.ok(found, "Production Vite bundle does not contain the complete verified Aisha portrait data URI");
-assert.equal(found.bytes, EXPECTED_BYTES, "Production bundle contains a truncated or transformed Aisha portrait");
+assert.ok(found, "Production Vite bundle does not contain the complete user-approved Aisha portrait data URI");
+assert.equal(found.bytes, EXPECTED_BYTES, "Production bundle contains a truncated or recompressed Aisha portrait");
+assert.ok(found.bytes >= 60000, "Production Aisha portrait fell below the quality-size guardrail");
 console.log(`Aisha production bundle verified in ${path.relative(process.cwd(), found.file)}: ${found.bytes} decoded bytes, SHA-256 ${EXPECTED_SHA256}.`);
