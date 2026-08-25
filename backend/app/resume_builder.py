@@ -40,10 +40,10 @@ ALIASES = {
 SECTION_HEADINGS = ("summary", "experience", "skills", "education", "projects")
 SECTION_NAMES = {
     "summary": {"summary", "professional summary", "profile", "professional profile", "career summary"},
-    "experience": {"experience", "work experience", "professional experience", "employment", "employment history"},
+    "experience": {"experience", "work experience", "professional experience", "employment", "employment history", "professional work experience"},
     "skills": {"skills", "technical skills", "core skills", "competencies", "core competencies"},
     "education": {"education", "education & training", "training"},
-    "projects": {"projects", "selected projects", "project experience"},
+    "projects": {"projects", "selected projects", "project experience", "technical projects"},
 }
 
 MONTHS = {
@@ -153,6 +153,8 @@ def _is_date_fragment(line: str) -> bool:
         return True
     if value in MONTHS or YEAR_RE.match(value):
         return True
+    if re.fullmatch(r"(?:19|20)\d{2}\s*[-–—]?", value, re.I):
+        return True
     if DATE_RANGE_RE.search(value):
         return True
     return bool(re.fullmatch(r"(?:19|20)\d{2}\s*[-–—]\s*(?:(?:19|20)\d{2}|present|current)", value, re.I))
@@ -162,7 +164,7 @@ def _is_role_line(line: str) -> bool:
     value = line.strip()
     if "|" in value and len(value.split()) <= 18:
         return True
-    return bool(re.search(r"\b(?:engineer|analyst|manager|developer|specialist|consultant|administrator|designer|director|lead|coordinator|recruiter)\b", value, re.I) and len(value.split()) <= 12)
+    return bool(re.search(r"\b(?:engineer|analyst|manager|developer|specialist|consultant|administrator|designer|director|lead|coordinator|recruiter|intern)\b", value, re.I) and len(value.split()) <= 14)
 
 
 def _is_structural_line(line: str) -> bool:
@@ -203,24 +205,33 @@ def _repair_extracted_lines(raw_text: str) -> list[str]:
                 next_line = lines[index]
                 if _is_structural_line(next_line):
                     break
+                # PDF extraction often breaks a single bullet after punctuation. Continue
+                # short fragments until the next obvious resume structure line.
                 bullet = f"{bullet} {next_line}".strip()
                 index += 1
-                if re.search(r"[.!?]$", bullet):
+                if re.search(r"[.!?]$", bullet) and (index >= len(lines) or _is_structural_line(lines[index])):
                     break
             repaired.append(f"• {re.sub(r'\s+', ' ', bullet).strip()}")
             continue
 
-        paragraph = line
-        index += 1
-        while index < len(lines):
-            next_line = lines[index]
-            if _is_structural_line(next_line):
-                break
-            if re.search(r"[.!?]$", paragraph):
-                break
-            paragraph = f"{paragraph} {next_line}".strip()
+        # Preserve non-bullet lines (project names, schools, degrees, etc.) as
+        # separate structural rows. This keeps the preview faithful to the upload.
+        if repaired and repaired[-1].startswith("• ") and not _is_structural_line(line):
+            # If a previous bullet was split into tiny standalone PDF fragments,
+            # append them back to that bullet instead of showing one word per line.
+            fragments = [line]
             index += 1
-        repaired.append(re.sub(r"\s+", " ", paragraph).strip())
+            while index < len(lines) and not _is_structural_line(lines[index]):
+                fragments.append(lines[index])
+                if re.search(r"[.!?]$", lines[index]):
+                    index += 1
+                    break
+                index += 1
+            repaired[-1] = re.sub(r"\s+", " ", f"{repaired[-1]} {' '.join(fragments)}").strip()
+            continue
+
+        repaired.append(line)
+        index += 1
 
     return [line for line in repaired if line]
 
@@ -243,9 +254,10 @@ def parse_existing_resume_text(raw_text: str) -> dict:
     experience_lines = sections["experience"] or []
     bullets = []
     for line in experience_lines:
-        text = BULLET_RE.sub("", line).strip()
-        if len(text) >= 18 and (BULLET_RE.match(line) or len(text.split()) >= 5):
-            bullets.append(text[:500])
+        if BULLET_RE.match(line):
+            text = BULLET_RE.sub("", line).strip()
+            if len(text) >= 18:
+                bullets.append(text[:500])
 
     if not bullets:
         for line in lines:
