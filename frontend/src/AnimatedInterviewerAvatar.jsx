@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
-import aishaJordanPhoto from "./assets/aisha-jordan-interviewer.jpg";
-import { AISHA_PORTRAIT_DATA_URI } from "./aishaPortraitData.js";
+import {
+  AISHA_PORTRAIT_DATA_URI,
+  AISHA_PORTRAIT_HEIGHT,
+  AISHA_PORTRAIT_WIDTH,
+} from "./aishaPortraitData.js";
 
 const STATE_COPY = {
   idle: "Ready when you are",
@@ -9,8 +12,6 @@ const STATE_COPY = {
   thinking: "Reviewing your answer",
   encouraging: "Follow-up coaching",
 };
-
-const FALLBACK_AISHA = AISHA_PORTRAIT_DATA_URI;
 
 const BASE_PHOTO_STYLE = {
   position: "absolute",
@@ -26,13 +27,6 @@ const BASE_PHOTO_STYLE = {
   imageRendering: "auto",
   backfaceVisibility: "hidden",
 };
-
-function useFallbackImage(event) {
-  const image = event.currentTarget;
-  if (image.dataset.aishaFallback === "true") return;
-  image.dataset.aishaFallback = "true";
-  image.src = FALLBACK_AISHA;
-}
 
 function installReliableSpeechRecognition(onBlockingError) {
   const NativeRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -107,8 +101,9 @@ export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aish
     <>
       <img
         className={`aisha-stage-photo state-${safeState} ${motionClass}`}
-        src={aishaJordanPhoto}
-        onError={useFallbackImage}
+        src={AISHA_PORTRAIT_DATA_URI}
+        width={AISHA_PORTRAIT_WIDTH}
+        height={AISHA_PORTRAIT_HEIGHT}
         alt={`${name}, BragStack virtual interviewer`}
         draggable="false"
         decoding="async"
@@ -119,8 +114,9 @@ export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aish
       <span className={`aisha-mouth-open-shape state-${safeState} ${motionClass}`} aria-hidden="true" />
       <img
         className={`aisha-mouth-photo state-${safeState} ${motionClass}`}
-        src={aishaJordanPhoto}
-        onError={useFallbackImage}
+        src={AISHA_PORTRAIT_DATA_URI}
+        width={AISHA_PORTRAIT_WIDTH}
+        height={AISHA_PORTRAIT_HEIGHT}
         alt=""
         aria-hidden="true"
         draggable="false"
