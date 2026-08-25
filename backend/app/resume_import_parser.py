@@ -190,10 +190,12 @@ def _parse_contact(header: list[str]) -> dict:
 
     for line in header[1:8]:
         candidate = _clean(line)
-        if not candidate or CONTACT_RE.search(candidate) or _looks_role(candidate):
+        if not candidate or _looks_role(candidate):
             continue
         pieces = [piece.strip() for piece in candidate.split("|") if piece.strip()]
         for piece in pieces:
+            if CONTACT_RE.search(piece):
+                continue
             if re.search(r"\b[A-Z]{2}\b", piece) or re.search(r",\s*[A-Za-z]{2,}$", piece):
                 contact["location"] = piece
                 break
