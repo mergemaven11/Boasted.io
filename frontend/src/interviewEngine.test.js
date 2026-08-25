@@ -121,7 +121,7 @@ test("coaches vague answers instead of inventing missing impact", () => {
   assert.equal(analysis.signals.quantified, false);
 });
 
-test("summarizes patterns across an interview without an employability score claim", () => {
+test("summarizes patterns across an interview without inventing a green strength", () => {
   const strong = analyzeAnswer(
     "During a customer escalation, I reviewed the case history, identified the recurring handoff issue, and created a clearer escalation checklist. As a result, the team reduced repeat handoff errors by 25 percent over six weeks.",
     { question: "Tell me about a customer problem.", competency: "problem_solving" },
@@ -135,11 +135,12 @@ test("summarizes patterns across an interview without an employability score cla
     { answer: "weak", analysis: weak },
   ]);
 
-  assert.ok(summary.strongestAreas.length > 0);
   assert.ok(summary.improvementAreas.length > 0);
   assert.ok(summary.patterns.length > 0);
   assert.equal(summary.bestAnswerIndex, 0);
   assert.ok(summary.averageWords > 0);
+  assert.ok(summary.strongestAreas.every((area) => area.score >= 70));
+  assert.equal(summary.hasStrongAreas, summary.strongestAreas.length > 0);
 });
 
 test("reports local browser capabilities without requiring them", () => {
