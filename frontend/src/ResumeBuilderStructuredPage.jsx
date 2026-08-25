@@ -146,7 +146,7 @@ export default function ResumeBuilderStructuredPage() {
   const stepState = (step) => {
     if (step === 1) return importedResume ? "done" : "active";
     if (step === 2) return importConfirmed ? "done" : importedResume ? "active" : "";
-    if (step === 3) return result ? "done" : importConfirmed ? "active" : "";
+    if (step === 3) return result ? "done" : importedResume ? "active" : "";
     return result ? "active" : "";
   };
 
@@ -168,7 +168,9 @@ export default function ResumeBuilderStructuredPage() {
       setAtsTextMode(false);
       setProofRoleIndex(0);
       setAddedProofKeys([]);
-      setMessage(`We reconstructed ${draft.experience.length} role${draft.experience.length === 1 ? "" : "s"}. Confirm the details before ATS analysis.`);
+      setMessage(draft.experience.length
+        ? `We reconstructed ${draft.experience.length} role${draft.experience.length === 1 ? "" : "s"}. Confirm the details before ATS analysis.`
+        : "We could not confidently reconstruct a role. You can still enter the target job now, then add your work history in the career-history review before running ATS Gate Check.");
     } catch (error) {
       setMessage(error.response?.data?.detail || "We could not import that resume.");
     } finally {
@@ -370,14 +372,14 @@ export default function ResumeBuilderStructuredPage() {
           <div className="resume-v2-divider" />
           <div className="resume-v2-label">Target job</div>
           <form className="resume-v2-form" onSubmit={handleBuild}>
-            {!importConfirmed && <div className="resume-v2-disabled-note">Confirm the reconstructed employer and job-title data before running ATS Gate Check.</div>}
-            <label>Target role<input value={targetRole} onChange={(event) => setTargetRole(event.target.value)} placeholder="Platform Support Engineer" required disabled={!importConfirmed} /></label>
-            <label>Job description<textarea value={jobDescription} onChange={(event) => setJobDescription(event.target.value)} placeholder="Paste the full job posting here…" required disabled={!importConfirmed} /></label>
+            {!importConfirmed && <div className="resume-v2-disabled-note">You can enter the target job now. Review and confirm the reconstructed career history before running ATS Gate Check.</div>}
+            <label>Target role<input value={targetRole} onChange={(event) => setTargetRole(event.target.value)} placeholder="Platform Support Engineer" required /></label>
+            <label>Job description<textarea value={jobDescription} onChange={(event) => setJobDescription(event.target.value)} placeholder="Paste the full job posting here…" required /></label>
             <div className="resume-v2-label">Career proof</div>
             <div className="resume-v2-receipts">
-              {receipts.slice(0, 16).map((receipt) => <label className="resume-v2-receipt" key={receipt.id}><input type="checkbox" checked={selectedIds.includes(receipt.id)} onChange={() => toggleReceipt(receipt.id)} disabled={!importConfirmed} /><span><strong>{receipt.accomplishment}</strong><small>{(receipt.skills || []).slice(0, 3).join(" · ") || "Impact Receipt"}</small></span></label>)}
+              {receipts.slice(0, 16).map((receipt) => <label className="resume-v2-receipt" key={receipt.id}><input type="checkbox" checked={selectedIds.includes(receipt.id)} onChange={() => toggleReceipt(receipt.id)} /><span><strong>{receipt.accomplishment}</strong><small>{(receipt.skills || []).slice(0, 3).join(" · ") || "Impact Receipt"}</small></span></label>)}
             </div>
-            <button className="resume-v2-primary" type="submit" disabled={!importConfirmed || building || importing}>{building ? "Running ATS Gate Check…" : result ? "Re-run ATS Gate Check" : "Run ATS Gate Check"}</button>
+            <button className="resume-v2-primary" type="submit" disabled={!importConfirmed || building || importing}>{building ? "Running ATS Gate Check…" : result ? "Re-run ATS Gate Check" : importConfirmed ? "Run ATS Gate Check" : "Confirm career history to run ATS Gate"}</button>
           </form>
         </aside>
 
