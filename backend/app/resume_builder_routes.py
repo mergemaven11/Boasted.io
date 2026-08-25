@@ -65,8 +65,8 @@ class ResumeSupportingSectionsPayload(BaseModel):
 
 class ResumeSaveRequest(BaseModel):
     title: str = Field(min_length=2, max_length=160)
-    target_role: str = Field(min_length=2, max_length=120)
-    job_description: str = Field(min_length=20, max_length=20000)
+    target_role: str = Field(default="", max_length=120)
+    job_description: str = Field(default="", max_length=20000)
     summary: str = Field(default="", max_length=1200)
     bullets: list[ResumeBulletPayload] = Field(default_factory=list, max_length=20)
     skills: list[str] = Field(default_factory=list, max_length=40)
