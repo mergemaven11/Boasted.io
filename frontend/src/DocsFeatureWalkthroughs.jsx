@@ -13,6 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 import "./DocsFeatureWalkthroughs.css";
+import "./DocsCustomerGuide.css";
 
 const featureCards = [
   {
