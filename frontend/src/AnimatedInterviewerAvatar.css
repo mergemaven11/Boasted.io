@@ -1,28 +1,98 @@
 .animated-interviewer-host{
-  place-content:stretch!important;
-  align-items:stretch!important;
-  justify-items:stretch!important;
-  grid-template-columns:minmax(0,1fr)!important;
-  grid-template-rows:minmax(0,1fr)!important;
-  overflow:hidden!important;
-  background-color:#0a0d16!important;
-  background-image:url("./assets/aisha-jordan-interviewer.jpg")!important;
-  background-size:cover!important;
-  background-position:center center!important;
-  background-repeat:no-repeat!important;
-}
-
-.animated-interviewer-host>.aisha-interviewer-canvas{
   position:absolute!important;
   inset:0!important;
   width:100%!important;
   height:100%!important;
-  min-width:100%!important;
-  min-height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
   display:block!important;
-  z-index:2!important;
-  pointer-events:none!important;
-  background:#0a0d16;
+  overflow:hidden!important;
+  isolation:isolate;
+  background-color:#0a0d16!important;
+  background-image:url("./assets/aisha-jordan-interviewer.jpg")!important;
+  background-size:cover!important;
+  background-position:center 42%!important;
+  background-repeat:no-repeat!important;
+}
+
+/*
+  The portrait is painted with CSS background layers rather than <canvas> or a
+  replaced <img> element. The stage itself remains the fallback layer, so even
+  if an animated layer is unavailable the interviewer never becomes a black box.
+*/
+.aisha-motion-frame{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  overflow:hidden;
+  pointer-events:none;
+  transform:translateZ(0);
+  transform-origin:50% 45%;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  will-change:transform;
+}
+
+.aisha-photo-layer,
+.aisha-mouth-layer{
+  position:absolute;
+  inset:-1%;
+  background-color:transparent;
+  background-size:cover;
+  background-position:center 42%;
+  background-repeat:no-repeat;
+  transform:translateZ(0);
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+}
+
+.aisha-photo-layer{
+  z-index:1;
+}
+
+/*
+  Keep the clip window fixed on Aisha's mouth while only the duplicate image
+  inside it moves. This avoids the tearing/jumping that happens when the clip
+  region itself is transformed.
+*/
+.aisha-mouth-window{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  overflow:hidden;
+  opacity:0;
+  pointer-events:none;
+  clip-path:ellipse(10.5% 5% at 52.5% 46%);
+  -webkit-clip-path:ellipse(10.5% 5% at 52.5% 46%);
+}
+
+.aisha-mouth-layer{
+  transform-origin:52.5% 46%;
+  will-change:transform,filter;
+}
+
+.aisha-motion-frame.state-speaking{
+  animation:aisha-speaking-body 4.8s ease-in-out infinite;
+}
+
+.aisha-motion-frame.state-speaking .aisha-mouth-window{
+  opacity:1;
+}
+
+.aisha-motion-frame.state-speaking .aisha-mouth-layer{
+  animation:aisha-mouth-talk .46s cubic-bezier(.4,0,.2,1) infinite;
+}
+
+.aisha-motion-frame.state-listening{
+  animation:aisha-listening-breathe 6s ease-in-out infinite;
+}
+
+.aisha-motion-frame.state-encouraging{
+  animation:aisha-encouraging-nod 1.7s ease-in-out 1;
+}
+
+.aisha-motion-frame.state-thinking{
+  filter:saturate(.97) brightness(.99);
 }
 
 .aisha-photo-vignette{
@@ -31,8 +101,8 @@
   z-index:3;
   pointer-events:none;
   background:
-    linear-gradient(180deg,rgba(4,7,15,.025) 0%,rgba(4,7,15,.015) 60%,rgba(4,7,15,.40) 100%),
-    radial-gradient(circle at 50% 42%,transparent 39%,rgba(0,0,0,.10) 100%);
+    linear-gradient(180deg,rgba(4,7,15,.02) 0%,rgba(4,7,15,.01) 60%,rgba(4,7,15,.34) 100%),
+    radial-gradient(circle at 50% 42%,transparent 42%,rgba(0,0,0,.09) 100%);
 }
 
 .aisha-speaking-glow{
@@ -80,7 +150,9 @@
   animation:avatar-pulse 1.1s ease-out infinite;
 }
 
-.avatar-state-pill.state-listening .avatar-state-dot{animation:avatar-pulse 1.4s ease-out infinite}
+.avatar-state-pill.state-listening .avatar-state-dot{
+  animation:avatar-pulse 1.4s ease-out infinite;
+}
 
 .animated-avatar-caption{
   position:absolute;
@@ -102,17 +174,78 @@
 .animated-avatar-caption strong{font-size:.8rem}
 .animated-avatar-caption span{font-size:.68rem;color:#aebbd0}
 
+@keyframes aisha-speaking-body{
+  0%,100%{transform:translate3d(0,0,0) scale(1.002)}
+  25%{transform:translate3d(-.4px,-.35px,0) scale(1.004)}
+  50%{transform:translate3d(.35px,-.65px,0) scale(1.005)}
+  75%{transform:translate3d(.45px,-.2px,0) scale(1.003)}
+}
+
+@keyframes aisha-mouth-talk{
+  0%,100%{transform:translate3d(0,0,0) scaleX(1) scaleY(1);filter:brightness(1)}
+  16%{transform:translate3d(0,.25px,0) scaleX(.996) scaleY(1.025);filter:brightness(1.006)}
+  34%{transform:translate3d(0,.48px,0) scaleX(.993) scaleY(1.055);filter:brightness(1.012)}
+  50%{transform:translate3d(0,.05px,0) scaleX(1.002) scaleY(.995);filter:brightness(1)}
+  68%{transform:translate3d(0,.38px,0) scaleX(.996) scaleY(1.042);filter:brightness(1.009)}
+  84%{transform:translate3d(0,.18px,0) scaleX(.999) scaleY(1.018);filter:brightness(1.004)}
+}
+
+@keyframes aisha-listening-breathe{
+  0%,100%{transform:translate3d(0,0,0) scale(1.002)}
+  50%{transform:translate3d(0,.7px,0) scale(1.004)}
+}
+
+@keyframes aisha-encouraging-nod{
+  0%,100%{transform:translate3d(0,0,0) scale(1.002)}
+  42%{transform:translate3d(0,1.7px,0) scale(1.004)}
+  72%{transform:translate3d(0,.2px,0) scale(1.003)}
+}
+
 @keyframes avatar-pulse{
   0%{box-shadow:0 0 0 0 rgba(167,139,250,.35)}
   100%{box-shadow:0 0 0 12px rgba(167,139,250,0)}
 }
 
 @media(max-width:620px){
+  .animated-interviewer-host,
+  .aisha-photo-layer,
+  .aisha-mouth-layer{
+    background-position:center 38%!important;
+  }
+
+  .aisha-mouth-window{
+    clip-path:ellipse(12% 4.8% at 52.5% 45%);
+    -webkit-clip-path:ellipse(12% 4.8% at 52.5% 45%);
+  }
+
+  .aisha-mouth-layer{
+    transform-origin:52.5% 45%;
+  }
+
   .animated-avatar-caption{right:10px!important;top:10px!important;max-width:52%}
   .avatar-state-pill{right:10px!important;bottom:66px!important;max-width:calc(100% - 20px)}
 }
 
+@supports not (clip-path:ellipse(10% 5% at 50% 50%)){
+  .aisha-mouth-window{display:none!important}
+}
+
+.aisha-motion-frame.reduced-motion,
+.aisha-motion-frame.reduced-motion .aisha-mouth-layer{
+  animation:none!important;
+}
+
+.aisha-motion-frame.reduced-motion .aisha-mouth-window{
+  display:none!important;
+}
+
 @media(prefers-reduced-motion:reduce){
-  .avatar-state-dot{animation:none!important}
+  .aisha-motion-frame,
+  .aisha-mouth-layer,
+  .avatar-state-dot{
+    animation:none!important;
+    transition:none!important;
+  }
+  .aisha-mouth-window{display:none!important}
   .aisha-speaking-glow{transition:none!important}
 }
