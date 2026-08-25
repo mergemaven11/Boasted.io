@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import aishaJordanPhoto from "./assets/aisha-jordan-interviewer.jpg";
 import { AISHA_PORTRAIT_DATA_URI } from "./aishaPortraitData.js";
 
@@ -16,14 +17,14 @@ const BASE_PHOTO_STYLE = {
   inset: 0,
   width: "100%",
   height: "100%",
-  minWidth: "100%",
-  minHeight: "100%",
   display: "block",
   objectFit: "cover",
   objectPosition: "center 42%",
   opacity: 1,
   visibility: "visible",
   pointerEvents: "none",
+  imageRendering: "auto",
+  backfaceVisibility: "hidden",
 };
 
 function useFallbackImage(event) {
@@ -36,6 +37,20 @@ function useFallbackImage(event) {
 export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aisha Jordan", reducedMotion = false }) {
   const safeState = STATE_COPY[state] ? state : "idle";
   const motionClass = reducedMotion ? "reduced-motion" : "";
+
+  useEffect(() => {
+    // This component mounts when the live interview room appears. Reset both
+    // document scrolling roots so SPA navigation cannot inherit the setup-page
+    // scroll position on Safari, iOS, Chrome, or desktop browsers.
+    const resetViewport = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+    resetViewport();
+    const frame = window.requestAnimationFrame(resetViewport);
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   return (
     <>
