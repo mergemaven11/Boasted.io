@@ -29,6 +29,14 @@ def _require_stripe_checkout_config() -> None:
         )
 
 
+def _require_stripe_subscription_config() -> None:
+    if not STRIPE_SECRET_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Stripe billing is not configured yet.",
+        )
+
+
 def _stripe_headers() -> dict[str, str]:
     return {
         "Authorization": f"Bearer {STRIPE_SECRET_KEY}",
@@ -82,6 +90,8 @@ def _set_subscription_state(
     billing_status: str,
     customer_id: str | None = None,
     subscription_id: str | None = None,
+    cancel_at_period_end: bool | None = None,
+    current_period_end: int | None = None,
 ) -> None:
     if not ObjectId.is_valid(user_id):
         return
@@ -94,6 +104,10 @@ def _set_subscription_state(
         updates["stripe_customer_id"] = customer_id
     if subscription_id:
         updates["stripe_subscription_id"] = subscription_id
+    if cancel_at_period_end is not None:
+        updates["billing_cancel_at_period_end"] = cancel_at_period_end
+    if current_period_end is not None:
+        updates["billing_current_period_end"] = current_period_end
 
     users_collection.update_one(
         {"_id": ObjectId(user_id)},
@@ -130,6 +144,33 @@ def _find_user_for_invoice(invoice: dict) -> dict | None:
     if user is None and customer_id:
         user = users_collection.find_one({"stripe_customer_id": customer_id})
     return user
+
+
+def _subscription_status_payload(user: dict) -> dict:
+    return {
+        "plan": get_plan_for_user(user),
+        "billing_status": user.get("billing_status", "free"),
+        "cancel_at_period_end": bool(user.get("billing_cancel_at_period_end", False)),
+        "current_period_end": user.get("billing_current_period_end"),
+        "has_subscription": bool(user.get("stripe_subscription_id")),
+    }
+
+
+async def _update_stripe_subscription(subscription_id: str, *, cancel_at_period_end: bool) -> dict:
+    _require_stripe_subscription_config()
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        response = await client.post(
+            f"{STRIPE_API_BASE}/subscriptions/{subscription_id}",
+            headers=_stripe_headers(),
+            data={"cancel_at_period_end": "true" if cancel_at_period_end else "false"},
+        )
+
+    if response.status_code >= 400:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Stripe could not update this subscription.",
+        )
+    return response.json()
 
 
 @router.post("/checkout-session")
@@ -183,10 +224,53 @@ async def create_checkout_session(current_user: dict = Depends(get_current_user)
 
 @router.get("/status")
 def billing_status(current_user: dict = Depends(get_current_user)):
-    return {
-        "plan": get_plan_for_user(current_user),
-        "billing_status": current_user.get("billing_status", "free"),
-    }
+    return _subscription_status_payload(current_user)
+
+
+@router.post("/cancel")
+async def cancel_subscription(current_user: dict = Depends(get_current_user)):
+    subscription_id = current_user.get("stripe_subscription_id")
+    if not subscription_id or get_plan_for_user(current_user) != "pro":
+        raise HTTPException(status_code=409, detail="There is no active Pro subscription to cancel.")
+
+    subscription = await _update_stripe_subscription(subscription_id, cancel_at_period_end=True)
+    user_id = str(current_user["_id"])
+    _set_subscription_state(
+        user_id,
+        plan="pro",
+        billing_status=str(subscription.get("status") or current_user.get("billing_status") or "active"),
+        customer_id=subscription.get("customer"),
+        subscription_id=subscription.get("id"),
+        cancel_at_period_end=True,
+        current_period_end=subscription.get("current_period_end"),
+    )
+
+    refreshed = users_collection.find_one({"_id": current_user["_id"]}) or current_user
+    return _subscription_status_payload(refreshed)
+
+
+@router.post("/resume")
+async def resume_subscription(current_user: dict = Depends(get_current_user)):
+    subscription_id = current_user.get("stripe_subscription_id")
+    if not subscription_id or get_plan_for_user(current_user) != "pro":
+        raise HTTPException(status_code=409, detail="There is no Pro subscription to resume.")
+    if not current_user.get("billing_cancel_at_period_end"):
+        raise HTTPException(status_code=409, detail="This subscription is already set to renew.")
+
+    subscription = await _update_stripe_subscription(subscription_id, cancel_at_period_end=False)
+    user_id = str(current_user["_id"])
+    _set_subscription_state(
+        user_id,
+        plan="pro",
+        billing_status=str(subscription.get("status") or current_user.get("billing_status") or "active"),
+        customer_id=subscription.get("customer"),
+        subscription_id=subscription.get("id"),
+        cancel_at_period_end=False,
+        current_period_end=subscription.get("current_period_end"),
+    )
+
+    refreshed = users_collection.find_one({"_id": current_user["_id"]}) or current_user
+    return _subscription_status_payload(refreshed)
 
 
 @router.post("/webhook")
@@ -226,6 +310,8 @@ async def stripe_webhook(request: Request):
                 billing_status=stripe_status,
                 customer_id=obj.get("customer"),
                 subscription_id=obj.get("id"),
+                cancel_at_period_end=bool(obj.get("cancel_at_period_end", False)),
+                current_period_end=obj.get("current_period_end"),
             )
 
     elif event_type == "customer.subscription.deleted":
@@ -237,6 +323,8 @@ async def stripe_webhook(request: Request):
                 billing_status="cancelled",
                 customer_id=obj.get("customer"),
                 subscription_id=obj.get("id"),
+                cancel_at_period_end=False,
+                current_period_end=obj.get("current_period_end"),
             )
 
     elif event_type == "invoice.payment_failed":
