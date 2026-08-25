@@ -12,6 +12,12 @@ STOPWORDS = {
     "ability", "strong", "knowledge", "through", "across", "support", "supports", "supporting",
     "customer", "customers", "company", "business", "position", "candidate", "candidates", "job",
     "information", "process", "hiring", "time", "based", "may", "also", "such", "other", "within",
+    "them", "they", "theirs", "own", "before", "after", "when", "where", "what", "which", "who",
+    "whom", "whose", "why", "how", "without", "while", "during", "into", "onto", "over", "under",
+    "more", "most", "less", "least", "some", "any", "each", "every", "both", "either", "neither",
+    "many", "much", "few", "several", "all", "none", "another", "same", "different", "new", "current",
+    "live", "internal", "external", "month", "months", "case", "cases", "review", "reviews", "reviewing",
+    "tooling", "tools", "need", "needs", "needed", "make", "makes", "made", "help", "helps", "helping",
 }
 
 LEGAL_BOILERPLATE = {
