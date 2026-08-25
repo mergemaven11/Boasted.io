@@ -2,8 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   findRequirementEvidence,
+  findRequirementEvidenceDetail,
   flattenExperienceBullets,
   makeResumeDraft,
+  makeSavedResumeDraft,
   parseGateStatus,
   serializeResumeDraft,
 } from "./resumeStructured.js";
@@ -34,17 +36,49 @@ test("structured import keeps employers, titles, dates and bullets together", ()
   assert.match(text, /35%/);
 });
 
-test("requirement evidence points back to the role that contains it", () => {
+test("saved structured versions restore role boundaries and bullet provenance", () => {
+  const draft = makeSavedResumeDraft({
+    contact: { name: "Jordan Lee", location: "Atlanta, GA" },
+    experience: [
+      {
+        company: "Example Co",
+        title: "Platform Engineer",
+        start_date: "Jan 2024",
+        end_date: "present",
+        current: true,
+        bullets: [{ text: "Reduced deployment toil by 35%.", source_kind: "impact-receipt", source_receipt_id: "507f1f77bcf86cd799439011" }],
+      },
+    ],
+  });
+  assert.equal(draft.experience.length, 1);
+  assert.equal(draft.experience[0].company, "Example Co");
+  assert.equal(draft.experience[0].bullets[0].source_kind, "impact-receipt");
+  assert.equal(makeSavedResumeDraft({ bullets: [{ text: "Legacy bullet" }] }), null);
+});
+
+test("requirement evidence points back to the exact role and source", () => {
   const draft = makeResumeDraft({
     experience: [
       {
         company: "Example Co",
         title: "Site Reliability Engineer",
-        bullets: [{ text: "Led incident response and improved service recovery." }],
+        bullets: [{ text: "Led incident response and improved service recovery.", source_kind: "impact-receipt" }],
       },
     ],
   });
   assert.equal(findRequirementEvidence("incident", { draft }), "Example Co · Site Reliability Engineer");
+  const detail = findRequirementEvidenceDetail("incident", { draft });
+  assert.equal(detail.sourceKind, "impact-receipt");
+  assert.match(detail.excerpt, /incident response/i);
+});
+
+test("requirement matching avoids substring false positives", () => {
+  const draft = makeResumeDraft({
+    experience: [{ company: "Example Co", title: "Support Engineer", bullets: [{ text: "Worked with Google Cloud and MongoDB." }] }],
+  });
+  assert.equal(findRequirementEvidence("Go", { draft }), "");
+  assert.equal(findRequirementEvidence("SQL", { draft }), "");
+  assert.equal(findRequirementEvidence("Google", { draft }), "Example Co · Support Engineer");
 });
 
 test("parse gate warns when employer or title is missing", () => {
