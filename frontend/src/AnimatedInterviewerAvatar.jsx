@@ -1,3 +1,4 @@
+import aishaJordanPhoto from "./assets/aisha-jordan-interviewer.jpg";
 import { AISHA_PORTRAIT_DATA_URI } from "./aishaPortraitData.js";
 
 const STATE_COPY = {
@@ -40,24 +41,25 @@ export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aish
     <>
       <img
         className={`aisha-stage-photo state-${safeState} ${motionClass}`}
-        src={AISHA_PORTRAIT_DATA_URI}
+        src={aishaJordanPhoto}
         onError={useFallbackImage}
         alt={`${name}, BragStack virtual interviewer`}
         draggable="false"
-        decoding="sync"
+        decoding="async"
         fetchPriority="high"
         style={{ ...BASE_PHOTO_STYLE, zIndex: 1 }}
       />
 
+      <span className={`aisha-mouth-open-shape state-${safeState} ${motionClass}`} aria-hidden="true" />
       <img
         className={`aisha-mouth-photo state-${safeState} ${motionClass}`}
-        src={AISHA_PORTRAIT_DATA_URI}
+        src={aishaJordanPhoto}
         onError={useFallbackImage}
         alt=""
         aria-hidden="true"
         draggable="false"
-        decoding="sync"
-        style={{ ...BASE_PHOTO_STYLE, zIndex: 2 }}
+        decoding="async"
+        style={{ ...BASE_PHOTO_STYLE, zIndex: 3 }}
       />
 
       <div className="aisha-photo-vignette" aria-hidden="true" />
