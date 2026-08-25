@@ -129,6 +129,8 @@ async def import_resume(file: UploadFile = File(...), current_user: dict = Depen
         "bullets": parsed["bullets"],
         "skills": parsed["skills"],
         "sections_found": parsed["sections_found"],
+        "sections": parsed.get("sections", {}),
+        "header_lines": parsed.get("header_lines", []),
         "line_count": parsed["line_count"],
     }
 

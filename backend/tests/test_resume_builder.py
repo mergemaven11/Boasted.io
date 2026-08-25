@@ -45,6 +45,14 @@ def test_legal_footer_words_do_not_become_evidence_gaps():
         assert noisy not in terms
 
 
+def test_grammar_and_generic_job_words_do_not_become_ats_gaps():
+    terms = extract_terms("Work with them on their own live internal tooling before launch. When cases are reviewed over several months, explain what happened without adding noise. Python Kubernetes Terraform incident response automation.")
+    for noisy in ("them", "own", "live", "internal", "tooling", "before", "when", "cases", "months", "what", "without", "review"):
+        assert noisy not in terms
+    for signal in ("python", "kubernetes", "terraform", "incident", "response", "automation"):
+        assert signal in terms
+
+
 def test_alias_expansion_does_not_replace_inside_unrelated_words():
     terms = extract_terms("Chair design and AI operations")
     assert "artificial" in terms
@@ -112,6 +120,24 @@ Coaching, Customer Retention, Salesforce
     assert len(parsed["bullets"]) == 2
     assert "Salesforce" in parsed["skills"]
     assert set(parsed["sections_found"]) >= {"summary", "experience", "skills"}
+
+
+def test_resume_parser_preserves_projects_education_and_header_for_preview():
+    parsed = parse_existing_resume_text("""Tobias Scott
+Atlanta, GA | tobias@example.com
+SUMMARY
+Platform engineer focused on automation.
+PROJECTS
+BragStack career platform
+Built interview and resume tooling with Python and React.
+EDUCATION
+Example University — Computer Science
+""")
+    assert parsed["header_lines"][0] == "Tobias Scott"
+    assert "projects" in parsed["sections_found"]
+    assert "education" in parsed["sections_found"]
+    assert "BragStack career platform" in parsed["sections"]["projects"]
+    assert any("Example University" in line for line in parsed["sections"]["education"])
 
 
 def test_summary_never_announces_zero_documented_accomplishments():
