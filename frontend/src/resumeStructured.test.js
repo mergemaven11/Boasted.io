@@ -7,6 +7,7 @@ import {
   makeResumeDraft,
   makeSavedResumeDraft,
   parseGateStatus,
+  recruiterGateStatus,
   serializeResumeDraft,
 } from "./resumeStructured.js";
 
@@ -54,6 +55,28 @@ test("saved structured versions restore role boundaries and bullet provenance", 
   assert.equal(draft.experience[0].company, "Example Co");
   assert.equal(draft.experience[0].bullets[0].source_kind, "impact-receipt");
   assert.equal(makeSavedResumeDraft({ bullets: [{ text: "Legacy bullet" }] }), null);
+});
+
+test("starter resumes can be structured and reopened without work history", () => {
+  const draft = makeSavedResumeDraft({
+    contact: { name: "Jordan Lee" },
+    experience: [],
+    schema_version: 4,
+  });
+  assert.ok(draft);
+  assert.equal(draft.experience.length, 0);
+
+  const content = {
+    skills: ["Python", "Linux"],
+    sections: { education: ["Example University — Computer Science"], projects: ["Built a deployment lab"] },
+  };
+  assert.equal(parseGateStatus(draft, [], content).level, "good");
+  assert.equal(recruiterGateStatus(draft, content).level, "warn");
+
+  const text = serializeResumeDraft({ draft, skills: content.skills, sections: content.sections });
+  assert.doesNotMatch(text, /PROFESSIONAL EXPERIENCE/);
+  assert.match(text, /EDUCATION/);
+  assert.match(text, /PROJECTS/);
 });
 
 test("requirement evidence points back to the exact role and source", () => {
