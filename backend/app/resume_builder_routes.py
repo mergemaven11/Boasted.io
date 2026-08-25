@@ -37,6 +37,32 @@ class ResumeBulletPayload(BaseModel):
     edited: bool = False
 
 
+class ResumeContactPayload(BaseModel):
+    name: str = Field(default="", max_length=160)
+    email: str = Field(default="", max_length=254)
+    phone: str = Field(default="", max_length=80)
+    location: str = Field(default="", max_length=160)
+    linkedin: str = Field(default="", max_length=500)
+    github: str = Field(default="", max_length=500)
+
+
+class ResumeExperiencePayload(BaseModel):
+    company: str = Field(min_length=1, max_length=240)
+    title: str = Field(min_length=1, max_length=240)
+    location: str = Field(default="", max_length=160)
+    start_date: str = Field(default="", max_length=80)
+    end_date: str = Field(default="", max_length=80)
+    current: bool = False
+    dates_raw: str = Field(default="", max_length=180)
+    confidence: str = Field(default="low", pattern="^(high|medium|low|manual)$")
+    bullets: list[ResumeBulletPayload] = Field(default_factory=list, max_length=20)
+
+
+class ResumeSupportingSectionsPayload(BaseModel):
+    projects: list[str] = Field(default_factory=list, max_length=50)
+    education: list[str] = Field(default_factory=list, max_length=50)
+
+
 class ResumeSaveRequest(BaseModel):
     title: str = Field(min_length=2, max_length=160)
     target_role: str = Field(min_length=2, max_length=120)
@@ -44,6 +70,9 @@ class ResumeSaveRequest(BaseModel):
     summary: str = Field(default="", max_length=1200)
     bullets: list[ResumeBulletPayload] = Field(default_factory=list, max_length=20)
     skills: list[str] = Field(default_factory=list, max_length=40)
+    contact: ResumeContactPayload = Field(default_factory=ResumeContactPayload)
+    experience: list[ResumeExperiencePayload] = Field(default_factory=list, max_length=20)
+    supporting_sections: ResumeSupportingSectionsPayload = Field(default_factory=ResumeSupportingSectionsPayload)
 
 
 def _owned_receipts(user_id: str, selected_ids: list[str]) -> list[dict]:
@@ -67,6 +96,11 @@ def _validate_saved_bullet_sources(user_id: str, bullets: list[ResumeBulletPaylo
     owned_count = impact_receipts_collection.count_documents({"_id": {"$in": [ObjectId(value) for value in source_ids]}, "user_id": user_id})
     if owned_count != len(source_ids):
         raise HTTPException(status_code=400, detail="Resume bullet source does not belong to this account")
+
+
+def _canonical_saved_bullets(payload: ResumeSaveRequest) -> list[ResumeBulletPayload]:
+    structured = [bullet for role in payload.experience for bullet in role.bullets]
+    return structured if payload.experience else payload.bullets
 
 
 def _server_readiness(bullets: list[ResumeBulletPayload]) -> dict:
@@ -149,9 +183,14 @@ def build_resume(payload: ResumeBuildRequest, current_user: dict = Depends(get_c
 def save_resume(payload: ResumeSaveRequest, current_user: dict = Depends(get_current_user)):
     require_feature(current_user, "resume_builder")
     user_id = str(current_user["_id"])
-    _validate_saved_bullet_sources(user_id, payload.bullets)
+    canonical_bullets = _canonical_saved_bullets(payload)
+    if len(canonical_bullets) > 100:
+        raise HTTPException(status_code=400, detail="A saved resume can contain up to 100 experience bullets")
+    _validate_saved_bullet_sources(user_id, canonical_bullets)
     now = datetime.now(timezone.utc)
     bullets = [bullet.model_dump() for bullet in payload.bullets]
+    experience = [role.model_dump() for role in payload.experience]
+    supporting_sections = payload.supporting_sections.model_dump()
     document = {
         "user_id": user_id,
         "title": payload.title.strip(),
@@ -160,8 +199,11 @@ def save_resume(payload: ResumeSaveRequest, current_user: dict = Depends(get_cur
         "summary": payload.summary,
         "bullets": bullets,
         "skills": [skill.strip()[:120] for skill in payload.skills if skill.strip()],
-        "readiness": _server_readiness(payload.bullets),
-        "schema_version": 3,
+        "contact": payload.contact.model_dump(),
+        "experience": experience,
+        "supporting_sections": supporting_sections,
+        "readiness": _server_readiness(canonical_bullets),
+        "schema_version": 4,
         "created_at": now,
         "updated_at": now,
     }
@@ -179,10 +221,15 @@ def list_resumes(current_user: dict = Depends(get_current_user)):
                 "id": str(item["_id"]),
                 "title": item.get("title", "Untitled resume"),
                 "target_role": item.get("target_role", ""),
+                "job_description": item.get("job_description", ""),
                 "summary": item.get("summary", ""),
                 "bullets": item.get("bullets", []),
                 "skills": item.get("skills", []),
+                "contact": item.get("contact", {}),
+                "experience": item.get("experience", []),
+                "supporting_sections": item.get("supporting_sections", {}),
                 "readiness": item.get("readiness", {}),
+                "schema_version": item.get("schema_version", 3),
                 "created_at": item.get("created_at"),
                 "updated_at": item.get("updated_at"),
             }
