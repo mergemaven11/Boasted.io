@@ -36,6 +36,34 @@ const sections = [
     ],
   },
   {
+    id: "dashboard",
+    icon: BriefcaseBusiness,
+    title: "Career Dashboard",
+    blurb: "A quick view of the career proof you have already captured.",
+    text: "The dashboard is your starting point when you want to see recent accomplishments, skills, evidence, and Impact Receipts without opening every part of your workspace.",
+    bullets: [
+      "See how much career proof you have documented.",
+      "Review recent accomplishments without digging through your full library.",
+      "Spot skills and themes that appear repeatedly in your work.",
+      "See which important accomplishments may be worth turning into Impact Receipts.",
+      "Jump quickly into the next task you want to complete.",
+    ],
+  },
+  {
+    id: "accomplishments",
+    icon: FileText,
+    title: "Accomplishments Library",
+    blurb: "Your searchable history of meaningful work.",
+    text: "Accomplishments are the raw career stories you capture before the details disappear from memory. Save enough context that your future self can understand the situation, your action, and the outcome.",
+    bullets: [
+      "Record work from a current job, previous job, side project, learning experience, open-source work, or personal development.",
+      "Capture the situation, what you did, what changed, and what you learned.",
+      "Add skills or tags so useful examples are easier to find later.",
+      "Search your library when you need a story for a resume, interview, review, or promotion conversation.",
+      "Choose carefully before marking any accomplishment public.",
+    ],
+  },
+  {
     id: "daily-workflow",
     icon: UserRound,
     title: "Your everyday workflow",
@@ -61,6 +89,20 @@ const sections = [
       "What changed — the result or impact.",
       "What supports it — a safe reference, link, note, metric, or other evidence when available.",
       "What it shows — skills, strengths, and shared credit.",
+    ],
+  },
+  {
+    id: "verification",
+    icon: ShieldCheck,
+    title: "Receipt Verification",
+    blurb: "Optional confirmation from someone who knows the work.",
+    text: "When a collaborator, manager, stakeholder, or organization genuinely knows the work behind an Impact Receipt, you can ask them to confirm whether the claim accurately describes your contribution and result.",
+    bullets: [
+      "Choose a receipt that the verifier actually has enough context to review.",
+      "Send a private confirmation request.",
+      "The verifier can review the claim without creating a BragStack account.",
+      "They can confirm or decline the specific claim.",
+      "Their email address is kept private and is not displayed on your public profile.",
     ],
   },
   {
@@ -105,6 +147,33 @@ const sections = [
       "Read coaching on clarity, relevance, ownership, structure, specificity, impact, and communication.",
       "Use follow-up prompts to strengthen weak parts of an answer.",
       "Finish with a summary of what to keep and what to practice next.",
+    ],
+  },
+  {
+    id: "analytics",
+    icon: TrendingUp,
+    title: "Career Analytics",
+    blurb: "See recurring themes in the career proof you have actually recorded.",
+    text: "Career Analytics helps you step back from individual accomplishments and notice patterns across your record, such as skills you demonstrate repeatedly, the types of work you do most often, and how much evidence you have collected.",
+    bullets: [
+      "See totals for accomplishments, Impact Receipts, evidence, and other recorded proof.",
+      "Notice skills that appear repeatedly across your career stories.",
+      "Review the mix of work and accomplishments you have captured.",
+      "Use the patterns as preparation for career conversations rather than as invented rankings or promises.",
+    ],
+  },
+  {
+    id: "career-packets",
+    icon: BriefcaseBusiness,
+    title: "Career Packets",
+    blurb: "Package selected proof for one specific career moment.",
+    text: "Career Packets help you choose the right recorded examples for the situation in front of you instead of handing someone your entire proof library.",
+    bullets: [
+      "Prepare a performance review from selected accomplishments and results.",
+      "Build a promotion case around growth, ownership, scope, and repeated impact.",
+      "Create an interview packet with useful stories to review before the conversation.",
+      "Create a certification packet when you need organized evidence of relevant work.",
+      "Review every packet before using it and remove confidential details that do not belong.",
     ],
   },
   {
@@ -202,7 +271,7 @@ const sections = [
   },
 ];
 
-const quickLinks = ["impact-receipts", "resume-builder", "interviewer", "career-intelligence", "evidence", "privacy"]
+const quickLinks = ["accomplishments", "impact-receipts", "resume-builder", "interviewer", "career-intelligence", "analytics", "evidence", "privacy"]
   .map((id) => sections.find((section) => section.id === id))
   .filter(Boolean);
 
@@ -265,12 +334,17 @@ export default function DocsPage() {
         <p>Learn BragStack</p>
         <a href="#getting-started"><BookOpen size={16}/>Start Here</a>
         <a href="#example-call-center"><Headphones size={16}/>Simple Example</a>
+        <a href="#feature-guide"><BriefcaseBusiness size={16}/>All Features</a>
         <a href="#impact-receipt-demo"><ReceiptText size={16}/>Impact Receipts</a>
+        <a href="#verification-demo"><ShieldCheck size={16}/>Verification</a>
         <a href="#interview-demo"><Mic2 size={16}/>Interview Demo</a>
         <a href="#resume-demo"><FileText size={16}/>Resume Demo</a>
+        <a href="#analytics-demo"><TrendingUp size={16}/>Career Analytics</a>
+        <a href="#review-demo"><BriefcaseBusiness size={16}/>Reviews & Promotion</a>
+        <a href="#public-profile-demo"><UserRound size={16}/>Public Profile</a>
+        <a href="#safe-evidence"><ShieldCheck size={16}/>Safe Evidence</a>
         <a href="#career-intelligence"><BrainCircuit size={16}/>Career Intelligence</a>
         <a href="/security"><ShieldCheck size={16}/>Security</a>
-        <a href="#privacy"><ShieldCheck size={16}/>Privacy & NDA</a>
         <a href="#billing"><CreditCard size={16}/>Billing & Pro</a>
         <a href="#faq"><CircleHelp size={16}/>FAQ</a>
       </aside>
@@ -282,7 +356,7 @@ export default function DocsPage() {
           <p>No technical background needed. Learn what each feature does, when to use it, and how your work can move from a memory to a resume, interview story, review, promotion packet, or portfolio.</p>
           <label className="docs-search">
             <Search size={18}/>
-            <input aria-label="Search documentation" placeholder="Try “resume”, “interview”, “evidence”, “billing”…" value={query} onChange={(event) => setQuery(event.target.value)}/>
+            <input aria-label="Search documentation" placeholder="Try “resume”, “verification”, “interview”, “analytics”, “privacy”…" value={query} onChange={(event) => setQuery(event.target.value)}/>
             {query && <button type="button" onClick={() => setQuery("")} aria-label="Clear documentation search"><X size={17}/></button>}
           </label>
           {q && <div className="docs-search-summary" role="status"><strong>{filtered.length}</strong> {filtered.length === 1 ? "guide" : "guides"} found for “{query.trim()}”</div>}
@@ -299,7 +373,7 @@ export default function DocsPage() {
         </>}
 
         <div className="docs-body">
-          {filtered.length ? filtered.map(({ id, icon: Icon, title, blurb, text, bullets }) => <section className="docs-section" id={id} key={id}><div className="docs-section-title"><Icon size={21}/><div><h2>{title}</h2><span>{blurb}</span></div></div><p>{text}</p><ul>{bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul></section>) : <section className="docs-empty-state"><Search size={26}/><h2>No guide matched that search.</h2><p>Try <button onClick={() => setQuery("resume")}>resume</button>, <button onClick={() => setQuery("interview")}>interview</button>, or <button onClick={() => setQuery("privacy")}>privacy</button>.</p></section>}
+          {filtered.length ? filtered.map(({ id, icon: Icon, title, blurb, text, bullets }) => <section className="docs-section" id={id} key={id}><div className="docs-section-title"><Icon size={21}/><div><h2>{title}</h2><span>{blurb}</span></div></div><p>{text}</p><ul>{bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul></section>) : <section className="docs-empty-state"><Search size={26}/><h2>No guide matched that search.</h2><p>Try <button onClick={() => setQuery("resume")}>resume</button>, <button onClick={() => setQuery("interview")}>interview</button>, or <button onClick={() => setQuery("verification")}>verification</button>.</p></section>}
 
           {!q && <>
             <section className="docs-section" id="faq">
@@ -311,6 +385,10 @@ export default function DocsPage() {
                 <article><strong>Can non-technical jobs use BragStack?</strong><p>Absolutely. Customer service, healthcare, education, operations, sales, trades, administration, and many other careers create valuable proof every day.</p></article>
                 <article><strong>Does interview feedback mean I will pass or fail a real interview?</strong><p>No. It is practice coaching designed to help you make your answers clearer and stronger.</p></article>
                 <article><strong>What if my best work is confidential?</strong><p>Keep the secret parts out. Save a safe summary of the problem, your contribution, and the result instead.</p></article>
+                <article><strong>Do I have to ask someone to verify every receipt?</strong><p>No. Verification is optional. Use it when an appropriate person can genuinely confirm a specific claim.</p></article>
+                <article><strong>What is the difference between an accomplishment and an Impact Receipt?</strong><p>An accomplishment is the fuller work story you capture. An Impact Receipt packages an important win into reusable proof with your contribution, result, supporting evidence, skills, and credit together.</p></article>
+                <article><strong>What are Career Packets for?</strong><p>They help you select and organize relevant proof for a performance review, promotion, interview, or certification conversation without rebuilding the story from scratch.</p></article>
+                <article><strong>Does Career Analytics rank me against other people?</strong><p>No. It is meant to help you understand patterns in the proof you recorded, not assign your worth or promise a career outcome.</p></article>
               </div>
             </section>
             <section className="docs-section" id="contact">
