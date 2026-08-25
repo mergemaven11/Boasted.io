@@ -40,11 +40,24 @@ ALIASES = {
 SECTION_HEADINGS = ("summary", "experience", "skills", "education", "projects")
 SECTION_NAMES = {
     "summary": {"summary", "professional summary", "profile", "professional profile", "career summary"},
-    "experience": {"experience", "work experience", "professional experience", "employment", "employment history"},
+    "experience": {"experience", "work experience", "professional experience", "employment", "employment history", "professional work experience"},
     "skills": {"skills", "technical skills", "core skills", "competencies", "core competencies"},
     "education": {"education", "education & training", "training"},
-    "projects": {"projects", "selected projects", "project experience"},
+    "projects": {"projects", "selected projects", "project experience", "technical projects"},
 }
+
+MONTHS = {
+    "january", "february", "march", "april", "may", "june", "july", "august", "september",
+    "october", "november", "december", "jan", "feb", "mar", "apr", "jun", "jul", "aug",
+    "sep", "sept", "oct", "nov", "dec", "present", "current",
+}
+BULLET_RE = re.compile(r"^[\u2022\-*▪◦]\s*")
+YEAR_RE = re.compile(r"^(?:19|20)\d{2}$")
+DATE_RANGE_RE = re.compile(
+    r"\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|"
+    r"sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b.*\b(?:19|20)\d{2}\b",
+    re.I,
+)
 
 
 def normalize_text(value: str) -> str:
@@ -129,9 +142,96 @@ def _heading_key(line: str) -> str | None:
     return None
 
 
+def _split_embedded_bullets(raw_text: str) -> list[str]:
+    expanded = re.sub(r"(?<=\S)\s+([•▪◦])\s*", r"\n\1 ", raw_text or "")
+    return [_clean_line(line) for line in expanded.splitlines() if _clean_line(line)]
+
+
+def _is_date_fragment(line: str) -> bool:
+    value = line.strip().lower().strip(".,")
+    if value in {"-", "–", "—"}:
+        return True
+    if value in MONTHS or YEAR_RE.match(value):
+        return True
+    if re.fullmatch(r"(?:19|20)\d{2}\s*[-–—]?", value, re.I):
+        return True
+    if DATE_RANGE_RE.search(value):
+        return True
+    return bool(re.fullmatch(r"(?:19|20)\d{2}\s*[-–—]\s*(?:(?:19|20)\d{2}|present|current)", value, re.I))
+
+
+def _is_role_line(line: str) -> bool:
+    value = line.strip()
+    if "|" in value and len(value.split()) <= 18:
+        return True
+    return bool(re.search(r"\b(?:engineer|analyst|manager|developer|specialist|consultant|administrator|designer|director|lead|coordinator|recruiter|intern)\b", value, re.I) and len(value.split()) <= 14)
+
+
+def _is_structural_line(line: str) -> bool:
+    return bool(_heading_key(line) or BULLET_RE.match(line) or _is_date_fragment(line) or _is_role_line(line))
+
+
+def _normalize_date_parts(parts: list[str]) -> str:
+    text = " ".join(parts)
+    text = re.sub(r"\s*[-–—]\s*", " – ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _repair_extracted_lines(raw_text: str) -> list[str]:
+    lines = _split_embedded_bullets(raw_text)
+    repaired: list[str] = []
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+
+        if _heading_key(line) or _is_role_line(line):
+            repaired.append(line)
+            index += 1
+            continue
+
+        if _is_date_fragment(line):
+            parts = [line]
+            index += 1
+            while index < len(lines) and _is_date_fragment(lines[index]) and len(parts) < 7:
+                parts.append(lines[index])
+                index += 1
+            repaired.append(_normalize_date_parts(parts))
+            continue
+
+        if BULLET_RE.match(line):
+            bullet = BULLET_RE.sub("", line).strip()
+            index += 1
+            while index < len(lines):
+                next_line = lines[index]
+                if _is_structural_line(next_line):
+                    break
+                bullet = f"{bullet} {next_line}".strip()
+                index += 1
+                if re.search(r"[.!?]$", bullet) and (index >= len(lines) or _is_structural_line(lines[index])):
+                    break
+            repaired.append(f"• {re.sub(r'\s+', ' ', bullet).strip()}")
+            continue
+
+        if repaired and repaired[-1].startswith("• ") and not _is_structural_line(line):
+            fragments = [line]
+            index += 1
+            while index < len(lines) and not _is_structural_line(lines[index]):
+                fragments.append(lines[index])
+                if re.search(r"[.!?]$", lines[index]):
+                    index += 1
+                    break
+                index += 1
+            repaired[-1] = re.sub(r"\s+", " ", f"{repaired[-1]} {' '.join(fragments)}").strip()
+            continue
+
+        repaired.append(line)
+        index += 1
+
+    return [line for line in repaired if line]
+
+
 def parse_existing_resume_text(raw_text: str) -> dict:
-    lines = [_clean_line(line) for line in (raw_text or "").splitlines()]
-    lines = [line for line in lines if line]
+    lines = _repair_extracted_lines(raw_text)
     sections: dict[str, list[str]] = {key: [] for key in SECTION_HEADINGS}
     current: str | None = None
     unsectioned: list[str] = []
@@ -145,18 +245,18 @@ def parse_existing_resume_text(raw_text: str) -> dict:
         else:
             unsectioned.append(line)
 
-    bullet_pattern = re.compile(r"^[\u2022\-*▪◦]\s*")
     experience_lines = sections["experience"] or []
     bullets = []
     for line in experience_lines:
-        text = bullet_pattern.sub("", line).strip()
-        if len(text) >= 18 and (bullet_pattern.match(line) or len(text.split()) >= 5):
-            bullets.append(text[:500])
+        if BULLET_RE.match(line):
+            text = BULLET_RE.sub("", line).strip()
+            if len(text) >= 18:
+                bullets.append(text[:500])
 
     if not bullets:
         for line in lines:
-            if bullet_pattern.match(line):
-                text = bullet_pattern.sub("", line).strip()
+            if BULLET_RE.match(line):
+                text = BULLET_RE.sub("", line).strip()
                 if len(text) >= 18:
                     bullets.append(text[:500])
 
