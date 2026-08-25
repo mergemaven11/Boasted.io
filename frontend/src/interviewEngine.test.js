@@ -111,6 +111,20 @@ test("rewards evidence that actually demonstrates the requested competency", () 
   assert.ok(analysis.meaning.matchedConceptGroups >= 2);
 });
 
+test("scores strength evidence against role alignment instead of a generic communication rubric", () => {
+  const question = "What is one strength you would bring to a Risk Analyst position, and what evidence best demonstrates it?";
+  const answer = "One strength I would bring to a Risk Analyst role is proactive risk identification. In a startup role, I developed and documented risk processes, adjusted vendor rules, reviewed controls, and worked cross-functionally to identify gaps before they became larger problems. That allowed me to operate as the primary risk resource, improved the team's risk process, and supported business goals with clearer controls.";
+  const analysis = analyzeAnswer(answer, {
+    question,
+    competency: "communication",
+    roleTitle: "Risk Analyst",
+  });
+
+  assert.equal(analysis.signals.competency, "role_alignment");
+  assert.ok(analysis.dimensions.relevance.score >= 55);
+  assert.doesNotMatch(analysis.improvements.join(" "), /tie the story directly to communication/i);
+});
+
 test("coaches vague answers instead of inventing missing impact", () => {
   const analysis = analyzeAnswer("We handled it and everything was fine.", {
     question: "Tell me about a difficult customer situation.",
