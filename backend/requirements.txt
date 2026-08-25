@@ -11,5 +11,5 @@ pytest
 httpx
 mongomock
 reportlab==4.4.3
-pypdf==5.9.0
+pypdf==6.15.0
 python-docx==1.2.0
