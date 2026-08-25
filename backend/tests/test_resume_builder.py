@@ -45,6 +45,14 @@ def test_legal_footer_words_do_not_become_evidence_gaps():
         assert noisy not in terms
 
 
+def test_grammar_and_generic_job_words_do_not_become_ats_gaps():
+    terms = extract_terms("Work with them on their own live internal tooling before launch. When cases are reviewed over several months, explain what happened without adding noise. Python Kubernetes Terraform incident response automation.")
+    for noisy in ("them", "own", "live", "internal", "tooling", "before", "when", "cases", "months", "what", "without", "review"):
+        assert noisy not in terms
+    for signal in ("python", "kubernetes", "terraform", "incident", "response", "automation"):
+        assert signal in terms
+
+
 def test_alias_expansion_does_not_replace_inside_unrelated_words():
     terms = extract_terms("Chair design and AI operations")
     assert "artificial" in terms
