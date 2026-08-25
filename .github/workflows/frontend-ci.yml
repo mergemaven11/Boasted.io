@@ -41,6 +41,9 @@ jobs:
       - name: Test interview intelligence engine
         run: npm run test:interview
 
+      - name: Test structured resume helpers
+        run: npm run test:resume
+
       - name: Lint
         run: npm run lint
 
