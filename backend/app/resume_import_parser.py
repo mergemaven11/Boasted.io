@@ -56,7 +56,6 @@ def _join_fragments(lines: list[str], start: int) -> tuple[str, int]:
         nxt = _clean(lines[i])
         if not nxt or _heading(nxt) or BULLET_RE.match(nxt) or _date_atom(nxt) or _looks_role(nxt):
             break
-        # PDF column extraction often emits comma-terminated skill/tech fragments.
         if len(parts) >= 1 and _looks_short_label(parts[0]) and _looks_short_label(nxt) and not parts[-1].endswith((",", ";", ":")):
             break
         parts.append(nxt.strip("|"))
@@ -77,12 +76,17 @@ def _repair(raw_text: str) -> list[str]:
             i += 1
             continue
         if _heading(line):
-            out.append(line); i += 1; continue
+            out.append(line)
+            i += 1
+            continue
         if _date_atom(line):
-            parts = [line]; i += 1
+            parts = [line]
+            i += 1
             while i < len(source) and (_date_atom(source[i]) or _clean(source[i]) in {"-", "–", "—"}) and len(parts) < 6:
-                parts.append(source[i]); i += 1
-            out.append(_date_range(parts)); continue
+                parts.append(source[i])
+                i += 1
+            out.append(_date_range(parts))
+            continue
         if BULLET_RE.match(line):
             text = BULLET_RE.sub("", line).strip()
             i += 1
@@ -94,7 +98,8 @@ def _repair(raw_text: str) -> list[str]:
                 i += 1
                 if re.search(r"[.!?]$", text):
                     break
-            out.append("• " + _clean(text)); continue
+            out.append("• " + _clean(text))
+            continue
         out.append(line.strip("| "))
         i += 1
     return [x for x in out if x]
@@ -110,13 +115,16 @@ def parse_existing_resume_text(raw_text: str) -> dict:
         line = lines[i]
         heading = _heading(line)
         if heading:
-            current = heading; i += 1; continue
+            current = heading
+            i += 1
+            continue
         if current is None:
-            header.append(line); i += 1; continue
+            header.append(line)
+            i += 1
+            continue
         sections[current].append(line)
         i += 1
 
-    # Rebuild skills into compact category rows instead of one token per line.
     skill_lines = sections["skills"]
     compact_skills: list[str] = []
     pending_label = ""
@@ -130,7 +138,9 @@ def parse_existing_resume_text(raw_text: str) -> dict:
             compact_skills.append(f"{pending_label} | {line.strip('| ')}")
             pending_label = ""
         elif compact_skills and (line.startswith("|") or len(line.split()) <= 2):
-            compact_skills[-1] = _clean(compact_skills[-1] + ", " + line.strip("| ,"))
+            base = compact_skills[-1].rstrip(" ,;")
+            addition = line.strip("| ,;")
+            compact_skills[-1] = _clean(f"{base}, {addition}")
         else:
             compact_skills.append(line)
     sections["skills"] = compact_skills
