@@ -114,6 +114,24 @@ Coaching, Customer Retention, Salesforce
     assert set(parsed["sections_found"]) >= {"summary", "experience", "skills"}
 
 
+def test_resume_parser_preserves_projects_education_and_header_for_preview():
+    parsed = parse_existing_resume_text("""Tobias Scott
+Atlanta, GA | tobias@example.com
+SUMMARY
+Platform engineer focused on automation.
+PROJECTS
+BragStack career platform
+Built interview and resume tooling with Python and React.
+EDUCATION
+Example University — Computer Science
+""")
+    assert parsed["header_lines"][0] == "Tobias Scott"
+    assert "projects" in parsed["sections_found"]
+    assert "education" in parsed["sections_found"]
+    assert "BragStack career platform" in parsed["sections"]["projects"]
+    assert any("Example University" in line for line in parsed["sections"]["education"])
+
+
 def test_summary_never_announces_zero_documented_accomplishments():
     result = analyze_resume(target_role="Solutions Engineer", job_description="technical discovery solution design", receipts=[])
     assert "0 relevant" not in result["summary"].lower()
