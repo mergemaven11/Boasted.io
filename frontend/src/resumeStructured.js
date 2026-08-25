@@ -63,7 +63,7 @@ export function makeResumeDraft(importedResume = {}, user = {}) {
 }
 
 export function makeSavedResumeDraft(savedResume = {}, user = {}) {
-  if (!Array.isArray(savedResume.experience) || !savedResume.experience.length) return null;
+  if (!Array.isArray(savedResume.experience)) return null;
   return makeResumeDraft(
     {
       contact: savedResume.contact || {},
@@ -165,14 +165,28 @@ export function findRequirementEvidence(term, context = {}) {
   return findRequirementEvidenceDetail(term, context)?.label || "";
 }
 
-export function parseGateStatus(draft, parseWarnings = []) {
+function supportingContentCount(content = {}) {
+  const skills = Array.isArray(content.skills) ? content.skills.filter((item) => clean(item)).length : 0;
+  const education = Array.isArray(content.sections?.education) ? content.sections.education.filter((item) => clean(item)).length : 0;
+  const projects = Array.isArray(content.sections?.projects) ? content.sections.projects.filter((item) => clean(item)).length : 0;
+  const summary = clean(content.summary) ? 1 : 0;
+  return skills + education + projects + summary;
+}
+
+export function parseGateStatus(draft, parseWarnings = [], content = {}) {
   const roles = draft?.experience || [];
-  if (!roles.length) return { level: "bad", label: "Needs attention", detail: "No work history was confidently reconstructed." };
+  const supportingCount = supportingContentCount(content);
+  if (!roles.length && !supportingCount) {
+    return { level: "bad", label: "Needs content", detail: "Add work history, projects, education, skills, or a summary before applying." };
+  }
   const incomplete = roles.filter((role) => !clean(role.company) || !clean(role.title));
   if (incomplete.length || parseWarnings.length) {
     return { level: "warn", label: "Review", detail: `${Math.max(incomplete.length, parseWarnings.length)} item${Math.max(incomplete.length, parseWarnings.length) === 1 ? "" : "s"} should be confirmed before applying.` };
   }
-  return { level: "good", label: "Ready", detail: `${roles.length} role${roles.length === 1 ? "" : "s"} reconstructed with employer and title.` };
+  if (!roles.length) {
+    return { level: "good", label: "Structured", detail: "This resume is built from structured education, projects, skills, or summary content without requiring work history." };
+  }
+  return { level: "good", label: "Ready", detail: `${roles.length} role${roles.length === 1 ? "" : "s"} structured with employer and title.` };
 }
 
 export function qualificationGateStatus(result) {
@@ -183,10 +197,16 @@ export function qualificationGateStatus(result) {
   return { level: "bad", label: "Needs work", detail: "The current resume is missing many detected job signals." };
 }
 
-export function recruiterGateStatus(draft) {
+export function recruiterGateStatus(draft, content = {}) {
   const bullets = flattenExperienceBullets(draft?.experience || []);
   const quantified = bullets.filter((bullet) => bullet.has_metrics).length;
-  if (!bullets.length) return { level: "bad", label: "Needs work", detail: "No experience bullets are available for a recruiter to scan." };
+  if (!bullets.length) {
+    const supportingCount = supportingContentCount(content);
+    if (supportingCount) {
+      return { level: "warn", label: "Project-led", detail: "No work-history bullets yet. Recruiter scan will rely on projects, education, skills, and summary content." };
+    }
+    return { level: "bad", label: "Needs work", detail: "Add accomplishments, projects, education, or skills for a recruiter to scan." };
+  }
   if (quantified >= 3) return { level: "good", label: "Ready", detail: `${quantified} accomplishment bullets show measurable impact.` };
   return { level: "warn", label: "Polish", detail: `${quantified} bullet${quantified === 1 ? "" : "s"} show measurable impact. Add numbers only where they are true.` };
 }

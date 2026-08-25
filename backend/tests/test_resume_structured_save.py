@@ -83,6 +83,37 @@ def test_save_resume_writes_structured_schema(monkeypatch):
     assert captured["experience"][0]["bullets"][0]["source_kind"] == "imported"
 
 
+def test_master_resume_can_save_without_target_job_or_work_history(monkeypatch):
+    captured = {}
+
+    class FakeCollection:
+        def insert_one(self, document):
+            captured.update(document)
+            return type("InsertResult", (), {"inserted_id": ObjectId("507f1f77bcf86cd799439012")})()
+
+    monkeypatch.setattr(routes, "resume_documents_collection", FakeCollection())
+    monkeypatch.setattr(routes, "require_feature", lambda user, feature: None)
+
+    payload = routes.ResumeSaveRequest(
+        title="Master Resume · Aug 25",
+        summary="Computer science student focused on platform engineering.",
+        skills=["Python", "Linux", "Docker"],
+        contact=routes.ResumeContactPayload(name="Jordan Lee", email="jordan@example.com"),
+        supporting_sections=routes.ResumeSupportingSectionsPayload(
+            projects=["Built a containerized deployment lab using Docker and Linux"],
+            education=["Example University — Computer Science"],
+        ),
+    )
+
+    response = routes.save_resume(payload, current_user={"_id": ObjectId("507f191e810c19729de860ea")})
+
+    assert response["target_role"] == ""
+    assert response["job_description"] == ""
+    assert response["experience"] == []
+    assert response["skills"] == ["Python", "Linux", "Docker"]
+    assert captured["supporting_sections"]["education"] == ["Example University — Computer Science"]
+
+
 def test_legacy_save_payload_without_structured_history_still_validates():
     payload = routes.ResumeSaveRequest(
         title="Legacy saved resume",

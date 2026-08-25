@@ -4,24 +4,46 @@ import re
 
 SECTION_KEYS = ("summary", "skills", "projects", "experience", "education")
 SECTION_NAMES = {
-    "summary": {"summary", "professional summary", "profile", "professional profile"},
-    "skills": {"skills", "technical skills", "core skills", "technical proficiencies"},
+    "summary": {"summary", "professional summary", "profile", "professional profile", "career summary"},
+    "skills": {
+        "skills", "technical skills", "core skills", "technical proficiencies", "core competencies",
+        "competencies", "areas of expertise",
+    },
     "projects": {"projects", "technical projects", "selected projects", "project experience"},
-    "experience": {"experience", "work experience", "professional experience", "professional work experience", "employment history"},
-    "education": {"education", "education & training", "training"},
+    "experience": {
+        "experience", "work experience", "professional experience", "professional work experience",
+        "employment history", "employment", "work history", "career experience", "relevant experience",
+        "employment experience", "professional background",
+    },
+    "education": {"education", "education & training", "training", "academic background"},
 }
 BULLET_RE = re.compile(r"^[•▪◦*-]\s*")
-MONTH_RE = re.compile(r"^(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|present|current)$", re.I)
+MONTH_RE = re.compile(
+    r"^(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|"
+    r"sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|present|current)$",
+    re.I,
+)
 YEAR_RE = re.compile(r"^(?:19|20)\d{2}$")
-ROLE_RE = re.compile(r"\b(?:engineer|analyst|manager|developer|specialist|consultant|administrator|designer|director|lead|coordinator|recruiter|intern|architect|technician|officer|associate|supervisor|scientist|product owner|program manager|project manager)\b", re.I)
+ROLE_RE = re.compile(
+    r"\b(?:engineer|analyst|manager|developer|specialist|consultant|administrator|designer|director|"
+    r"lead|coordinator|recruiter|intern|architect|technician|officer|associate|supervisor|scientist|"
+    r"advisor|representative|executive|technologist|programmer|tester|strategist|product owner|"
+    r"program manager|project manager|scrum master|customer success|service desk|support professional)\b",
+    re.I,
+)
 CONTACT_RE = re.compile(r"(?:@|\b\d{3}[-.)\s]\d{3}[-.\s]\d{4}\b|linkedin|github\.com|https?://)", re.I)
 EMAIL_RE = re.compile(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", re.I)
 PHONE_RE = re.compile(r"(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s])\d{3}[-.\s]\d{4}")
 LINK_RE = re.compile(r"(?:https?://\S+|(?:www\.)?linkedin\.com/\S+|(?:www\.)?github\.com/\S+)", re.I)
 DATE_RANGE_RE = re.compile(
-    r"(?P<start>(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)?\s*(?:19|20)\d{2})\s*[-–—]\s*(?P<end>(?:(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)?\s*(?:19|20)\d{2}|present|current))",
+    r"(?P<start>(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|"
+    r"sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)?\s*(?:19|20)\d{2})\s*[-–—]\s*"
+    r"(?P<end>(?:(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|"
+    r"sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)?\s*(?:19|20)\d{2}|present|current))",
     re.I,
 )
+SIMPLE_DATE_RANGE_RE = re.compile(r"\b(?:19|20)\d{2}\s*[-–—]\s*(?:(?:19|20)\d{2}|present|current)\b", re.I)
+SEPARATOR_RE = re.compile(r"\s*(?:[|·•]|\s+[–—]\s+|\s+-\s+)\s*")
 
 
 def _clean(value: str) -> str:
@@ -48,28 +70,23 @@ def _date_range(parts: list[str]) -> str:
 
 
 def _looks_role(line: str) -> bool:
-    return bool(ROLE_RE.search(line)) and len(line.split()) <= 18
+    return bool(ROLE_RE.search(line)) and len(line.split()) <= 20
 
 
 def _looks_short_label(line: str) -> bool:
     words = line.split()
-    return 0 < len(words) <= 8 and not re.search(r"[.!?]$", line)
+    return 0 < len(words) <= 10 and not re.search(r"[.!?]$", line)
 
 
-def _join_fragments(lines: list[str], start: int) -> tuple[str, int]:
-    parts = [_clean(lines[start]).strip("|")]
-    i = start + 1
-    while i < len(lines):
-        nxt = _clean(lines[i])
-        if not nxt or _heading(nxt) or BULLET_RE.match(nxt) or _date_atom(nxt) or _looks_role(nxt):
-            break
-        if len(parts) >= 1 and _looks_short_label(parts[0]) and _looks_short_label(nxt) and not parts[-1].endswith((",", ";", ":")):
-            break
-        parts.append(nxt.strip("|"))
-        i += 1
-        if re.search(r"[.!?]$", parts[-1]):
-            break
-    return _clean(" ".join(parts)), i
+def _looks_location(line: str) -> bool:
+    value = _clean(line).strip("|, ")
+    if not value or CONTACT_RE.search(value):
+        return False
+    if re.search(r"\b(?:remote|hybrid|onsite|on-site)\b", value, re.I):
+        return True
+    if re.search(r",\s*[A-Z]{2}\b", value):
+        return True
+    return bool(re.search(r"\b[A-Z]{2}\b", value) and len(value.split()) <= 6)
 
 
 def _repair(raw_text: str) -> list[str]:
@@ -89,7 +106,7 @@ def _repair(raw_text: str) -> list[str]:
         if _date_atom(line):
             parts = [line]
             i += 1
-            while i < len(source) and (_date_atom(source[i]) or _clean(source[i]) in {"-", "–", "—"}) and len(parts) < 6:
+            while i < len(source) and (_date_atom(source[i]) or _clean(source[i]) in {"-", "–", "—"}) and len(parts) < 7:
                 parts.append(source[i])
                 i += 1
             out.append(_date_range(parts))
@@ -114,7 +131,12 @@ def _repair(raw_text: str) -> list[str]:
 
 def _split_role_company(line: str) -> tuple[str, str, str]:
     """Return company, title, confidence for one employer/title line."""
-    parts = [_clean(part) for part in re.split(r"\s*[|·•]\s*", line) if _clean(part)]
+    value = _clean(line).strip("| ")
+    at_match = re.match(r"(?P<title>.+?)\s+at\s+(?P<company>.+)$", value, re.I)
+    if at_match and _looks_role(at_match.group("title")):
+        return _clean(at_match.group("company")), _clean(at_match.group("title")), "high"
+
+    parts = [_clean(part) for part in SEPARATOR_RE.split(value) if _clean(part)]
     if len(parts) >= 2:
         left, right = parts[0], parts[1]
         left_role = bool(ROLE_RE.search(left))
@@ -127,9 +149,9 @@ def _split_role_company(line: str) -> tuple[str, str, str]:
             return left, right, "medium"
         if left_role:
             return right, left, "medium"
-    if _looks_role(line):
-        return "", line, "low"
-    return line, "", "low"
+    if _looks_role(value):
+        return "", value, "low"
+    return value, "", "low"
 
 
 def _parse_dates(value: str) -> dict:
@@ -151,7 +173,7 @@ def _parse_dates(value: str) -> dict:
         "start_date": start,
         "end_date": "present" if current else end,
         "current": current,
-        "dates_raw": raw,
+        "dates_raw": _clean(match.group(0)).replace("—", "–"),
     }
 
 
@@ -196,12 +218,50 @@ def _parse_contact(header: list[str]) -> dict:
         for piece in pieces:
             if CONTACT_RE.search(piece):
                 continue
-            if re.search(r"\b[A-Z]{2}\b", piece) or re.search(r",\s*[A-Za-z]{2,}$", piece):
+            if _looks_location(piece):
                 contact["location"] = piece
                 break
         if contact["location"]:
             break
     return contact
+
+
+def _blank_entry(*, company: str = "", title: str = "", confidence: str = "low") -> dict:
+    return {
+        "company": company,
+        "title": title,
+        "location": "",
+        "start_date": "",
+        "end_date": "",
+        "current": False,
+        "dates_raw": "",
+        "bullets": [],
+        "confidence": confidence,
+    }
+
+
+def _date_match(line: str):
+    return DATE_RANGE_RE.search(line) or SIMPLE_DATE_RANGE_RE.search(line)
+
+
+def _identity_and_location_around_dates(line: str) -> tuple[str, str]:
+    match = _date_match(line)
+    remainder = line
+    if match:
+        remainder = f"{line[:match.start()]} {line[match.end():]}"
+    remainder = _clean(remainder).strip("|,; -–—")
+    if not remainder:
+        return "", ""
+
+    parts = [_clean(part) for part in SEPARATOR_RE.split(remainder) if _clean(part)]
+    location = ""
+    identity_parts: list[str] = []
+    for part in parts:
+        if not location and _looks_location(part):
+            location = part
+        else:
+            identity_parts.append(part)
+    return " | ".join(identity_parts), location
 
 
 def _parse_experience(lines: list[str]) -> tuple[list[dict], list[str]]:
@@ -225,23 +285,13 @@ def _parse_experience(lines: list[str]) -> tuple[list[dict], list[str]]:
     i = 0
     while i < len(lines):
         line = _clean(lines[i])
-        if not line:
+        if not line or _heading(line):
             i += 1
             continue
 
         if BULLET_RE.match(line):
             if current is None:
-                current = {
-                    "company": pending_company,
-                    "title": "",
-                    "location": "",
-                    "start_date": "",
-                    "end_date": "",
-                    "current": False,
-                    "dates_raw": "",
-                    "bullets": [],
-                    "confidence": "low",
-                }
+                current = _blank_entry(company=pending_company)
                 pending_company = ""
             text = BULLET_RE.sub("", line).strip()
             if text:
@@ -249,48 +299,55 @@ def _parse_experience(lines: list[str]) -> tuple[list[dict], list[str]]:
             i += 1
             continue
 
-        if DATE_RANGE_RE.search(line) or (re.search(r"(?:19|20)\d{2}", line) and re.search(r"[-–—]|present|current", line, re.I)):
+        date_hit = bool(_date_match(line)) or (
+            re.search(r"(?:19|20)\d{2}", line) and re.search(r"[-–—]|present|current", line, re.I)
+        )
+        if date_hit:
+            identity_text, location = _identity_and_location_around_dates(line)
+            if identity_text and (_looks_role(identity_text) or "|" in identity_text or re.search(r"\s+at\s+", identity_text, re.I)):
+                company, title, confidence = _split_role_company(identity_text)
+                if title:
+                    flush()
+                    current = _blank_entry(
+                        company=company or pending_company,
+                        title=title,
+                        confidence=confidence if company or pending_company else "low",
+                    )
+                    pending_company = ""
             if current is None:
-                current = {
-                    "company": pending_company,
-                    "title": "",
-                    "location": "",
-                    "start_date": "",
-                    "end_date": "",
-                    "current": False,
-                    "dates_raw": "",
-                    "bullets": [],
-                    "confidence": "low",
-                }
+                current = _blank_entry(company=pending_company)
                 pending_company = ""
             current.update(_parse_dates(line))
+            if location and not current.get("location"):
+                current["location"] = location
             i += 1
             continue
 
-        if "|" in line or _looks_role(line):
+        if "|" in line or "·" in line or _looks_role(line) or re.search(r"\s+at\s+", line, re.I):
             company, title, confidence = _split_role_company(line)
             if title:
                 flush()
-                current = {
-                    "company": company or pending_company,
-                    "title": title,
-                    "location": "",
-                    "start_date": "",
-                    "end_date": "",
-                    "current": False,
-                    "dates_raw": "",
-                    "bullets": [],
-                    "confidence": confidence if company or pending_company else "low",
-                }
+                current = _blank_entry(
+                    company=company or pending_company,
+                    title=title,
+                    confidence=confidence if company or pending_company else "low",
+                )
                 pending_company = ""
                 i += 1
                 continue
 
         if _looks_short_label(line):
             next_line = _clean(lines[i + 1]) if i + 1 < len(lines) else ""
-            if current and current.get("title") and not current.get("location") and (
-                re.search(r",\s*[A-Za-z]{2,}$", line) or re.search(r"\b(?:remote|hybrid|onsite|on-site)\b", line, re.I)
-            ):
+            next_is_date = bool(_date_match(next_line)) or bool(
+                re.search(r"(?:19|20)\d{2}", next_line) and re.search(r"[-–—]|present|current", next_line, re.I)
+            )
+            if current and current.get("title") and not current.get("company") and not _looks_location(line):
+                if next_is_date or BULLET_RE.match(next_line) or _looks_location(next_line):
+                    current["company"] = line
+                    current["confidence"] = "medium"
+                    i += 1
+                    continue
+            if current and current.get("title") and not current.get("location") and _looks_location(line):
                 current["location"] = line
             elif _looks_role(next_line):
                 pending_company = line
@@ -305,25 +362,37 @@ def _parse_experience(lines: list[str]) -> tuple[list[dict], list[str]]:
     return entries[:20], list(dict.fromkeys(warnings))[:20]
 
 
+def _structured_experience_lines(entries: list[dict]) -> list[str]:
+    out: list[str] = []
+    for entry in entries:
+        heading = " | ".join(part for part in [entry.get("company", ""), entry.get("title", "")] if part)
+        if heading:
+            out.append(heading)
+        if entry.get("dates_raw"):
+            out.append(entry["dates_raw"])
+        if entry.get("location"):
+            out.append(entry["location"])
+        for bullet in entry.get("bullets", []):
+            text = _clean(bullet.get("text", ""))
+            if text:
+                out.append(f"• {text}")
+    return out
+
+
 def parse_existing_resume_text(raw_text: str) -> dict:
     lines = _repair(raw_text)
     sections = {key: [] for key in SECTION_KEYS}
     header: list[str] = []
     current: str | None = None
-    i = 0
-    while i < len(lines):
-        line = lines[i]
+    for line in lines:
         heading = _heading(line)
         if heading:
             current = heading
-            i += 1
             continue
         if current is None:
             header.append(line)
-            i += 1
-            continue
-        sections[current].append(line)
-        i += 1
+        else:
+            sections[current].append(line)
 
     skill_lines = sections["skills"]
     compact_skills: list[str] = []
@@ -331,7 +400,11 @@ def parse_existing_resume_text(raw_text: str) -> dict:
     for line in skill_lines:
         if line == "|":
             continue
-        if _looks_short_label(line) and not any(ch in line for ch in ",;|") and line.lower() in {"languages", "frameworks", "libraries", "tools", "platforms", "databases", "cloud", "operating systems"}:
+        if (
+            _looks_short_label(line)
+            and not any(ch in line for ch in ",;|")
+            and line.lower() in {"languages", "frameworks", "libraries", "tools", "platforms", "databases", "cloud", "operating systems"}
+        ):
             pending_label = line
             continue
         if pending_label:
@@ -346,7 +419,23 @@ def parse_existing_resume_text(raw_text: str) -> dict:
     sections["skills"] = compact_skills
 
     experience, parse_warnings = _parse_experience(sections["experience"])
-    contact = _parse_contact(header)
+    if not experience:
+        inferred, inferred_warnings = _parse_experience(lines)
+        inferred = [
+            entry for entry in inferred
+            if entry.get("title") and (entry.get("company") or entry.get("dates_raw") or entry.get("bullets"))
+        ]
+        if inferred:
+            experience = inferred
+            parse_warnings = inferred_warnings
+            if not sections["experience"]:
+                parse_warnings = [
+                    "Work history was inferred because the resume did not use a standard experience heading.",
+                    *parse_warnings,
+                ]
+            sections["experience"] = _structured_experience_lines(experience)
+
+    contact = _parse_contact(header if header else lines[:12])
 
     bullets = [
         bullet["text"]
@@ -355,9 +444,17 @@ def parse_existing_resume_text(raw_text: str) -> dict:
         if len(bullet.get("text", "")) >= 18
     ]
     if not bullets:
-        bullets = [BULLET_RE.sub("", x).strip() for x in sections["experience"] if BULLET_RE.match(x) and len(BULLET_RE.sub("", x).strip()) >= 18]
+        bullets = [
+            BULLET_RE.sub("", x).strip()
+            for x in sections["experience"]
+            if BULLET_RE.match(x) and len(BULLET_RE.sub("", x).strip()) >= 18
+        ]
     if not bullets:
-        bullets = [BULLET_RE.sub("", x).strip() for x in lines if BULLET_RE.match(x) and len(BULLET_RE.sub("", x).strip()) >= 18]
+        bullets = [
+            BULLET_RE.sub("", x).strip()
+            for x in lines
+            if BULLET_RE.match(x) and len(BULLET_RE.sub("", x).strip()) >= 18
+        ]
 
     skills: list[str] = []
     for line in sections["skills"]:
@@ -377,7 +474,7 @@ def parse_existing_resume_text(raw_text: str) -> dict:
         "header_lines": header[:12],
         "contact": contact,
         "experience": experience,
-        "parse_warnings": parse_warnings,
+        "parse_warnings": list(dict.fromkeys(parse_warnings))[:20],
         "line_count": len(lines),
         "text": "\n".join(lines)[:50000],
     }

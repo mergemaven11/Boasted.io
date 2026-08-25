@@ -118,3 +118,54 @@ Senior Software Engineer
     assert parsed["experience"][0]["title"] == "Senior Software Engineer"
     assert parsed["experience"][0]["company"] == ""
     assert any("Confirm employer" in warning for warning in parsed["parse_warnings"])
+
+
+def test_combined_company_title_location_and_dates_are_reconstructed():
+    raw = """Jane Doe
+jane@example.com
+WORK HISTORY
+Acme Cloud | Platform Support Engineer | Atlanta, GA | Jan 2022 - Present
+• Built deployment automation used by engineering teams.
+"""
+    parsed = parse_existing_resume_text(raw)
+    assert len(parsed["experience"]) == 1
+    job = parsed["experience"][0]
+    assert job["company"] == "Acme Cloud"
+    assert job["title"] == "Platform Support Engineer"
+    assert job["location"] == "Atlanta, GA"
+    assert job["start_date"] == "Jan 2022"
+    assert job["end_date"] == "present"
+
+
+def test_title_then_company_on_separate_lines_is_reconstructed():
+    raw = """Jane Doe
+PROFESSIONAL EXPERIENCE
+Platform Support Engineer
+Acme Cloud
+Jan 2022 - Present
+Remote
+• Built deployment automation used by engineering teams.
+"""
+    parsed = parse_existing_resume_text(raw)
+    assert len(parsed["experience"]) == 1
+    job = parsed["experience"][0]
+    assert job["company"] == "Acme Cloud"
+    assert job["title"] == "Platform Support Engineer"
+    assert job["location"] == "Remote"
+
+
+def test_work_history_can_be_inferred_without_standard_heading():
+    raw = """Jane Doe
+Atlanta, GA | jane@example.com
+Platform Support Engineer | Acme Cloud
+Jan 2022 - Present
+Remote
+• Built deployment automation used by engineering teams.
+EDUCATION
+State University
+"""
+    parsed = parse_existing_resume_text(raw)
+    assert len(parsed["experience"]) == 1
+    assert parsed["experience"][0]["company"] == "Acme Cloud"
+    assert "experience" in parsed["sections_found"]
+    assert any("inferred" in warning.lower() for warning in parsed["parse_warnings"])
