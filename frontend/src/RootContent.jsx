@@ -3,6 +3,7 @@ import AccomplishmentsPage from "./AccomplishmentsPage.jsx";
 import App from "./App.jsx";
 import AppSidebar from "./AppSidebar.jsx";
 import AppearanceSettingsPage from "./AppearanceSettingsPage.jsx";
+import BillingSettingsPage from "./BillingSettingsPage.jsx";
 import DashboardPage from "./DashboardPage.jsx";
 import DocsPage from "./DocsPage.jsx";
 import ImpactReceiptsPage from "./ImpactReceiptsPage.jsx";
@@ -114,6 +115,7 @@ function RootContent() {
   else if (path === "/app/settings") Content = SettingsPage;
   else if (path === "/app/profile") Content = ProfilePage;
   else if (path === "/app/settings/appearance") Content = AppearanceSettingsPage;
+  else if (path === "/app/settings/billing") Content = BillingSettingsPage;
   else if (path === "/app/accomplishments") Content = AccomplishmentsPage;
   else if (path === "/app/impact-receipts") Content = ImpactReceiptsWithVerification;
   else if (path === "/app/resume-builder" && planLoaded) {
