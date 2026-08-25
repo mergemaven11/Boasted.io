@@ -32,7 +32,7 @@ assert.match(interviewSource, /recognition\.interimResults = true/, "Speech reco
 assert.match(interviewSource, /recognition\.continuous = !appleMobile/, "Apple mobile speech recognition must use restartable short sessions");
 assert.match(interviewSource, /primeMicrophonePermission/, "Interviewer must prime microphone permission on mobile");
 assert.match(interviewSource, /role="dialog"/, "Per-question feedback must render as a modal dialog");
-assert.match(interviewSource, />Continue</, "Per-question feedback must wait for an explicit Continue action");
+assert.match(interviewSource, /"Continue"/, "Per-question feedback must wait for an explicit Continue action");
 assert.match(avatarSource, /aishaJordanPhoto/, "Aisha should render from the bundled JPEG asset first");
 assert.match(avatarSource, /aisha-mouth-open-shape/, "Aisha speaking state must include a visible mouth-opening layer");
 assert.match(avatarCss, /@keyframes aisha-mouth-open/, "Aisha must have visible mouth-opening animation keyframes");
