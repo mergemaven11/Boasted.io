@@ -30,6 +30,21 @@ function cloneBullet(bullet) {
   };
 }
 
+function cloneExperienceEntry(entry, index = 0, prefix = "imported-role") {
+  return {
+    id: entry?.id || `${prefix}-${index}`,
+    company: clean(entry?.company),
+    title: clean(entry?.title),
+    location: clean(entry?.location),
+    start_date: clean(entry?.start_date),
+    end_date: clean(entry?.end_date),
+    current: Boolean(entry?.current),
+    dates_raw: clean(entry?.dates_raw),
+    confidence: entry?.confidence || "low",
+    bullets: (entry?.bullets || []).map(cloneBullet).filter((bullet) => bullet.text),
+  };
+}
+
 export function makeResumeDraft(importedResume = {}, user = {}) {
   const contact = importedResume.contact || {};
   const header = importedResume.header_lines || [];
@@ -43,19 +58,19 @@ export function makeResumeDraft(importedResume = {}, user = {}) {
       linkedin: clean(contact.linkedin),
       github: clean(contact.github),
     },
-    experience: experience.map((entry, index) => ({
-      id: entry.id || `imported-role-${index}`,
-      company: clean(entry.company),
-      title: clean(entry.title),
-      location: clean(entry.location),
-      start_date: clean(entry.start_date),
-      end_date: clean(entry.end_date),
-      current: Boolean(entry.current),
-      dates_raw: clean(entry.dates_raw),
-      confidence: entry.confidence || "low",
-      bullets: (entry.bullets || []).map(cloneBullet).filter((bullet) => bullet.text),
-    })),
+    experience: experience.map((entry, index) => cloneExperienceEntry(entry, index)),
   };
+}
+
+export function makeSavedResumeDraft(savedResume = {}, user = {}) {
+  if (!Array.isArray(savedResume.experience) || !savedResume.experience.length) return null;
+  return makeResumeDraft(
+    {
+      contact: savedResume.contact || {},
+      experience: savedResume.experience,
+    },
+    user,
+  );
 }
 
 export function flattenExperienceBullets(experience = []) {
@@ -97,24 +112,57 @@ export function serializeResumeDraft({ draft, summary = "", skills = [], section
   return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function containsTerm(value, term) {
   const haystack = clean(value).toLowerCase();
   const needle = clean(term).toLowerCase();
-  return Boolean(needle) && haystack.includes(needle);
+  if (!needle) return false;
+  const parts = needle.split(/\s+/).filter(Boolean).map(escapeRegex);
+  if (!parts.length) return false;
+  const expression = parts.join("[\\s/_-]+");
+  return new RegExp(`(^|[^a-z0-9])${expression}(?=$|[^a-z0-9])`, "i").test(haystack);
 }
 
-export function findRequirementEvidence(term, { draft, summary = "", skills = [] } = {}) {
-  for (const role of draft?.experience || []) {
+function excerptAroundTerm(value, term, maxLength = 150) {
+  const text = clean(value);
+  if (!text) return "";
+  if (text.length <= maxLength) return text;
+  const lower = text.toLowerCase();
+  const index = lower.indexOf(clean(term).toLowerCase());
+  const start = Math.max(0, index > -1 ? index - Math.floor(maxLength / 3) : 0);
+  const slice = text.slice(start, start + maxLength).trim();
+  return `${start > 0 ? "…" : ""}${slice}${start + maxLength < text.length ? "…" : ""}`;
+}
+
+export function findRequirementEvidenceDetail(term, { draft, summary = "", skills = [] } = {}) {
+  for (let roleIndex = 0; roleIndex < (draft?.experience || []).length; roleIndex += 1) {
+    const role = draft.experience[roleIndex];
     const roleLabel = [role.company, role.title].filter(Boolean).join(" · ") || "Work experience";
-    if (containsTerm(role.company, term) || containsTerm(role.title, term)) return roleLabel;
+    if (containsTerm(role.company, term) || containsTerm(role.title, term)) {
+      return { label: roleLabel, sourceKind: "role", roleIndex, excerpt: roleLabel };
+    }
     for (const bullet of role.bullets || []) {
-      if (containsTerm(bullet?.text || bullet, term)) return roleLabel;
+      if (containsTerm(bullet?.text || bullet, term)) {
+        return {
+          label: roleLabel,
+          sourceKind: bullet?.source_kind === "impact-receipt" ? "impact-receipt" : "experience",
+          roleIndex,
+          excerpt: excerptAroundTerm(bullet?.text || bullet, term),
+        };
+      }
     }
   }
   const skill = (skills || []).find((item) => containsTerm(item, term));
-  if (skill) return `Skills · ${skill}`;
-  if (containsTerm(summary, term)) return "Professional summary";
-  return "";
+  if (skill) return { label: `Skills · ${skill}`, sourceKind: "skills", roleIndex: null, excerpt: skill };
+  if (containsTerm(summary, term)) return { label: "Professional summary", sourceKind: "summary", roleIndex: null, excerpt: excerptAroundTerm(summary, term) };
+  return null;
+}
+
+export function findRequirementEvidence(term, context = {}) {
+  return findRequirementEvidenceDetail(term, context)?.label || "";
 }
 
 export function parseGateStatus(draft, parseWarnings = []) {
