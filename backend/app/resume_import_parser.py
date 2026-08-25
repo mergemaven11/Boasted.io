@@ -10,10 +10,15 @@ SECTION_NAMES = {
     "experience": {"experience", "work experience", "professional experience", "professional work experience", "employment history"},
     "education": {"education", "education & training", "training"},
 }
+SKILL_LABELS = {
+    "languages", "frameworks", "libraries", "tools", "platforms", "databases", "cloud",
+    "operating systems", "technologies", "technical skills", "support tools", "crm", "crms",
+}
 BULLET_RE = re.compile(r"^[•▪◦*-]\s*")
 MONTH_RE = re.compile(r"^(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|present|current)$", re.I)
 YEAR_RE = re.compile(r"^(?:19|20)\d{2}$")
 ROLE_RE = re.compile(r"\b(?:engineer|analyst|manager|developer|specialist|consultant|administrator|designer|director|lead|coordinator|recruiter|intern)\b", re.I)
+PROJECT_SIGNAL_RE = re.compile(r"\b(?:project|website|site|extension|application|app|portfolio|prototype|dashboard|service|api|tool)\b", re.I)
 CONTACT_RE = re.compile(r"(?:@|\b\d{3}[-.)\s]\d{3}[-.\s]\d{4}\b|linkedin|github\.com|https?://)", re.I)
 
 
@@ -47,6 +52,37 @@ def _looks_role(line: str) -> bool:
 def _looks_short_label(line: str) -> bool:
     words = line.split()
     return 0 < len(words) <= 8 and not re.search(r"[.!?]$", line)
+
+
+def _looks_skillish(line: str) -> bool:
+    value = _clean(line).strip("| ,;:")
+    if not value:
+        return False
+    if value.lower() in SKILL_LABELS:
+        return True
+    if BULLET_RE.match(value) or _date_atom(value) or _looks_role(value):
+        return False
+    if PROJECT_SIGNAL_RE.search(value):
+        return False
+    if re.search(r"[.!?]$", value):
+        return False
+    # Skill rows are commonly comma/pipe separated or short technology names.
+    if any(sep in value for sep in (",", ";", " | ")):
+        return len(value.split()) <= 20
+    return len(value.split()) <= 3 and len(value) <= 40
+
+
+def _projects_are_actually_skills(lines: list[str]) -> bool:
+    cleaned = [_clean(line) for line in lines if _clean(line)]
+    if not cleaned:
+        return False
+    # A real project section needs a project signal or a descriptive bullet/sentence.
+    has_project_signal = any(PROJECT_SIGNAL_RE.search(line) for line in cleaned)
+    has_project_detail = any(BULLET_RE.match(line) or re.search(r"[.!?]$", line) for line in cleaned)
+    if has_project_signal or has_project_detail:
+        return False
+    skillish = sum(1 for line in cleaned if _looks_skillish(line))
+    return skillish >= max(2, int(len(cleaned) * 0.75))
 
 
 def _join_fragments(lines: list[str], start: int) -> tuple[str, int]:
@@ -125,13 +161,19 @@ def parse_existing_resume_text(raw_text: str) -> dict:
         sections[current].append(line)
         i += 1
 
+    # Two-column PDFs can interleave a skills rail beneath a PROJECTS heading.
+    # Do not advertise a fake Technical Projects section when the content is only skills.
+    if _projects_are_actually_skills(sections["projects"]):
+        sections["skills"].extend(sections["projects"])
+        sections["projects"] = []
+
     skill_lines = sections["skills"]
     compact_skills: list[str] = []
     pending_label = ""
     for line in skill_lines:
         if line == "|":
             continue
-        if _looks_short_label(line) and not any(ch in line for ch in ",;|") and line.lower() in {"languages", "frameworks", "libraries", "tools", "platforms", "databases", "cloud", "operating systems"}:
+        if _looks_short_label(line) and not any(ch in line for ch in ",;|") and line.lower() in SKILL_LABELS:
             pending_label = line
             continue
         if pending_label:
