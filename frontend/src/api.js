@@ -113,6 +113,9 @@ export async function loginUser(credentials) {
 }
 export async function getCurrentUser() { const response = await api.get("/auth/me"); return response.data; }
 export async function updateCurrentUserProfile(profile) { const response = await api.patch("/auth/me/profile", profile); return response.data; }
+export async function getBillingStatus() { const response = await api.get("/billing/status"); return response.data; }
+export async function cancelSubscription() { const response = await api.post("/billing/cancel"); return response.data; }
+export async function resumeSubscription() { const response = await api.post("/billing/resume"); return response.data; }
 export async function getPublicProfile(slug) { const response = await api.get(getPublicBragPath(slug, "/profile")); return response.data; }
 export async function getEntries(limit = 10, skip = 0) { const response = await api.get("/entries", { params: { limit, skip } }); return response.data; }
 export async function getWeeklyReport() { const response = await api.get("/entries/reports/weekly"); return response.data; }
