@@ -437,7 +437,7 @@ export default function InterviewPracticePage() {
       if (autoListenRef.current && phaseRef.current === "listening" && timerRunningRef.current) {
         setMicrophoneStatus("Reconnecting microphone…");
         recognitionRestartRef.current = window.setTimeout(() => { void startDictation(); }, appleMobile ? 180 : 250);
-      } else if (!microphoneError) {
+      } else {
         setMicrophoneStatus("");
       }
     };
