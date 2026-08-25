@@ -67,3 +67,30 @@ August 2021 - August 2022
     assert parsed["header_lines"][0] == "Tobias Scott"
     assert any("person@example.com" in line for line in parsed["header_lines"])
     assert "Personal Website" in parsed["sections"]["projects"]
+
+
+def test_skill_only_content_is_not_labeled_as_technical_projects():
+    raw = """Tobias Scott
+Technical Support Engineer
+TECHNICAL PROJECTS
+Languages
+Python
+JavaScript
+React
+Frameworks
+Angular
+Node.js
+Tools
+Salesforce, Zendesk, Jira, GitHub
+EXPERIENCE
+Zingtree | Technical Support Engineer
+August 2021 - August 2022
+• Supported customer integrations.
+"""
+    parsed = parse_existing_resume_text(raw)
+    assert "projects" not in parsed["sections_found"]
+    assert "skills" in parsed["sections_found"]
+    skills_text = " ".join(parsed["sections"]["skills"])
+    assert "Python" in skills_text
+    assert "JavaScript" in skills_text
+    assert "Salesforce" in skills_text
