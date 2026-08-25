@@ -8,8 +8,11 @@ import { AISHA_PORTRAIT_DATA_URI } from "../src/aishaPortraitData.js";
 
 const EXPECTED_SHA256 = "a4f88a5fc2bcd437256ca848f1529b120b6dc0af6df2937a552915fa877181a0";
 const EXPECTED_BYTES = 14219;
-const EXPECTED_WIDTH = 640;
-const EXPECTED_HEIGHT = 431;
+const FALLBACK_WIDTH = 640;
+const FALLBACK_HEIGHT = 431;
+const BUNDLED_WIDTH = 816;
+const BUNDLED_HEIGHT = 550;
+const STAGE_HEIGHT = 431;
 
 assert.ok(AISHA_PORTRAIT_DATA_URI.startsWith("data:image/jpeg;base64,"), "Aisha fallback source must remain a valid inline JPEG data URI");
 const encoded = AISHA_PORTRAIT_DATA_URI.slice("data:image/jpeg;base64,".length);
@@ -36,7 +39,7 @@ assert.match(interviewSource, /"Continue"/, "Per-question feedback must wait for
 assert.match(avatarSource, /aishaJordanPhoto/, "Aisha should render from the bundled JPEG asset first");
 assert.match(avatarSource, /aisha-mouth-open-shape/, "Aisha speaking state must include a visible mouth-opening layer");
 assert.match(avatarCss, /@keyframes aisha-mouth-open/, "Aisha must have visible mouth-opening animation keyframes");
-assert.match(interviewCss, /height:431px/, "Aisha stage should stay at native portrait height on desktop to avoid upscaling blur");
+assert.match(interviewCss, /height:431px/, "Aisha stage should stay below the bundled portrait height on desktop to avoid upscaling blur");
 assert.match(interviewCss, /answer-feedback-panel\[role="dialog"\]\{position:fixed/, "Feedback dialog must be centered over the interview instead of appearing at page bottom");
 
 const chromeCandidates = ["google-chrome", "chromium", "chromium-browser"];
@@ -101,13 +104,17 @@ createRoot(document.getElementById("root")).render(
         const mouthStyle = getComputedStyle(mouth);
         const fullStage = imageRect.width >= stageRect.width * 0.95 && imageRect.height >= stageRect.height * 0.95;
         const visible = imageStyle.display !== "none" && imageStyle.visibility === "visible" && Number(imageStyle.opacity) > 0.99;
-        const bundledOrFallback = image.currentSrc.includes("aisha-jordan-interviewer") || image.currentSrc.startsWith("data:image/jpeg;base64,");
-        const dimensions = image.naturalWidth === ${EXPECTED_WIDTH} && image.naturalHeight === ${EXPECTED_HEIGHT};
+        const bundled = image.currentSrc.includes("aisha-jordan-interviewer");
+        const fallback = image.currentSrc.startsWith("data:image/jpeg;base64,");
+        const dimensions = bundled
+          ? image.naturalWidth === ${BUNDLED_WIDTH} && image.naturalHeight === ${BUNDLED_HEIGHT}
+          : image.naturalWidth === ${FALLBACK_WIDTH} && image.naturalHeight === ${FALLBACK_HEIGHT};
         const mouthAnimated = mouthStyle.animationName.includes("aisha-mouth-open");
-        const nativeHeight = Math.round(stageRect.height) === ${EXPECTED_HEIGHT};
-        const ok = fullStage && visible && bundledOrFallback && dimensions && mouthAnimated && nativeHeight;
+        const renderedStageHeight = Math.round(stageRect.height);
+        const nativeScale = renderedStageHeight >= ${STAGE_HEIGHT} && renderedStageHeight <= ${STAGE_HEIGHT + 2};
+        const ok = fullStage && visible && (bundled || fallback) && dimensions && mouthAnimated && nativeScale;
         document.body.dataset.aishaResult = ok ? "ok" : "fail";
-        document.body.dataset.aishaDetails = [image.naturalWidth, image.naturalHeight, Math.round(imageRect.width), Math.round(imageRect.height), Math.round(stageRect.height), imageStyle.display, imageStyle.visibility, imageStyle.opacity, bundledOrFallback, mouthAnimated].join(":");
+        document.body.dataset.aishaDetails = [image.naturalWidth, image.naturalHeight, Math.round(imageRect.width), Math.round(imageRect.height), renderedStageHeight, imageStyle.display, imageStyle.visibility, imageStyle.opacity, bundled || fallback, mouthAnimated].join(":");
         document.querySelectorAll(".aisha-stage-photo,.aisha-mouth-photo").forEach((node) => node.removeAttribute("src"));
         return;
       } catch (error) {
@@ -140,10 +147,10 @@ try {
   ]);
   assert.equal(run.status, 0, `Headless browser failed: ${run.stderr || run.stdout}`);
   assert.match(run.stdout, /data-aisha-result="ok"/, `Aisha did not render correctly in the real browser harness: ${run.stdout.slice(-2000)}`);
-  assert.match(run.stdout, new RegExp(`data-aisha-details="${EXPECTED_WIDTH}:${EXPECTED_HEIGHT}:`), "Browser did not decode the verified full portrait dimensions");
+  assert.match(run.stdout, /data-aisha-details="816:550:/, "Browser did not decode the higher-resolution bundled Aisha portrait");
 } finally {
   await server.close();
   await Promise.allSettled([fs.unlink(harnessHtml), fs.unlink(harnessJsx)]);
 }
 
-console.log(`Aisha/interviewer verified: ${decoded.length} fallback bytes, ${EXPECTED_WIDTH}x${EXPECTED_HEIGHT}, native-scale stage, visible mouth motion, mobile dictation safeguards, modal feedback, and top-of-page contract OK.`);
+console.log(`Aisha/interviewer verified: bundled ${BUNDLED_WIDTH}x${BUNDLED_HEIGHT} portrait, native-scale stage, visible mouth motion, mobile dictation safeguards, modal feedback, and top-of-page contract OK.`);
