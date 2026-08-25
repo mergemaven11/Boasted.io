@@ -1,20 +1,25 @@
 .animated-interviewer-host{
-  position:absolute!important;
-  inset:0!important;
-  width:100%!important;
-  height:100%!important;
+  /*
+    Keep this wrapper out of the sizing/stacking chain. The stage is the real
+    containing block for every Aisha layer, so browser differences cannot
+    collapse the portrait into a thin strip.
+  */
+  position:static!important;
+  inset:auto!important;
+  width:0!important;
+  height:0!important;
   min-width:0!important;
   min-height:0!important;
   display:block!important;
-  overflow:hidden!important;
-  isolation:isolate;
-  background-color:transparent!important;
+  overflow:visible!important;
+  isolation:auto!important;
+  background:transparent!important;
 }
 
 /*
-  The base Aisha portrait is a real <img> that fills the interviewer host.
-  Critical sizing is also set inline in the component so cascade differences
-  cannot collapse or hide the portrait on Safari/iPad or other browsers.
+  The base Aisha portrait is a real <img>. Because the wrapper above is static,
+  these absolute layers resolve against .interview-video-stage, which is the
+  positioned stage container across desktop, tablet, iPad, iPhone, and Android.
 */
 .aisha-stage-photo,
 .aisha-mouth-photo{
@@ -24,6 +29,8 @@
   height:100%!important;
   min-width:100%!important;
   min-height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
   display:block!important;
   object-fit:cover!important;
   object-position:center 42%!important;
@@ -224,4 +231,22 @@
   }
   .aisha-mouth-photo{display:none!important}
   .aisha-speaking-glow{transition:none!important}
+}
+
+/*
+  InterviewResponsiveReference.css previously positioned .virtual-interviewer
+  as a full-size absolute layer with higher selector specificity. Override that
+  legacy rule explicitly so it cannot become Aisha's containing block again.
+  All absolute Aisha children now anchor to .interview-video-stage instead.
+*/
+.interview-video-stage > .virtual-interviewer.animated-interviewer-host{
+  position:static!important;
+  inset:auto!important;
+  width:0!important;
+  height:0!important;
+  min-width:0!important;
+  min-height:0!important;
+  overflow:visible!important;
+  isolation:auto!important;
+  background:transparent!important;
 }
