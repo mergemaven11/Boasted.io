@@ -210,6 +210,59 @@ export default function DocsFeatureWalkthroughs() {
       </div>
     </article>
 
+    <article className="docs-feature-demo reverse docs-review-demo" id="review-demo">
+      <div className="docs-feature-copy">
+        <span><BriefcaseBusiness size={16}/> REVIEWS & PROMOTIONS</span>
+        <h3>Show the pattern, not just the last thing you remember.</h3>
+        <ol>
+          <li><b>Look back across the review period.</b> Pull together receipts from different projects and moments.</li>
+          <li><b>Group similar proof.</b> Repeated customer impact, ownership, reliability, leadership, or technical growth tells a stronger story than one isolated win.</li>
+          <li><b>Choose representative examples.</b> You do not need every receipt in the final conversation.</li>
+          <li><b>Give shared credit.</b> Strong career proof can show your contribution without erasing the team.</li>
+          <li><b>Turn the pattern into talking points.</b> Use the evidence to prepare, then adapt it to your company's review process.</li>
+        </ol>
+      </div>
+      <div className="docs-review-shot" role="img" aria-label="Example review preparation summary built from career proof">
+        <div className="review-shot-top"><div><BriefcaseBusiness size={15}/><span>Review Prep</span></div><b>6 months of proof</b></div>
+        <div className="review-shot-summary"><small>MY STORY THIS PERIOD</small><strong>From reliable contributor to go-to problem solver</strong><p>Selected proof shows repeated customer judgment, peer support, and process ownership.</p></div>
+        <div className="review-shot-grid">
+          <article className="violet"><small>CUSTOMER IMPACT</small><strong>4 examples</strong><p>Handled difficult cases and prevented avoidable escalations.</p></article>
+          <article className="blue"><small>OWNERSHIP</small><strong>3 examples</strong><p>Found root causes and followed issues through resolution.</p></article>
+          <article className="green"><small>TEAM IMPACT</small><strong>5 examples</strong><p>Shared patterns, coached peers, and improved consistency.</p></article>
+        </div>
+        <div className="review-shot-bottom"><CheckCircle2 size={14}/><span>Ready to turn into review talking points</span></div>
+      </div>
+    </article>
+
+    <article className="docs-feature-demo docs-profile-demo" id="public-profile-demo">
+      <div className="docs-feature-copy">
+        <span><UserRound size={16}/> PUBLIC PROOF PROFILE</span>
+        <h3>Share the career story you choose — not your whole workspace.</h3>
+        <ol>
+          <li><b>Choose the proof that belongs in public.</b> Pick work you are comfortable showing outside your account.</li>
+          <li><b>Remove sensitive details.</b> Keep customer names, internal systems, confidential metrics, and restricted material out.</li>
+          <li><b>Curate for the audience.</b> A recruiter may need a different view than a client or collaborator.</li>
+          <li><b>Publish intentionally.</b> Private proof stays private unless you deliberately share it.</li>
+          <li><b>Review it like a portfolio.</b> Make sure the public story is clear, current, and something you are comfortable having reshared.</li>
+        </ol>
+        <div className="docs-proof-note"><ShieldCheck size={16}/><span>Public means public. Only publish proof you are authorized and comfortable to share outside BragStack.</span></div>
+      </div>
+      <div className="docs-profile-shot" role="img" aria-label="Example public proof profile">
+        <div className="profile-shot-header"><div className="profile-shot-avatar">MJ</div><div><strong>Maya Johnson</strong><span>Customer Experience · Problem Solver · Peer Coach</span></div><b>Public profile</b></div>
+        <div className="profile-shot-proof"><small>SELECTED CAREER PROOF</small><article><span>Customer experience</span><strong>Resolved high-friction billing cases without escalation</strong><p>Used clear explanations, root-cause investigation, and careful follow-through.</p></article><article><span>Team contribution</span><strong>Shared successful resolution patterns with teammates</strong><p>Helped peers handle similar customer situations more consistently.</p></article></div>
+        <div className="profile-shot-private"><ShieldCheck size={13}/><span>Other saved proof remains private</span></div>
+      </div>
+    </article>
+
+    <section className="docs-evidence-guide" id="safe-evidence" aria-labelledby="evidence-guide-heading">
+      <div className="docs-evidence-heading"><span><ShieldCheck size={16}/> SAFE EVIDENCE</span><h3 id="evidence-guide-heading">Useful proof does not have to expose company secrets.</h3><p>When in doubt, keep the career value and leave the sensitive details behind.</p></div>
+      <div className="docs-evidence-columns">
+        <article className="safe"><div><CheckCircle2 size={17}/><strong>Usually safer choices</strong></div><ul><li>A sanitized summary of the problem and result</li><li>An approved screenshot with sensitive details removed</li><li>A public launch note or public project link</li><li>A ticket or work reference you are allowed to keep</li><li>Manager feedback you are allowed to retain</li></ul></article>
+        <article className="unsafe"><div><AlertTriangle size={17}/><strong>Keep these out</strong></div><ul><li>Passwords, tokens, or API keys</li><li>Customer secrets or private personal data</li><li>Restricted source code or internal documents</li><li>Unreleased product information</li><li>Anything your employer or client says you cannot retain</li></ul></article>
+      </div>
+      <div className="docs-evidence-example"><span>Instead of saving:</span><strong>“Customer X's private account details showed…”</strong><ArrowRight size={16}/><span>Save:</span><strong>“Resolved a complex billing issue by identifying the root cause and coordinating a correction.”</strong></div>
+    </section>
+
     <section className="docs-trust-boundary" aria-label="What BragStack does and does not do">
       <div><ShieldCheck size={19}/><strong>BragStack helps organize and explain your real career proof.</strong></div>
       <p>It should not invent experience, guarantee an interview, guarantee a promotion, or automatically make your private work public. You stay responsible for reviewing what you save, generate, and share.</p>
