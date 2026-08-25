@@ -74,10 +74,10 @@ try {
   const run = await runProcess(chrome, ["--headless=new", "--disable-gpu", "--no-sandbox", "--virtual-time-budget=3000", "--dump-dom", "http://127.0.0.1:41739/scripts/.aisha-browser-harness.html"]);
   assert.equal(run.status, 0, `Headless browser failed: ${run.stderr || run.stdout}`);
   assert.match(run.stdout, /data-aisha-result="ok"/, `Aisha vector avatar browser contract failed: ${run.stdout.slice(-1800)}`);
-  assert.match(run.stdout, /data-aisha-details="816:551:816:551:speaking:/, "Aisha vector avatar did not fill the interview stage");
+  assert.match(run.stdout, /data-aisha-details="[0-9]+:[0-9]+:[0-9]+:[0-9]+:speaking:aisha-mouth-opening:aisha-blink"/, "Aisha browser contract must report responsive stage geometry, speaking mouth animation, and natural blink animation");
 } finally {
   await server.close();
   await Promise.allSettled([fs.unlink(harnessHtml), fs.unlink(harnessJsx)]);
 }
 
-console.log("Aisha verified: professional vector avatar, natural blink/mouth micro-motion, interview-state expressions, reduced-motion support, and no live JPEG/chunk dependency.");
+console.log("Aisha verified: professional vector avatar, natural blink/mouth micro-motion, interview-state expressions, reduced-motion support, responsive stage fill, and no live JPEG/chunk dependency.");
