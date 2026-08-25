@@ -114,7 +114,7 @@ export function findRequirementEvidence(term, { draft, summary = "", skills = []
   const skill = (skills || []).find((item) => containsTerm(item, term));
   if (skill) return `Skills · ${skill}`;
   if (containsTerm(summary, term)) return "Professional summary";
-  return "Resume text";
+  return "";
 }
 
 export function parseGateStatus(draft, parseWarnings = []) {
