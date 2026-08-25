@@ -39,7 +39,29 @@ app = FastAPI(title="BragStack API", description="Evidence-backed career proof f
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 ENTRY_EDIT_WINDOW = timedelta(hours=1)
 mongo_admin = mongo_client.admin
-app.add_middleware(CORSMiddleware, allow_origins=[frontend_url, "http://localhost:5173", "http://127.0.0.1:5173"], allow_origin_regex=r"https://.*\.app\.github\.dev", allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[frontend_url, "http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origin_regex=r"https://.*\.app\.github\.dev",
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
+)
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), geolocation=(), microphone=()"
+    response.headers["Cache-Control"] = "no-store"
+    forwarded_proto = request.headers.get("x-forwarded-proto", "")
+    if request.url.scheme == "https" or forwarded_proto == "https":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
+
 
 def _as_utc(value: datetime) -> datetime:
     if value.tzinfo is None: return value.replace(tzinfo=timezone.utc)
