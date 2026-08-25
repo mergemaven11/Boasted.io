@@ -25,6 +25,20 @@ function prettyDimension(value = "") {
   return value.replaceAll("_", " ").replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
+function isAppleMobileBrowser() {
+  const navigatorObject = window.navigator || {};
+  const userAgent = navigatorObject.userAgent || "";
+  const iOSDevice = /iPhone|iPad|iPod/i.test(userAgent);
+  const iPadDesktopMode = navigatorObject.platform === "MacIntel" && Number(navigatorObject.maxTouchPoints) > 1;
+  return iOSDevice || iPadDesktopMode;
+}
+
+function scrollInterviewToTop() {
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+}
+
 function saveHistory(session) {
   try {
     const current = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
@@ -223,6 +237,8 @@ export default function InterviewPracticePage() {
   const [listening, setListening] = useState(false);
   const [interviewPhase, setInterviewPhaseState] = useState("idle");
   const [audioError, setAudioError] = useState("");
+  const [microphoneError, setMicrophoneError] = useState("");
+  const [microphoneStatus, setMicrophoneStatus] = useState("");
 
   const videoRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -233,6 +249,11 @@ export default function InterviewPracticePage() {
   const sequenceBusyRef = useRef(false);
   const timeoutHandledRef = useRef(false);
   const autoListenRef = useRef(false);
+  const dictationBaseRef = useRef("");
+  const dictationFinalRef = useRef("");
+  const dictationLiveRef = useRef("");
+  const recognitionRestartRef = useRef(null);
+  const feedbackDialogRef = useRef(null);
 
   const capabilities = useMemo(() => getBrowserInterviewCapabilities(window), []);
   const currentQuestion = plan?.questions?.[questionIndex] || null;
@@ -246,6 +267,15 @@ export default function InterviewPracticePage() {
   }
 
   useEffect(() => {
+    const frame = window.requestAnimationFrame(scrollInterviewToTop);
+    const timeout = window.setTimeout(scrollInterviewToTop, 80);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timeout);
+    };
+  }, [stage, questionIndex]);
+
+  useEffect(() => {
     const preload = new Image();
     preload.src = aishaJordanPhoto;
     const cleanupVoices = warmSpeechVoices();
@@ -256,6 +286,7 @@ export default function InterviewPracticePage() {
     return () => {
       cleanupVoices();
       document.removeEventListener("visibilitychange", resumeSpeechWhenVisible);
+      if (recognitionRestartRef.current) window.clearTimeout(recognitionRestartRef.current);
       try { recognitionRef.current?.stop?.(); } catch { /* ignore */ }
       cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
       window.speechSynthesis?.cancel?.();
@@ -269,6 +300,12 @@ export default function InterviewPracticePage() {
   useEffect(() => {
     timerRunningRef.current = timerRunning;
   }, [timerRunning]);
+
+  useEffect(() => {
+    if (!feedback) return undefined;
+    const frame = window.requestAnimationFrame(() => feedbackDialogRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [feedback]);
 
   useEffect(() => {
     let active = true;
@@ -298,45 +335,123 @@ export default function InterviewPracticePage() {
     setSetup((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
   }
 
+  async function primeMicrophonePermission() {
+    if (!navigator.mediaDevices?.getUserMedia) return true;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      stream.getTracks().forEach((track) => track.stop());
+      setMicrophoneError("");
+      return true;
+    } catch {
+      setMicrophoneError("Microphone access is blocked. On iPhone, allow Microphone for this site in Safari settings, then tap Speak answer.");
+      setMicrophoneStatus("");
+      return false;
+    }
+  }
+
   function stopDictation({ disableAuto = true } = {}) {
     if (disableAuto) autoListenRef.current = false;
+    if (recognitionRestartRef.current) {
+      window.clearTimeout(recognitionRestartRef.current);
+      recognitionRestartRef.current = null;
+    }
     try { recognitionRef.current?.stop?.(); } catch { /* ignore */ }
     recognitionRef.current = null;
     setListening(false);
+    setMicrophoneStatus("");
   }
 
-  function startDictation() {
+  async function startDictation({ userInitiated = false } = {}) {
     if (!capabilities.speechRecognition || phaseRef.current !== "listening" || !timerRunningRef.current) return;
+    if (userInitiated) {
+      const allowed = await primeMicrophonePermission();
+      if (!allowed) return;
+    }
     const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!Recognition || recognitionRef.current) return;
+
     const recognition = new Recognition();
+    const appleMobile = isAppleMobileBrowser();
     recognition.lang = "en-US";
-    recognition.interimResults = false;
-    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.continuous = !appleMobile;
+    recognition.maxAlternatives = 1;
+
+    dictationBaseRef.current = answerRef.current.trim();
+    dictationFinalRef.current = "";
+    dictationLiveRef.current = dictationBaseRef.current;
+
+    recognition.onstart = () => {
+      setListening(true);
+      setMicrophoneError("");
+      setMicrophoneStatus("Microphone live — your words will appear in the answer box.");
+    };
+
     recognition.onresult = (event) => {
-      const transcript = Array.from(event.results).slice(event.resultIndex).map((result) => result[0]?.transcript || "").join(" ").trim();
-      if (transcript) setAnswer((current) => `${current} ${transcript}`.trim());
+      let interim = "";
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const result = event.results[index];
+        const transcript = String(result[0]?.transcript || "").trim();
+        if (!transcript) continue;
+        if (result.isFinal) dictationFinalRef.current = `${dictationFinalRef.current} ${transcript}`.trim();
+        else interim = `${interim} ${transcript}`.trim();
+      }
+      const next = [dictationBaseRef.current, dictationFinalRef.current, interim].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+      if (next) {
+        dictationLiveRef.current = next;
+        answerRef.current = next;
+        setAnswer(next);
+      }
     };
-    recognition.onerror = () => {
-      recognitionRef.current = null;
-      setListening(false);
-      autoListenRef.current = false;
+
+    recognition.onerror = (event) => {
+      const error = event?.error || "unknown";
+      if (error === "aborted") return;
+      if (error === "no-speech") {
+        setMicrophoneStatus("Listening… speak naturally when you are ready.");
+        return;
+      }
+      if (error === "not-allowed" || error === "service-not-allowed") {
+        autoListenRef.current = false;
+        setMicrophoneError("Microphone or speech recognition permission is blocked. Allow it for this site, then tap Speak answer.");
+      } else if (error === "audio-capture") {
+        autoListenRef.current = false;
+        setMicrophoneError("No microphone input is available. Check that another app is not using the microphone, then retry.");
+      } else if (error === "network") {
+        autoListenRef.current = false;
+        setMicrophoneError("Speech recognition lost its network service. Your typed answer is safe; tap Speak answer to retry.");
+      } else {
+        autoListenRef.current = false;
+        setMicrophoneError("Speech recognition stopped unexpectedly. Tap Speak answer to retry, or type your answer.");
+      }
     };
+
     recognition.onend = () => {
       recognitionRef.current = null;
       setListening(false);
+      const committed = dictationLiveRef.current || [dictationBaseRef.current, dictationFinalRef.current].filter(Boolean).join(" ");
+      if (committed) {
+        answerRef.current = committed;
+        setAnswer(committed);
+      }
       if (autoListenRef.current && phaseRef.current === "listening" && timerRunningRef.current) {
-        window.setTimeout(() => startDictation(), 250);
+        setMicrophoneStatus("Reconnecting microphone…");
+        recognitionRestartRef.current = window.setTimeout(() => { void startDictation(); }, appleMobile ? 180 : 250);
+      } else if (!microphoneError) {
+        setMicrophoneStatus("");
       }
     };
+
     recognitionRef.current = recognition;
+    setMicrophoneStatus("Starting microphone…");
     try {
-      setListening(true);
       recognition.start();
     } catch {
       recognitionRef.current = null;
-      setListening(false);
       autoListenRef.current = false;
+      setListening(false);
+      setMicrophoneStatus("");
+      setMicrophoneError("The microphone could not start. Tap Speak answer to retry, or type your answer.");
     }
   }
 
@@ -350,8 +465,8 @@ export default function InterviewPracticePage() {
     setInterviewPhase("listening");
     if (capabilities.speechRecognition) {
       window.setTimeout(() => {
-        if (phaseRef.current === "listening" && timerRunningRef.current) startDictation();
-      }, 250);
+        if (phaseRef.current === "listening" && timerRunningRef.current) void startDictation();
+      }, isAppleMobileBrowser() ? 450 : 250);
     }
   }
 
@@ -426,6 +541,10 @@ export default function InterviewPracticePage() {
     stopDictation();
     sequenceBusyRef.current = true;
     setAudioError("");
+    setMicrophoneError("");
+    setMicrophoneStatus("");
+
+    if (capabilities.speechRecognition && isAppleMobileBrowser()) void primeMicrophonePermission();
 
     flushSync(() => {
       setPlan(fallbackPlan);
@@ -445,6 +564,7 @@ export default function InterviewPracticePage() {
       setStage("interview");
     });
 
+    scrollInterviewToTop();
     const firstSegmentPromise = speakSoftText(INTRO_SEGMENTS[0]);
     const catalogPromise = enrichInterviewPlanWithCatalog(fallbackPlan, setup);
     void continueGreeting(firstSegmentPromise, fallbackPlan, catalogPromise);
@@ -608,7 +728,10 @@ export default function InterviewPracticePage() {
     setTimerRunning(false);
     setListening(false);
     setAudioError("");
+    setMicrophoneError("");
+    setMicrophoneStatus("");
     setInterviewPhase("idle");
+    scrollInterviewToTop();
   }
 
   if (stage === "setup") return (
@@ -658,7 +781,7 @@ export default function InterviewPracticePage() {
       </div>
       <div className="interview-answer-panel">
         <div className="question-box"><div className="question-meta-row"><span>{followUpActive ? "TARGETED FOLLOW-UP" : `QUESTION ${questionIndex + 1}`}</span><strong className={`response-timer ${secondsLeft <= 20 && timerRunning ? "urgent" : ""}`}><Clock3 size={16} /> {formatTime(secondsLeft)}</strong></div><h1>{currentPrompt}</h1>{followUpActive && <small>This follow-up targets the missing part of your previous answer. You do not need to repeat the whole story.</small>}{audioError && <small>{audioError}</small>}</div>
-        {!feedback ? <form onSubmit={submitAnswer} className="answer-form"><label htmlFor="practice-answer">Your answer</label><textarea id="practice-answer" value={answer} onChange={(event) => setAnswer(event.target.value)} rows="9" placeholder="Answer naturally. Focus on the exact question, what YOU did, and what changed as a result." /><div className="answer-tools">{capabilities.speechRecognition ? (listening ? <button className="dictation-button active" type="button" onClick={() => stopDictation()}><Mic size={17} /> Stop dictation</button> : <button className="dictation-button" type="button" onClick={() => { autoListenRef.current = true; startDictation(); }} disabled={interviewPhase !== "listening"}><Mic size={17} /> Speak answer</button>) : <span>Voice dictation is unavailable here — typing still works.</span>}<span>{answer.trim() ? answer.trim().split(/\s+/).length : 0} words</span></div><button className="start-interview-button" type="submit" disabled={!answer.trim()}>Review my answer</button></form> : <section className="answer-feedback-panel" role="dialog" aria-modal="true" aria-label={`Feedback for question ${questionIndex + 1}`}>{feedback.timedOut && <div className="timeout-warning"><Clock3 size={18} /><span>Time expired. This answer was scored as submitted.</span></div>}<div className="feedback-heading"><div><span>ANSWER FEEDBACK</span><h2>{feedback.overallLabel}</h2></div><strong>{feedback.overallScore}/100</strong></div><div className="answer-coaching-grid"><article className="answer-strengths"><span>WHAT WORKED</span>{feedback.strengths.map((item) => <p key={item}>✓ {item}</p>)}</article><article className="answer-improvements"><span>HOW TO IMPROVE</span>{feedback.improvements.map((item) => <p key={item}>→ {item}</p>)}</article></div><div className="feedback-dimensions">{Object.entries(feedback.dimensions).map(([name, value]) => <article key={name}><div><strong>{prettyDimension(name)}</strong><span className={value.label === "Excellent" || value.label === "Strong" ? "strong" : value.label === "Developing" ? "developing" : "needs-detail"}>{value.score}/100 · {value.label}</span></div><p>{value.note}</p><small><b>Improve:</b> {value.improve}</small></article>)}</div>{feedback.followUp && !followUpUsed && <div className="follow-up-card"><span>TARGETED INTERVIEWER FOLLOW-UP</span><p>{feedback.followUp}</p><button type="button" onClick={beginFollowUp}>Answer targeted follow-up</button></div>}<div className="feedback-actions"><button className="secondary-interview-button" type="button" onClick={retryAnswer}>Try this answer again</button><button className="start-interview-button" type="button" onClick={nextQuestion}>{questionIndex + 1 >= plan.questions.length ? "Finish interview" : "Continue"} <ChevronRight size={17} /></button></div></section>}
+        {!feedback ? <form onSubmit={submitAnswer} className="answer-form"><label htmlFor="practice-answer">Your answer</label><textarea id="practice-answer" value={answer} onChange={(event) => { answerRef.current = event.target.value; setAnswer(event.target.value); }} rows="9" data-listening={listening ? "true" : "false"} placeholder="Answer naturally. Focus on the exact question, what YOU did, and what changed as a result." /><div className="answer-tools">{capabilities.speechRecognition ? (listening ? <button className="dictation-button active" type="button" onClick={() => stopDictation()}><Mic size={17} /> Stop dictation</button> : <button className="dictation-button" type="button" onClick={() => { autoListenRef.current = true; void startDictation({ userInitiated: true }); }} disabled={interviewPhase !== "listening"}><Mic size={17} /> Speak answer</button>) : <span>Voice dictation is unavailable here — typing still works.</span>}<span>{answer.trim() ? answer.trim().split(/\s+/).length : 0} words</span></div>{capabilities.speechRecognition && <div className={`microphone-status ${microphoneError ? "error" : listening ? "live" : ""}`} aria-live="polite"><Mic size={15} /><span>{microphoneError || microphoneStatus || "Aisha will start listening after she finishes speaking. If your phone blocks auto-listen, tap Speak answer."}</span></div>}<button className="start-interview-button" type="submit" disabled={!answer.trim()}>Review my answer</button></form> : <section ref={feedbackDialogRef} tabIndex="-1" className="answer-feedback-panel" role="dialog" aria-modal="true" aria-label={`Feedback for question ${questionIndex + 1}`}>{feedback.timedOut && <div className="timeout-warning"><Clock3 size={18} /><span>Time expired. This answer was scored as submitted.</span></div>}<div className="feedback-heading"><div><span>ANSWER FEEDBACK</span><h2>{feedback.overallLabel}</h2></div><strong>{feedback.overallScore}/100</strong></div><div className="answer-coaching-grid"><article className="answer-strengths"><span>WHAT WORKED</span>{feedback.strengths.map((item) => <p key={item}>✓ {item}</p>)}</article><article className="answer-improvements"><span>HOW TO IMPROVE</span>{feedback.improvements.map((item) => <p key={item}>→ {item}</p>)}</article></div><div className="feedback-dimensions">{Object.entries(feedback.dimensions).map(([name, value]) => <article key={name}><div><strong>{prettyDimension(name)}</strong><span className={value.label === "Excellent" || value.label === "Strong" ? "strong" : value.label === "Developing" ? "developing" : "needs-detail"}>{value.score}/100 · {value.label}</span></div><p>{value.note}</p><small><b>Improve:</b> {value.improve}</small></article>)}</div>{feedback.followUp && !followUpUsed && <div className="follow-up-card"><span>TARGETED INTERVIEWER FOLLOW-UP</span><p>{feedback.followUp}</p><button type="button" onClick={beginFollowUp}>Answer targeted follow-up</button></div>}<div className="feedback-actions"><button className="secondary-interview-button" type="button" onClick={retryAnswer}>Try this answer again</button><button className="start-interview-button" type="button" onClick={nextQuestion}>{questionIndex + 1 >= plan.questions.length ? "Finish interview" : "Continue"} <ChevronRight size={17} /></button></div></section>}
       </div>
     </section>
   </main>;
