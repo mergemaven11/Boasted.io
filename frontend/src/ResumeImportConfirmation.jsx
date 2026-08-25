@@ -15,9 +15,34 @@ function updateRoleBullet(roles, roleIndex, bulletIndex, value) {
   });
 }
 
-export default function ResumeImportConfirmation({ draft, warnings = [], onChange, onConfirm }) {
+function linesToText(lines = []) {
+  return (lines || []).join("\n");
+}
+
+function textToLines(value) {
+  return String(value || "").split("\n").map((line) => line.trim()).filter(Boolean);
+}
+
+function textToSkills(value) {
+  return String(value || "").split(/[\n,]/).map((skill) => skill.trim()).filter(Boolean);
+}
+
+export default function ResumeImportConfirmation({
+  draft,
+  warnings = [],
+  summary = "",
+  skills = [],
+  sections = {},
+  onChange,
+  onSummaryChange,
+  onSkillsChange,
+  onSectionsChange,
+  onConfirm,
+}) {
   const contact = draft?.contact || {};
   const roles = draft?.experience || [];
+  const education = sections?.education || [];
+  const projects = sections?.projects || [];
 
   function setContact(field, value) {
     onChange({ ...draft, contact: { ...contact, [field]: value } });
@@ -72,17 +97,28 @@ export default function ResumeImportConfirmation({ draft, warnings = [], onChang
     });
   }
 
+  function updateSection(key, value) {
+    onSectionsChange({ ...sections, [key]: textToLines(value) });
+  }
+
   const incomplete = roles.some((role) => !role.company.trim() || !role.title.trim());
+  const hasResumeContent = Boolean(
+    roles.length
+    || summary.trim()
+    || skills.length
+    || education.length
+    || projects.length
+  );
 
   return (
     <section className="resume-confirm-shell" aria-labelledby="resume-confirm-title">
       <header className="resume-confirm-header">
         <div>
-          <span className="resume-confirm-kicker"><CheckCircle2 size={15} /> Resume reconstructed</span>
-          <h2 id="resume-confirm-title">Check your career history before ATS analysis</h2>
-          <p>BragStack grouped employer, title, dates, location and bullets together. Fix anything that looks wrong so the ATS check uses the right career data.</p>
+          <span className="resume-confirm-kicker"><CheckCircle2 size={15} /> Resume content</span>
+          <h2 id="resume-confirm-title">Review the resume before ATS analysis</h2>
+          <p>Fix imported details or build the resume manually. Work experience is optional; use the sections that actually apply to you.</p>
         </div>
-        <div className="resume-confirm-count"><strong>{roles.length}</strong><span>role{roles.length === 1 ? "" : "s"} found</span></div>
+        <div className="resume-confirm-count"><strong>{roles.length}</strong><span>work role{roles.length === 1 ? "" : "s"}</span></div>
       </header>
 
       {warnings.length > 0 && (
@@ -101,6 +137,16 @@ export default function ResumeImportConfirmation({ draft, warnings = [], onChang
           <label>Location<input value={contact.location || ""} onChange={(event) => setContact("location", event.target.value)} placeholder="Atlanta, GA" /></label>
           <label>LinkedIn<input value={contact.linkedin || ""} onChange={(event) => setContact("linkedin", event.target.value)} placeholder="linkedin.com/in/..." /></label>
           <label>GitHub / Portfolio<input value={contact.github || ""} onChange={(event) => setContact("github", event.target.value)} placeholder="github.com/..." /></label>
+        </div>
+      </div>
+
+      <div className="resume-confirm-section">
+        <div className="resume-confirm-section-title"><span>Core content</span><small>Optional, but useful for first resumes</small></div>
+        <div className="resume-content-grid">
+          <label>Professional summary<textarea value={summary} onChange={(event) => onSummaryChange(event.target.value)} rows="4" placeholder="A short truthful summary of the kind of work you do or want to do…" /></label>
+          <label>Skills<textarea value={skills.join(", ")} onChange={(event) => onSkillsChange(textToSkills(event.target.value))} rows="4" placeholder="Python, Linux, customer support, Kubernetes…" /></label>
+          <label>Education<textarea value={linesToText(education)} onChange={(event) => updateSection("education", event.target.value)} rows="4" placeholder="School, program, degree, certification, relevant coursework…" /></label>
+          <label>Projects<textarea value={linesToText(projects)} onChange={(event) => updateSection("projects", event.target.value)} rows="4" placeholder="One project per line. Include what you built and the tools you used." /></label>
         </div>
       </div>
 
@@ -126,17 +172,17 @@ export default function ResumeImportConfirmation({ draft, warnings = [], onChang
                     <textarea value={bullet.text || ""} onChange={(event) => onChange({ ...draft, experience: updateRoleBullet(roles, roleIndex, bulletIndex, event.target.value) })} rows="2" placeholder="Describe a real accomplishment…" />
                     <button type="button" onClick={() => removeRoleBullet(roleIndex, bulletIndex)} aria-label="Remove bullet"><Trash2 size={14} /></button>
                   </div>
-                )) : <p>No bullets were confidently attached to this role yet.</p>}
+                )) : <p>No bullets yet. Add accomplishments only when this role applies to you.</p>}
               </div>
             </article>
           ))}
-          {!roles.length && <div className="resume-no-roles"><BriefcaseBusiness size={24} /><strong>No roles reconstructed</strong><span>Add your work history manually before running the ATS check.</span><button type="button" onClick={addRole}><Plus size={15} /> Add first role</button></div>}
+          {!roles.length && <div className="resume-no-roles"><BriefcaseBusiness size={24} /><strong>No work history added</strong><span>That is okay. Students and career starters can continue with education, projects, skills, and a summary instead.</span><button type="button" onClick={addRole}><Plus size={15} /> Add a work role</button></div>}
         </div>
       </div>
 
       <footer className="resume-confirm-footer">
-        <span>{incomplete ? "Complete employer and title fields before continuing." : "Everything can still be edited later."}</span>
-        <button type="button" className="resume-confirm-primary" onClick={onConfirm} disabled={incomplete || !roles.length}><CheckCircle2 size={17} /> Confirm career history</button>
+        <span>{incomplete ? "Complete company and job title for every work role you add." : hasResumeContent ? "Everything can still be edited later." : "Add a role, skill, project, education item, or summary to continue."}</span>
+        <button type="button" className="resume-confirm-primary" onClick={onConfirm} disabled={incomplete || !hasResumeContent}><CheckCircle2 size={17} /> Confirm resume content</button>
       </footer>
     </section>
   );
