@@ -1,4 +1,5 @@
 import os
+import secrets
 from datetime import datetime, timedelta, timezone
 
 from bson import ObjectId
@@ -16,23 +17,43 @@ if not SECRET_KEY:
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
+MAX_BCRYPT_PASSWORD_BYTES = 72
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
+def _password_fits_bcrypt(password: str) -> bool:
+    return len(password.encode("utf-8")) <= MAX_BCRYPT_PASSWORD_BYTES
+
+
 def hash_password(password: str) -> str:
+    if not _password_fits_bcrypt(password):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Password is too long. Use at most 72 UTF-8 bytes.",
+        )
     return password_context.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    if not _password_fits_bcrypt(plain_password):
+        return False
     return password_context.verify(plain_password, hashed_password)
 
 
 def create_access_token(data: dict) -> str:
     payload = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    payload.update({"exp": expire})
+    now = datetime.now(timezone.utc)
+    expire = now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    payload.update(
+        {
+            "exp": expire,
+            "iat": now,
+            "nbf": now,
+            "jti": secrets.token_urlsafe(16),
+        }
+    )
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
