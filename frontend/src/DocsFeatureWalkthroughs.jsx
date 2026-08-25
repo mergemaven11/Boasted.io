@@ -90,7 +90,7 @@ const weakInterviewFeedback = [
 ];
 
 function FeatureGuide() {
-  return <section className="docs-feature-guide" aria-labelledby="feature-guide-heading">
+  return <section className="docs-feature-guide" id="feature-guide" aria-labelledby="feature-guide-heading">
     <div className="docs-feature-guide-heading">
       <span>FEATURES IN PLAIN ENGLISH</span>
       <h2 id="feature-guide-heading">What each feature is for.</h2>
@@ -111,7 +111,7 @@ function FeatureGuide() {
 }
 
 function GoalGuide() {
-  return <section className="docs-goal-guide" aria-labelledby="goal-guide-heading">
+  return <section className="docs-goal-guide" id="goal-guide" aria-labelledby="goal-guide-heading">
     <div className="docs-goal-guide-heading"><span>START WITH YOUR GOAL</span><h2 id="goal-guide-heading">Not sure which feature to open first?</h2><p>Follow the path that matches what is happening in your career right now.</p></div>
     <div className="docs-goal-grid">{goalPaths.map((goal) => <article key={goal.title}><strong>{goal.title}</strong><div>{goal.steps.map((step, index) => <span key={step}><b>{index + 1}</b>{step}{index < goal.steps.length - 1 && <ArrowRight size={13}/>}</span>)}</div></article>)}</div>
   </section>;
