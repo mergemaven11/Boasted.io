@@ -45,7 +45,7 @@ function ImportedResumePreview({ importedResume, user }) {
 
   return (
     <article className="resume-paper imported-resume-paper">
-      <div className="imported-preview-banner"><CheckCircle2 size={16} /> Imported resume preview</div>
+      <div className="imported-preview-banner"><CheckCircle2 size={16} /> Your uploaded resume</div>
       <header>
         <h1>{primaryName}</h1>
         {contactLines.length > 0 && <div className="imported-header-lines">{contactLines.map((line, index) => <span key={`${line}-${index}`}>{line}</span>)}</div>}
@@ -98,6 +98,7 @@ export default function ResumeBuilderPage() {
   const [summaryEditing, setSummaryEditing] = useState(false);
   const [experienceEditing, setExperienceEditing] = useState(false);
   const [skillsEditing, setSkillsEditing] = useState(false);
+  const [documentView, setDocumentView] = useState("original");
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -143,6 +144,7 @@ export default function ResumeBuilderPage() {
       setImportedResume(data);
       setResult(null);
       setAtsMode(false);
+      setDocumentView("original");
       setSummary(data.summary || "");
       setSkills(data.skills || []);
       setBullets((data.bullets || []).map((text) => ({
@@ -179,6 +181,7 @@ export default function ResumeBuilderPage() {
       setSummary(data.summary || "");
       setBullets(data.bullets || []);
       setSkills(data.skills || []);
+      setDocumentView(importedResume ? "original" : "optimized");
       setSummaryEditing(false);
       setExperienceEditing(false);
       setSkillsEditing(false);
@@ -244,7 +247,7 @@ export default function ResumeBuilderPage() {
             <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" onChange={(event) => handleImport(event.target.files?.[0])} hidden />
             <Upload size={22} />
             {importedResume ? <div><strong>{importedResume.filename}</strong><span>{importedResume.sections_found?.length ? `${importedResume.sections_found.join(" · ")} detected` : "Resume text imported"}</span></div> : <div><strong>{importing ? "Reading resume…" : "Upload existing resume"}</strong><span>PDF, DOCX, or TXT · up to 5 MB</span></div>}
-            {importedResume && <button type="button" className="resume-import-clear" aria-label="Remove imported resume" onClick={(event) => { event.stopPropagation(); setImportedResume(null); setResult(null); setSummary(""); setBullets([]); setSkills([]); }}><X size={15} /></button>}
+            {importedResume && <button type="button" className="resume-import-clear" aria-label="Remove imported resume" onClick={(event) => { event.stopPropagation(); setImportedResume(null); setResult(null); setDocumentView("original"); setSummary(""); setBullets([]); setSkills([]); }}><X size={15} /></button>}
           </div>
           <div className="resume-or-divider"><span>then target it</span></div>
           <div className="section-label">TARGET JOB</div>
@@ -259,7 +262,8 @@ export default function ResumeBuilderPage() {
         </aside>
 
         <section className="resume-document-panel">
-          {atsMode && result ? <div className="ats-plain-preview"><div className="ats-preview-header"><span>ATS-FRIENDLY TEXT PREVIEW</span><button type="button" onClick={() => setAtsMode(false)}>Back to resume</button></div><pre>{plainText}</pre><small>{result.ats_note}</small></div> : result ? <article className="resume-paper">
+          {atsMode && result ? <div className="ats-plain-preview"><div className="ats-preview-header"><span>ATS-FRIENDLY TEXT PREVIEW</span><button type="button" onClick={() => setAtsMode(false)}>Back to resume</button></div><pre>{plainText}</pre><small>{result.ats_note}</small></div> : importedResume && documentView === "original" ? <ImportedResumePreview importedResume={importedResume} user={user} /> : result ? <article className="resume-paper">
+            <div className="imported-preview-banner"><Sparkles size={16} /> BragStack optimized draft</div>
             <header><h1>{user?.name || "Your Name"}</h1><p>{targetRole}</p>{user?.location && <small>{user.location}</small>}</header>
             <section><div className="resume-section-heading"><h2>Professional Summary</h2><button type="button" onClick={() => setSummaryEditing((value) => !value)}><Pencil size={14} /> {summaryEditing ? "Done" : "Edit"}</button></div>{summaryEditing ? <textarea value={summary} onChange={(event) => setSummary(event.target.value)} rows="4" autoFocus /> : <p className="resume-section-copy">{summary}</p>}</section>
             <section><div className="resume-section-heading"><h2>Experience & Impact</h2><div><button type="button" onClick={addBullet}><Plus size={14} /> Add</button><button type="button" onClick={() => setExperienceEditing((value) => !value)}><Pencil size={14} /> {experienceEditing ? "Done" : "Edit"}</button></div></div>{bullets.length ? bullets.map((bullet, index) => <div className={`resume-bullet-editor ${experienceEditing ? "editing" : ""}`} key={`${bullet.source_receipt_id || bullet.source_kind}-${index}`}>{experienceEditing ? <><textarea value={bullet.text} onChange={(event) => updateBullet(index, event.target.value)} rows="3" /><button className="resume-delete-bullet" type="button" onClick={() => removeBullet(index)} aria-label="Remove bullet"><Trash2 size={15} /></button></> : <p className="resume-rendered-bullet">• {bullet.text}</p>}<div><span className={`source-chip source-${bullet.source_kind || "impact-receipt"}`}>{sourceLabel(bullet)}</span><span>{bullet.source_kind === "impact-receipt" ? (bullet.edited ? "Edited · verify against source" : `${bullet.evidence_count} evidence · ${bullet.has_metrics ? "metrics attached" : "no metric yet"}`) : bullet.source_kind === "imported" ? "From your uploaded resume" : "Added by you"}</span></div></div>) : <p className="resume-empty-section">No experience bullets yet. Add one manually or connect relevant Impact Receipts.</p>}</section>
@@ -277,9 +281,11 @@ export default function ResumeBuilderPage() {
             <div className="ats-advice-card"><strong>Next: measure job match</strong><p>Paste the target job description and click <b>Analyze + strengthen my resume</b>. We’ll compare your actual resume to the role and show what to keep, strengthen, or add.</p></div>
             <div className="ats-check-list"><span>✓ Standard section readability</span><span>✓ Requirement and keyword coverage</span><span>✓ Quantified impact</span><span>✓ Evidence-backed additions</span><span>✓ Missing requirements without inventing claims</span></div>
           </> : !result ? <p className="guardian-placeholder">Upload a resume to preview what the ATS can read, then add a target job to calculate match and get specific coaching.</p> : <>
+            {importedResume && <div className="resume-actions"><button type="button" onClick={() => { setAtsMode(false); setDocumentView("original"); }}><FileText size={16} /> {documentView === "original" ? "Viewing original resume" : "View original resume"}</button><button type="button" onClick={() => { setAtsMode(false); setDocumentView("optimized"); }}><Sparkles size={16} /> {documentView === "optimized" ? "Viewing optimized draft" : "View optimized draft"}</button></div>}
             <div className="coverage-ring"><strong>{result.readiness.coverage_percent}%</strong><span>job requirement coverage</span></div>
             {Object.entries(result.readiness).filter(([key, value]) => !["coverage_percent", "source_linked_draft"].includes(key) && typeof value === "string").map(([key, value]) => <div className="readiness-row" key={key}><span>{key.replaceAll("_", " ")}</span><strong className={readinessClass(value)}>{value}</strong></div>)}
             <div className="ats-advice-card featured"><strong>BragStack advice</strong><p>{result.readiness.coverage_percent >= 70 ? "Your resume is covering most of the role. Focus on the remaining gaps and make the strongest matching bullets easy to scan." : result.readiness.coverage_percent >= 40 ? "You have a usable match, but several job requirements are not visible enough yet. Strengthen truthful matches before adding anything new." : "The current resume is not signaling enough of this role yet. Prioritize the most important missing requirements that you can honestly support."}</p>{quantifiedCount < 3 && <p><b>Impact:</b> only {quantifiedCount} bullet{quantifiedCount === 1 ? "" : "s"} show a number or metric. Add measurable outcomes where you genuinely have them.</p>}</div>
+            <div className="ats-advice-card warn"><strong>Why ATS matching matters</strong><p>Applicant tracking systems can parse resumes, search or rank candidates by job-related terms, and employers may use required qualifications or knockout questions to screen applications. Missing an important requirement can make your resume harder to surface, but no single keyword guarantees rejection. BragStack focuses on truthful, relevant matches—not keyword stuffing.</p></div>
             <div className="unsupported-claims"><CheckCircle2 size={16} /><span><strong>{importedCount ? `${importedCount} imported bullet${importedCount === 1 ? "" : "s"} preserved` : editedCount ? `${editedCount} edited bullet${editedCount === 1 ? "" : "s"} need source review` : "Generated draft is source-linked"}</strong><small>{importedCount ? "Imported claims came from your resume; Impact Receipt additions remain separately source-linked." : editedCount ? "Manual edits are not automatically certified as evidence-backed." : "Generated bullets came from your Impact Receipts."}</small></span></div>
             <div className="requirement-block"><h3><Target size={16} /> Matching this job</h3><div className="term-cloud">{result.supported_requirements.map((term) => <span className="supported" key={term}>{term}</span>)}</div></div>
             <div className="requirement-block"><h3>Missing or weak signals</h3><div className="term-cloud">{result.unsupported_requirements.slice(0, 12).map((term) => <span className="gap" key={term}>{term}</span>)}</div></div>
