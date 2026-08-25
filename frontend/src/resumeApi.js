@@ -12,6 +12,15 @@ resumeApi.interceptors.request.use((config) => {
   return config;
 });
 
+export async function importResume(file) {
+  const form = new FormData();
+  form.append("file", file);
+  const response = await resumeApi.post("/resume-builder/import", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+}
+
 export async function buildResume(payload) {
   const response = await resumeApi.post("/resume-builder/build", payload);
   return response.data;
