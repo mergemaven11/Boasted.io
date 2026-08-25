@@ -35,6 +35,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify Aisha source and real-browser render
+        run: node scripts/verify-aisha-source.mjs
+
       - name: Test interview intelligence engine
         run: npm run test:interview
 
@@ -43,3 +46,6 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Verify Aisha production bundle
+        run: node scripts/verify-aisha-build.mjs
