@@ -44,6 +44,9 @@ jobs:
       - name: Test structured resume helpers
         run: npm run test:resume
 
+      - name: Verify search appearance and sitelink signals
+        run: npm run test:seo
+
       - name: Lint
         run: npm run lint
 
