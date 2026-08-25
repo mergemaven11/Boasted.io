@@ -1,4 +1,4 @@
-import bundledAishaJordanInterviewer from "./assets/aisha-jordan-interviewer.jpg";
+import { AISHA_PORTRAIT_DATA_URI } from "./aishaPortraitData.js";
 
 const STATE_COPY = {
   idle: "Ready when you are",
@@ -8,7 +8,7 @@ const STATE_COPY = {
   encouraging: "Follow-up coaching",
 };
 
-const FALLBACK_AISHA = "/assets/aisha-interviewer-concept.jpg";
+const FALLBACK_AISHA = AISHA_PORTRAIT_DATA_URI;
 
 const BASE_PHOTO_STYLE = {
   position: "absolute",
@@ -40,7 +40,7 @@ export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aish
     <>
       <img
         className={`aisha-stage-photo state-${safeState} ${motionClass}`}
-        src={bundledAishaJordanInterviewer}
+        src={AISHA_PORTRAIT_DATA_URI}
         onError={useFallbackImage}
         alt={`${name}, BragStack virtual interviewer`}
         draggable="false"
@@ -51,7 +51,7 @@ export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aish
 
       <img
         className={`aisha-mouth-photo state-${safeState} ${motionClass}`}
-        src={bundledAishaJordanInterviewer}
+        src={AISHA_PORTRAIT_DATA_URI}
         onError={useFallbackImage}
         alt=""
         aria-hidden="true"
