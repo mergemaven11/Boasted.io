@@ -28,7 +28,7 @@ assert.ok(chrome, "A Chromium/Chrome binary is required for the Aisha browser ve
 const harnessHtml = path.resolve("scripts/.aisha-browser-harness.html");
 const harnessJsx = path.resolve("scripts/.aisha-browser-harness.jsx");
 
-await fs.writeFile(harnessHtml, `<!doctype html><html><head><meta charset="utf-8"><title>Aisha verification</title></head><body><div id="root"></div><script type="module" src="/.aisha-browser-harness.jsx"></script></body></html>`);
+await fs.writeFile(harnessHtml, `<!doctype html><html><head><meta charset="utf-8"><title>Aisha verification</title></head><body><div id="root"></div><script type="module" src="/scripts/.aisha-browser-harness.jsx"></script></body></html>`);
 await fs.writeFile(harnessJsx, `
 import React from "react";
 import { createRoot } from "react-dom/client";
