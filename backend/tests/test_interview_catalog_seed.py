@@ -28,6 +28,15 @@ def test_requested_roles_have_deep_domain_specific_question_banks():
     assert any("data source" in q["text"].lower() or "query" in q["text"].lower() for q in by_title["Data Analyst"]["questions"])
 
 
+def test_intent_driven_prompts_put_the_scored_competency_first():
+    risk_analyst = next(c for c in build_catalog() if c["title"] == "Risk Analyst")
+    by_category = {question["category"]: question for question in risk_analyst["questions"]}
+    assert by_category["motivation"]["competencies"][0] == "role-alignment"
+    assert by_category["strength"]["competencies"][0] == "role-alignment"
+    assert by_category["growth"]["competencies"][0] == "learning"
+    assert by_category["reflection"]["competencies"][0] == "learning"
+
+
 def test_four_ten_question_interviews_can_avoid_repeats():
     career = next(c for c in build_catalog() if c["title"] == "Data Analyst")
     used = set()
