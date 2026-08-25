@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BragStack Troubleshooting & Support</title>
+  <meta name="description" content="Recommended fixes for common BragStack sign-in, billing, interview, resume, account, browser, and security problems." />
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f7f9fc}*{box-sizing:border-box}body{margin:0}.top{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px clamp(20px,5vw,60px);border-bottom:1px solid #e4e8ef;background:rgba(255,255,255,.95);backdrop-filter:blur(14px)}.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#111827;font-weight:900}.brand img{width:36px;height:36px}.top nav{display:flex;gap:18px;flex-wrap:wrap}.top nav a{color:#556070;text-decoration:none;font-weight:700;font-size:.9rem}.hero,.shell{max-width:1120px;margin:auto;padding-left:clamp(20px,5vw,54px);padding-right:clamp(20px,5vw,54px)}.hero{padding-top:64px;padding-bottom:34px}.kicker{color:#5363e5;font-size:.78rem;font-weight:900;letter-spacing:.12em}.hero h1{font-size:clamp(2.4rem,6vw,4.8rem);line-height:1;letter-spacing:-.055em;margin:12px 0 18px}.hero p{max-width:780px;color:#5f6979;font-size:1.08rem;line-height:1.7}.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0 38px}.quick a,.card{border:1px solid #e1e6ef;border-radius:16px;background:#fff;box-shadow:0 12px 28px rgba(32,47,80,.04)}.quick a{padding:16px;color:#3344c7;text-decoration:none;font-weight:800}.shell{padding-bottom:70px}.section{scroll-margin-top:100px;margin:0 0 26px}.section h2{font-size:1.65rem;margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.card{padding:22px}.card h3{margin:0 0 8px;font-size:1.08rem}.card p,.card li{color:#5f6979;line-height:1.62}.card ol,.card ul{padding-left:21px}.fix{border-left:4px solid #5363e5;padding-left:14px}.warn{border:1px solid #f0d6a2;background:#fffaf0;border-radius:16px;padding:18px 20px;margin:26px 0;color:#654b1e}.support{border-radius:20px;background:#111827;color:#fff;padding:26px;margin-top:34px}.support p{color:#cbd5e1;line-height:1.6}.support a{color:#aab5ff;font-weight:900}.muted{color:#717b8b}.tag{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef0ff;color:#4658d7;font-size:.75rem;font-weight:900;margin-bottom:10px}@media(max-width:820px){.quick{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.top nav{display:none}}@media(max-width:520px){.quick{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="/"><img src="/brandmark.svg" alt="" />BragStack</a>
+    <nav><a href="/docs">Help Center</a><a href="/security">Security</a><a href="/privacy">Privacy</a><a href="/nda-safety">NDA guidance</a><a href="/login">Sign in</a></nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="kicker">BRAGSTACK TECHNICAL SUPPORT</div>
+      <h1>Something went wrong? Start here.</h1>
+      <p>This guide covers the most common BragStack problems and the safest recommended fixes. Try the steps in order. If the issue continues, contact <strong>support@usebragstack.com</strong> and include the details listed at the bottom of this page.</p>
+      <div class="quick">
+        <a href="#signin">Sign-in</a><a href="#billing">Billing</a><a href="#interview">Interview & Aisha</a><a href="#app">App problems</a>
+      </div>
+    </section>
+
+    <div class="shell">
+      <section class="section" id="first"><h2>Before anything else</h2><div class="grid">
+        <article class="card"><span class="tag">FAST CHECK</span><h3>Try these four steps first</h3><ol><li>Refresh the page once.</li><li>Confirm your internet connection is stable.</li><li>Sign out and sign back in.</li><li>Try a private/incognito window with extensions temporarily disabled.</li></ol></article>
+        <article class="card"><span class="tag">DO NOT SEND</span><h3>Protect sensitive information</h3><p>Never email passwords, API keys, access tokens, card numbers, security codes, confidential workplace evidence, restricted source code, or customer data. Screenshots should be cropped or redacted when necessary.</p></article>
+      </div></section>
+
+      <section class="section" id="signin"><h2>Sign-in, Google, GitHub & account access</h2><div class="grid">
+        <article class="card fix"><h3>Google or GitHub sign-in returns you to the login page</h3><ol><li>Return to the BragStack login page and start the sign-in again.</li><li>Use the same provider and account you originally used.</li><li>Allow pop-ups and redirects for usebragstack.com for the sign-in attempt.</li><li>Disable strict privacy/ad-blocking extensions temporarily.</li><li>Try an incognito/private window.</li></ol><p>If you appear logged in only after typing the site URL again, report that behavior with the browser name and approximate time.</p></article>
+        <article class="card fix"><h3>OAuth window closes, hangs, or shows an error</h3><ol><li>Do not repeatedly refresh the provider callback page.</li><li>Close the failed tab or popup.</li><li>Return to BragStack and start sign-in again.</li><li>Verify browser cookies are allowed for the session.</li><li>Try another supported browser if the problem repeats.</li></ol></article>
+        <article class="card fix"><h3>Email/password sign-in fails</h3><ol><li>Confirm the email address is typed correctly.</li><li>Check Caps Lock and password-manager autofill.</li><li>Use the password recovery flow if available.</li><li>If you normally sign in with Google or GitHub, use that provider instead of creating a second login path.</li></ol></article>
+        <article class="card fix"><h3>You are signed in, but the wrong account appears</h3><ol><li>Sign out of BragStack.</li><li>Check which Google/GitHub account is active in the browser.</li><li>Open BragStack again and deliberately choose the correct identity.</li><li>Do not create duplicate accounts to work around the issue.</li></ol></article>
+      </div></section>
+
+      <section class="section" id="billing"><h2>Billing, Stripe, coupons & Pro access</h2><div class="grid">
+        <article class="card fix"><h3>Payment succeeded but Pro is still locked</h3><ol><li>Wait a few seconds for account entitlement to update.</li><li>Refresh the app once.</li><li>Sign out and back in.</li><li>Confirm checkout used the same BragStack account you are currently signed into.</li><li>If it remains locked, send support the receipt time and your BragStack account email.</li></ol></article>
+        <article class="card fix"><h3>Coupon or promo code does not apply</h3><ol><li>Confirm the code is entered exactly as provided.</li><li>Check that the promotion has not expired.</li><li>Check whether the code is limited to new customers, one use, or a specific redemption count.</li><li>Restart checkout from BragStack instead of reusing an old checkout tab.</li></ol></article>
+        <article class="card fix"><h3>Checkout page does not open or returns an error</h3><ol><li>Allow redirects/pop-ups for the checkout attempt.</li><li>Disable blocking extensions temporarily.</li><li>Start a fresh checkout from the BragStack pricing page.</li><li>Do not reuse a stale checkout session from browser history.</li></ol></article>
+        <article class="card fix"><h3>Do not send payment secrets</h3><p>Support does not need your full card number, CVC, bank credentials, or password. A receipt timestamp, checkout error message, and BragStack account email are enough to begin investigating.</p></article>
+      </div></section>
+
+      <section class="section" id="interview"><h2>Practice Interview, microphone, speech & Aisha</h2><div class="grid">
+        <article class="card fix"><h3>Aisha does not appear</h3><ol><li>Refresh the interview page once.</li><li>Confirm the session finished loading before interacting.</li><li>Start a new practice session if the current session appears incomplete.</li><li>Try an incognito/private window if browser extensions may be blocking media or scripts.</li><li>Report whether you saw a blank avatar area, loading state, or error message.</li></ol></article>
+        <article class="card fix"><h3>Aisha appears but does not speak</h3><ol><li>Confirm the browser tab is not muted.</li><li>Raise system and browser volume.</li><li>Allow audio playback for usebragstack.com.</li><li>Interact with the page once if the browser requires a user gesture before audio playback.</li><li>Reload the session and try again.</li></ol></article>
+        <article class="card fix"><h3>Microphone does not start listening</h3><ol><li>Allow microphone permission for usebragstack.com.</li><li>Close Zoom, Teams, Discord, OBS, voice recorders, or other apps using the microphone.</li><li>Check the browser is using the intended microphone device.</li><li>Reload the interview page after changing permission.</li><li>Use text answering temporarily if voice capture is unavailable.</li></ol></article>
+        <article class="card fix"><h3>Timer starts too early, too late, or while Aisha is speaking</h3><ol><li>Stop the current session and start a fresh one.</li><li>Do not click multiple start/next controls in quick succession.</li><li>Report the exact sequence: question begins, speech ends, timer begins, microphone begins.</li><li>Include a screen recording if possible, with private information removed.</li></ol></article>
+        <article class="card fix"><h3>Mouth animation or avatar movement looks frozen</h3><ol><li>Reload the page.</li><li>Confirm hardware acceleration is enabled in the browser where possible.</li><li>Close high-CPU/GPU tabs or apps.</li><li>Try another modern browser.</li><li>Report whether audio continued while animation stopped.</li></ol></article>
+        <article class="card fix"><h3>Speech recognition is inaccurate</h3><ol><li>Move closer to the microphone and reduce background noise.</li><li>Select the correct input device.</li><li>Speak naturally but avoid talking over the prompt audio.</li><li>Use text editing before submitting if available.</li><li>Include the browser/device when reporting repeated recognition errors.</li></ol></article>
+      </div></section>
+
+      <section class="section" id="resume"><h2>Resume Builder & Career Intelligence</h2><div class="grid">
+        <article class="card fix"><h3>Resume generation appears stuck</h3><ol><li>Wait briefly before retrying.</li><li>Avoid clicking Generate repeatedly.</li><li>Refresh once if no result or error appears.</li><li>Shorten extremely large pasted job descriptions and try again.</li><li>Report the approximate time and whether any partial result appeared.</li></ol></article>
+        <article class="card fix"><h3>Generated resume content is missing or looks wrong</h3><ol><li>Confirm the relevant accomplishments or Impact Receipts are saved.</li><li>Check the target role/job description is the intended one.</li><li>Regenerate once after correcting inputs.</li><li>Always review and edit final output before using it.</li><li>Do not add experience you did not actually have just to fill a detected gap.</li></ol></article>
+        <article class="card fix"><h3>Career Intelligence feedback feels unrelated</h3><ol><li>Confirm the target job, competency, or interview type is correct.</li><li>Provide more specific evidence about what you personally did and what changed.</li><li>Remove irrelevant proof from the session where possible.</li><li>Try again with a clearer job description or accomplishment.</li></ol></article>
+        <article class="card fix"><h3>Export/download does not work</h3><ol><li>Allow downloads for usebragstack.com.</li><li>Check the browser download tray/folder.</li><li>Try again after refreshing the page.</li><li>Try another browser if the file never begins downloading.</li></ol></article>
+      </div></section>
+
+      <section class="section" id="proof"><h2>Accomplishments, Impact Receipts & public proof</h2><div class="grid">
+        <article class="card fix"><h3>An accomplishment will not save or update</h3><ol><li>Wait for any current save request to finish.</li><li>Refresh once, then retry the edit.</li><li>Reduce unusually large pasted text or attachments.</li><li>Copy important unsaved text somewhere safe before reloading.</li><li>Report the page name and exact error message.</li></ol></article>
+        <article class="card fix"><h3>Public profile or shared proof looks outdated</h3><ol><li>Confirm the item is intentionally marked for public visibility.</li><li>Refresh the public page without using an old browser tab.</li><li>Check you are viewing the correct public profile/slug.</li><li>If stale content remains, report the public page address and what should have changed.</li></ol></article>
+        <article class="card fix"><h3>Evidence upload fails</h3><ol><li>Confirm the file is not unusually large and is a supported type.</li><li>Rename files with unusual characters if necessary.</li><li>Retry on a stable connection.</li><li>Do not upload restricted employer/client material merely to test the feature.</li></ol></article>
+        <article class="card fix"><h3>Duplicate or unexpected entries appear</h3><ol><li>Do not repeatedly click Save while the first request is processing.</li><li>Refresh the list to confirm whether the duplicate is real.</li><li>Delete only the confirmed duplicate.</li><li>Report what action created the duplicate so support can trace it.</li></ol></article>
+      </div></section>
+
+      <section class="section" id="app"><h2>Pages that will not load, save, or update</h2><div class="grid">
+        <article class="card fix"><h3>Blank page or endless loading</h3><ol><li>Refresh once.</li><li>Open a new tab and navigate directly to usebragstack.com.</li><li>Try private/incognito mode.</li><li>Disable extensions that alter scripts, cookies, or network requests.</li><li>Try another modern browser.</li></ol></article>
+        <article class="card fix"><h3>Buttons do nothing</h3><ol><li>Wait for any loading indicator to finish.</li><li>Click once, not repeatedly.</li><li>Refresh the page if the action never begins.</li><li>Try the same action in a private window.</li><li>Report the button label and page.</li></ol></article>
+        <article class="card fix"><h3>Changes disappear after refresh</h3><ol><li>Confirm a save-success message appeared before leaving the page.</li><li>Retry the save once.</li><li>Sign out and back in if the session may have expired.</li><li>Copy important text before further troubleshooting.</li><li>Report which fields failed to persist.</li></ol></article>
+        <article class="card fix"><h3>Unexpected error message</h3><ol><li>Copy the exact message or take a screenshot.</li><li>Note the page, approximate time, and action you performed immediately before it.</li><li>Refresh once and retry only once.</li><li>If the same error repeats, stop retrying and contact support.</li></ol></article>
+      </div></section>
+
+      <section class="section" id="browser"><h2>Browser, cache, cookies & permissions</h2><div class="grid">
+        <article class="card"><h3>Recommended browser checks</h3><ul><li>Use a current version of Chrome, Edge, Firefox, or Safari.</li><li>Allow required cookies for sign-in sessions.</li><li>Allow microphone permission for voice interview features.</li><li>Allow redirects/pop-ups when needed for OAuth or checkout.</li><li>Do not clear all browser data as the first troubleshooting step; try a private window first.</li></ul></article>
+        <article class="card"><h3>When clearing site data makes sense</h3><p>Only clear BragStack site data after simpler steps fail. Clearing cookies/session data signs you out and may remove locally cached state. Make sure any unsaved text has been copied somewhere safe first.</p></article>
+      </div></section>
+
+      <section class="section" id="security"><h2>Security & suspicious activity</h2><div class="grid">
+        <article class="card fix"><h3>Unexpected sign-in or account activity</h3><ol><li>Sign out of BragStack.</li><li>Secure the Google, GitHub, or email account used to sign in.</li><li>Change affected credentials with the identity provider if appropriate.</li><li>Review active sessions or connected apps at that provider.</li><li>Contact support with the approximate time and what looked unusual.</li></ol></article>
+        <article class="card fix"><h3>Possible vulnerability</h3><p>Send a clear description, affected page/feature, reproduction steps, browser/device, and impact. Do not exploit the issue further than needed to demonstrate it. Do not access data that is not yours. Do not include passwords, tokens, or confidential evidence in the report.</p></article>
+      </div></section>
+
+      <section class="section" id="report"><h2>What to include in a support request</h2><div class="grid">
+        <article class="card"><h3>Useful details</h3><ul><li>Your BragStack account email.</li><li>Page or feature name.</li><li>Approximate date and time of the problem.</li><li>Browser and browser version.</li><li>Device and operating system.</li><li>Exact error message.</li><li>What you clicked immediately before the issue.</li><li>Whether the problem repeats in a private/incognito window.</li><li>A redacted screenshot or short screen recording when helpful.</li></ul></article>
+        <article class="card"><h3>Keep private information private</h3><p>Never include your password, API keys, access tokens, full payment-card data, employer secrets, confidential documents, customer data, or evidence you are not authorized to share. Describe sensitive material instead of attaching it.</p></article>
+      </div></section>
+
+      <div class="warn"><strong>Still stuck?</strong> Stop repeatedly retrying an action if it could create duplicate entries, duplicate charges, or conflicting saves. Capture the error details and contact support instead.</div>
+
+      <section class="support"><h2>Contact BragStack Support</h2><p>Email <a href="mailto:support@usebragstack.com?subject=BragStack%20technical%20support">support@usebragstack.com</a>. Include the feature, approximate time, browser/device, exact error, and the steps that led to it. For security concerns, use the subject “BragStack security report.”</p><p class="muted">BragStack will never need your password, access token, full card number, or confidential workplace evidence to begin troubleshooting.</p></section>
+    </div>
+  </main>
+</body>
+</html>
