@@ -409,7 +409,7 @@ export default function ResumeBuilderStructuredPage() {
           <div className="resume-v2-divider" />
           <div className="resume-v2-label">Target job</div>
           <form className="resume-v2-form" onSubmit={handleBuild}>
-            {!importConfirmed && <div className="resume-v2-disabled-note">Target role and job description are only required for ATS Gate Check. You can build and save a master resume without either one.</div>}
+            <div className="resume-v2-disabled-note">Target role and job description are only required for ATS Gate Check. You can build and save a master resume without either one.</div>
             <label>Target role<input value={targetRole} onChange={(event) => setTargetRole(event.target.value)} placeholder="Platform Support Engineer" required /></label>
             <label>Job description<textarea value={jobDescription} onChange={(event) => setJobDescription(event.target.value)} placeholder="Paste the full job posting here…" required /></label>
             <div className="resume-v2-label">Career proof</div>
