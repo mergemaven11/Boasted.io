@@ -1,0 +1,14 @@
+/* Keep the results layout intact while making the earned-strength rule explicit. */
+.results-grid > .result-card:first-child:has(> span:only-child)::after {
+  content: "No dimension reached Strong yet.";
+  display: block;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  background: rgba(127, 29, 29, 0.12);
+  color: #fca5a5;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  font-weight: 700;
+}
