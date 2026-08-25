@@ -149,7 +149,7 @@ def _split_embedded_bullets(raw_text: str) -> list[str]:
 
 def _is_date_fragment(line: str) -> bool:
     value = line.strip().lower().strip(".,")
-    if value in {"-", "–", "—", "to"}:
+    if value in {"-", "–", "—"}:
         return True
     if value in MONTHS or YEAR_RE.match(value):
         return True
@@ -205,8 +205,6 @@ def _repair_extracted_lines(raw_text: str) -> list[str]:
                 next_line = lines[index]
                 if _is_structural_line(next_line):
                     break
-                # PDF extraction often breaks a single bullet after punctuation. Continue
-                # short fragments until the next obvious resume structure line.
                 bullet = f"{bullet} {next_line}".strip()
                 index += 1
                 if re.search(r"[.!?]$", bullet) and (index >= len(lines) or _is_structural_line(lines[index])):
@@ -214,11 +212,7 @@ def _repair_extracted_lines(raw_text: str) -> list[str]:
             repaired.append(f"• {re.sub(r'\s+', ' ', bullet).strip()}")
             continue
 
-        # Preserve non-bullet lines (project names, schools, degrees, etc.) as
-        # separate structural rows. This keeps the preview faithful to the upload.
         if repaired and repaired[-1].startswith("• ") and not _is_structural_line(line):
-            # If a previous bullet was split into tiny standalone PDF fragments,
-            # append them back to that bullet instead of showing one word per line.
             fragments = [line]
             index += 1
             while index < len(lines) and not _is_structural_line(lines[index]):
