@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from pydantic import ValidationError
 
 from app.plans import PLAN_FEATURES
-from app.resume_builder import analyze_resume, extract_terms, score_receipt
+from app.resume_builder import analyze_resume, extract_terms, parse_existing_resume_text, score_receipt
 from app import resume_builder_routes as routes
 
 
@@ -37,6 +37,14 @@ def test_job_terms_are_extracted_without_common_noise():
     assert "with" not in terms
 
 
+def test_legal_footer_words_do_not_become_evidence_gaps():
+    terms = extract_terms("Solutions Engineer customer support. This process is based on legitimate interest and pre-contractual measures under applicable data protection laws including GDPR. You may exercise rights of access, rectification, erasure, objection at any time.")
+    assert "solutions" in terms
+    assert "engineer" in terms
+    for noisy in ("legitimate", "pre-contractual", "applicable", "protection", "gdpr", "rectification", "erasure", "objection", "through", "across", "customers"):
+        assert noisy not in terms
+
+
 def test_alias_expansion_does_not_replace_inside_unrelated_words():
     terms = extract_terms("Chair design and AI operations")
     assert "artificial" in terms
@@ -50,7 +58,7 @@ def test_requirement_matching_is_token_aware_not_substring_based():
     assert "sql" not in matches
 
 
-def test_resume_uses_only_evidence_backed_receipts_and_keeps_provenance():
+def test_resume_uses_evidence_backed_receipts_and_keeps_provenance():
     result = analyze_resume(
         target_role="Platform Support Engineer",
         job_description="Docker Python incident response troubleshooting Kubernetes",
@@ -59,11 +67,57 @@ def test_resume_uses_only_evidence_backed_receipts_and_keeps_provenance():
     assert result["bullets"]
     bullet = result["bullets"][0]
     assert bullet["source_receipt_id"] == "507f1f77bcf86cd799439011"
+    assert bullet["source_kind"] == "impact-receipt"
     assert bullet["edited"] is False
     assert "Docker" in bullet["text"]
     assert result["readiness"]["source_linked_draft"] is True
     assert "kubernetes" in result["unsupported_requirements"]
     assert "does not simulate" in result["ats_note"]
+
+
+def test_existing_resume_is_preserved_and_combined_with_receipts():
+    existing = """PROFESSIONAL SUMMARY
+Solutions Engineer experienced in technical discovery and enterprise software.
+EXPERIENCE
+• Led technical discovery sessions and translated requirements into solution designs.
+• Improved demo conversion by 22% across strategic accounts.
+SKILLS
+Discovery, Solution Design, Python
+"""
+    result = analyze_resume(
+        target_role="Solutions Engineer",
+        job_description="Solutions Engineer technical discovery Python Docker solution design",
+        receipts=[sample_receipt()],
+        existing_resume_text=existing,
+    )
+    assert result["imported_resume"]["used"] is True
+    assert result["imported_resume"]["imported_bullet_count"] == 2
+    assert result["bullets"][0]["source_kind"] == "imported"
+    assert any(bullet["source_kind"] == "impact-receipt" for bullet in result["bullets"])
+    assert "technical" in result["supported_requirements"]
+    assert "docker" in result["supported_requirements"]
+    assert result["readiness"]["source_linked_draft"] is False
+
+
+def test_resume_parser_finds_summary_bullets_and_skills():
+    parsed = parse_existing_resume_text("""SUMMARY
+Customer operations leader with measurable retention impact.
+EXPERIENCE
+- Reduced escalations by 18% through coaching.
+- Improved first-contact resolution across the support queue.
+SKILLS
+Coaching, Customer Retention, Salesforce
+""")
+    assert "retention" in parsed["summary"].lower()
+    assert len(parsed["bullets"]) == 2
+    assert "Salesforce" in parsed["skills"]
+    assert set(parsed["sections_found"]) >= {"summary", "experience", "skills"}
+
+
+def test_summary_never_announces_zero_documented_accomplishments():
+    result = analyze_resume(target_role="Solutions Engineer", job_description="technical discovery solution design", receipts=[])
+    assert "0 relevant" not in result["summary"].lower()
+    assert "documented accomplishment" not in result["summary"].lower()
 
 
 def test_metrics_raise_quantified_impact_signal():
@@ -102,10 +156,11 @@ def test_saved_resume_payload_is_bounded_and_readiness_not_client_supplied():
         )
 
 
-def test_saved_bullet_sources_must_be_valid_and_owned(monkeypatch):
+def test_saved_bullet_sources_validate_receipts_but_allow_imported(monkeypatch):
     valid = routes.ResumeBulletPayload(text="Built workflow", source_receipt_id="507f1f77bcf86cd799439011")
+    imported = routes.ResumeBulletPayload(text="Existing resume claim", source_kind="imported", source_title="Imported resume")
     monkeypatch.setattr(routes.impact_receipts_collection, "count_documents", lambda query: 1)
-    routes._validate_saved_bullet_sources("user-a", [valid])
+    routes._validate_saved_bullet_sources("user-a", [valid, imported])
 
     monkeypatch.setattr(routes.impact_receipts_collection, "count_documents", lambda query: 0)
     with pytest.raises(HTTPException) as exc:
@@ -118,18 +173,13 @@ def test_saved_bullet_sources_must_be_valid_and_owned(monkeypatch):
     assert exc.value.status_code == 400
 
 
-def test_server_readiness_marks_manual_edits_for_review():
-    source_linked = routes.ResumeBulletPayload(
-        text="Built workflow",
-        source_receipt_id="507f1f77bcf86cd799439011",
-        edited=False,
-    )
-    edited = routes.ResumeBulletPayload(
-        text="Edited workflow claim",
-        source_receipt_id="507f1f77bcf86cd799439011",
-        edited=True,
-    )
+def test_server_readiness_marks_mixed_sources_for_review():
+    source_linked = routes.ResumeBulletPayload(text="Built workflow", source_receipt_id="507f1f77bcf86cd799439011", edited=False)
+    imported = routes.ResumeBulletPayload(text="Imported claim", source_kind="imported", source_title="Imported resume")
+    edited = routes.ResumeBulletPayload(text="Edited workflow claim", source_receipt_id="507f1f77bcf86cd799439011", edited=True)
     assert routes._server_readiness([source_linked])["verification_status"] == "source-linked"
-    result = routes._server_readiness([edited])
-    assert result["verification_status"] == "needs-review"
-    assert result["edited_bullets_needing_review"] == 1
+    mixed = routes._server_readiness([source_linked, imported, edited])
+    assert mixed["verification_status"] == "mixed-sources"
+    assert mixed["edited_bullets_needing_review"] == 1
+    assert mixed["imported_bullets"] == 1
+    assert mixed["source_linked_bullets"] == 2
