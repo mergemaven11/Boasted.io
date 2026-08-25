@@ -29,11 +29,28 @@ function sourceLabel(bullet) {
 function sectionTitle(key) {
   return {
     summary: "Professional Summary",
-    experience: "Experience",
+    experience: "Professional Work Experience",
     skills: "Skills",
     education: "Education",
-    projects: "Projects",
+    projects: "Technical Projects",
   }[key] || key;
+}
+
+const DATE_LINE_RE = /\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\b.*\b(?:19|20)\d{2}\b/i;
+
+function importedLineClass(line) {
+  if (/^[•▪◦*-]\s*/.test(line)) return "imported-resume-line imported-bullet-line";
+  if (DATE_LINE_RE.test(line)) return "imported-resume-line imported-date-line";
+  if (line.includes("|") && line.split(/\s+/).length <= 20) return "imported-resume-line imported-role-line";
+  return "imported-resume-line imported-copy-line";
+}
+
+function ImportedLine({ line, sectionKey, index }) {
+  if (sectionKey === "skills" && line.includes("|")) {
+    const [label, ...rest] = line.split("|");
+    return <p className="imported-skill-line" key={`${sectionKey}-${index}`}><strong>{label.trim()}</strong><span>{rest.join(" | ").trim()}</span></p>;
+  }
+  return <p className={importedLineClass(line)} key={`${sectionKey}-${index}`}>{line}</p>;
 }
 
 function ImportedResumePreview({ importedResume, user }) {
@@ -41,12 +58,12 @@ function ImportedResumePreview({ importedResume, user }) {
   const headerLines = importedResume?.header_lines || [];
   const primaryName = headerLines[0] || user?.name || "Your Resume";
   const contactLines = headerLines.slice(1, 6);
-  const sectionOrder = ["summary", "experience", "projects", "skills", "education"];
+  const sectionOrder = ["skills", "projects", "experience", "education", "summary"];
 
   return (
     <article className="resume-paper imported-resume-paper">
-      <div className="imported-preview-banner"><CheckCircle2 size={16} /> Your uploaded resume</div>
-      <header>
+      <div className="imported-preview-banner"><CheckCircle2 size={16} /> Your uploaded resume · editable source</div>
+      <header className="imported-resume-header">
         <h1>{primaryName}</h1>
         {contactLines.length > 0 && <div className="imported-header-lines">{contactLines.map((line, index) => <span key={`${line}-${index}`}>{line}</span>)}</div>}
       </header>
@@ -56,7 +73,9 @@ function ImportedResumePreview({ importedResume, user }) {
         return (
           <section key={key} className={`imported-section imported-${key}`}>
             <div className="resume-section-heading"><h2>{sectionTitle(key)}</h2></div>
-            {key === "skills" ? <p className="resume-section-copy">{lines.join(" · ")}</p> : lines.map((line, index) => <p className="imported-resume-line" key={`${key}-${index}`}>{line}</p>)}
+            <div className={`imported-section-body imported-${key}-body`}>
+              {lines.map((line, index) => <ImportedLine line={line} sectionKey={key} index={index} key={`${key}-${index}`} />)}
+            </div>
           </section>
         );
       })}
@@ -73,7 +92,7 @@ function ImportedSupportingSections({ importedResume }) {
     return (
       <section key={key}>
         <div className="resume-section-heading"><h2>{sectionTitle(key)}</h2></div>
-        {lines.map((line, index) => <p className="imported-resume-line" key={`${key}-${index}`}>{line}</p>)}
+        <div className={`imported-section-body imported-${key}-body`}>{lines.map((line, index) => <ImportedLine line={line} sectionKey={key} index={index} key={`${key}-${index}`} />)}</div>
       </section>
     );
   });
