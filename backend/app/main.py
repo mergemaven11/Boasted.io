@@ -1,4 +1,5 @@
 import os
+import time
 from datetime import datetime, timedelta, timezone
 
 from bson import ObjectId
@@ -20,6 +21,8 @@ from app.receipt_verification_routes import router as receipt_verification_route
 from app.interview_catalog_routes import router as interview_catalog_router
 from app.interview_packet_export_routes import router as interview_packet_export_router
 from app.interview_packet_routes import router as interview_packet_router
+from app.ops_debug import new_request_id, record_request
+from app.ops_routes import router as ops_router
 from app.packet_audit_routes import router as packet_audit_router
 from app.packet_platform_export_routes import router as packet_platform_export_router
 from app.packet_platform_routes import router as packet_platform_router
@@ -50,8 +53,24 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def add_security_headers(request: Request, call_next):
-    response = await call_next(request)
+async def add_security_headers_and_telemetry(request: Request, call_next):
+    request_id = request.headers.get("x-request-id") or new_request_id()
+    started = time.perf_counter()
+    status_code = 500
+    try:
+        response = await call_next(request)
+        status_code = response.status_code
+    except Exception:
+        record_request(
+            request_id=request_id,
+            method=request.method,
+            path=request.url.path,
+            status_code=500,
+            duration_ms=(time.perf_counter() - started) * 1000,
+        )
+        raise
+
+    response.headers["X-Request-ID"] = request_id
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
@@ -61,6 +80,14 @@ async def add_security_headers(request: Request, call_next):
     forwarded_proto = request.headers.get("x-forwarded-proto", "")
     if request.url.scheme == "https" or forwarded_proto == "https":
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+    record_request(
+        request_id=request_id,
+        method=request.method,
+        path=request.url.path,
+        status_code=status_code,
+        duration_ms=(time.perf_counter() - started) * 1000,
+    )
     return response
 
 
@@ -112,6 +139,7 @@ app.include_router(interview_packet_export_router)
 app.include_router(certification_packet_router)
 app.include_router(certification_packet_export_router)
 app.include_router(resume_builder_router)
+app.include_router(ops_router)
 
 @app.get("/")
 def root(): return {"message":"BragStack API is running"}
