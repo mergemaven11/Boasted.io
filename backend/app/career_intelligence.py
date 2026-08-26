@@ -66,13 +66,24 @@ def _confirmed_count(receipt: dict) -> int:
     )
 
 
+def _document_id(document: dict) -> str | None:
+    value = document.get("_id") or document.get("id")
+    text = _clean_text(value)
+    return text or None
+
+
 def build_career_intelligence(
     entries: Iterable[dict],
     receipts: Iterable[dict],
     *,
     now: datetime | None = None,
 ) -> dict:
-    """Build explainable career signals from user-owned proof records."""
+    """Build explainable career signals from user-owned proof records.
+
+    A receipt derived from an accomplishment enriches that underlying proof;
+    it does not become a second demonstration merely because it is a separate
+    document. Standalone receipts remain independent proof records.
+    """
     entries = list(entries)
     receipts = list(receipts)
     now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
@@ -82,26 +93,33 @@ def build_career_intelligence(
             "display_names": defaultdict(int),
             "entry_count": 0,
             "receipt_count": 0,
-            "quantified_count": 0,
+            "proof_keys": set(),
+            "quantified_keys": set(),
             "evidence_count": 0,
             "confirmed_count": 0,
             "latest_at": None,
         }
     )
 
-    quantified_entries = 0
     categories = defaultdict(int)
     evidence_items = 0
     confirmed_receipts = 0
+    quantified_proof_keys: set[str] = set()
 
-    for entry in entries:
+    entry_proof_keys: dict[str, str] = {}
+    for index, entry in enumerate(entries):
+        entry_id = _document_id(entry)
+        proof_key = f"entry:{entry_id}" if entry_id else f"entry-index:{index}"
+        if entry_id:
+            entry_proof_keys[entry_id] = proof_key
+
         category = _clean_text(entry.get("category")) or "Uncategorized"
         categories[category] += 1
         is_quantified = _has_quantified_text(
             entry.get("impact"), entry.get("resume_bullet"), entry.get("action")
         )
         if is_quantified:
-            quantified_entries += 1
+            quantified_proof_keys.add(proof_key)
         observed_at = _document_datetime(entry)
         seen_in_entry = set()
         for raw_skill in entry.get("tags", []) or []:
@@ -115,13 +133,19 @@ def build_career_intelligence(
             state = skill_state[key]
             state["display_names"][display] += 1
             state["entry_count"] += 1
+            state["proof_keys"].add(proof_key)
             if is_quantified:
-                state["quantified_count"] += 1
+                state["quantified_keys"].add(proof_key)
             if observed_at and (state["latest_at"] is None or observed_at > state["latest_at"]):
                 state["latest_at"] = observed_at
 
-    quantified_receipts = 0
-    for receipt in receipts:
+    for index, receipt in enumerate(receipts):
+        receipt_id = _document_id(receipt)
+        source_entry_id = _clean_text(receipt.get("source_entry_id")) or None
+        proof_key = entry_proof_keys.get(source_entry_id or "")
+        if proof_key is None:
+            proof_key = f"receipt:{receipt_id}" if receipt_id else f"receipt-index:{index}"
+
         evidence = receipt.get("evidence", []) or []
         evidence_items += len(evidence)
         confirmations = _confirmed_count(receipt)
@@ -129,7 +153,7 @@ def build_career_intelligence(
             confirmed_receipts += 1
         has_metrics = bool(receipt.get("metrics")) or _has_quantified_text(receipt.get("result"))
         if has_metrics:
-            quantified_receipts += 1
+            quantified_proof_keys.add(proof_key)
         observed_at = _document_datetime(receipt)
         seen_in_receipt = set()
         for raw_skill in receipt.get("skills", []) or []:
@@ -143,10 +167,11 @@ def build_career_intelligence(
             state = skill_state[key]
             state["display_names"][display] += 1
             state["receipt_count"] += 1
+            state["proof_keys"].add(proof_key)
             state["evidence_count"] += len(evidence)
             state["confirmed_count"] += confirmations
             if has_metrics:
-                state["quantified_count"] += 1
+                state["quantified_keys"].add(proof_key)
             if observed_at and (state["latest_at"] is None or observed_at > state["latest_at"]):
                 state["latest_at"] = observed_at
 
@@ -156,19 +181,20 @@ def build_career_intelligence(
             state["display_names"].items(),
             key=lambda item: (item[1], len(item[0])),
         )[0]
-        demonstrations = state["entry_count"] + state["receipt_count"]
+        demonstrations = len(state["proof_keys"])
+        quantified_count = len(state["quantified_keys"])
         latest_at = state["latest_at"]
         days_since = (now - latest_at).days if latest_at else None
         recent = days_since is not None and days_since <= 180
 
         points = min(demonstrations, 5) * 8
-        points += min(state["quantified_count"], 3) * 10
+        points += min(quantified_count, 3) * 10
         points += min(state["evidence_count"], 3) * 8
         points += min(state["confirmed_count"], 2) * 6
         points += 8 if recent else 0
         points = min(points, 100)
 
-        if demonstrations >= 4 and (state["evidence_count"] or state["quantified_count"] >= 2):
+        if demonstrations >= 4 and (state["evidence_count"] or quantified_count >= 2):
             label = "strong"
         elif demonstrations >= 2:
             label = "established"
@@ -183,7 +209,7 @@ def build_career_intelligence(
                 "demonstrations": demonstrations,
                 "accomplishments": state["entry_count"],
                 "impact_receipts": state["receipt_count"],
-                "quantified_examples": state["quantified_count"],
+                "quantified_examples": quantified_count,
                 "evidence_items": state["evidence_count"],
                 "confirmations": state["confirmed_count"],
                 "recent": recent,
@@ -209,7 +235,7 @@ def build_career_intelligence(
             "detail": "Your accomplishment history is stronger than your structured proof coverage.",
             "action": "Create Impact Receipts for your highest-impact accomplishments.",
         })
-    if entries and quantified_entries + quantified_receipts == 0:
+    if entries and not quantified_proof_keys:
         gaps.append({
             "type": "quantified_impact",
             "title": "Add measurable outcomes",
@@ -254,7 +280,7 @@ def build_career_intelligence(
             "accomplishments": len(entries),
             "impact_receipts": len(receipts),
             "unique_skills": len(skills),
-            "quantified_results": quantified_entries + quantified_receipts,
+            "quantified_results": len(quantified_proof_keys),
             "evidence_items": evidence_items,
             "confirmed_receipts": confirmed_receipts,
         },
