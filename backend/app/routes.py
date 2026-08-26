@@ -476,7 +476,7 @@ def get_public_tags_summary():
 
     for entry in entries:
         for tag in entry.get("tags", []):
-            tags[tag] = tags.get(tag, 0) + 1
+            tag_counts[tag] = tag_counts.get(tag, 0) + 1
 
     sorted_tag_counts = dict(
         sorted(tag_counts.items(), key=lambda item: item[1], reverse=True)
@@ -516,7 +516,7 @@ def get_public_categories_summary():
         "total_unique_categories": len(sorted_category_counts),
         "categories": sorted_category_counts,
         "message": (
-            "No public categories found yet."
+            "No public categories found yet. Add entries to build your category summary."
             if not sorted_category_counts
             else "Public category summary generated successfully."
         ),
