@@ -93,3 +93,64 @@ def test_user_diagnostics_are_redacted(monkeypatch):
     assert "password_hash" not in payload
     assert "reset_token" not in payload
     assert "oauth_token" not in payload
+
+
+def test_non_admin_cannot_manage_team():
+    _override_user(_user(roles=["ops"]))
+    response = client.get("/ops/team")
+    assert response.status_code == 403
+
+
+def test_admin_can_update_company_user_roles_and_audit(monkeypatch):
+    actor = _user(email="admin@usebragstack.com", roles=["admin"])
+    target = _user(email="support@usebragstack.com", roles=["support"])
+    _override_user(actor)
+
+    monkeypatch.setattr(ops_routes.users_collection, "find_one", lambda query: target)
+    monkeypatch.setattr(ops_routes.users_collection, "update_one", lambda query, update: None)
+    recorded = []
+    monkeypatch.setattr(ops_routes.ops_audit_collection, "insert_one", lambda event: recorded.append(event))
+
+    response = client.patch(f"/ops/team/{target['_id']}/roles", json={"roles": ["ops", "security"]})
+    assert response.status_code == 200
+    assert response.json()["roles"] == ["ops", "security"]
+    assert recorded[0]["actor_email"] == "admin@usebragstack.com"
+    assert recorded[0]["target_email"] == "support@usebragstack.com"
+    assert recorded[0]["previous_roles"] == ["support"]
+    assert recorded[0]["next_roles"] == ["ops", "security"]
+
+
+def test_role_management_rejects_outside_domain_target(monkeypatch):
+    _override_user(_user(roles=["admin"]))
+    target = _user(email="member@example.com", roles=[])
+    monkeypatch.setattr(ops_routes.users_collection, "find_one", lambda query: target)
+
+    response = client.patch(f"/ops/team/{target['_id']}/roles", json={"roles": ["support"]})
+    assert response.status_code == 404
+
+
+def test_last_database_admin_cannot_be_removed_without_bootstrap(monkeypatch):
+    _override_user(_user(roles=["admin"]))
+    target = _user(email="lastadmin@usebragstack.com", roles=["admin"])
+    monkeypatch.setattr(ops_routes, "BOOTSTRAP_ADMINS", set())
+    monkeypatch.setattr(ops_routes.users_collection, "find_one", lambda query: target)
+    monkeypatch.setattr(ops_routes.users_collection, "count_documents", lambda query: 1)
+
+    response = client.patch(f"/ops/team/{target['_id']}/roles", json={"roles": ["ops"]})
+    assert response.status_code == 409
+    assert "admin" in response.json()["detail"].lower()
+
+
+def test_bootstrap_admin_role_cannot_be_effectively_removed(monkeypatch):
+    actor = _user(email="bootstrap@usebragstack.com", roles=[])
+    target = _user(email="bootstrap@usebragstack.com", roles=["admin"])
+    monkeypatch.setattr(ops_routes, "BOOTSTRAP_ADMINS", {"bootstrap@usebragstack.com"})
+    _override_user(actor)
+    monkeypatch.setattr(ops_routes.users_collection, "find_one", lambda query: target)
+    monkeypatch.setattr(ops_routes.users_collection, "update_one", lambda query, update: None)
+    monkeypatch.setattr(ops_routes.ops_audit_collection, "insert_one", lambda event: None)
+
+    response = client.patch(f"/ops/team/{target['_id']}/roles", json={"roles": []})
+    assert response.status_code == 200
+    assert response.json()["bootstrap_admin"] is True
+    assert "admin" in response.json()["effective_roles"]
