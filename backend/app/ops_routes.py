@@ -17,6 +17,7 @@ from app.database import (
     entries_collection,
     impact_receipts_collection,
     ops_audit_collection,
+    ops_events_collection,
     resume_documents_collection,
     users_collection,
 )
@@ -138,6 +139,13 @@ def _audit_role_change(*, actor: dict, target: dict, previous_roles: list[str], 
     )
 
 
+def _serialize_event(event: dict) -> dict:
+    result = {key: value for key, value in event.items() if key != "_id"}
+    if isinstance(result.get("created_at"), datetime):
+        result["created_at"] = result["created_at"].isoformat()
+    return result
+
+
 @router.get("/access")
 def access(current_user: dict = Depends(require_internal_role(*INTERNAL_ROLES))):
     return {
@@ -181,6 +189,46 @@ def overview(current_user: dict = Depends(require_internal_role("ops", "security
             "failures": failures,
             "recent": requests[:50],
         },
+    }
+
+
+@router.get("/observability")
+def persistent_observability(
+    current_user: dict = Depends(require_internal_role("ops", "security", "admin")),
+):
+    del current_user
+    raw_events = list(ops_events_collection.find({}, {"_id": 0}).sort("created_at", -1).limit(500))
+    events = [_serialize_event(event) for event in raw_events]
+    statuses = Counter(str(event.get("status_code", 0))[0] + "xx" for event in events if event.get("status_code"))
+    failures = [event for event in events if int(event.get("status_code", 0)) >= 400][:100]
+    slow = [event for event in events if float(event.get("duration_ms", 0)) >= 500][:50]
+    grouped_errors: dict[str, dict] = {}
+    for event in events:
+        fingerprint = event.get("error_fingerprint")
+        if not fingerprint:
+            continue
+        group = grouped_errors.setdefault(
+            fingerprint,
+            {
+                "fingerprint": fingerprint,
+                "error_type": event.get("error_type") or "UnknownError",
+                "path": event.get("path"),
+                "method": event.get("method"),
+                "count": 0,
+                "last_seen": event.get("created_at"),
+                "version": event.get("version"),
+            },
+        )
+        group["count"] += 1
+    errors = sorted(grouped_errors.values(), key=lambda item: item["count"], reverse=True)[:50]
+    return {
+        "retention_days": 14,
+        "sample_size": len(events),
+        "status_classes": dict(statuses),
+        "failures": failures,
+        "slow": slow,
+        "errors": errors,
+        "recent": events[:100],
     }
 
 
