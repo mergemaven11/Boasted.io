@@ -80,7 +80,7 @@ def test_resume_uses_evidence_backed_receipts_and_keeps_provenance():
     assert "Docker" in bullet["text"]
     assert result["readiness"]["source_linked_draft"] is True
     assert "kubernetes" in result["unsupported_requirements"]
-    assert "does not simulate" in result["ats_note"]
+    assert "not a prediction" in result["ats_note"]
 
 
 def test_existing_resume_is_preserved_and_combined_with_receipts():
