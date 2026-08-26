@@ -27,10 +27,47 @@ def test_career_intelligence_combines_entries_and_receipts():
     assert result["summary"]["quantified_results"] == 2
     docker = next(skill for skill in result["skills"] if skill["skill"].casefold() == "docker")
     assert docker["demonstrations"] == 3
+    assert docker["quantified_examples"] == 2
     assert docker["evidence_items"] == 1
     assert docker["confirmations"] == 1
     assert docker["recent"] is True
     assert result["methodology"]["employment_decision"] is False
+
+
+def test_linked_receipt_enriches_instead_of_double_counting_proof():
+    now = datetime(2026, 8, 26, tzinfo=timezone.utc)
+    entries = [
+        {
+            "_id": "entry-1",
+            "category": "Platform Engineering",
+            "tags": ["Docker"],
+            "impact": "Reduced deployment time by 40%",
+            "entry_date": "2026-08-01",
+        }
+    ]
+    receipts = [
+        {
+            "_id": "receipt-1",
+            "source_entry_id": "entry-1",
+            "skills": ["Docker"],
+            "result": "Reduced deployment time by 40%",
+            "metrics": [{"label": "Deployment time", "value": "40%"}],
+            "evidence": [{"title": "Deployment report"}],
+            "confirmations": [{"status": "confirmed", "confirmation_type": "stakeholder"}],
+            "created_at": datetime(2026, 8, 2, tzinfo=timezone.utc),
+        }
+    ]
+
+    result = build_career_intelligence(entries, receipts, now=now)
+
+    assert result["summary"]["quantified_results"] == 1
+    docker = next(skill for skill in result["skills"] if skill["skill"] == "Docker")
+    assert docker["demonstrations"] == 1
+    assert docker["accomplishments"] == 1
+    assert docker["impact_receipts"] == 1
+    assert docker["quantified_examples"] == 1
+    assert docker["evidence_items"] == 1
+    assert docker["confirmations"] == 1
 
 
 def test_career_intelligence_surfaces_proof_gaps_without_readiness_score():
