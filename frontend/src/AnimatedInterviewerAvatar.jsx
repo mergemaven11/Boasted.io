@@ -132,7 +132,7 @@ const AVATAR_STYLES = `
 export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aisha Jordan" }) {
   const safeState = STATE_COPY[state] ? state : "idle";
   return (
-    <div className={`aisha-avatar-shell state-${safeState}`} data-aisha-state={safeState} data-avatar-engine="bragstack-photo-v3">
+    <div className={`aisha-avatar-shell state-${safeState}`} data-aisha-state={safeState} data-avatar-engine="bragstack-photo-v2">
       <style>{AVATAR_STYLES}</style>
       <img className="aisha-photo-avatar" src={aishaJordanPhoto} alt={`${name}, BragStack virtual interviewer`} draggable="false" />
       <div className="aisha-photo-vignette" aria-hidden="true" />
