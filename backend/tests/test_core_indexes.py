@@ -10,7 +10,7 @@ def test_core_indexes_are_created_with_expected_shapes():
 
     created = ensure_core_indexes(db)
 
-    assert set(created) == {"users", "entries", "impact_receipts", "resume_documents"}
+    assert set(created) == {"users", "entries", "impact_receipts", "resume_documents", "rate_limits"}
 
     user_indexes = db.users.index_information()
     assert user_indexes["uniq_users_email"]["key"] == [("email", 1)]
@@ -28,6 +28,10 @@ def test_core_indexes_are_created_with_expected_shapes():
 
     resume_indexes = db.resume_documents.index_information()
     assert resume_indexes["resumes_user_updated"]["key"] == [("user_id", 1), ("updated_at", -1)]
+
+    rate_limit_indexes = db.rate_limits.index_information()
+    assert rate_limit_indexes["rate_limits_ttl"]["key"] == [("expires_at", 1)]
+    assert rate_limit_indexes["rate_limits_ttl"]["expireAfterSeconds"] == 0
 
 
 def test_unique_email_index_rejects_duplicate_accounts():
