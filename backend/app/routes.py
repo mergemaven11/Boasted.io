@@ -516,7 +516,7 @@ def get_public_categories_summary():
         "total_unique_categories": len(sorted_category_counts),
         "categories": sorted_category_counts,
         "message": (
-            "No public categories found yet. Add entries to build your category summary."
+            "No public categories found yet."
             if not sorted_category_counts
             else "Public category summary generated successfully."
         ),
