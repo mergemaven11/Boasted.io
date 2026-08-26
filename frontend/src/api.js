@@ -1,5 +1,7 @@
 import axios from "axios";
 
+import { normalizeDashboardTags } from "./dashboardTags.js";
+
 function getDefaultApiBaseUrl() {
   if (window.location.hostname.endsWith(".app.github.dev")) return "/api";
   return import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -119,7 +121,13 @@ export async function resumeSubscription() { const response = await api.post("/b
 export async function getPublicProfile(slug) { const response = await api.get(getPublicBragPath(slug, "/profile")); return response.data; }
 export async function getEntries(limit = 10, skip = 0) { const response = await api.get("/entries", { params: { limit, skip } }); return response.data; }
 export async function getWeeklyReport() { const response = await api.get("/entries/reports/weekly"); return response.data; }
-export async function getTagsSummary() { const response = await api.get("/entries/tags/summary"); return response.data; }
+export async function getTagsSummary() {
+  const response = await api.get("/entries/tags/summary");
+  return {
+    ...response.data,
+    tags: Object.fromEntries(normalizeDashboardTags(response.data?.tags)),
+  };
+}
 export async function getCategoriesSummary() { const response = await api.get("/entries/categories/summary"); return response.data; }
 export async function createEntry(entry) { const response = await api.post("/entries", entry); return response.data; }
 export async function updateEntry(entryId, entry) { const response = await api.put(`/entries/${entryId}`, entry); return response.data; }
