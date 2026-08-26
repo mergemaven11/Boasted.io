@@ -37,18 +37,20 @@ def test_root_returns_health_message():
     assert response.json() == {"message": "BragStack API is running"}
 
 
-def test_public_brag_route_returns_public_payload():
-    """Verify the public brag route returns a public entries response."""
-    response = client.get("/public/brag")
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/public/brag",
+        "/public/brag/reports/weekly",
+        "/public/brag/tags/summary",
+        "/public/brag/categories/summary",
+    ],
+)
+def test_legacy_global_public_brag_routes_are_unavailable(path):
+    """Legacy aggregate public routes must not expose cross-user public data."""
+    response = client.get(path)
 
-    assert response.status_code == 200
-
-    data = response.json()
-
-    assert "total_entries" in data
-    assert "entries" in data
-    assert "message" in data
-    assert isinstance(data["entries"], list)
+    assert response.status_code == 404
 
 
 def test_public_brag_slug_route_returns_only_that_users_public_entries():
