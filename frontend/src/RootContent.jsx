@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
+import BragStackLoader from "./BragStackLoader.jsx";
 import { getSeoLandingPage } from "./seoLandingContent.js";
 import useSearchAppearanceMeta from "./useSearchAppearanceMeta.js";
 
@@ -29,24 +30,14 @@ const UpgradePage = lazyPage(() => import("./UpgradePage.jsx"));
 const LegalPages = lazyPage(() => import("./LegalPages.jsx"));
 
 function RouteFallback() {
-  return <div className="route-loading" role="status" aria-label="Loading BragStack" />;
+  return <BragStackLoader message="Opening BragStack…" detail="Loading the tools you need." />;
 }
 
 function ProRequired({ feature = "This feature" }) {
-  return (
-    <main className="page">
-      <section className="notice">
-        <strong>BragStack Pro</strong>
-        <span>{feature} is available on Pro. Upgrade to unlock advanced career tools.</span>
-        <a className="btn primary" href="/upgrade">Upgrade to Pro</a>
-      </section>
-    </main>
-  );
+  return <main className="page"><section className="notice"><strong>BragStack Pro</strong><span>{feature} is available on Pro. Upgrade to unlock advanced career tools.</span><a className="btn primary" href="/upgrade">Upgrade to Pro</a></section></main>;
 }
 
-function ImpactReceiptsWithVerification() {
-  return <><ImpactReceiptsPage /><ReceiptVerificationCenter /></>;
-}
+function ImpactReceiptsWithVerification() { return <><ImpactReceiptsPage /><ReceiptVerificationCenter /></>; }
 
 function RootContent() {
   const path = window.location.pathname.replace(/\/$/, "") || "/";
@@ -61,24 +52,12 @@ function RootContent() {
     let active = true;
     (async () => {
       try {
-        // Keep axios and the authenticated API surface out of public-page startup.
-        // App routes already wait for plan data, so loading the client here does not
-        // change the public routing contract or entitlement behavior.
         const { getCurrentUser } = await import("./api.js");
         const data = await getCurrentUser();
-        if (active) {
-          setUser(data);
-          document.body.dataset.bragstackPlan = data.plan || "free";
-        }
+        if (active) { setUser(data); document.body.dataset.bragstackPlan = data.plan || "free"; }
       } catch (error) {
-        if (error.response?.status === 401) {
-          localStorage.removeItem("bragstack_token");
-          window.location.assign("/login");
-          return;
-        }
-      } finally {
-        if (active) setPlanLoaded(true);
-      }
+        if (error.response?.status === 401) { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); return; }
+      } finally { if (active) setPlanLoaded(true); }
     })();
     return () => { active = false; };
   }, [isAuthenticatedApp]);
@@ -87,26 +66,15 @@ function RootContent() {
     const timeout = window.setTimeout(() => {
       document.querySelectorAll('a[href="/#security"]').forEach((link) => link.setAttribute("href", "/security"));
       if (path !== "/") return;
-      document.querySelectorAll('a[href*="@bragstack.app"]').forEach((link) => {
-        const href = link.getAttribute("href") || "";
-        const subject = href.includes("?subject=") ? `?${href.split("?")[1]}` : "";
-        link.setAttribute("href", `mailto:Tobias.scott@usebragstack.com${subject}`);
-      });
-      document.querySelectorAll(".mega-footer-columns span").forEach((node) => {
-        if (node.textContent?.trim() !== "Docs · coming soon") return;
-        const link = document.createElement("a");
-        link.href = "/docs";
-        link.textContent = "Docs";
-        node.replaceWith(link);
-      });
+      document.querySelectorAll('a[href*="@bragstack.app"]').forEach((link) => { const href = link.getAttribute("href") || ""; const subject = href.includes("?subject=") ? `?${href.split("?")[1]}` : ""; link.setAttribute("href", `mailto:Tobias.scott@usebragstack.com${subject}`); });
+      document.querySelectorAll(".mega-footer-columns span").forEach((node) => { if (node.textContent?.trim() !== "Docs · coming soon") return; const link = document.createElement("a"); link.href = "/docs"; link.textContent = "Docs"; node.replaceWith(link); });
     }, 0);
     return () => window.clearTimeout(timeout);
   }, [path]);
 
   let content;
-  if (path === "/privacy" || path === "/terms") {
-    content = <LegalPages page={path === "/privacy" ? "privacy" : "terms"} />;
-  } else if (path === "/verify-receipt") content = <ReceiptVerificationPage />;
+  if (path === "/privacy" || path === "/terms") content = <LegalPages page={path === "/privacy" ? "privacy" : "terms"} />;
+  else if (path === "/verify-receipt") content = <ReceiptVerificationPage />;
   else if (path === "/upgrade") content = <UpgradePage />;
   else if (path === "/docs") content = <DocsPage />;
   else if (path === "/nda-safety") content = <NDAGuidancePage />;
@@ -123,19 +91,12 @@ function RootContent() {
     else if (path === "/app/settings/billing") Content = BillingSettingsPage;
     else if (path === "/app/accomplishments") Content = AccomplishmentsPage;
     else if (path === "/app/impact-receipts") Content = ImpactReceiptsWithVerification;
-    else if (path === "/app/resume-builder" && planLoaded) {
-      Content = user?.entitlements?.resume_builder ? ResumeBuilderPage : ProRequired;
-      contentProps = user?.entitlements?.resume_builder ? {} : { feature: "Resume Builder and ATS Guardian" };
-    } else if (path === "/app/reports" && planLoaded) {
-      Content = user?.entitlements?.advanced_reports ? ProCareerPage : ProRequired;
-      contentProps = user?.entitlements?.advanced_reports ? {} : { feature: "Career analytics and career packets" };
-    } else if (path === "/app/interview-practice" && planLoaded) {
-      Content = user?.entitlements?.interview_practice ? InterviewPracticeExperience : ProRequired;
-      contentProps = user?.entitlements?.interview_practice ? {} : { feature: "Practice Interviewer" };
-    }
+    else if (path === "/app/resume-builder" && planLoaded) { Content = user?.entitlements?.resume_builder ? ResumeBuilderPage : ProRequired; contentProps = user?.entitlements?.resume_builder ? {} : { feature: "Resume Builder and ATS Guardian" }; }
+    else if (path === "/app/reports" && planLoaded) { Content = user?.entitlements?.advanced_reports ? ProCareerPage : ProRequired; contentProps = user?.entitlements?.advanced_reports ? {} : { feature: "Career analytics and career packets" }; }
+    else if (path === "/app/interview-practice" && planLoaded) { Content = user?.entitlements?.interview_practice ? InterviewPracticeExperience : ProRequired; contentProps = user?.entitlements?.interview_practice ? {} : { feature: "Practice Interviewer" }; }
 
     if (!isAuthenticatedApp) content = <Content {...contentProps} />;
-    else if (!planLoaded) content = <div className="app-shell"><div className="authenticated-content" /></div>;
+    else if (!planLoaded) content = <BragStackLoader message="Preparing your workspace…" detail="Connecting your account and career intelligence." />;
     else content = <div className="app-shell"><AppSidebar /><div className="authenticated-content"><Content {...contentProps} /></div><ProductTour user={user} /></div>;
   }
 
