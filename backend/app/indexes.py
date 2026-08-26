@@ -36,4 +36,13 @@ def ensure_core_indexes(db) -> dict[str, list[str]]:
         resumes.create_index([("user_id", ASCENDING), ("updated_at", DESCENDING)], name="resumes_user_updated"),
     ]
 
+    rate_limits = db["rate_limits"]
+    created["rate_limits"] = [
+        rate_limits.create_index(
+            [("expires_at", ASCENDING)],
+            name="rate_limits_ttl",
+            expireAfterSeconds=0,
+        ),
+    ]
+
     return created
