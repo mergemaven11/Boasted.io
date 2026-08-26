@@ -24,6 +24,7 @@ from app.interview_packet_routes import router as interview_packet_router
 from app.observability import record_persistent_request
 from app.ops_debug import new_request_id, record_request
 from app.ops_routes import router as ops_router
+from app.ops_user_routes import router as ops_user_router
 from app.packet_audit_routes import router as packet_audit_router
 from app.packet_platform_export_routes import router as packet_platform_export_router
 from app.packet_platform_routes import router as packet_platform_router
@@ -52,62 +53,29 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "Accept", "X-Request-ID"],
 )
 
-
 @app.middleware("http")
 async def add_security_headers_and_telemetry(request: Request, call_next):
     request_id = request.headers.get("x-request-id") or new_request_id()
-    started = time.perf_counter()
-    status_code = 500
+    started = time.perf_counter(); status_code = 500
     try:
-        response = await call_next(request)
-        status_code = response.status_code
+        response = await call_next(request); status_code = response.status_code
     except Exception as exc:
         duration_ms = (time.perf_counter() - started) * 1000
-        record_request(
-            request_id=request_id,
-            method=request.method,
-            path=request.url.path,
-            status_code=500,
-            duration_ms=duration_ms,
-        )
-        record_persistent_request(
-            request_id=request_id,
-            method=request.method,
-            path=request.url.path,
-            status_code=500,
-            duration_ms=duration_ms,
-            error_type=type(exc).__name__,
-        )
+        record_request(request_id=request_id, method=request.method, path=request.url.path, status_code=500, duration_ms=duration_ms)
+        record_persistent_request(request_id=request_id, method=request.method, path=request.url.path, status_code=500, duration_ms=duration_ms, error_type=type(exc).__name__)
         raise
-
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), geolocation=(), microphone=()"
-    if "cache-control" not in response.headers:
-        response.headers["Cache-Control"] = "no-store"
+    if "cache-control" not in response.headers: response.headers["Cache-Control"] = "no-store"
     forwarded_proto = request.headers.get("x-forwarded-proto", "")
-    if request.url.scheme == "https" or forwarded_proto == "https":
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-
+    if request.url.scheme == "https" or forwarded_proto == "https": response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     duration_ms = (time.perf_counter() - started) * 1000
-    record_request(
-        request_id=request_id,
-        method=request.method,
-        path=request.url.path,
-        status_code=status_code,
-        duration_ms=duration_ms,
-    )
-    record_persistent_request(
-        request_id=request_id,
-        method=request.method,
-        path=request.url.path,
-        status_code=status_code,
-        duration_ms=duration_ms,
-    )
+    record_request(request_id=request_id, method=request.method, path=request.url.path, status_code=status_code, duration_ms=duration_ms)
+    record_persistent_request(request_id=request_id, method=request.method, path=request.url.path, status_code=status_code, duration_ms=duration_ms)
     return response
-
 
 def _as_utc(value: datetime) -> datetime:
     if value.tzinfo is None: return value.replace(tzinfo=timezone.utc)
@@ -158,22 +126,16 @@ app.include_router(certification_packet_router)
 app.include_router(certification_packet_export_router)
 app.include_router(resume_builder_router)
 app.include_router(ops_router)
+app.include_router(ops_user_router)
 
 @app.get("/")
 def root(): return {"message":"BragStack API is running"}
-
 @app.head("/", include_in_schema=False)
-def root_head():
-    return None
-
+def root_head(): return None
 @app.get("/health")
-def health():
-    return {"status": "ok"}
-
+def health(): return {"status": "ok"}
 @app.get("/ready")
 def ready():
-    try:
-        mongo_admin.command("ping")
-    except PyMongoError as exc:
-        raise HTTPException(status_code=503, detail="Service is not ready") from exc
+    try: mongo_admin.command("ping")
+    except PyMongoError as exc: raise HTTPException(status_code=503, detail="Service is not ready") from exc
     return {"status": "ready"}

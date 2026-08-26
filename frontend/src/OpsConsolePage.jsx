@@ -20,6 +20,13 @@ function ErrorGroups({ rows = [] }) {
   return <div className="ops-error-groups">{rows.map((row) => <article key={row.fingerprint}><div><strong>{row.error_type}</strong><code>{row.fingerprint}</code></div><span>{row.method} {row.path}</span><small>{row.count} occurrence{row.count === 1 ? "" : "s"} · last seen {new Date(row.last_seen).toLocaleString()} · {row.version || "unknown version"}</small></article>)}</div>;
 }
 
+function AuditEventRow({ event }) {
+  if (event.event === "verification_email_resent") {
+    return <div><strong>{event.actor_email}</strong><span>resent verification email</span><code>{event.target_email}</code></div>;
+  }
+  return <div><strong>{event.actor_email}</strong><span>changed {event.target_email}</span><code>{(event.previous_roles || []).join(", ") || "none"} → {(event.next_roles || []).join(", ") || "none"}</code></div>;
+}
+
 function RoleManager({ team, setTeam, audit, setAudit }) {
   const [saving, setSaving] = useState("");
   const [roleError, setRoleError] = useState("");
@@ -66,13 +73,9 @@ function RoleManager({ team, setTeam, audit, setAudit }) {
       </article>)}
     </div>
     <div className="ops-audit-list">
-      <h3>Recent role changes</h3>
-      {(audit?.events || []).length === 0 && <p className="ops-empty">No role changes recorded yet.</p>}
-      {(audit?.events || []).map((event, index) => <div key={`${event.created_at}-${index}`}>
-        <strong>{event.actor_email}</strong>
-        <span>changed {event.target_email}</span>
-        <code>{(event.previous_roles || []).join(", ") || "none"} → {(event.next_roles || []).join(", ") || "none"}</code>
-      </div>)}
+      <h3>Recent admin actions</h3>
+      {(audit?.events || []).length === 0 && <p className="ops-empty">No admin actions recorded yet.</p>}
+      {(audit?.events || []).map((event, index) => <AuditEventRow event={event} key={`${event.created_at}-${index}`} />)}
     </div>
   </>;
 }
