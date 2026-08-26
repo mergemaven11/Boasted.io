@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from io import BytesIO
 
+import fitz
 from bson import ObjectId
 from docx import Document
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
@@ -17,6 +18,7 @@ from app.resume_import_parser import parse_existing_resume_text
 
 router = APIRouter(prefix="/resume-builder", tags=["resume-builder"])
 MAX_RESUME_BYTES = 5 * 1024 * 1024
+MAX_RESUME_PAGES = 12
 
 
 class ResumeBuildRequest(BaseModel):
@@ -116,11 +118,61 @@ def _server_readiness(bullets: list[ResumeBulletPayload]) -> dict:
     }
 
 
+def _extract_pdf_text_pymupdf(data: bytes) -> str:
+    """Primary born-digital PDF extraction with block geometry and stable reading-order sorting."""
+    lines: list[str] = []
+    with fitz.open(stream=data, filetype="pdf") as document:
+        if document.page_count > MAX_RESUME_PAGES:
+            raise HTTPException(status_code=400, detail=f"Resume PDFs can contain up to {MAX_RESUME_PAGES} pages")
+        for page in document:
+            blocks = page.get_text("blocks", sort=True)
+            page_lines: list[str] = []
+            for x0, y0, x1, y1, text, *_ in blocks:
+                del x0, y0, x1, y1
+                cleaned = "\n".join(part.strip() for part in str(text or "").splitlines() if part.strip())
+                if cleaned:
+                    page_lines.append(cleaned)
+            lines.extend(page_lines)
+    return "\n".join(lines).strip()
+
+
+def _extract_pdf_text_pypdf(data: bytes) -> str:
+    reader = PdfReader(BytesIO(data))
+    if len(reader.pages) > MAX_RESUME_PAGES:
+        raise HTTPException(status_code=400, detail=f"Resume PDFs can contain up to {MAX_RESUME_PAGES} pages")
+    return "\n".join((page.extract_text() or "") for page in reader.pages).strip()
+
+
+def _extract_pdf_text(data: bytes) -> str:
+    """Use two independent extractors and keep the richer result without inventing content."""
+    primary = ""
+    secondary = ""
+    try:
+        primary = _extract_pdf_text_pymupdf(data)
+    except HTTPException:
+        raise
+    except Exception:
+        primary = ""
+
+    try:
+        secondary = _extract_pdf_text_pypdf(data)
+    except HTTPException:
+        raise
+    except Exception:
+        secondary = ""
+
+    # Prefer geometry-aware PyMuPDF when it recovered comparable content. If one
+    # extractor clearly lost text, use the richer source rather than silently
+    # accepting the sparse interpretation.
+    if primary and (not secondary or len(primary) >= len(secondary) * 0.72):
+        return primary
+    return secondary or primary
+
+
 def _extract_uploaded_text(filename: str, content_type: str, data: bytes) -> str:
     suffix = "." + filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
     if content_type == "application/pdf" or suffix == ".pdf":
-        reader = PdfReader(BytesIO(data))
-        return "\n".join((page.extract_text() or "") for page in reader.pages)
+        return _extract_pdf_text(data)
     if content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" or suffix == ".docx":
         document = Document(BytesIO(data))
         paragraphs = [paragraph.text for paragraph in document.paragraphs]
@@ -147,11 +199,15 @@ async def import_resume(file: UploadFile = File(...), current_user: dict = Depen
     except Exception as exc:
         raise HTTPException(status_code=400, detail="We could not read that resume. Try exporting it as a fresh PDF or DOCX.") from exc
     if len(text) < 20:
-        raise HTTPException(status_code=400, detail="We could not find enough readable text in that resume")
+        raise HTTPException(
+            status_code=400,
+            detail="We could not find enough readable text in that resume. If it is a scanned/image-only PDF, export a text-searchable PDF or DOCX and try again.",
+        )
     parsed = parse_existing_resume_text(text)
     return {
         "filename": filename,
         "text": parsed["text"],
+        "raw_text": parsed.get("raw_text", text),
         "summary": parsed["summary"],
         "bullets": parsed["bullets"],
         "skills": parsed["skills"],
@@ -161,6 +217,7 @@ async def import_resume(file: UploadFile = File(...), current_user: dict = Depen
         "contact": parsed.get("contact", {}),
         "experience": parsed.get("experience", []),
         "parse_warnings": parsed.get("parse_warnings", []),
+        "source_signals": parsed.get("source_signals", {}),
         "line_count": parsed["line_count"],
     }
 

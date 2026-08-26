@@ -177,24 +177,24 @@ export function parseGateStatus(draft, parseWarnings = [], content = {}) {
   const roles = draft?.experience || [];
   const supportingCount = supportingContentCount(content);
   if (!roles.length && !supportingCount) {
-    return { level: "bad", label: "Needs content", detail: "Add work history, projects, education, skills, or a summary before applying." };
+    return { level: "bad", label: "Needs content", detail: "We could not verify enough structured content yet. Review the source resume before changing anything." };
   }
   const incomplete = roles.filter((role) => !clean(role.company) || !clean(role.title));
   if (incomplete.length || parseWarnings.length) {
-    return { level: "warn", label: "Review", detail: `${Math.max(incomplete.length, parseWarnings.length)} item${Math.max(incomplete.length, parseWarnings.length) === 1 ? "" : "s"} should be confirmed before applying.` };
+    return { level: "warn", label: "Review", detail: `${Math.max(incomplete.length, parseWarnings.length)} parsed item${Math.max(incomplete.length, parseWarnings.length) === 1 ? "" : "s"} should be confirmed against the source resume.` };
   }
   if (!roles.length) {
-    return { level: "good", label: "Structured", detail: "This resume is built from structured education, projects, skills, or summary content without requiring work history." };
+    return { level: "good", label: "Structured", detail: "Structured education, projects, skills, or summary content is available even without work history." };
   }
-  return { level: "good", label: "Ready", detail: `${roles.length} role${roles.length === 1 ? "" : "s"} structured with employer and title.` };
+  return { level: "good", label: "Ready", detail: `${roles.length} role${roles.length === 1 ? "" : "s"} are structured with employer and title.` };
 }
 
 export function qualificationGateStatus(result) {
-  if (!result) return { level: "neutral", label: "Waiting", detail: "Add a target job to check requirement coverage." };
-  const coverage = Number(result?.readiness?.coverage_percent || 0);
-  if (coverage >= 65) return { level: "good", label: "Strong signal", detail: "Most detected job requirements are visible in the resume." };
-  if (coverage >= 35) return { level: "warn", label: "Strengthen", detail: "Several relevant requirements are not visible enough yet." };
-  return { level: "bad", label: "Needs work", detail: "The current resume is missing many detected job signals." };
+  if (!result) return { level: "neutral", label: "Waiting", detail: "Add a target job to compare supported evidence with the posting." };
+  const scanScore = Number(result?.ats_scan?.breakdown?.job_match ?? result?.readiness?.coverage_percent ?? 0);
+  if (scanScore >= 75) return { level: "good", label: "Strong match", detail: `${scanScore}% of detected job signals are visibly supported by the resume or selected career proof.` };
+  if (scanScore >= 50) return { level: "warn", label: "Good foundation", detail: `${scanScore}% of detected job signals are visibly supported. Review the unmatched requirements for truthful additions.` };
+  return { level: "bad", label: "Needs attention", detail: `${scanScore}% of detected job signals are visibly supported. This is a comparison result, not an employer rejection prediction.` };
 }
 
 export function recruiterGateStatus(draft, content = {}) {
@@ -203,10 +203,10 @@ export function recruiterGateStatus(draft, content = {}) {
   if (!bullets.length) {
     const supportingCount = supportingContentCount(content);
     if (supportingCount) {
-      return { level: "warn", label: "Project-led", detail: "No work-history bullets yet. Recruiter scan will rely on projects, education, skills, and summary content." };
+      return { level: "warn", label: "Review structure", detail: "No structured work-history bullets are currently available to this scan. Supporting projects, education, skills, or summary content is still present." };
     }
-    return { level: "bad", label: "Needs work", detail: "Add accomplishments, projects, education, or skills for a recruiter to scan." };
+    return { level: "bad", label: "Needs content", detail: "The scan could not verify accomplishments, projects, education, or skills yet. Check the source resume before treating anything as missing." };
   }
-  if (quantified >= 3) return { level: "good", label: "Ready", detail: `${quantified} accomplishment bullets show measurable impact.` };
+  if (quantified >= 3) return { level: "good", label: "Strong", detail: `${quantified} accomplishment bullets show measurable impact.` };
   return { level: "warn", label: "Polish", detail: `${quantified} bullet${quantified === 1 ? "" : "s"} show measurable impact. Add numbers only where they are true.` };
 }
