@@ -8,6 +8,7 @@ import {
   getOpsUser,
   updateOpsRoles,
 } from "./opsApi";
+import BragStackLoader from "./BragStackLoader.jsx";
 import "./OpsConsolePage.css";
 
 function RequestTable({ rows = [] }) {
@@ -146,7 +147,7 @@ export default function OpsConsolePage() {
     catch (err) { setUserError(err.response?.data?.detail || "User diagnostics could not be loaded."); }
   }
 
-  if (loading) return <main className="ops-page"><div className="ops-loading">Loading operational diagnostics…</div></main>;
+  if (loading) return <BragStackLoader compact message="Loading BragStack Ops…" detail="Checking service health, telemetry, database state, and authorized diagnostics." />;
   if (error) return <main className="ops-page"><section className="ops-denied"><h1>BragStack Ops</h1><p>{error}</p><a href="/app">Return to BragStack</a></section></main>;
 
   const service = overview?.service || {};
