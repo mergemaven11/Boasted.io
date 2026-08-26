@@ -27,8 +27,17 @@ from app.packet_audit import record_packet_export
 
 
 router = APIRouter(tags=["packet-sharing"])
+
+
+def _env_int(name: str, default: int, minimum: int = 1) -> int:
+    try:
+        return max(minimum, int(os.getenv(name, str(default))))
+    except (TypeError, ValueError):
+        return default
+
+
 SHARE_GRANT_SECRET = os.getenv("PACKET_SHARE_GRANT_SECRET") or os.getenv("JWT_SECRET") or "bragstack-share-grant"
-SHARE_GRANT_TTL_SECONDS = max(300, int(os.getenv("PACKET_SHARE_GRANT_TTL_SECONDS", "3600")))
+SHARE_GRANT_TTL_SECONDS = _env_int("PACKET_SHARE_GRANT_TTL_SECONDS", 3600, minimum=300)
 SHARE_COOKIE_SECURE = os.getenv("PACKET_SHARE_COOKIE_SECURE", "true").strip().lower() in {"1", "true", "yes", "on"}
 
 
