@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { createServer } from "vite";
 
@@ -26,22 +27,73 @@ const chromeCandidates = ["google-chrome", "chromium", "chromium-browser"];
 const chrome = chromeCandidates.find((name) => spawnSync("which", [name], { encoding: "utf8" }).status === 0);
 assert.ok(chrome, "A Chromium/Chrome binary is required for the Aisha browser verification");
 
-function runProcess(command, args, timeoutMs = 30000) {
+function killProcessTree(child) {
+  if (!child?.pid) return;
+  try {
+    if (process.platform !== "win32") process.kill(-child.pid, "SIGKILL");
+    else child.kill("SIGKILL");
+  } catch {
+    try { child.kill("SIGKILL"); } catch { /* already exited */ }
+  }
+}
+
+function runProcess(command, args, timeoutMs = 45000) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn(command, args, {
+      stdio: ["ignore", "pipe", "pipe"],
+      detached: process.platform !== "win32",
+    });
     let stdout = "";
     let stderr = "";
+    let timedOut = false;
     const timeout = setTimeout(() => {
-      child.kill("SIGKILL");
-      reject(new Error(`Timed out after ${timeoutMs}ms: ${command}`));
+      timedOut = true;
+      killProcessTree(child);
     }, timeoutMs);
     child.stdout.setEncoding("utf8");
     child.stderr.setEncoding("utf8");
     child.stdout.on("data", (chunk) => { stdout += chunk; });
     child.stderr.on("data", (chunk) => { stderr += chunk; });
     child.on("error", (error) => { clearTimeout(timeout); reject(error); });
-    child.on("close", (code) => { clearTimeout(timeout); resolve({ status: code, stdout, stderr }); });
+    child.on("close", (code) => {
+      clearTimeout(timeout);
+      if (timedOut) {
+        reject(new Error(`Timed out after ${timeoutMs}ms: ${command}\n${stderr.slice(-1200)}`));
+        return;
+      }
+      resolve({ status: code, stdout, stderr });
+    });
   });
+}
+
+async function runChromeVerification(url) {
+  let lastError;
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const profileDir = await fs.mkdtemp(path.join(os.tmpdir(), `bragstack-aisha-${attempt}-`));
+    try {
+      const run = await runProcess(chrome, [
+        "--headless=new",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--disable-background-networking",
+        "--disable-breakpad",
+        "--no-first-run",
+        "--no-sandbox",
+        `--user-data-dir=${profileDir}`,
+        "--virtual-time-budget=3000",
+        "--dump-dom",
+        url,
+      ]);
+      if (run.status === 0 && /data-aisha-result="ok"/.test(run.stdout)) return run;
+      lastError = new Error(`Headless browser verification attempt ${attempt} failed: ${run.stderr || run.stdout.slice(-1800)}`);
+    } catch (error) {
+      lastError = error;
+    } finally {
+      await fs.rm(profileDir, { recursive: true, force: true, maxRetries: 4, retryDelay: 250 }).catch(() => {});
+    }
+    if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  throw lastError;
 }
 
 const harnessHtml = path.resolve("scripts/.aisha-browser-harness.html");
@@ -61,7 +113,7 @@ requestAnimationFrame(()=>requestAnimationFrame(verify));
 const server = await createServer({ root: process.cwd(), logLevel: "error", server: { host: "127.0.0.1", port: 41739, strictPort: true } });
 try {
   await server.listen();
-  const run = await runProcess(chrome, ["--headless=new", "--disable-gpu", "--no-sandbox", "--virtual-time-budget=3000", "--dump-dom", "http://127.0.0.1:41739/scripts/.aisha-browser-harness.html"]);
+  const run = await runChromeVerification("http://127.0.0.1:41739/scripts/.aisha-browser-harness.html");
   assert.equal(run.status, 0, `Headless browser failed: ${run.stderr || run.stdout}`);
   assert.match(run.stdout, /data-aisha-result="ok"/, `Aisha photographic browser contract failed: ${run.stdout.slice(-1800)}`);
   assert.match(run.stdout, /data-aisha-details="[0-9]+:[0-9]+:[0-9]+:[0-9]+:speaking"/, "Aisha browser contract must report stage fill and speaking state");

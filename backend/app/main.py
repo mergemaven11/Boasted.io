@@ -21,6 +21,7 @@ from app.receipt_verification_routes import router as receipt_verification_route
 from app.interview_catalog_routes import router as interview_catalog_router
 from app.interview_packet_export_routes import router as interview_packet_export_router
 from app.interview_packet_routes import router as interview_packet_router
+from app.observability import record_persistent_request
 from app.ops_debug import new_request_id, record_request
 from app.ops_routes import router as ops_router
 from app.packet_audit_routes import router as packet_audit_router
@@ -48,7 +49,7 @@ app.add_middleware(
     allow_origin_regex=r"https://.*\.app\.github\.dev",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
-    allow_headers=["Authorization", "Content-Type", "Accept"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "X-Request-ID"],
 )
 
 
@@ -60,13 +61,22 @@ async def add_security_headers_and_telemetry(request: Request, call_next):
     try:
         response = await call_next(request)
         status_code = response.status_code
-    except Exception:
+    except Exception as exc:
+        duration_ms = (time.perf_counter() - started) * 1000
         record_request(
             request_id=request_id,
             method=request.method,
             path=request.url.path,
             status_code=500,
-            duration_ms=(time.perf_counter() - started) * 1000,
+            duration_ms=duration_ms,
+        )
+        record_persistent_request(
+            request_id=request_id,
+            method=request.method,
+            path=request.url.path,
+            status_code=500,
+            duration_ms=duration_ms,
+            error_type=type(exc).__name__,
         )
         raise
 
@@ -81,12 +91,20 @@ async def add_security_headers_and_telemetry(request: Request, call_next):
     if request.url.scheme == "https" or forwarded_proto == "https":
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
+    duration_ms = (time.perf_counter() - started) * 1000
     record_request(
         request_id=request_id,
         method=request.method,
         path=request.url.path,
         status_code=status_code,
-        duration_ms=(time.perf_counter() - started) * 1000,
+        duration_ms=duration_ms,
+    )
+    record_persistent_request(
+        request_id=request_id,
+        method=request.method,
+        path=request.url.path,
+        status_code=status_code,
+        duration_ms=duration_ms,
     )
     return response
 

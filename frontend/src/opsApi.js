@@ -9,11 +9,13 @@ const opsApi = axios.create({ baseURL: apiBase() });
 opsApi.interceptors.request.use((config) => {
   const token = localStorage.getItem("bragstack_token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  config.headers["X-Request-ID"] = config.headers["X-Request-ID"] || crypto.randomUUID();
   return config;
 });
 
 export async function getOpsAccess() { const response = await opsApi.get("/ops/access"); return response.data; }
 export async function getOpsOverview() { const response = await opsApi.get("/ops/overview"); return response.data; }
+export async function getOpsObservability() { const response = await opsApi.get("/ops/observability"); return response.data; }
 export async function getOpsUser(email) { const response = await opsApi.get("/ops/users", { params: { email } }); return response.data; }
 export async function getOpsTeam() { const response = await opsApi.get("/ops/team"); return response.data; }
 export async function updateOpsRoles(userId, roles) { const response = await opsApi.patch(`/ops/team/${userId}/roles`, { roles }); return response.data; }
