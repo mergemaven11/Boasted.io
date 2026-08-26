@@ -11,7 +11,8 @@ BragStack uses MongoDB-backed fixed-window counters so abuse limits are shared a
 | `auth_email` | 5 | 1 hour | verification resend and password-reset request |
 | `auth_confirm` | 20 | 1 hour | verification/reset confirmation |
 | `oauth` | 30 | 10 minutes | Google/GitHub OAuth login and callback |
-| `receipt_verification_send` | 10 | 1 hour | verifier email requests |
+| `receipt_verification_send` | 10 | 1 hour | authenticated verifier email requests |
+| `receipt_verification_public` | 60 | 1 minute | anonymous verifier-token view/decision endpoints |
 | `public_profile` | 180 | 1 minute | slug-scoped public Proof Profile reads |
 
 A blocked request returns HTTP `429` with a generic response body and `Retry-After`, `RateLimit-Limit`, and `RateLimit-Reset` headers. The limiter runs before account lookup, so its response does not disclose whether an email address has an account.
@@ -44,6 +45,7 @@ Set `RATE_LIMIT_FAIL_OPEN=false` only for an incident where fail-closed abuse pr
 ## Verification after changes
 
 - Confirm login/register/reset and verifier-email endpoints return their normal response below the threshold.
+- Confirm anonymous verification-token view/decision traffic is limited independently from verifier-email sends.
 - Confirm the next request above the threshold returns `429` and a positive `Retry-After`.
 - Confirm a new time window accepts requests again.
 - Confirm `/health` and `/ready` are never rate limited.
