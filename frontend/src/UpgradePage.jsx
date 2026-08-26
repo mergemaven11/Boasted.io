@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, CreditCard, ShieldCheck, Sparkles, Video } from "lucide-react";
+import BragStackLoader from "./BragStackLoader.jsx";
 
 function getApiBaseUrl() {
   if (window.location.hostname.endsWith(".app.github.dev")) return "/api";
@@ -59,6 +60,10 @@ function UpgradePage() {
     return () => window.clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (token && loading) {
+    return <BragStackLoader message="Opening secure checkout…" detail="Connecting BragStack to Stripe. You'll continue in a secure checkout window." />;
+  }
 
   return (
     <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24 }}>
