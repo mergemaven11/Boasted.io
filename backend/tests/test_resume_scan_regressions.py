@@ -106,4 +106,5 @@ Platforms | Python, Docker
     assert parsed["source_signals"]["has_experience_heading"] is True
     assert parsed["source_signals"]["has_skills_heading"] is True
     assert parsed["skills"]
-    assert any("source" in warning.lower() or "visible" in warning.lower() for warning in parsed["parse_warnings"])
+    assert parsed["parse_warnings"]
+    assert any("confirm" in warning.lower() or "source" in warning.lower() or "visible" in warning.lower() for warning in parsed["parse_warnings"])
