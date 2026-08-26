@@ -47,14 +47,6 @@ app = FastAPI(title="BragStack API", description="Evidence-backed career proof f
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 ENTRY_EDIT_WINDOW = timedelta(hours=1)
 mongo_admin = mongo_client.admin
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[frontend_url, "http://localhost:5173", "http://127.0.0.1:5173"],
-    allow_origin_regex=r"https://.*\.app\.github\.dev",
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
-    allow_headers=["Authorization", "Content-Type", "Accept", "X-Request-ID"],
-)
 
 @app.middleware("http")
 async def add_security_headers_and_telemetry(request: Request, call_next):
@@ -92,6 +84,17 @@ async def add_security_headers_and_telemetry(request: Request, call_next):
     record_request(request_id=request_id, method=request.method, path=request.url.path, status_code=status_code, duration_ms=duration_ms)
     record_persistent_request(request_id=request_id, method=request.method, path=request.url.path, status_code=status_code, duration_ms=duration_ms)
     return response
+
+# Keep CORS outside the application middleware above so early responses such as
+# rate-limit 429s still carry browser-readable CORS headers.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[frontend_url, "http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origin_regex=r"https://.*\.app\.github\.dev",
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "X-Request-ID"],
+)
 
 def _as_utc(value: datetime) -> datetime:
     if value.tzinfo is None: return value.replace(tzinfo=timezone.utc)
