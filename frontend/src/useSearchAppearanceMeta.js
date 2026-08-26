@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { PRIMARY_SITELINKS } from "./primarySitelinks.js";
 
 const PUBLIC_META = {
   "/": {
@@ -6,8 +7,8 @@ const PUBLIC_META = {
     description: "BragStack turns everyday wins into reusable career proof for resumes, interviews, reviews, promotions, and your next opportunity.",
   },
   "/login": {
-    title: "Log in to BragStack | Career Proof",
-    description: "Log in to BragStack to access your career proof, Impact Receipts, Resume Builder, and Practice Interviewer.",
+    title: "Sign In to BragStack | Career Proof",
+    description: "Sign in to BragStack to access your career proof, Impact Receipts, Resume Builder, and Practice Interviewer.",
   },
   "/register": {
     title: "Sign up for BragStack | Start Free",
@@ -18,16 +19,6 @@ const PUBLIC_META = {
     description: "Learn how to use BragStack, Impact Receipts, Resume Builder, Practice Interviewer, privacy controls, and career proof workflows.",
   },
 };
-
-const SITELINKS = [
-  ["Resume Builder", "/resume-accomplishments"],
-  ["Practice Interviewer", "/interview-preparation"],
-  ["Impact Receipts", "/impact-receipts"],
-  ["Pricing", "/pricing"],
-  ["Docs", "/docs"],
-  ["Log in", "/login"],
-  ["Sign up", "/register"],
-];
 
 const NOINDEX_PREFIXES = ["/app"];
 const NOINDEX_PATHS = new Set(["/upgrade", "/verify-receipt"]);
@@ -131,14 +122,14 @@ export default function useSearchAppearanceMeta(path) {
           "@type": "ItemList",
           "@id": "https://usebragstack.com/#primary-navigation",
           name: "BragStack primary navigation",
-          itemListElement: SITELINKS.map(([name, href], index) => ({
+          itemListElement: PRIMARY_SITELINKS.map(([name, href], index) => ({
             "@type": "ListItem",
             position: index + 1,
             name,
             url: `https://usebragstack.com${href}`,
           })),
         },
-        ...SITELINKS.map(([name, href]) => ({
+        ...PRIMARY_SITELINKS.map(([name, href]) => ({
           "@type": "SiteNavigationElement",
           name,
           url: `https://usebragstack.com${href}`,
