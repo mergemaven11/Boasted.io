@@ -31,7 +31,26 @@ export default function OpsUsersPage() {
     } finally { setLoading(false); }
   }
 
-  useEffect(() => { void load({ q: "", plan: "all", verified: "all" }); }, []);
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const [nextAccess, nextData] = await Promise.all([
+          getOpsAccess(),
+          getOpsUserDirectory({ q: "", plan: "all", verified: "all" }),
+        ]);
+        if (!active) return;
+        setAccess(nextAccess);
+        setData(nextData);
+      } catch (err) {
+        if (!active) return;
+        setError(err.response?.status === 403 ? "This account is not authorized for BragStack Ops." : "User directory could not be loaded.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
 
   function submit(event) { event.preventDefault(); void load(); }
 
