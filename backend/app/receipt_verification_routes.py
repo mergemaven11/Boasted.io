@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta, timezone
 import hashlib
-import html
 import os
 import secrets
 
@@ -11,6 +10,7 @@ from pydantic import BaseModel, EmailStr, Field
 
 from app.auth import get_current_user
 from app.database import impact_receipts_collection
+from app.email_templates import build_receipt_verification_html
 from app.impact_receipt_routes import build_trust_signals
 
 router = APIRouter(tags=["receipt-verification"])
@@ -53,7 +53,10 @@ def _find_by_token(token: str):
     receipt = impact_receipts_collection.find_one({"confirmations.token_hash": token_hash})
     if not receipt:
         raise HTTPException(status_code=404, detail="This verification request is invalid or no longer available.")
-    confirmation = next((item for item in receipt.get("confirmations", []) if item.get("token_hash") == token_hash), None)
+    confirmation = next(
+        (item for item in receipt.get("confirmations", []) if item.get("token_hash") == token_hash),
+        None,
+    )
     if not confirmation:
         raise HTTPException(status_code=404, detail="This verification request is invalid or no longer available.")
     if confirmation.get("status") != "pending":
@@ -63,41 +66,58 @@ def _find_by_token(token: str):
     return receipt, confirmation, token_hash
 
 
-async def _send_request_email(to_email: str, owner_name: str, receipt: dict, confirmation: dict, raw_token: str):
+async def _send_request_email(
+    to_email: str,
+    owner_name: str,
+    receipt: dict,
+    confirmation: dict,
+    raw_token: str,
+):
     if not RESEND_API_KEY:
         raise HTTPException(status_code=503, detail="Email delivery is not configured yet.")
+
     url = f"{FRONTEND_URL}/verify-receipt?token={raw_token}"
-    safe_owner = html.escape(owner_name)
-    safe_name = html.escape(confirmation["name"])
-    safe_accomplishment = html.escape(receipt.get("accomplishment", "Impact Receipt"))
-    safe_message = html.escape(confirmation.get("message", ""))
-    message_html = f"<p><strong>Message from {safe_owner}:</strong> {safe_message}</p>" if safe_message else ""
-    body = (
-        f"<h2>{safe_owner} asked you to confirm career proof on BragStack</h2>"
-        f"<p>Hi {safe_name},</p><p>Please review this Impact Receipt: <strong>{safe_accomplishment}</strong>.</p>"
-        f"{message_html}<p>Your response records your attestation; BragStack does not independently verify the claim.</p>"
-        f"<p><a href='{url}'>Review and respond</a></p><p>This secure link expires in 7 days. No BragStack account is required.</p>"
+    body = build_receipt_verification_html(
+        owner_name=owner_name,
+        verifier_name=confirmation["name"],
+        accomplishment=receipt.get("accomplishment", "Impact Receipt"),
+        message=confirmation.get("message", ""),
+        url=url,
     )
+
     async with httpx.AsyncClient(timeout=15.0) as client:
         response = await client.post(
             "https://api.resend.com/emails",
             headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
-            json={"from": VERIFICATION_FROM, "to": [to_email], "subject": f"{owner_name} asked you to confirm career proof on BragStack", "html": body},
+            json={
+                "from": VERIFICATION_FROM,
+                "to": [to_email],
+                "subject": f"{owner_name} asked you to confirm career proof on BragStack",
+                "html": body,
+            },
         )
     if response.status_code >= 400:
         raise HTTPException(status_code=502, detail="Verification email could not be sent.")
 
 
 @router.post("/impact-receipts/{receipt_id}/verification-requests", status_code=status.HTTP_201_CREATED)
-async def request_receipt_verification(receipt_id: str, payload: VerificationRequest, current_user: dict = Depends(get_current_user)):
+async def request_receipt_verification(
+    receipt_id: str,
+    payload: VerificationRequest,
+    current_user: dict = Depends(get_current_user),
+):
     if not ObjectId.is_valid(receipt_id):
         raise HTTPException(status_code=400, detail="Invalid Impact Receipt ID")
     query = {"_id": ObjectId(receipt_id), "user_id": str(current_user["_id"])}
     receipt = impact_receipts_collection.find_one(query)
     if not receipt:
         raise HTTPException(status_code=404, detail="Impact Receipt not found")
+
     email = str(payload.email).lower().strip()
-    pending_for_email = any(item.get("status") == "pending" and item.get("email") == email for item in receipt.get("confirmations", []))
+    pending_for_email = any(
+        item.get("status") == "pending" and item.get("email") == email
+        for item in receipt.get("confirmations", [])
+    )
     if pending_for_email:
         raise HTTPException(status_code=409, detail="A verification request is already pending for this email.")
 
@@ -116,13 +136,29 @@ async def request_receipt_verification(receipt_id: str, payload: VerificationReq
         "confirmed_at": None,
         "token_hash": _hash_token(raw_token),
     }
-    impact_receipts_collection.update_one(query, {"$push": {"confirmations": confirmation}, "$set": {"updated_at": now}})
+    impact_receipts_collection.update_one(
+        query,
+        {"$push": {"confirmations": confirmation}, "$set": {"updated_at": now}},
+    )
     try:
-        await _send_request_email(email, current_user.get("name") or "A BragStack user", receipt, confirmation, raw_token)
+        await _send_request_email(
+            email,
+            current_user.get("name") or "A BragStack user",
+            receipt,
+            confirmation,
+            raw_token,
+        )
     except HTTPException:
-        impact_receipts_collection.update_one(query, {"$pull": {"confirmations": {"id": confirmation["id"]}}})
+        impact_receipts_collection.update_one(
+            query,
+            {"$pull": {"confirmations": {"id": confirmation["id"]}}},
+        )
         raise
-    return {"status": "pending", "message": "Verification request sent.", "confirmation_id": confirmation["id"]}
+    return {
+        "status": "pending",
+        "message": "Verification request sent.",
+        "confirmation_id": confirmation["id"],
+    }
 
 
 @router.get("/receipt-verifications/{token}")

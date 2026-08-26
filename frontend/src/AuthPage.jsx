@@ -24,6 +24,7 @@ function AuthPage({ mode = "login", onLogin }) {
 
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSlowSubmit, setIsSlowSubmit] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [connectingProvider, setConnectingProvider] = useState("");
   const [showReset, setShowReset] = useState(Boolean(initialResetToken));
@@ -37,6 +38,26 @@ function AuthPage({ mode = "login", onLogin }) {
   const [verificationMessage, setVerificationMessage] = useState("");
   const [verificationSubmitting, setVerificationSubmitting] = useState(false);
   const [isVerifying, setIsVerifying] = useState(Boolean(initialVerifyToken));
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 45000);
+
+    void fetch(`${apiBaseUrl}/health`, {
+      method: "GET",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    }).catch(() => {
+      // Login still performs the real availability/error check. This request only
+      // starts the API wake-up while the user is entering credentials.
+    });
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [apiBaseUrl]);
 
   useEffect(() => {
     const hash = new URLSearchParams(window.location.hash.slice(1));
@@ -90,8 +111,10 @@ function AuthPage({ mode = "login", onLogin }) {
   async function handleSubmit(event) {
     event.preventDefault();
     setIsSubmitting(true);
+    setIsSlowSubmit(false);
     setErrorMessage("");
     setVerificationMessage("");
+    const slowSubmitTimer = window.setTimeout(() => setIsSlowSubmit(true), 1200);
 
     try {
       if (isRegister) {
@@ -121,6 +144,8 @@ function AuthPage({ mode = "login", onLogin }) {
             : "Could not log you in. Check your email and password."),
       );
     } finally {
+      window.clearTimeout(slowSubmitTimer);
+      setIsSlowSubmit(false);
       setIsSubmitting(false);
     }
   }
@@ -205,6 +230,18 @@ function AuthPage({ mode = "login", onLogin }) {
     }
   }
 
+  const submitLabel = isSubmitting
+    ? isRegister
+      ? isSlowSubmit
+        ? "Preparing your workspace…"
+        : "Creating your account…"
+      : isSlowSubmit
+        ? "Opening your workspace…"
+        : "Signing you in…"
+    : isRegister
+      ? "Create account"
+      : "Log in";
+
   return (
     <main className="auth-page">
       <section className="auth-shell">
@@ -226,7 +263,7 @@ function AuthPage({ mode = "login", onLogin }) {
           </div>
         </div>
 
-        <form className="auth-card" onSubmit={handleSubmit}>
+        <form className="auth-card" onSubmit={handleSubmit} aria-busy={isSubmitting}>
           <div className="auth-icon">
             {isRegister ? <UserPlus size={24} /> : <Sparkles size={24} />}
           </div>
@@ -287,8 +324,14 @@ function AuthPage({ mode = "login", onLogin }) {
           )}
 
           <button className="btn primary auth-submit" disabled={isSubmitting || isVerifying || Boolean(connectingProvider)}>
-            {isSubmitting ? "Working..." : isRegister ? "Create account" : "Log in"}
+            {submitLabel}
           </button>
+
+          {isSlowSubmit && (
+            <p className="auth-submit-status" role="status">
+              Securely connecting to BragStack…
+            </p>
+          )}
 
           {showReset && !isRegister && (
             <div className="auth-reset-panel">
