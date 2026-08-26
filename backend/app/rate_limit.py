@@ -63,10 +63,16 @@ POLICIES = {
         _env_int("RATE_LIMIT_RECEIPT_VERIFICATION_SEND", 10),
         60 * 60,
     ),
+    "receipt_verification_public": RateLimitPolicy(
+        "receipt_verification_public",
+        _env_int("RATE_LIMIT_RECEIPT_VERIFICATION_PUBLIC", 60),
+        60,
+    ),
     "public_profile": RateLimitPolicy("public_profile", _env_int("RATE_LIMIT_PUBLIC_PROFILE", 180), 60),
 }
 
 _RECEIPT_SEND_RE = re.compile(r"^/impact-receipts/[^/]+/verification-requests/?$")
+_RECEIPT_PUBLIC_RE = re.compile(r"^/receipt-verifications/[^/]+(?:/decision)?/?$")
 
 
 def policy_for_request(request: Request) -> RateLimitPolicy | None:
@@ -89,6 +95,8 @@ def policy_for_request(request: Request) -> RateLimitPolicy | None:
             return POLICIES["auth_confirm"]
         if _RECEIPT_SEND_RE.fullmatch(path):
             return POLICIES["receipt_verification_send"]
+        if _RECEIPT_PUBLIC_RE.fullmatch(path):
+            return POLICIES["receipt_verification_public"]
 
     if method == "GET":
         if path in {
@@ -98,6 +106,8 @@ def policy_for_request(request: Request) -> RateLimitPolicy | None:
             "/auth/github/callback",
         }:
             return POLICIES["oauth"]
+        if _RECEIPT_PUBLIC_RE.fullmatch(path):
+            return POLICIES["receipt_verification_public"]
         if path.startswith("/public/brag/"):
             return POLICIES["public_profile"]
 
