@@ -31,6 +31,37 @@ const SettingsPage = lazyPage(() => import("./SettingsPage.jsx"));
 const UpgradePage = lazyPage(() => import("./UpgradePage.jsx"));
 const LegalPages = lazyPage(() => import("./LegalPages.jsx"));
 
+const INTERVIEW_PATH = "/app/interview-practice";
+
+function hardStopInterviewMedia() {
+  window.__bragstackInterviewActive = false;
+  try { window.speechSynthesis?.cancel?.(); } catch { /* ignore */ }
+  try { window.speechSynthesis?.pause?.(); } catch { /* ignore */ }
+  window.dispatchEvent(new CustomEvent("bragstack:interview-teardown"));
+}
+
+function installInterviewSpeechGuard() {
+  const synth = window.speechSynthesis;
+  if (!synth?.speak || synth.__bragstackGuardInstalled) return () => {};
+
+  const nativeSpeak = synth.speak.bind(synth);
+  const guardedSpeak = (utterance) => {
+    const onInterviewRoute = (window.location.pathname.replace(/\/$/, "") || "/") === INTERVIEW_PATH;
+    if (!window.__bragstackInterviewActive || !onInterviewRoute) {
+      try { utterance?.dispatchEvent?.(new Event("error")); } catch { /* ignore */ }
+      return;
+    }
+    nativeSpeak(utterance);
+  };
+
+  synth.speak = guardedSpeak;
+  synth.__bragstackGuardInstalled = true;
+  return () => {
+    if (synth.speak === guardedSpeak) synth.speak = nativeSpeak;
+    delete synth.__bragstackGuardInstalled;
+  };
+}
+
 function RouteFallback() { return <BragStackLoader message="Opening BragStack…" detail="Loading the tools you need." />; }
 function ProRequired({ feature = "This feature" }) { return <main className="page"><section className="notice"><strong>BragStack Pro</strong><span>{feature} is available on Pro. Upgrade to unlock advanced career tools.</span><a className="btn primary" href="/upgrade">Upgrade to Pro</a></section></main>; }
 function ImpactReceiptsWithVerification() { return <><ImpactReceiptsPage /><ReceiptVerificationCenter /></>; }
@@ -42,6 +73,31 @@ function RootContent() {
   const isAuthenticatedApp = path.startsWith("/app") || path.startsWith("/ops");
   const [user, setUser] = useState(null);
   const [planLoaded, setPlanLoaded] = useState(!isAuthenticatedApp);
+
+  useEffect(() => {
+    const uninstallSpeechGuard = installInterviewSpeechGuard();
+    const killOnNavigation = () => hardStopInterviewMedia();
+    window.addEventListener("pagehide", killOnNavigation);
+    window.addEventListener("beforeunload", killOnNavigation);
+    window.addEventListener("popstate", killOnNavigation);
+    return () => {
+      window.removeEventListener("pagehide", killOnNavigation);
+      window.removeEventListener("beforeunload", killOnNavigation);
+      window.removeEventListener("popstate", killOnNavigation);
+      hardStopInterviewMedia();
+      uninstallSpeechGuard();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (path === INTERVIEW_PATH) {
+      window.__bragstackInterviewActive = true;
+      try { window.speechSynthesis?.resume?.(); } catch { /* ignore */ }
+      return () => hardStopInterviewMedia();
+    }
+    hardStopInterviewMedia();
+    return undefined;
+  }, [path]);
 
   useEffect(() => {
     if (!isAuthenticatedApp) return undefined;
@@ -90,7 +146,7 @@ function RootContent() {
     else if (path === "/app/impact-receipts") Content = ImpactReceiptsWithVerification;
     else if (path === "/app/resume-builder" && planLoaded) { Content = user?.entitlements?.resume_builder ? ResumeBuilderPage : ProRequired; contentProps = user?.entitlements?.resume_builder ? {} : { feature: "Resume Builder and ATS Guardian" }; }
     else if (path === "/app/reports" && planLoaded) { Content = user?.entitlements?.advanced_reports ? ProCareerPage : ProRequired; contentProps = user?.entitlements?.advanced_reports ? {} : { feature: "Career analytics and career packets" }; }
-    else if (path === "/app/interview-practice" && planLoaded) { Content = user?.entitlements?.interview_practice ? InterviewPracticeExperience : ProRequired; contentProps = user?.entitlements?.interview_practice ? {} : { feature: "Practice Interviewer" }; }
+    else if (path === INTERVIEW_PATH && planLoaded) { Content = user?.entitlements?.interview_practice ? InterviewPracticeExperience : ProRequired; contentProps = user?.entitlements?.interview_practice ? {} : { feature: "Practice Interviewer" }; }
 
     if (!isAuthenticatedApp) content = <Content {...contentProps} />;
     else if (!planLoaded) content = <BragStackLoader message="Preparing your workspace…" detail="Connecting your account and career intelligence." />;
