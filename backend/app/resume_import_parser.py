@@ -73,6 +73,18 @@ def _looks_role(line: str) -> bool:
     return bool(ROLE_RE.search(line)) and len(line.split()) <= 20
 
 
+def _looks_role_header(line: str) -> bool:
+    """Conservative role-header test. Avoid treating normal bullets containing words like engineer as a new job."""
+    value = _clean(line)
+    if not ROLE_RE.search(value):
+        return False
+    if re.search(r"\s+at\s+", value, re.I) or "|" in value or "·" in value:
+        return len(value.split()) <= 20
+    if _date_match(value):
+        return len(value.split()) <= 22
+    return len(value.split()) <= 8 and not re.search(r"[.!?]$", value)
+
+
 def _looks_short_label(line: str) -> bool:
     words = line.split()
     return 0 < len(words) <= 10 and not re.search(r"[.!?]$", line)
@@ -116,7 +128,7 @@ def _repair(raw_text: str) -> list[str]:
             i += 1
             while i < len(source):
                 nxt = source[i]
-                if _heading(nxt) or BULLET_RE.match(nxt) or _date_atom(nxt) or _looks_role(nxt):
+                if _heading(nxt) or BULLET_RE.match(nxt) or _date_atom(nxt) or _looks_role_header(nxt):
                     break
                 text += " " + nxt.strip("|")
                 i += 1
@@ -149,7 +161,7 @@ def _split_role_company(line: str) -> tuple[str, str, str]:
             return left, right, "medium"
         if left_role:
             return right, left, "medium"
-    if _looks_role(value):
+    if _looks_role_header(value):
         return "", value, "low"
     return value, "", "low"
 
@@ -189,7 +201,7 @@ def _parse_contact(header: list[str]) -> dict:
     }
     if header:
         first = _clean(header[0])
-        if first and not CONTACT_RE.search(first) and not _looks_role(first):
+        if first and not CONTACT_RE.search(first) and not _looks_role_header(first) and not _heading(first):
             contact["name"] = first
 
     for line in header[:12]:
@@ -212,7 +224,7 @@ def _parse_contact(header: list[str]) -> dict:
 
     for line in header[1:8]:
         candidate = _clean(line)
-        if not candidate or _looks_role(candidate):
+        if not candidate or _looks_role_header(candidate):
             continue
         pieces = [piece.strip() for piece in candidate.split("|") if piece.strip()]
         for piece in pieces:
@@ -264,7 +276,7 @@ def _identity_and_location_around_dates(line: str) -> tuple[str, str]:
     return " | ".join(identity_parts), location
 
 
-def _parse_experience(lines: list[str]) -> tuple[list[dict], list[str]]:
+def _parse_experience(lines: list[str], *, inferred_mode: bool = False) -> tuple[list[dict], list[str]]:
     entries: list[dict] = []
     warnings: list[str] = []
     current: dict | None = None
@@ -273,6 +285,10 @@ def _parse_experience(lines: list[str]) -> tuple[list[dict], list[str]]:
     def flush() -> None:
         nonlocal current
         if not current:
+            return
+        has_relationship_evidence = bool(current.get("dates_raw") or current.get("bullets"))
+        if inferred_mode and not has_relationship_evidence:
+            current = None
             return
         if current.get("company") or current.get("title") or current.get("bullets"):
             if not current.get("company"):
@@ -291,6 +307,9 @@ def _parse_experience(lines: list[str]) -> tuple[list[dict], list[str]]:
 
         if BULLET_RE.match(line):
             if current is None:
+                if inferred_mode:
+                    i += 1
+                    continue
                 current = _blank_entry(company=pending_company)
                 pending_company = ""
             text = BULLET_RE.sub("", line).strip()
@@ -304,7 +323,7 @@ def _parse_experience(lines: list[str]) -> tuple[list[dict], list[str]]:
         )
         if date_hit:
             identity_text, location = _identity_and_location_around_dates(line)
-            if identity_text and (_looks_role(identity_text) or "|" in identity_text or re.search(r"\s+at\s+", identity_text, re.I)):
+            if identity_text and (_looks_role_header(identity_text) or "|" in identity_text or re.search(r"\s+at\s+", identity_text, re.I)):
                 company, title, confidence = _split_role_company(identity_text)
                 if title:
                     flush()
@@ -315,6 +334,9 @@ def _parse_experience(lines: list[str]) -> tuple[list[dict], list[str]]:
                     )
                     pending_company = ""
             if current is None:
+                if inferred_mode and not pending_company:
+                    i += 1
+                    continue
                 current = _blank_entry(company=pending_company)
                 pending_company = ""
             current.update(_parse_dates(line))
@@ -323,7 +345,7 @@ def _parse_experience(lines: list[str]) -> tuple[list[dict], list[str]]:
             i += 1
             continue
 
-        if "|" in line or "·" in line or _looks_role(line) or re.search(r"\s+at\s+", line, re.I):
+        if "|" in line or "·" in line or _looks_role_header(line) or re.search(r"\s+at\s+", line, re.I):
             company, title, confidence = _split_role_company(line)
             if title:
                 flush()
@@ -349,9 +371,9 @@ def _parse_experience(lines: list[str]) -> tuple[list[dict], list[str]]:
                     continue
             if current and current.get("title") and not current.get("location") and _looks_location(line):
                 current["location"] = line
-            elif _looks_role(next_line):
+            elif _looks_role_header(next_line):
                 pending_company = line
-            elif current is None:
+            elif current is None and not inferred_mode:
                 pending_company = line
             i += 1
             continue
@@ -420,17 +442,17 @@ def parse_existing_resume_text(raw_text: str) -> dict:
 
     experience, parse_warnings = _parse_experience(sections["experience"])
     if not experience:
-        inferred, inferred_warnings = _parse_experience(lines)
+        inferred, inferred_warnings = _parse_experience(lines, inferred_mode=True)
         inferred = [
             entry for entry in inferred
-            if entry.get("title") and (entry.get("company") or entry.get("dates_raw") or entry.get("bullets"))
+            if entry.get("title") and entry.get("dates_raw") and (entry.get("company") or entry.get("bullets"))
         ]
         if inferred:
             experience = inferred
             parse_warnings = inferred_warnings
             if not sections["experience"]:
                 parse_warnings = [
-                    "Work history was inferred because the resume did not use a standard experience heading.",
+                    "Work history was inferred with low confidence because a standard experience heading was not detected.",
                     *parse_warnings,
                 ]
             sections["experience"] = _structured_experience_lines(experience)
@@ -449,7 +471,7 @@ def parse_existing_resume_text(raw_text: str) -> dict:
             for x in sections["experience"]
             if BULLET_RE.match(x) and len(BULLET_RE.sub("", x).strip()) >= 18
         ]
-    if not bullets:
+    if not bullets and sections["experience"]:
         bullets = [
             BULLET_RE.sub("", x).strip()
             for x in lines
@@ -465,16 +487,34 @@ def parse_existing_resume_text(raw_text: str) -> dict:
                 skills.append(skill)
 
     summary = " ".join(sections["summary"][:3])[:1200]
+    sections_found = [k for k, v in sections.items() if v]
+    source_signals = {
+        "has_skills_heading": "skills" in sections_found,
+        "has_experience_heading": "experience" in sections_found,
+        "has_work_bullets": bool(bullets),
+        "has_education_heading": "education" in sections_found,
+        "has_projects_heading": "projects" in sections_found,
+    }
+
+    if source_signals["has_skills_heading"] and not skills:
+        parse_warnings.append("Skills section is visible in the source, but individual skills could not be classified confidently. Review the source instead of treating skills as missing.")
+    if source_signals["has_experience_heading"] and not experience:
+        parse_warnings.append("Work experience is visible in the source, but role grouping is uncertain. Review the source instead of treating work history as missing.")
+    if source_signals["has_work_bullets"] and not experience:
+        parse_warnings.append("Work-history bullets are visible in the source, but employer/title grouping is uncertain.")
+
     return {
         "summary": summary,
         "bullets": bullets[:20],
         "skills": skills[:40],
-        "sections_found": [k for k, v in sections.items() if v],
+        "sections_found": sections_found,
         "sections": {k: v[:100] for k, v in sections.items() if v},
         "header_lines": header[:12],
         "contact": contact,
         "experience": experience,
         "parse_warnings": list(dict.fromkeys(parse_warnings))[:20],
+        "source_signals": source_signals,
         "line_count": len(lines),
         "text": "\n".join(lines)[:50000],
+        "raw_text": (raw_text or "")[:50000],
     }
