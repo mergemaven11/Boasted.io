@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BarChart3, FileCheck2, FileText, GraduationCap, Home, ListChecks, LogOut, Menu, ReceiptText, Settings, ShieldCheck, Sparkles, Target, TrendingUp, UserRound, Users, Video, X } from "lucide-react";
+import { BarChart3, BrainCircuit, FileCheck2, FileText, GraduationCap, Home, ListChecks, LogOut, Menu, ReceiptText, Settings, ShieldCheck, Sparkles, Target, TrendingUp, UserRound, Users, Video, X } from "lucide-react";
 import { getCurrentUser } from "./api";
 import "./AppShell.css";
 
@@ -7,6 +7,7 @@ const WORKSPACE_ITEMS = [
   { href: "/app", label: "Dashboard", icon: Home },
   { href: "/app/accomplishments", label: "Accomplishments", icon: ListChecks },
   { href: "/app/impact-receipts", label: "Impact Receipts", icon: ReceiptText },
+  { href: "/app/intelligence", label: "Career Intelligence", icon: BrainCircuit },
 ];
 const PRO_TOOLS = [
   { href: "/app/resume-builder", label: "Resume Builder", icon: FileText },
