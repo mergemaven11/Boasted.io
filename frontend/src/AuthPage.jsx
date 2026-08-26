@@ -1,10 +1,44 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Lock, Mail, Sparkles, UserPlus } from "lucide-react";
 import "./AuthPage.css";
 
 function getApiBaseUrl() {
   if (window.location.hostname.endsWith(".app.github.dev")) return "/api";
   return import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8000";
+}
+
+const sleep = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+async function waitForApiReady(apiBaseUrl, timeoutMs = 45000) {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const controller = new AbortController();
+    const requestTimeout = window.setTimeout(() => controller.abort(), 8000);
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/health`, {
+        method: "GET",
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+        signal: controller.signal,
+      });
+
+      const contentType = response.headers.get("content-type") || "";
+      if (response.ok && contentType.includes("application/json")) {
+        return true;
+      }
+    } catch {
+      // A sleeping Render service can refuse or delay requests while it allocates
+      // compute. Stay on BragStack's branded UI and retry until it is actually live.
+    } finally {
+      window.clearTimeout(requestTimeout);
+    }
+
+    await sleep(700);
+  }
+
+  return false;
 }
 
 function GitHubMark() {
@@ -18,6 +52,7 @@ function GitHubMark() {
 function AuthPage({ mode = "login", onLogin }) {
   const isRegister = mode === "register";
   const apiBaseUrl = getApiBaseUrl().replace(/\/$/, "");
+  const apiWarmPromiseRef = useRef(null);
   const hashParams = new URLSearchParams(window.location.hash.slice(1));
   const initialResetToken = hashParams.get("reset_token") || "";
   const initialVerifyToken = hashParams.get("verify_token") || "";
@@ -39,24 +74,17 @@ function AuthPage({ mode = "login", onLogin }) {
   const [verificationSubmitting, setVerificationSubmitting] = useState(false);
   const [isVerifying, setIsVerifying] = useState(Boolean(initialVerifyToken));
 
+  async function ensureApiReady() {
+    if (!apiWarmPromiseRef.current) {
+      apiWarmPromiseRef.current = waitForApiReady(apiBaseUrl).finally(() => {
+        apiWarmPromiseRef.current = null;
+      });
+    }
+    return apiWarmPromiseRef.current;
+  }
+
   useEffect(() => {
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 45000);
-
-    void fetch(`${apiBaseUrl}/health`, {
-      method: "GET",
-      cache: "no-store",
-      headers: { Accept: "application/json" },
-      signal: controller.signal,
-    }).catch(() => {
-      // Login still performs the real availability/error check. This request only
-      // starts the API wake-up while the user is entering credentials.
-    });
-
-    return () => {
-      window.clearTimeout(timeoutId);
-      controller.abort();
-    };
+    void ensureApiReady();
   }, [apiBaseUrl]);
 
   useEffect(() => {
@@ -81,6 +109,9 @@ function AuthPage({ mode = "login", onLogin }) {
       history.replaceState(null, "", "/login");
       void (async () => {
         try {
+          const ready = await ensureApiReady();
+          if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
+
           const response = await fetch(`${apiBaseUrl}/auth/email-verification/confirm`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -117,6 +148,9 @@ function AuthPage({ mode = "login", onLogin }) {
     const slowSubmitTimer = window.setTimeout(() => setIsSlowSubmit(true), 1200);
 
     try {
+      const ready = await ensureApiReady();
+      if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
+
       if (isRegister) {
         const response = await fetch(`${apiBaseUrl}/auth/register`, {
           method: "POST",
@@ -155,6 +189,9 @@ function AuthPage({ mode = "login", onLogin }) {
     setVerificationSubmitting(true);
     setVerificationMessage("");
     try {
+      const ready = await ensureApiReady();
+      if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
+
       const response = await fetch(`${apiBaseUrl}/auth/email-verification/resend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -170,10 +207,18 @@ function AuthPage({ mode = "login", onLogin }) {
     }
   }
 
-  function startOAuth(provider) {
+  async function startOAuth(provider) {
     setConnectingProvider(provider);
     setErrorMessage("");
-    window.location.assign(`${apiBaseUrl}/auth/${provider}/login`);
+
+    try {
+      const ready = await ensureApiReady();
+      if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
+      window.location.assign(`${apiBaseUrl}/auth/${provider}/login`);
+    } catch (error) {
+      setErrorMessage(error.message || `Could not connect to ${provider}. Please try again.`);
+      setConnectingProvider("");
+    }
   }
 
   async function handleResetRequest(event) {
@@ -182,6 +227,9 @@ function AuthPage({ mode = "login", onLogin }) {
     setResetMessage("");
 
     try {
+      const ready = await ensureApiReady();
+      if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
+
       const response = await fetch(`${apiBaseUrl}/auth/password-reset/request`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -212,6 +260,9 @@ function AuthPage({ mode = "login", onLogin }) {
 
     setResetSubmitting(true);
     try {
+      const ready = await ensureApiReady();
+      if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
+
       const response = await fetch(`${apiBaseUrl}/auth/password-reset/confirm`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
