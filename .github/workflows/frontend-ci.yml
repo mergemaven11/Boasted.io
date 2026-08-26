@@ -47,6 +47,9 @@ jobs:
       - name: Verify search appearance and sitelink signals
         run: npm run test:seo
 
+      - name: Audit every visible click path in real Chrome
+        run: npm run test:clicks
+
       - name: Lint
         run: npm run lint
 
