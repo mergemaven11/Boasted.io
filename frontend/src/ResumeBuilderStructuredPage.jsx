@@ -41,7 +41,7 @@ function downloadText(filename, text) {
   URL.revokeObjectURL(url);
 }
 
-function GateCard({ title, icon: Icon, status }) {
+function ScanCard({ title, icon: Icon, status }) {
   return (
     <article className={`resume-v2-gate ${status.level}`}>
       <div className="resume-v2-gate-top">
@@ -63,7 +63,7 @@ function StructuredResumePreview({ draft, summary, skills, sections, onEdit }) {
   const roles = draft?.experience || [];
   return (
     <article className="resume-v2-paper">
-      <div className="resume-v2-paper-banner"><span><ShieldCheck size={14} /> ATS-safe single-column preview</span><button type="button" onClick={onEdit}>Edit resume content</button></div>
+      <div className="resume-v2-paper-banner"><span><ShieldCheck size={14} /> ATS-friendly single-column preview</span><button type="button" onClick={onEdit}>Edit resume content</button></div>
       <header>
         <h1>{contact.name || "Your Name"}</h1>
         {contactItems.length > 0 && <div className="resume-v2-contact">{contactItems.map((item, index) => <span key={`${item}-${index}`}>{item}</span>)}</div>}
@@ -86,6 +86,27 @@ function StructuredResumePreview({ draft, summary, skills, sections, onEdit }) {
         return <section key={key}><h2>{key}</h2><div className="resume-v2-support-lines">{lines.map((line, index) => <span key={`${key}-${index}`}>{line}</span>)}</div></section>;
       })}
     </article>
+  );
+}
+
+function AtsScanSummary({ scan }) {
+  if (!scan) return null;
+  const breakdown = scan.breakdown || {};
+  return (
+    <div className="resume-v2-card ats-scan-score-card">
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+        <div><h3 style={{ marginBottom: 4 }}><ShieldCheck size={15} /> ATS Scan score</h3><p style={{ margin: 0 }}>{scan.high_score ? "This resume has a strong overall compatibility signal for this target job." : "This resume has useful evidence, with areas worth strengthening before applying."}</p></div>
+        <div style={{ textAlign: "right" }}><strong style={{ fontSize: "2rem", lineHeight: 1 }}>{scan.score}/100</strong><small style={{ display: "block", marginTop: 5 }}>{scan.label}</small></div>
+      </div>
+      <div className="resume-v2-gaps" style={{ marginTop: 14 }}>
+        <span className="resume-v2-gap">Parsing {breakdown.parsing ?? 0}/100</span>
+        <span className="resume-v2-gap">Job match {breakdown.job_match ?? 0}/100</span>
+        <span className="resume-v2-gap">Readability {breakdown.readability ?? 0}/100</span>
+      </div>
+      {scan.strengths?.length > 0 && <div style={{ marginTop: 14 }}><strong>What is working</strong>{scan.strengths.map((item) => <p key={item} style={{ overflowWrap: "anywhere" }}>✓ {item}</p>)}</div>}
+      {scan.improvements?.length > 0 && <div style={{ marginTop: 14 }}><strong>What to improve</strong>{scan.improvements.map((item) => <p key={item} style={{ overflowWrap: "anywhere" }}>→ {item}</p>)}</div>}
+      <small style={{ display: "block", marginTop: 14, lineHeight: 1.5 }}>{scan.disclaimer}</small>
+    </div>
   );
 }
 
@@ -138,9 +159,9 @@ export default function ResumeBuilderStructuredPage() {
 
   const parseWarnings = useMemo(() => importedResume?.parse_warnings || [], [importedResume]);
   const contentContext = useMemo(() => ({ summary, skills, sections: supportingSections }), [summary, skills, supportingSections]);
-  const parseGate = useMemo(() => parseGateStatus(resumeDraft, parseWarnings, contentContext), [resumeDraft, parseWarnings, contentContext]);
-  const qualificationGate = useMemo(() => qualificationGateStatus(result), [result]);
-  const recruiterGate = useMemo(() => recruiterGateStatus(resumeDraft, contentContext), [resumeDraft, contentContext]);
+  const parseStatus = useMemo(() => parseGateStatus(resumeDraft, parseWarnings, contentContext), [resumeDraft, parseWarnings, contentContext]);
+  const matchStatus = useMemo(() => qualificationGateStatus(result), [result]);
+  const readabilityStatus = useMemo(() => recruiterGateStatus(resumeDraft, contentContext), [resumeDraft, contentContext]);
   const plainText = useMemo(() => serializeResumeDraft({ draft: resumeDraft, summary, skills, sections: supportingSections }), [resumeDraft, summary, skills, supportingSections]);
   const proofSuggestions = useMemo(() => (result?.bullets || []).filter((bullet) => bullet.source_kind === "impact-receipt" && !addedProofKeys.includes(proofKey(bullet))), [result, addedProofKeys]);
   const detectedSections = importedResume?.sections_found || [];
@@ -172,8 +193,8 @@ export default function ResumeBuilderStructuredPage() {
       setProofRoleIndex(0);
       setAddedProofKeys([]);
       setMessage(draft.experience.length
-        ? `We reconstructed ${draft.experience.length} role${draft.experience.length === 1 ? "" : "s"}. Review the resume content before ATS analysis.`
-        : "We could not confidently reconstruct a role. You can still edit the imported content, add work history manually, or continue with projects, education, and skills.");
+        ? `We reconstructed ${draft.experience.length} role${draft.experience.length === 1 ? "" : "s"}. Review the resume content against the source before ATS Scan.`
+        : "We could not confidently reconstruct a role. Your source resume remains authoritative; review it before treating any parsed field as missing.");
     } catch (error) {
       setMessage(error.response?.data?.detail || "We could not import that resume.");
     } finally {
@@ -184,13 +205,7 @@ export default function ResumeBuilderStructuredPage() {
 
   function startFromScratch() {
     const draft = makeResumeDraft({ contact: {}, experience: [] }, user || {});
-    setImportedResume({
-      filename: "New master resume",
-      manual: true,
-      sections_found: [],
-      sections: { projects: [], education: [] },
-      parse_warnings: [],
-    });
+    setImportedResume({ filename: "New master resume", manual: true, sections_found: [], sections: { projects: [], education: [] }, parse_warnings: [] });
     setLoadedSavedId("");
     setResumeDraft(draft);
     setSupportingSections({ projects: [], education: [] });
@@ -225,7 +240,7 @@ export default function ResumeBuilderStructuredPage() {
   function openSavedResume(savedResume) {
     const draft = makeSavedResumeDraft(savedResume, user || {});
     if (!draft) {
-      setMessage("That older saved version predates structured resume content. Upload the source resume to reconstruct it before ATS Gate Check.");
+      setMessage("That older saved version predates structured resume content. Upload the source resume to reconstruct it before ATS Scan.");
       return;
     }
     const sections = savedResume.supporting_sections || {};
@@ -249,39 +264,34 @@ export default function ResumeBuilderStructuredPage() {
     setSelectedIds([]);
     setProofRoleIndex(0);
     setAddedProofKeys(flattenExperienceBullets(draft.experience).filter((bullet) => bullet.source_kind === "impact-receipt").map(proofKey));
-    setMessage(`Opened ${savedResume.title || "saved resume"}. Your structured resume content was restored. Add a target job only when you want ATS coaching.`);
+    setMessage(`Opened ${savedResume.title || "saved resume"}. Add a target job when you want to run ATS Scan.`);
   }
 
   function confirmImport() {
     setImportConfirmed(true);
     setResult(null);
     setAtsTextMode(false);
-    setMessage("Resume content confirmed. Save it as a master resume or add a target job and run ATS Gate Check.");
+    setMessage("Resume content confirmed. Save it as a master resume or add a target job and run ATS Scan.");
   }
 
   async function handleBuild(event) {
     event.preventDefault();
     if (!resumeDraft || !importConfirmed) {
-      setMessage("Start or open a resume and confirm its content before running ATS Gate Check.");
+      setMessage("Start or open a resume and confirm its content before running ATS Scan.");
       return;
     }
     setBuilding(true);
     setMessage("");
     try {
       const existingResumeText = serializeResumeDraft({ draft: resumeDraft, summary, skills, sections: supportingSections });
-      const data = await buildResume({
-        target_role: targetRole,
-        job_description: jobDescription,
-        selected_receipt_ids: selectedIds,
-        existing_resume_text: existingResumeText,
-      });
+      const data = await buildResume({ target_role: targetRole, job_description: jobDescription, selected_receipt_ids: selectedIds, existing_resume_text: existingResumeText });
       setResult(data);
       setSummary(data.summary || summary);
       setSkills(data.skills || skills);
       setAtsTextMode(false);
-      setMessage("ATS Gate Check finished. Review truthful gaps and proof suggestions before exporting.");
+      setMessage(`ATS Scan finished${data.ats_scan?.score != null ? ` · ${data.ats_scan.score}/100 ${data.ats_scan.label}` : ""}. Review the evidence and recommendations below.`);
     } catch (error) {
-      setMessage(error.response?.data?.detail?.message || error.response?.data?.detail || "ATS Gate Check could not run.");
+      setMessage(error.response?.data?.detail?.message || error.response?.data?.detail || "ATS Scan could not run.");
     } finally {
       setBuilding(false);
     }
@@ -296,13 +306,10 @@ export default function ResumeBuilderStructuredPage() {
     const index = Math.min(proofRoleIndex, resumeDraft.experience.length - 1);
     setResumeDraft((current) => ({
       ...current,
-      experience: current.experience.map((role, roleIndex) => roleIndex === index ? {
-        ...role,
-        bullets: [...(role.bullets || []), { ...bullet, edited: false }],
-      } : role),
+      experience: current.experience.map((role, roleIndex) => roleIndex === index ? { ...role, bullets: [...(role.bullets || []), { ...bullet, edited: false }] } : role),
     }));
     setAddedProofKeys((current) => [...current, proofKey(bullet)]);
-    setMessage(`Added evidence-backed proof to ${resumeDraft.experience[index].company || resumeDraft.experience[index].title}. Re-run ATS Gate Check to refresh the job match.`);
+    setMessage(`Added evidence-backed proof to ${resumeDraft.experience[index].company || resumeDraft.experience[index].title}. Re-run ATS Scan to refresh the job match.`);
   }
 
   async function handleSave({ master = false } = {}) {
@@ -334,16 +341,11 @@ export default function ResumeBuilderStructuredPage() {
         skills,
         contact: resumeDraft.contact || {},
         experience,
-        supporting_sections: {
-          projects: supportingSections.projects || [],
-          education: supportingSections.education || [],
-        },
+        supporting_sections: { projects: supportingSections.projects || [], education: supportingSections.education || [] },
       });
       setSaved((current) => [created, ...current]);
       setLoadedSavedId(created.id);
-      setMessage(isTargeted
-        ? "Targeted resume version saved with structured content and source provenance intact."
-        : "Master resume saved. You can reuse it later and target a job when you are ready.");
+      setMessage(isTargeted ? "Targeted resume version saved with structured content and source provenance intact." : "Master resume saved. You can reuse it later and target a job when you are ready.");
     } catch (error) {
       setMessage(error.response?.data?.detail || "We could not save that resume version.");
     }
@@ -356,26 +358,21 @@ export default function ResumeBuilderStructuredPage() {
 
   const supportedEvidence = (result?.supported_requirements || []).slice(0, 8).map((term) => {
     const detail = findRequirementEvidenceDetail(term, { draft: resumeDraft, summary, skills });
-    return {
-      term,
-      source: detail?.label || "Career proof available",
-      excerpt: detail?.excerpt || "",
-      sourceKind: detail?.sourceKind || "unknown",
-    };
+    return { term, source: detail?.label || "Career proof available", excerpt: detail?.excerpt || "", sourceKind: detail?.sourceKind || "unknown" };
   });
 
   return (
     <main className="resume-v2-page">
       <header className="resume-v2-hero">
         <div><span className="resume-v2-badge"><Sparkles size={14} /> BRAGSTACK PRO</span><h1>Resume Builder</h1><p>Import the resume you already use or build one from scratch, then target a job and strengthen only the experience you can truthfully support.</p></div>
-        <div className="resume-v2-hero-note"><ShieldCheck size={21} /><span><strong>ATS Gate Check</strong><small>Reduce avoidable parsing and matching problems. No score can guarantee how every employer ATS behaves.</small></span></div>
+        <div className="resume-v2-hero-note"><ShieldCheck size={21} /><span><strong>ATS Scan</strong><small>Checks parsing, job-match evidence, and readability. It does not predict an employer’s hiring decision.</small></span></div>
       </header>
 
       <div className="resume-v2-steps" aria-label="Resume builder progress">
         <Step number="1" label="Start resume" state={stepState(1)} />
         <Step number="2" label="Review resume content" state={stepState(2)} />
         <Step number="3" label="Target the job" state={stepState(3)} />
-        <Step number="4" label="Review ATS Gate" state={stepState(4)} />
+        <Step number="4" label="Review ATS Scan" state={stepState(4)} />
       </div>
 
       <section className="resume-v2-grid">
@@ -388,53 +385,32 @@ export default function ResumeBuilderStructuredPage() {
             {importedResume && <button type="button" className="resume-v2-icon-button" aria-label="Clear current resume" onClick={clearImport}><X size={14} /></button>}
           </div>
 
-          {!importedResume && <>
-            <div className="resume-v2-source-divider"><span>or</span></div>
-            <button className="resume-v2-start-blank" type="button" onClick={startFromScratch}><Plus size={18} /><span><strong>Build from scratch</strong><small>No starter resume required</small></span></button>
-          </>}
+          {!importedResume && <><div className="resume-v2-source-divider"><span>or</span></div><button className="resume-v2-start-blank" type="button" onClick={startFromScratch}><Plus size={18} /><span><strong>Build from scratch</strong><small>No starter resume required</small></span></button></>}
 
           {saved.length > 0 && <div className="resume-v2-saved-block">
             <div className="resume-v2-saved-head"><span>Saved versions</span><small>{saved.length}</small></div>
-            <div className="resume-v2-saved-list">
-              {saved.slice(0, 5).map((item) => {
-                const structured = Number(item.schema_version || 0) >= 4 && Array.isArray(item.experience);
-                return <button type="button" className={`resume-v2-saved-item ${loadedSavedId === item.id ? "active" : ""}`} key={item.id} onClick={() => openSavedResume(item)}>
-                  <span><strong>{item.title || item.target_role || "Saved resume"}</strong><small>{structured ? `${item.experience.length} work role${item.experience.length === 1 ? "" : "s"} · ${savedVersionDate(item.updated_at || item.created_at)}` : `Legacy version · ${savedVersionDate(item.updated_at || item.created_at)}`}</small></span>
-                  <em>{structured ? "Open" : "Re-import"}</em>
-                </button>;
-              })}
-            </div>
+            <div className="resume-v2-saved-list">{saved.slice(0, 5).map((item) => {
+              const structured = Number(item.schema_version || 0) >= 4 && Array.isArray(item.experience);
+              return <button type="button" className={`resume-v2-saved-item ${loadedSavedId === item.id ? "active" : ""}`} key={item.id} onClick={() => openSavedResume(item)}><span><strong>{item.title || item.target_role || "Saved resume"}</strong><small>{structured ? `${item.experience.length} work role${item.experience.length === 1 ? "" : "s"} · ${savedVersionDate(item.updated_at || item.created_at)}` : `Legacy version · ${savedVersionDate(item.updated_at || item.created_at)}`}</small></span><em>{structured ? "Open" : "Re-import"}</em></button>;
+            })}</div>
           </div>}
 
           <div className="resume-v2-divider" />
           <div className="resume-v2-label">Target job</div>
           <form className="resume-v2-form" onSubmit={handleBuild}>
-            <div className="resume-v2-disabled-note">Target role and job description are only required for ATS Gate Check. You can build and save a master resume without either one.</div>
+            <div className="resume-v2-disabled-note">Target role and job description are only required for ATS Scan. You can build and save a master resume without either one.</div>
             <label>Target role<input value={targetRole} onChange={(event) => setTargetRole(event.target.value)} placeholder="Platform Support Engineer" required /></label>
             <label>Job description<textarea value={jobDescription} onChange={(event) => setJobDescription(event.target.value)} placeholder="Paste the full job posting here…" required /></label>
             <div className="resume-v2-label">Career proof</div>
-            <div className="resume-v2-receipts">
-              {receipts.slice(0, 16).map((receipt) => <label className="resume-v2-receipt" key={receipt.id}><input type="checkbox" checked={selectedIds.includes(receipt.id)} onChange={() => toggleReceipt(receipt.id)} /><span><strong>{receipt.accomplishment}</strong><small>{(receipt.skills || []).slice(0, 3).join(" · ") || "Impact Receipt"}</small></span></label>)}
-            </div>
-            <button className="resume-v2-primary" type="submit" disabled={!importConfirmed || building || importing}>{building ? "Running ATS Gate Check…" : result ? "Re-run ATS Gate Check" : importConfirmed ? "Run ATS Gate Check" : "Confirm resume content to run ATS Gate"}</button>
+            <div className="resume-v2-receipts">{receipts.slice(0, 16).map((receipt) => <label className="resume-v2-receipt" key={receipt.id}><input type="checkbox" checked={selectedIds.includes(receipt.id)} onChange={() => toggleReceipt(receipt.id)} /><span><strong>{receipt.accomplishment}</strong><small>{(receipt.skills || []).slice(0, 3).join(" · ") || "Impact Receipt"}</small></span></label>)}</div>
+            <button className="resume-v2-primary" type="submit" disabled={!importConfirmed || building || importing}>{building ? "Running ATS Scan…" : result ? "Re-run ATS Scan" : importConfirmed ? "Run ATS Scan" : "Confirm resume content to run ATS Scan"}</button>
             {resumeDraft && importConfirmed && <button className="resume-v2-secondary" type="button" onClick={() => handleSave({ master: true })}><Save size={15} /> Save master resume</button>}
           </form>
         </aside>
 
         <section className="resume-v2-panel resume-v2-center">
           {importedResume && resumeDraft && !importConfirmed ? (
-            <ResumeImportConfirmation
-              draft={resumeDraft}
-              warnings={parseWarnings}
-              summary={summary}
-              skills={skills}
-              sections={supportingSections}
-              onChange={setResumeDraft}
-              onSummaryChange={setSummary}
-              onSkillsChange={setSkills}
-              onSectionsChange={setSupportingSections}
-              onConfirm={confirmImport}
-            />
+            <ResumeImportConfirmation draft={resumeDraft} warnings={parseWarnings} summary={summary} skills={skills} sections={supportingSections} onChange={setResumeDraft} onSummaryChange={setSummary} onSkillsChange={setSkills} onSectionsChange={setSupportingSections} onConfirm={confirmImport} />
           ) : atsTextMode && result ? (
             <div className="resume-v2-ats-text"><div className="resume-v2-ats-text-head"><strong>ATS TEXT VIEW</strong><button type="button" onClick={() => setAtsTextMode(false)}>Back to resume</button></div><pre>{plainText}</pre><small>{result.ats_note}</small></div>
           ) : resumeDraft && importConfirmed ? (
@@ -445,17 +421,18 @@ export default function ResumeBuilderStructuredPage() {
         </section>
 
         <aside className="resume-v2-panel resume-v2-right">
-          <div className="resume-v2-label">ATS Gate Check</div>
-          <p className="resume-v2-gate-intro">Three checks: is the resume structured cleanly, does it visibly support the target role, and is it easy for a recruiter to scan?</p>
+          <div className="resume-v2-label">ATS Scan</div>
+          <p className="resume-v2-gate-intro">Checks three things separately: parsing, job-match evidence, and recruiter readability.</p>
           <div className="resume-v2-gates">
-            <GateCard title="Parse Gate" icon={FileText} status={parseGate} />
-            <GateCard title="Qualification Gate" icon={Target} status={qualificationGate} />
-            <GateCard title="Recruiter Gate" icon={BriefcaseBusiness} status={recruiterGate} />
+            <ScanCard title="Parsing" icon={FileText} status={parseStatus} />
+            <ScanCard title="Job Match" icon={Target} status={matchStatus} />
+            <ScanCard title="Readability" icon={BriefcaseBusiness} status={readabilityStatus} />
           </div>
 
-          {missingCoreSections.length > 0 && <div className="resume-v2-card"><h3><AlertTriangle size={15} /> Parser review</h3><p>We did not confidently detect {missingCoreSections.join(" and ")}. Confirm the content before applying.</p></div>}
+          {missingCoreSections.length > 0 && <div className="resume-v2-card"><h3><AlertTriangle size={15} /> Parser review</h3><p>We could not confidently classify {missingCoreSections.join(" and ")} from the parsed structure. Check the original resume before treating that content as missing.</p></div>}
 
           {result && <>
+            <AtsScanSummary scan={result.ats_scan} />
             <div className="resume-v2-card"><h3><CheckCircle2 size={15} /> Signals already visible</h3><div className="resume-v2-evidence-list">{supportedEvidence.map((item) => <div className="resume-v2-evidence" key={item.term}><div><strong>{item.term}</strong>{item.excerpt && item.excerpt !== item.source && <small>{item.excerpt}</small>}</div><span className={item.sourceKind === "impact-receipt" ? "proof" : ""}>{item.sourceKind === "impact-receipt" ? "Proof · " : ""}{item.source}</span></div>)}</div></div>
             <div className="resume-v2-card"><h3><Target size={15} /> Not visible yet</h3>{result.unsupported_requirements?.length ? <><p className="resume-v2-gap-note">These signals were detected in the job posting but are not clearly visible in this resume. That does not mean you lack them.</p><div className="resume-v2-gaps">{result.unsupported_requirements.slice(0, 12).map((term) => <span className="resume-v2-gap" key={term}>{term}</span>)}</div></> : <p>No major detected gaps in the current comparison.</p>}</div>
 
@@ -470,7 +447,7 @@ export default function ResumeBuilderStructuredPage() {
             </div>
           </>}
 
-          {!result && resumeDraft && importConfirmed && <div className="resume-v2-card"><h3><ShieldCheck size={15} /> Master resume ready</h3><p>Save this reusable resume now, or paste a target job to run ATS Gate Check. A target role and job description are only required for the targeted workflow.</p></div>}
+          {!result && resumeDraft && importConfirmed && <div className="resume-v2-card"><h3><ShieldCheck size={15} /> Master resume ready</h3><p>Save this reusable resume now, or paste a target job to run ATS Scan. A target role and job description are only required for the targeted workflow.</p></div>}
           {!importedResume && <div className="resume-v2-card"><h3><Upload size={15} /> Two ways to start</h3><p>Upload an existing resume for reconstruction or build one from scratch. Work history is not required for students, career starters, or project-led resumes.</p></div>}
           {message && <p className="resume-v2-message">{String(message)}</p>}
         </aside>
