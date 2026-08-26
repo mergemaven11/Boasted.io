@@ -1,0 +1,108 @@
+.seo-product-page { padding-bottom: 3rem; }
+
+.seo-product-hero,
+.seo-value-section,
+.seo-explore-section,
+.seo-final-cta {
+  width: min(1180px, calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+.seo-product-hero {
+  padding: clamp(4.5rem, 9vw, 8rem) 0 5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr);
+  align-items: center;
+  gap: clamp(2rem, 6vw, 5rem);
+}
+
+.seo-product-hero .landing-hero-copy h1 {
+  font-size: clamp(3.25rem, 7vw, 6.4rem);
+}
+
+.seo-trust-row {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .7rem 1.1rem;
+  color: var(--landing-muted);
+  font-size: .78rem;
+  font-weight: 750;
+}
+
+.seo-trust-row span,
+.seo-summary-list span {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.seo-product-summary {
+  padding: clamp(1.5rem, 4vw, 2.2rem);
+  border: 1px solid var(--landing-border);
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(20,32,54,.94), rgba(9,16,29,.94));
+  box-shadow: 0 34px 80px rgba(0,0,0,.3);
+}
+
+.seo-summary-label,
+.seo-card-number {
+  color: var(--landing-blue);
+  font-size: .7rem;
+  font-weight: 950;
+  letter-spacing: .14em;
+}
+
+.seo-summary-icon {
+  width: 58px;
+  height: 58px;
+  margin: 1.4rem 0 2.5rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(166,220,255,.22);
+  border-radius: 18px;
+  background: rgba(166,220,255,.08);
+  color: var(--landing-blue);
+}
+
+.seo-product-summary h2 { margin: 0; font-size: clamp(1.7rem, 3vw, 2.35rem); letter-spacing: -.04em; }
+.seo-product-summary > p { color: var(--landing-muted); line-height: 1.7; }
+.seo-summary-list { display: grid; gap: .8rem; margin-top: 1.4rem; color: #d8e2ef; font-size: .88rem; }
+
+.seo-value-section { padding: 5.5rem 0; border-top: 1px solid var(--landing-border); }
+.seo-section-copy { display: block; margin-top: 1rem; color: var(--landing-muted); line-height: 1.7; }
+.seo-value-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1rem; }
+.seo-value-card { min-height: 245px; padding: 1.5rem; border: 1px solid var(--landing-border); border-radius: 22px; background: rgba(13,21,38,.62); }
+.seo-value-card h3 { margin: 4rem 0 .7rem; font-size: 1.18rem; }
+.seo-value-card p { margin: 0; color: var(--landing-muted); line-height: 1.65; }
+
+.seo-explore-section { padding: 5rem 0; }
+.seo-explore-heading { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: end; gap: 2rem; }
+.seo-explore-heading h2 { margin: 0; font-size: clamp(2rem, 4vw, 3.6rem); letter-spacing: -.05em; }
+.seo-explore-heading > p { max-width: 420px; margin: 0; color: var(--landing-muted); line-height: 1.65; }
+.seo-related-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .8rem; }
+.seo-related-card { min-height: 82px; padding: 1rem 1.2rem; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--landing-border); border-radius: 18px; background: rgba(13,21,38,.62); font-weight: 850; transition: transform 160ms ease, border-color 160ms ease, background 160ms ease; }
+.seo-related-card:hover { transform: translateY(-2px); border-color: rgba(166,220,255,.38); background: rgba(20,32,54,.85); }
+
+.seo-final-cta { margin-top: 3rem; padding: clamp(2rem,5vw,3.5rem); display: flex; align-items: center; justify-content: space-between; gap: 2rem; border: 1px solid rgba(166,220,255,.2); border-radius: 28px; background: linear-gradient(120deg,rgba(41,83,119,.22),rgba(91,63,154,.18)); }
+.seo-final-cta h2 { margin: 0; font-size: clamp(2rem,4vw,3.5rem); letter-spacing: -.05em; }
+.seo-final-cta p:last-child { max-width: 620px; margin-bottom: 0; color: var(--landing-muted); line-height: 1.65; }
+.seo-final-cta .landing-btn { flex: 0 0 auto; }
+
+@media (max-width: 900px) {
+  .seo-product-hero { grid-template-columns: 1fr; padding-top: 4rem; }
+  .seo-value-grid { grid-template-columns: 1fr; }
+  .seo-value-card { min-height: 190px; }
+  .seo-value-card h3 { margin-top: 2.5rem; }
+  .seo-explore-heading, .seo-final-cta { align-items: flex-start; flex-direction: column; }
+}
+
+@media (max-width: 700px) {
+  .seo-product-hero, .seo-value-section, .seo-explore-section, .seo-final-cta { width: min(100% - 1.25rem, 1180px); }
+  .seo-product-hero { padding-top: 3.25rem; }
+  .seo-product-hero .landing-hero-copy h1 { font-size: clamp(2.8rem, 14vw, 4.5rem); }
+  .seo-related-grid { grid-template-columns: 1fr; }
+  .seo-trust-row { display: grid; }
+  .seo-final-cta { border-radius: 22px; }
+  .seo-final-cta .landing-btn { width: 100%; }
+}
