@@ -3,6 +3,7 @@ from __future__ import annotations
 import hmac
 import hashlib
 import os
+import time
 from datetime import datetime, timezone
 from html import escape
 
@@ -15,7 +16,6 @@ from app.packet_share_routes import (
     PacketShareCreate,
     _aware,
     _build_shared_packet,
-    _serialize_share,
     _shared_html,
     _token_hash,
     create_packet_share as _create_packet_share,
@@ -46,18 +46,31 @@ def _cookie_name(token: str) -> str:
     return f"bragstack_share_{_token_hash(token)[:16]}"
 
 
-def _grant_value(token: str, item: dict) -> str:
+def _grant_signature(token: str, item: dict, expires_epoch: int) -> str:
     access_hash = str(item.get("access_code_hash") or "open")
-    message = f"{_token_hash(token)}:{access_hash}".encode("utf-8")
+    message = f"{_token_hash(token)}:{access_hash}:{expires_epoch}".encode("utf-8")
     return hmac.new(SHARE_GRANT_SECRET.encode("utf-8"), message, hashlib.sha256).hexdigest()
+
+
+def _grant_value(token: str, item: dict, expires_epoch: int) -> str:
+    return f"{expires_epoch}.{_grant_signature(token, item, expires_epoch)}"
 
 
 def _has_access(request: Request, token: str, item: dict) -> bool:
     if not item.get("access_code_hash"):
         return True
     supplied = request.cookies.get(_cookie_name(token), "")
-    expected = _grant_value(token, item)
-    return bool(supplied) and hmac.compare_digest(supplied, expected)
+    if "." not in supplied:
+        return False
+    expires_text, signature = supplied.split(".", 1)
+    try:
+        expires_epoch = int(expires_text)
+    except ValueError:
+        return False
+    if expires_epoch <= int(time.time()):
+        return False
+    expected = _grant_signature(token, item, expires_epoch)
+    return hmac.compare_digest(signature, expected)
 
 
 def _access_form(token: str, *, error: str = "") -> HTMLResponse:
@@ -115,16 +128,18 @@ def grant_shared_packet_access(token: str, access_code: str = Form(..., min_leng
     if not verify_password(access_code, code_hash):
         return _access_form(token, error="That access code is not valid.")
 
+    now_epoch = int(time.time())
     max_age = SHARE_GRANT_TTL_SECONDS
     expires_at = _aware(item.get("expires_at"))
     if expires_at:
         remaining = int((expires_at - datetime.now(timezone.utc)).total_seconds())
         max_age = max(1, min(max_age, remaining))
+    grant_expires_epoch = now_epoch + max_age
 
     response = RedirectResponse(url=f"/shared/packets/{token}", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(
         key=_cookie_name(token),
-        value=_grant_value(token, item),
+        value=_grant_value(token, item, grant_expires_epoch),
         max_age=max_age,
         httponly=True,
         secure=SHARE_COOKIE_SECURE,
