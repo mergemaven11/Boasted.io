@@ -138,7 +138,7 @@ def build_receipt_verification_html(*, owner_name: str, verifier_name: str, acco
         </tr>
       </table>
       {message_block}
-      <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#94a3b8;">Your response records your attestation. BragStack does not independently verify the underlying claim, and no BragStack account is required to respond.</p>
+      <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#94a3b8;">Your response records your attestation. BragStack does not independently verify the underlying claim. No BragStack account is required to respond.</p>
     """
     return _shell(
         preheader=f"{owner_name} asked you to review an Impact Receipt on BragStack.",
