@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 
 import app.main as main
 import app.ops_routes as ops_routes
+import app.ops_user_routes as ops_user_routes
 from app.auth import get_current_user
 from app.ops_debug import clear_for_tests
 
@@ -154,3 +155,41 @@ def test_bootstrap_admin_role_cannot_be_effectively_removed(monkeypatch):
     assert response.status_code == 200
     assert response.json()["bootstrap_admin"] is True
     assert "admin" in response.json()["effective_roles"]
+
+
+def test_support_can_resend_verification_email_and_action_is_audited(monkeypatch):
+    actor = _user(email="support@usebragstack.com", roles=["support"])
+    target = _user(email="member@example.com", roles=[])
+    target["email_verification_required"] = True
+    _override_user(actor)
+
+    monkeypatch.setattr(ops_user_routes.users_collection, "find_one", lambda query: target)
+    monkeypatch.setattr(ops_user_routes, "_issue_verification_token", lambda user: ("fresh-token", None))
+    sent = []
+
+    async def fake_send(email, url):
+        sent.append((email, url))
+
+    monkeypatch.setattr(ops_user_routes, "_send_verification_email", fake_send)
+    recorded = []
+    monkeypatch.setattr(ops_user_routes.ops_audit_collection, "insert_one", lambda event: recorded.append(event))
+
+    response = client.post(f"/ops/user-directory/{target['_id']}/resend-verification")
+    assert response.status_code == 200
+    assert response.json()["email"] == "member@example.com"
+    assert sent == [("member@example.com", f"{ops_user_routes.FRONTEND_URL}/login#verify_token=fresh-token")]
+    assert recorded[0]["event"] == "verification_email_resent"
+    assert recorded[0]["actor_email"] == "support@usebragstack.com"
+    assert recorded[0]["target_email"] == "member@example.com"
+
+
+def test_verification_resend_rejects_already_verified_account(monkeypatch):
+    actor = _user(email="support@usebragstack.com", roles=["support"])
+    target = _user(email="member@example.com", roles=[])
+    target["email_verified_at"] = "2026-08-26T20:00:00+00:00"
+    _override_user(actor)
+    monkeypatch.setattr(ops_user_routes.users_collection, "find_one", lambda query: target)
+
+    response = client.post(f"/ops/user-directory/{target['_id']}/resend-verification")
+    assert response.status_code == 409
+    assert "already verified" in response.json()["detail"].lower()
