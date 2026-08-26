@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, CheckCircle2, CreditCard, RefreshCcw, XCircle } from "lucide-react";
+import BragStackLoader from "./BragStackLoader.jsx";
 import { cancelSubscription, getBillingStatus, resumeSubscription } from "./api.js";
 import "./BillingSettingsPage.css";
 
@@ -50,6 +51,10 @@ export default function BillingSettingsPage() {
     }
   }
 
+  if (loading) {
+    return <BragStackLoader compact message="Loading billing…" detail="Checking your plan and subscription status securely." />;
+  }
+
   return (
     <main className="billing-settings-page">
       <a className="billing-back" href="/app/settings"><ArrowLeft size={18} /> Settings</a>
@@ -59,9 +64,7 @@ export default function BillingSettingsPage() {
         <span>Review your plan, renewal status, and subscription controls.</span>
       </header>
 
-      {loading ? <section className="billing-card billing-loading">Loading billing details…</section> : null}
-
-      {!loading && billing ? (
+      {billing ? (
         <>
           <section className="billing-card billing-plan-card">
             <div className="billing-plan-icon"><CreditCard size={24} /></div>
@@ -125,7 +128,7 @@ export default function BillingSettingsPage() {
             {!isPro ? <a className="billing-button billing-button-primary" href="/upgrade">Upgrade to Pro</a> : null}
           </section>
         </>
-      ) : null}
+      ) : error ? <div className="billing-error" role="alert">{error}</div> : null}
     </main>
   );
 }
