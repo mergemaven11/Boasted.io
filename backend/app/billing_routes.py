@@ -3,13 +3,15 @@ import hmac
 import json
 import os
 import time
+from datetime import datetime, timedelta, timezone
 
 import httpx
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pymongo.errors import DuplicateKeyError
 
 from app.auth import get_current_user
-from app.database import users_collection
+from app.database import stripe_webhook_events_collection, users_collection
 from app.plans import get_plan_for_user
 
 router = APIRouter(prefix="/billing", tags=["billing"])
@@ -19,6 +21,7 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PRO_PRICE_ID = os.getenv("STRIPE_PRO_PRICE_ID", "")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+STRIPE_EVENT_LEASE_SECONDS = 300
 
 
 def _require_stripe_checkout_config() -> None:
@@ -83,6 +86,61 @@ def _verify_stripe_signature(payload: bytes, signature_header: str) -> None:
         raise HTTPException(status_code=400, detail="Invalid Stripe webhook signature")
 
 
+def _claim_stripe_event(event_id: str, event_type: str) -> str:
+    """Atomically claim a Stripe event. Return claimed, duplicate, or processing."""
+    now = datetime.now(timezone.utc)
+    lease_until = now + timedelta(seconds=STRIPE_EVENT_LEASE_SECONDS)
+    document = {
+        "_id": event_id,
+        "event_type": event_type,
+        "status": "processing",
+        "created_at": now,
+        "lease_until": lease_until,
+    }
+    try:
+        stripe_webhook_events_collection.insert_one(document)
+        return "claimed"
+    except DuplicateKeyError:
+        existing = stripe_webhook_events_collection.find_one({"_id": event_id}) or {}
+        if existing.get("status") == "processed":
+            return "duplicate"
+
+        result = stripe_webhook_events_collection.update_one(
+            {
+                "_id": event_id,
+                "status": {"$ne": "processed"},
+                "lease_until": {"$lte": now},
+            },
+            {
+                "$set": {
+                    "event_type": event_type,
+                    "status": "processing",
+                    "lease_until": lease_until,
+                    "last_claimed_at": now,
+                }
+            },
+        )
+        return "claimed" if result.modified_count else "processing"
+
+
+def _mark_stripe_event_processed(event_id: str) -> None:
+    stripe_webhook_events_collection.update_one(
+        {"_id": event_id},
+        {
+            "$set": {
+                "status": "processed",
+                "processed_at": datetime.now(timezone.utc),
+            },
+            "$unset": {"lease_until": ""},
+        },
+    )
+
+
+def _release_stripe_event(event_id: str) -> None:
+    """Release a failed claim so Stripe can safely retry the same event."""
+    stripe_webhook_events_collection.delete_one({"_id": event_id, "status": "processing"})
+
+
 def _set_subscription_state(
     user_id: str,
     *,
@@ -92,6 +150,7 @@ def _set_subscription_state(
     subscription_id: str | None = None,
     cancel_at_period_end: bool | None = None,
     current_period_end: int | None = None,
+    stripe_event_created: int | None = None,
 ) -> None:
     if not ObjectId.is_valid(user_id):
         return
@@ -108,11 +167,17 @@ def _set_subscription_state(
         updates["billing_cancel_at_period_end"] = cancel_at_period_end
     if current_period_end is not None:
         updates["billing_current_period_end"] = current_period_end
+    if stripe_event_created is not None:
+        updates["billing_last_stripe_event_created"] = stripe_event_created
 
-    users_collection.update_one(
-        {"_id": ObjectId(user_id)},
-        {"$set": updates},
-    )
+    query: dict = {"_id": ObjectId(user_id)}
+    if stripe_event_created is not None:
+        query["$or"] = [
+            {"billing_last_stripe_event_created": {"$exists": False}},
+            {"billing_last_stripe_event_created": {"$lte": stripe_event_created}},
+        ]
+
+    users_collection.update_one(query, {"$set": updates})
 
 
 def _user_id_from_subscription(subscription: dict) -> str | None:
@@ -285,68 +350,94 @@ async def stripe_webhook(request: Request):
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise HTTPException(status_code=400, detail="Invalid Stripe webhook body") from exc
 
-    event_type = event.get("type")
+    event_id = str(event.get("id") or "")
+    event_type = str(event.get("type") or "")
+    if not event_id or not event_type:
+        raise HTTPException(status_code=400, detail="Invalid Stripe webhook event")
+
+    claim = _claim_stripe_event(event_id, event_type)
+    if claim == "duplicate":
+        return {"received": True, "duplicate": True}
+    if claim == "processing":
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Stripe event is already being processed; retry later.",
+        )
+
+    created_value = event.get("created")
+    event_created = int(created_value) if isinstance(created_value, (int, float)) else None
     obj = ((event.get("data") or {}).get("object") or {})
 
-    if event_type == "checkout.session.completed":
-        user_id = obj.get("client_reference_id") or (obj.get("metadata") or {}).get("user_id")
-        if user_id:
-            _set_subscription_state(
-                str(user_id),
-                plan="pro",
-                billing_status="active",
-                customer_id=obj.get("customer"),
-                subscription_id=obj.get("subscription"),
-            )
+    try:
+        if event_type == "checkout.session.completed":
+            user_id = obj.get("client_reference_id") or (obj.get("metadata") or {}).get("user_id")
+            if user_id:
+                _set_subscription_state(
+                    str(user_id),
+                    plan="pro",
+                    billing_status="active",
+                    customer_id=obj.get("customer"),
+                    subscription_id=obj.get("subscription"),
+                    stripe_event_created=event_created,
+                )
 
-    elif event_type in {"customer.subscription.created", "customer.subscription.updated"}:
-        user_id = _user_id_from_subscription(obj)
-        if user_id:
-            stripe_status = str(obj.get("status") or "unknown")
-            paid = stripe_status in {"active", "trialing"}
-            _set_subscription_state(
-                user_id,
-                plan="pro" if paid else "free",
-                billing_status=stripe_status,
-                customer_id=obj.get("customer"),
-                subscription_id=obj.get("id"),
-                cancel_at_period_end=bool(obj.get("cancel_at_period_end", False)),
-                current_period_end=obj.get("current_period_end"),
-            )
+        elif event_type in {"customer.subscription.created", "customer.subscription.updated"}:
+            user_id = _user_id_from_subscription(obj)
+            if user_id:
+                stripe_status = str(obj.get("status") or "unknown")
+                paid = stripe_status in {"active", "trialing"}
+                _set_subscription_state(
+                    user_id,
+                    plan="pro" if paid else "free",
+                    billing_status=stripe_status,
+                    customer_id=obj.get("customer"),
+                    subscription_id=obj.get("id"),
+                    cancel_at_period_end=bool(obj.get("cancel_at_period_end", False)),
+                    current_period_end=obj.get("current_period_end"),
+                    stripe_event_created=event_created,
+                )
 
-    elif event_type == "customer.subscription.deleted":
-        user_id = _user_id_from_subscription(obj)
-        if user_id:
-            _set_subscription_state(
-                user_id,
-                plan="free",
-                billing_status="cancelled",
-                customer_id=obj.get("customer"),
-                subscription_id=obj.get("id"),
-                cancel_at_period_end=False,
-                current_period_end=obj.get("current_period_end"),
-            )
+        elif event_type == "customer.subscription.deleted":
+            user_id = _user_id_from_subscription(obj)
+            if user_id:
+                _set_subscription_state(
+                    user_id,
+                    plan="free",
+                    billing_status="cancelled",
+                    customer_id=obj.get("customer"),
+                    subscription_id=obj.get("id"),
+                    cancel_at_period_end=False,
+                    current_period_end=obj.get("current_period_end"),
+                    stripe_event_created=event_created,
+                )
 
-    elif event_type == "invoice.payment_failed":
-        user = _find_user_for_invoice(obj)
-        if user:
-            _set_subscription_state(
-                str(user["_id"]),
-                plan="free",
-                billing_status="payment_failed",
-                customer_id=obj.get("customer"),
-                subscription_id=obj.get("subscription"),
-            )
+        elif event_type == "invoice.payment_failed":
+            user = _find_user_for_invoice(obj)
+            if user:
+                _set_subscription_state(
+                    str(user["_id"]),
+                    plan="free",
+                    billing_status="payment_failed",
+                    customer_id=obj.get("customer"),
+                    subscription_id=obj.get("subscription"),
+                    stripe_event_created=event_created,
+                )
 
-    elif event_type == "invoice.paid":
-        user = _find_user_for_invoice(obj)
-        if user:
-            _set_subscription_state(
-                str(user["_id"]),
-                plan="pro",
-                billing_status="active",
-                customer_id=obj.get("customer"),
-                subscription_id=obj.get("subscription"),
-            )
+        elif event_type == "invoice.paid":
+            user = _find_user_for_invoice(obj)
+            if user:
+                _set_subscription_state(
+                    str(user["_id"]),
+                    plan="pro",
+                    billing_status="active",
+                    customer_id=obj.get("customer"),
+                    subscription_id=obj.get("subscription"),
+                    stripe_event_created=event_created,
+                )
 
-    return {"received": True}
+        _mark_stripe_event_processed(event_id)
+    except Exception:
+        _release_stripe_event(event_id)
+        raise
+
+    return {"received": True, "duplicate": False}
