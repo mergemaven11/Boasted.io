@@ -106,10 +106,14 @@ def score_receipt(receipt: dict, terms: Iterable[str]) -> tuple[int, list[str]]:
     text = receipt_text(receipt)
     matches = [term for term in terms if _term_matches(term, text)]
     score = len(matches) * 4
-    if receipt.get("result"): score += 2
-    if receipt.get("metrics"): score += 3
-    if receipt.get("evidence"): score += 2
-    if any(signal != "self-documented" for signal in receipt.get("trust_signals", [])): score += 2
+    if receipt.get("result"):
+        score += 2
+    if receipt.get("metrics"):
+        score += 3
+    if receipt.get("evidence"):
+        score += 2
+    if any(signal != "self-documented" for signal in receipt.get("trust_signals", [])):
+        score += 2
     return score, matches
 
 
@@ -269,6 +273,13 @@ def parse_existing_resume_text(raw_text: str) -> dict:
                 skills.append(skill)
 
     preview_sections = {key: values[:80] for key, values in sections.items() if values}
+    source_signals = {
+        "has_skills_heading": bool(sections["skills"]),
+        "has_experience_heading": bool(sections["experience"]),
+        "has_work_bullets": bool(bullets),
+        "has_education_heading": bool(sections["education"]),
+        "has_projects_heading": bool(sections["projects"]),
+    }
     return {
         "summary": summary,
         "bullets": bullets[:20],
@@ -278,6 +289,7 @@ def parse_existing_resume_text(raw_text: str) -> dict:
         "header_lines": unsectioned[:12],
         "line_count": len(lines),
         "text": "\n".join(lines)[:50000],
+        "source_signals": source_signals,
     }
 
 
@@ -295,10 +307,78 @@ def build_summary(target_role: str, matched_receipts: list[dict], imported_summa
     return f"{target_role} focused on measurable results, clear ownership, and evidence-backed impact."
 
 
+def _score_label(score: int) -> str:
+    if score >= 85:
+        return "Excellent"
+    if score >= 75:
+        return "Strong"
+    if score >= 60:
+        return "Good foundation"
+    if score >= 40:
+        return "Needs attention"
+    return "Major gaps"
+
+
+def _build_ats_scan(*, imported: dict, coverage: int, bullets: list[dict], skills: list[str], unsupported_terms: list[str]) -> dict:
+    source_signals = imported.get("source_signals", {})
+    has_content = bool(imported.get("text"))
+    has_skills = bool(skills) or source_signals.get("has_skills_heading", False)
+    has_bullets = bool(bullets) or source_signals.get("has_work_bullets", False)
+    has_sections = len(imported.get("sections_found", [])) >= 2
+
+    parsing_score = 100 if has_content and has_sections and (has_skills or has_bullets) else 82 if has_content and (has_skills or has_bullets) else 55 if has_content else 30
+    quantified = sum(1 for bullet in bullets if bullet.get("has_metrics"))
+    readability_score = 92 if bullets and quantified >= 3 else 84 if bullets else 78 if has_skills else 62
+    job_match_score = max(0, min(100, int(coverage)))
+    overall = round((parsing_score * 0.25) + (job_match_score * 0.55) + (readability_score * 0.20))
+
+    strengths: list[str] = []
+    improvements: list[str] = []
+    if parsing_score >= 85:
+        strengths.append("Core resume content is recoverable as searchable text and organized into recognizable sections.")
+    if job_match_score >= 75:
+        strengths.append(f"The resume visibly supports {job_match_score}% of the job signals detected in this posting.")
+    elif job_match_score >= 50:
+        strengths.append(f"The resume already supports {job_match_score}% of the detected job signals.")
+    if quantified >= 3:
+        strengths.append(f"{quantified} accomplishment bullets include measurable impact.")
+    if has_skills:
+        strengths.append("Skills are present in the source evidence; the scan will not claim they are missing.")
+    if has_bullets:
+        strengths.append("Work-history bullet evidence is present in the source evidence.")
+
+    if unsupported_terms:
+        improvements.append(
+            "Verify the highest-priority unmatched job signals and add them only where your real experience supports them: "
+            + ", ".join(unsupported_terms[:6]) + "."
+        )
+    if bullets and quantified < 2:
+        improvements.append("Where truthful, strengthen accomplishment bullets with measurable outcomes such as time saved, reliability, volume, quality, revenue, or customer impact.")
+    if parsing_score < 80:
+        improvements.append("Parsing confidence is limited. Review the source resume before changing content; do not treat an extraction miss as a resume deficiency.")
+    if not improvements:
+        improvements.append("No major scan issue is visible. Tailor wording to the target job, keep claims truthful, and verify the final exported file visually.")
+
+    return {
+        "score": overall,
+        "label": _score_label(overall),
+        "breakdown": {
+            "parsing": parsing_score,
+            "job_match": job_match_score,
+            "readability": readability_score,
+        },
+        "strengths": strengths[:6],
+        "improvements": improvements[:6],
+        "high_score": overall >= 75,
+        "disclaimer": "BragStack ATS Scan is a compatibility analysis, not a prediction of an employer's hiring decision or a reproduction of every ATS configuration.",
+    }
+
+
 def analyze_resume(*, target_role: str, job_description: str, receipts: list[dict], existing_resume_text: str = "") -> dict:
     terms = extract_terms(job_description)
     imported = parse_existing_resume_text(existing_resume_text) if existing_resume_text.strip() else {
-        "summary": "", "bullets": [], "skills": [], "sections_found": [], "sections": {}, "header_lines": [], "line_count": 0, "text": ""
+        "summary": "", "bullets": [], "skills": [], "sections_found": [], "sections": {}, "header_lines": [], "line_count": 0, "text": "",
+        "source_signals": {"has_skills_heading": False, "has_experience_heading": False, "has_work_bullets": False, "has_education_heading": False, "has_projects_heading": False},
     }
     imported_text = imported.get("text", "")
 
@@ -357,6 +437,14 @@ def analyze_resume(*, target_role: str, job_description: str, receipts: list[dic
             if skill and skill.lower() not in {existing.lower() for existing in skills}:
                 skills.append(skill)
 
+    ats_scan = _build_ats_scan(
+        imported=imported,
+        coverage=coverage,
+        bullets=bullets,
+        skills=skills,
+        unsupported_terms=unsupported_terms,
+    )
+
     return {
         "target_role": target_role.strip(),
         "requirements": terms,
@@ -371,8 +459,10 @@ def analyze_resume(*, target_role: str, job_description: str, receipts: list[dic
             "sections": imported.get("sections", {}),
             "header_lines": imported.get("header_lines", []),
             "imported_bullet_count": len(imported_bullets),
+            "source_signals": imported.get("source_signals", {}),
         },
         "readiness": readiness,
+        "ats_scan": ats_scan,
         "ats_preview_sections": list(SECTION_HEADINGS),
-        "ats_note": "ATS-friendly preview only; BragStack does not simulate every employer ATS parser.",
+        "ats_note": ats_scan["disclaimer"],
     }
