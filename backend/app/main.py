@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from bson import ObjectId
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pymongo.errors import PyMongoError
 
 from app.auth import get_current_user
@@ -37,6 +38,7 @@ from app.profile_media_routes import router as profile_media_router
 from app.promotion_packet_export_routes import router as promotion_packet_export_router
 from app.promotion_packet_routes import router as promotion_packet_router
 from app.public_slug_routes import router as public_slug_router
+from app.rate_limit import check_rate_limit
 from app.reports_routes import router as reports_router
 from app.resume_builder_routes import router as resume_builder_router
 from app.routes import router as entries_router
@@ -59,7 +61,20 @@ async def add_security_headers_and_telemetry(request: Request, call_next):
     request_id = request.headers.get("x-request-id") or new_request_id()
     started = time.perf_counter(); status_code = 500
     try:
-        response = await call_next(request); status_code = response.status_code
+        decision = check_rate_limit(request)
+        if decision:
+            response = JSONResponse(
+                status_code=429,
+                content={"detail": "Too many requests. Try again later."},
+                headers={
+                    "Retry-After": str(decision.retry_after),
+                    "RateLimit-Limit": str(decision.limit),
+                    "RateLimit-Reset": str(decision.retry_after),
+                },
+            )
+        else:
+            response = await call_next(request)
+        status_code = response.status_code
     except Exception as exc:
         duration_ms = (time.perf_counter() - started) * 1000
         record_request(request_id=request_id, method=request.method, path=request.url.path, status_code=500, duration_ms=duration_ms)
