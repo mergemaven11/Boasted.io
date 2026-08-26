@@ -7,6 +7,8 @@ import app.main as main_module
 import app.rate_limit as rate_limit
 from app.main import app
 
+TEST_EPOCH = 1_800_000_000
+
 
 def _request(path: str, *, method: str = "POST", client_ip: str = "203.0.113.10") -> Request:
     scope = {
@@ -40,16 +42,16 @@ def test_fixed_window_limit_returns_retry_after_and_resets(monkeypatch):
     )
     request = _request("/auth/login")
 
-    assert rate_limit.check_rate_limit(request, now_epoch=1200) is None
-    assert rate_limit.check_rate_limit(request, now_epoch=1201) is None
-    blocked = rate_limit.check_rate_limit(request, now_epoch=1202)
+    assert rate_limit.check_rate_limit(request, now_epoch=TEST_EPOCH) is None
+    assert rate_limit.check_rate_limit(request, now_epoch=TEST_EPOCH + 1) is None
+    blocked = rate_limit.check_rate_limit(request, now_epoch=TEST_EPOCH + 2)
 
     assert blocked is not None
     assert blocked.policy == "auth_login"
     assert blocked.limit == 2
     assert blocked.retry_after == 58
 
-    assert rate_limit.check_rate_limit(request, now_epoch=1260) is None
+    assert rate_limit.check_rate_limit(request, now_epoch=TEST_EPOCH + 60) is None
     assert db.rate_limits.count_documents({}) == 2
 
 
@@ -58,7 +60,7 @@ def test_rate_limit_bucket_does_not_store_raw_client_address(monkeypatch):
     client_ip = "198.51.100.42"
     request = _request("/auth/register", client_ip=client_ip)
 
-    rate_limit.check_rate_limit(request, now_epoch=3600)
+    rate_limit.check_rate_limit(request, now_epoch=TEST_EPOCH)
 
     bucket = db.rate_limits.find_one()
     assert bucket is not None
