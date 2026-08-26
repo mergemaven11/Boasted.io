@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ExternalLink, ImagePlus, Palette, RotateCcw, Save, UserRound } from "lucide-react";
+import BragStackLoader from "./BragStackLoader.jsx";
 import { getCurrentUser, updateCurrentUserProfile } from "./api";
 import { updateProfileAvatar } from "./profileApi";
 import { getProfileTheme, PROFILE_THEMES } from "./profileThemes";
@@ -28,7 +29,7 @@ function ProfilePage() {
       setUser(updated);setForm(c=>({...c,...updated,avatar_url:updated.avatar_url??avatarUrl}));setMessage("Profile and appearance saved.");
     }catch(err){setError(err.response?.data?.detail||"Your profile could not be saved.");}finally{setSaving(false);}
   }
-  if(loading)return <main className="profile-settings"><div className="profile-loading">Loading profile…</div></main>;
+  if(loading)return <BragStackLoader compact message="Loading your profile…" detail="Bringing in your career identity and appearance settings." />;
   const avatarLetter=form.name?.charAt(0).toUpperCase()||"B"; const theme=getProfileTheme(form.profile_theme); const primary=form.profile_primary_color||theme.primary; const secondary=form.profile_secondary_color||theme.secondary; const background=form.profile_background_color||theme.background;
   return <main className="profile-settings">
     <header className="profile-settings-header"><div><p className="profile-settings-eyebrow">Account</p><h1>Edit profile</h1><p>Keep your private career profile current. You choose what gets shared publicly.</p></div>{user?.public_slug&&<a className="profile-public-link" href={`/brag/${user.public_slug}`} target="_blank" rel="noreferrer">View public profile <ExternalLink size={16}/></a>}</header>
