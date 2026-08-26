@@ -15,6 +15,7 @@ const ImpactReceiptsPage = lazyPage(() => import("./ImpactReceiptsPage.jsx"));
 const InterviewPracticeExperience = lazyPage(() => import("./InterviewPracticeExperience.jsx"));
 const LandingInterviewShowcase = lazyPage(() => import("./LandingInterviewShowcase.jsx"));
 const LandingResumeShowcase = lazyPage(() => import("./LandingResumeShowcase.jsx"));
+const OpsConsolePage = lazyPage(() => import("./OpsConsolePage.jsx"));
 const ReceiptVerificationCenter = lazyPage(() => import("./ReceiptVerificationCenter.jsx"));
 const ReceiptVerificationPage = lazyPage(() => import("./ReceiptVerificationPage.jsx"));
 const ResumeBuilderPage = lazyPage(() => import("./ResumeBuilderPage.jsx"));
@@ -43,7 +44,7 @@ function RootContent() {
   const path = window.location.pathname.replace(/\/$/, "") || "/";
   useSearchAppearanceMeta(path);
   const seoLandingContent = getSeoLandingPage(path);
-  const isAuthenticatedApp = path.startsWith("/app");
+  const isAuthenticatedApp = path.startsWith("/app") || path === "/ops";
   const [user, setUser] = useState(null);
   const [planLoaded, setPlanLoaded] = useState(!isAuthenticatedApp);
 
@@ -85,6 +86,7 @@ function RootContent() {
     let Content = App;
     let contentProps = {};
     if (path === "/app") Content = DashboardPage;
+    else if (path === "/ops") Content = OpsConsolePage;
     else if (path === "/app/settings") Content = SettingsPage;
     else if (path === "/app/profile") Content = ProfilePage;
     else if (path === "/app/settings/appearance") Content = AppearanceSettingsPage;
@@ -97,7 +99,7 @@ function RootContent() {
 
     if (!isAuthenticatedApp) content = <Content {...contentProps} />;
     else if (!planLoaded) content = <BragStackLoader message="Preparing your workspace…" detail="Connecting your account and career intelligence." />;
-    else content = <div className="app-shell"><AppSidebar /><div className="authenticated-content"><Content {...contentProps} /></div><ProductTour user={user} /></div>;
+    else content = <div className="app-shell"><AppSidebar /><div className="authenticated-content"><Content {...contentProps} /></div>{path !== "/ops" && <ProductTour user={user} />}</div>;
   }
 
   return <Suspense fallback={<RouteFallback />}>{content}</Suspense>;
