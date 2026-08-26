@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta, timezone
 
 from bson import ObjectId
@@ -241,28 +242,30 @@ def get_categories_summary(current_user: dict = Depends(get_current_user)):
 
 @router.get("/search")
 def search_entries(
-    query: str,
+    query: str = Query(..., min_length=1, max_length=100),
     current_user: dict = Depends(get_current_user),
 ):
-    """Search the authenticated user's brag entries by keyword.
+    """Search the authenticated user's brag entries by literal keyword.
 
-    Args:
-        query: The search term used to find matching brag entries.
-        current_user: The authenticated user injected by the auth dependency.
-
-    Returns:
-        Matching brag entries owned by the authenticated user.
+    User-provided search text is length-bounded and escaped before it reaches
+    MongoDB's regular-expression engine. This preserves case-insensitive
+    substring matching while preventing regex injection and expensive patterns.
     """
+    normalized_query = query.strip()
+    if not normalized_query:
+        raise HTTPException(status_code=422, detail="Search query cannot be blank")
+
+    safe_query = re.escape(normalized_query)
     search_filter = {
         "user_id": get_user_id(current_user),
         "$or": [
-            {"title": {"$regex": query, "$options": "i"}},
-            {"category": {"$regex": query, "$options": "i"}},
-            {"situation": {"$regex": query, "$options": "i"}},
-            {"action": {"$regex": query, "$options": "i"}},
-            {"impact": {"$regex": query, "$options": "i"}},
-            {"lesson": {"$regex": query, "$options": "i"}},
-            {"tags": {"$regex": query, "$options": "i"}},
+            {"title": {"$regex": safe_query, "$options": "i"}},
+            {"category": {"$regex": safe_query, "$options": "i"}},
+            {"situation": {"$regex": safe_query, "$options": "i"}},
+            {"action": {"$regex": safe_query, "$options": "i"}},
+            {"impact": {"$regex": safe_query, "$options": "i"}},
+            {"lesson": {"$regex": safe_query, "$options": "i"}},
+            {"tags": {"$regex": safe_query, "$options": "i"}},
         ],
     }
 
@@ -272,7 +275,7 @@ def search_entries(
     ]
 
     return {
-        "query": query,
+        "query": normalized_query,
         "total_results": len(entries),
         "entries": entries,
         "message": (
@@ -397,6 +400,7 @@ def delete_entry(
 
     return {"message": "Entry deleted"}
 
+
 @public_router.get("/brag")
 def get_public_brag_entries():
     """Return public brag entries for the shareable interviewer page.
@@ -472,7 +476,7 @@ def get_public_tags_summary():
 
     for entry in entries:
         for tag in entry.get("tags", []):
-            tag_counts[tag] = tag_counts.get(tag, 0) + 1
+            tags[tag] = tags.get(tag, 0) + 1
 
     sorted_tag_counts = dict(
         sorted(tag_counts.items(), key=lambda item: item[1], reverse=True)
