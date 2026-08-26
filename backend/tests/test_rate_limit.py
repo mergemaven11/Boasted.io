@@ -81,6 +81,8 @@ def test_targeted_policy_selection_covers_abuse_sensitive_routes(monkeypatch):
         ("GET", "/auth/google/login", "oauth"),
         ("GET", "/auth/github/callback", "oauth"),
         ("POST", "/impact-receipts/507f1f77bcf86cd799439011/verification-requests", "receipt_verification_send"),
+        ("GET", "/receipt-verifications/token-value", "receipt_verification_public"),
+        ("POST", "/receipt-verifications/token-value/decision", "receipt_verification_public"),
         ("GET", "/public/brag/example-user", "public_profile"),
         ("GET", "/public/brag/example-user/profile", "public_profile"),
     ]
