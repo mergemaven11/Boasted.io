@@ -6,7 +6,7 @@ from datetime import date, datetime, timezone
 from typing import Iterable
 
 QUANTIFIED_PATTERN = re.compile(
-    r"(?:\$\s?\d|\b\d+(?:\.\d+)?\s?(?:%|x|hours?|hrs?|minutes?|mins?|days?|weeks?|months?|years?|users?|customers?|tickets?|incidents?|requests?|deployments?|projects?|people|members?)\b)",
+    r"(?:\$\s?\d|\b\d+(?:\.\d+)?\s?(?:%|x)(?!\w)|\b\d+(?:\.\d+)?\s?(?:hours?|hrs?|minutes?|mins?|days?|weeks?|months?|years?|users?|customers?|tickets?|incidents?|requests?|deployments?|projects?|people|members?)\b)",
     re.IGNORECASE,
 )
 
