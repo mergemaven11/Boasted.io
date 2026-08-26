@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import os
+import re
 from collections import Counter
+from datetime import datetime, timezone
 from typing import Callable
 
+from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, Field
 from pymongo.errors import PyMongoError
 
 from app.auth import get_current_user
@@ -12,6 +16,7 @@ from app.database import (
     client as mongo_client,
     entries_collection,
     impact_receipts_collection,
+    ops_audit_collection,
     resume_documents_collection,
     users_collection,
 )
@@ -27,6 +32,10 @@ BOOTSTRAP_ADMINS = {
     for email in os.getenv("OPS_ADMIN_EMAILS", "").split(",")
     if email.strip()
 }
+
+
+class InternalRoleUpdate(BaseModel):
+    roles: list[str] = Field(default_factory=list, max_length=4)
 
 
 def _email_is_company(email: str) -> bool:
@@ -78,6 +87,55 @@ def _safe_user(user: dict) -> dict:
             "resume_documents": resume_documents_collection.count_documents({"user_id": user_id}),
         },
     }
+
+
+def _safe_team_member(user: dict) -> dict:
+    email = (user.get("email") or "").strip().lower()
+    stored_roles = sorted({str(role).strip().lower() for role in user.get("internal_roles", [])} & INTERNAL_ROLES)
+    effective_roles = sorted(_roles_for_user(user))
+    return {
+        "id": str(user.get("_id", "")),
+        "email": email,
+        "name": user.get("name", ""),
+        "roles": stored_roles,
+        "effective_roles": effective_roles,
+        "bootstrap_admin": email in BOOTSTRAP_ADMINS,
+    }
+
+
+def _normalize_roles(roles: list[str]) -> list[str]:
+    normalized = {str(role).strip().lower() for role in roles}
+    invalid = sorted(normalized - INTERNAL_ROLES)
+    if invalid:
+        raise HTTPException(status_code=422, detail=f"Unsupported internal role: {invalid[0]}")
+    return sorted(normalized)
+
+
+def _would_remove_last_admin(target: dict, next_roles: list[str]) -> bool:
+    email = (target.get("email") or "").strip().lower()
+    if email in BOOTSTRAP_ADMINS or "admin" in next_roles:
+        return False
+    current_roles = {str(role).strip().lower() for role in target.get("internal_roles", [])}
+    if "admin" not in current_roles:
+        return False
+    if BOOTSTRAP_ADMINS:
+        return False
+    return users_collection.count_documents({"internal_roles": "admin"}) <= 1
+
+
+def _audit_role_change(*, actor: dict, target: dict, previous_roles: list[str], next_roles: list[str]) -> None:
+    ops_audit_collection.insert_one(
+        {
+            "event": "internal_roles_updated",
+            "actor_user_id": str(actor.get("_id", "")),
+            "actor_email": (actor.get("email") or "").strip().lower(),
+            "target_user_id": str(target.get("_id", "")),
+            "target_email": (target.get("email") or "").strip().lower(),
+            "previous_roles": previous_roles,
+            "next_roles": next_roles,
+            "created_at": datetime.now(timezone.utc),
+        }
+    )
 
 
 @router.get("/access")
@@ -137,3 +195,52 @@ def user_diagnostics(
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return _safe_user(user)
+
+
+@router.get("/team")
+def list_internal_team(current_user: dict = Depends(require_internal_role("admin"))):
+    del current_user
+    domain_pattern = re.compile(rf"@{re.escape(COMPANY_DOMAIN)}$", re.IGNORECASE)
+    members = users_collection.find(
+        {"email": domain_pattern},
+        {"email": 1, "name": 1, "internal_roles": 1},
+    ).sort("email", 1).limit(100)
+    return {"members": [_safe_team_member(member) for member in members], "allowed_roles": sorted(INTERNAL_ROLES)}
+
+
+@router.patch("/team/{user_id}/roles")
+def update_internal_roles(
+    user_id: str,
+    payload: InternalRoleUpdate,
+    current_user: dict = Depends(require_internal_role("admin")),
+):
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=404, detail="Internal team member not found")
+
+    target = users_collection.find_one({"_id": ObjectId(user_id)})
+    if target is None or not _email_is_company(target.get("email", "")):
+        raise HTTPException(status_code=404, detail="Internal team member not found")
+
+    next_roles = _normalize_roles(payload.roles)
+    previous_roles = sorted({str(role).strip().lower() for role in target.get("internal_roles", [])} & INTERNAL_ROLES)
+
+    if _would_remove_last_admin(target, next_roles):
+        raise HTTPException(status_code=409, detail="At least one BragStack admin must remain assigned.")
+
+    users_collection.update_one({"_id": target["_id"]}, {"$set": {"internal_roles": next_roles}})
+    _audit_role_change(actor=current_user, target=target, previous_roles=previous_roles, next_roles=next_roles)
+
+    updated = dict(target)
+    updated["internal_roles"] = next_roles
+    return _safe_team_member(updated)
+
+
+@router.get("/audit")
+def list_ops_audit(current_user: dict = Depends(require_internal_role("admin"))):
+    del current_user
+    events = []
+    for event in ops_audit_collection.find({}, {"_id": 0}).sort("created_at", -1).limit(50):
+        if isinstance(event.get("created_at"), datetime):
+            event["created_at"] = event["created_at"].isoformat()
+        events.append(event)
+    return {"events": events}

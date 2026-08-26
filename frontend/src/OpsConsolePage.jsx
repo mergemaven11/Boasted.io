@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { getOpsAccess, getOpsOverview, getOpsUser } from "./opsApi";
+import {
+  getOpsAccess,
+  getOpsAudit,
+  getOpsOverview,
+  getOpsTeam,
+  getOpsUser,
+  updateOpsRoles,
+} from "./opsApi";
 import "./OpsConsolePage.css";
 
 function RequestTable({ rows = [] }) {
@@ -7,9 +14,68 @@ function RequestTable({ rows = [] }) {
   return <div className="ops-table-wrap"><table className="ops-table"><thead><tr><th>Time</th><th>Method</th><th>Path</th><th>Status</th><th>Duration</th><th>Request ID</th></tr></thead><tbody>{rows.map((row) => <tr key={`${row.request_id}-${row.timestamp}`}><td>{new Date(row.timestamp).toLocaleTimeString()}</td><td>{row.method}</td><td><code>{row.path}</code></td><td>{row.status_code}</td><td>{row.duration_ms} ms</td><td><code>{row.request_id}</code></td></tr>)}</tbody></table></div>;
 }
 
+function RoleManager({ team, setTeam, audit, setAudit }) {
+  const [saving, setSaving] = useState("");
+  const [roleError, setRoleError] = useState("");
+  const roles = team?.allowed_roles || [];
+
+  async function toggleRole(member, role) {
+    const nextRoles = member.roles.includes(role)
+      ? member.roles.filter((item) => item !== role)
+      : [...member.roles, role];
+    setSaving(member.id);
+    setRoleError("");
+    try {
+      const updated = await updateOpsRoles(member.id, nextRoles);
+      setTeam((current) => ({
+        ...current,
+        members: current.members.map((item) => item.id === member.id ? updated : item),
+      }));
+      setAudit(await getOpsAudit());
+    } catch (err) {
+      setRoleError(err.response?.data?.detail || "Role update failed.");
+    } finally {
+      setSaving("");
+    }
+  }
+
+  return <>
+    {roleError && <p className="ops-error">{roleError}</p>}
+    <div className="ops-team-grid">
+      {(team?.members || []).map((member) => <article className="ops-team-card" key={member.id}>
+        <div><strong>{member.name || member.email}</strong><small>{member.email}</small></div>
+        {member.bootstrap_admin && <span className="ops-bootstrap-badge">Bootstrap admin</span>}
+        <div className="ops-role-list">
+          {roles.map((role) => <label key={role}>
+            <input
+              type="checkbox"
+              checked={member.roles.includes(role)}
+              disabled={saving === member.id}
+              onChange={() => void toggleRole(member, role)}
+            />
+            <span>{role}</span>
+          </label>)}
+        </div>
+        <small>Effective: {(member.effective_roles || []).join(", ") || "none"}</small>
+      </article>)}
+    </div>
+    <div className="ops-audit-list">
+      <h3>Recent role changes</h3>
+      {(audit?.events || []).length === 0 && <p className="ops-empty">No role changes recorded yet.</p>}
+      {(audit?.events || []).map((event, index) => <div key={`${event.created_at}-${index}`}>
+        <strong>{event.actor_email}</strong>
+        <span>changed {event.target_email}</span>
+        <code>{(event.previous_roles || []).join(", ") || "none"} → {(event.next_roles || []).join(", ") || "none"}</code>
+      </div>)}
+    </div>
+  </>;
+}
+
 export default function OpsConsolePage() {
   const [access, setAccess] = useState(null);
   const [overview, setOverview] = useState(null);
+  const [team, setTeam] = useState(null);
+  const [audit, setAudit] = useState(null);
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [userResult, setUserResult] = useState(null);
@@ -24,6 +90,11 @@ export default function OpsConsolePage() {
       const nextOverview = await getOpsOverview();
       setAccess(nextAccess);
       setOverview(nextOverview);
+      if ((nextAccess.roles || []).includes("admin")) {
+        const [nextTeam, nextAudit] = await Promise.all([getOpsTeam(), getOpsAudit()]);
+        setTeam(nextTeam);
+        setAudit(nextAudit);
+      }
     } catch (err) {
       setError(err.response?.status === 403 ? "This account is not authorized for BragStack Ops." : "Ops diagnostics could not be loaded.");
     } finally {
@@ -37,9 +108,16 @@ export default function OpsConsolePage() {
       try {
         const nextAccess = await getOpsAccess();
         const nextOverview = await getOpsOverview();
+        let nextTeam = null;
+        let nextAudit = null;
+        if ((nextAccess.roles || []).includes("admin")) {
+          [nextTeam, nextAudit] = await Promise.all([getOpsTeam(), getOpsAudit()]);
+        }
         if (!active) return;
         setAccess(nextAccess);
         setOverview(nextOverview);
+        setTeam(nextTeam);
+        setAudit(nextAudit);
       } catch (err) {
         if (!active) return;
         setError(err.response?.status === 403 ? "This account is not authorized for BragStack Ops." : "Ops diagnostics could not be loaded.");
@@ -62,9 +140,10 @@ export default function OpsConsolePage() {
   const service = overview?.service || {};
   const database = overview?.database || {};
   const requests = overview?.requests || {};
+  const isAdmin = (access?.roles || []).includes("admin");
 
   return <main className="ops-page">
-    <header className="ops-header"><div><p className="ops-kicker">INTERNAL · READ ONLY</p><h1>BragStack Ops Console</h1><p>Live application diagnostics, request telemetry, database health, and safe user-state debugging.</p></div><div className={`ops-env ${service.environment === "production" ? "production" : "nonprod"}`}>{String(service.environment || access?.environment || "unknown").toUpperCase()}</div></header>
+    <header className="ops-header"><div><p className="ops-kicker">INTERNAL · CONTROLLED ACCESS</p><h1>BragStack Ops Console</h1><p>Live application diagnostics, request telemetry, database health, safe user-state debugging, and audited internal access management.</p></div><div className={`ops-env ${service.environment === "production" ? "production" : "nonprod"}`}>{String(service.environment || access?.environment || "unknown").toUpperCase()}</div></header>
     <div className="ops-toolbar"><span>Roles: {(access?.roles || []).join(", ")}</span><button type="button" onClick={refreshDiagnostics}>Refresh diagnostics</button></div>
 
     <section className="ops-grid">
@@ -73,6 +152,8 @@ export default function OpsConsolePage() {
       <article className="ops-card"><span>Recent requests</span><strong>{requests.sample_size || 0}</strong><small>{requests.status_classes?.["5xx"] || 0} server errors · {requests.status_classes?.["4xx"] || 0} client errors</small></article>
       <article className="ops-card"><span>Stored users</span><strong>{database.users ?? "—"}</strong><small>{database.entries ?? "—"} accomplishments · {database.impact_receipts ?? "—"} receipts</small></article>
     </section>
+
+    {isAdmin && <section className="ops-panel"><div className="ops-panel-heading"><div><p className="ops-kicker">ADMIN · TEAM & ROLES</p><h2>Internal access management</h2><p>Grant only the minimum role needed. Changes are persisted and audit logged.</p></div></div><RoleManager team={team} setTeam={setTeam} audit={audit} setAudit={setAudit} /></section>}
 
     <section className="ops-panel"><div className="ops-panel-heading"><div><p className="ops-kicker">REQUEST TELEMETRY</p><h2>Failures</h2></div></div><RequestTable rows={requests.failures} /></section>
     <section className="ops-panel"><div className="ops-panel-heading"><div><p className="ops-kicker">PERFORMANCE</p><h2>Slow requests ≥ 500 ms</h2></div></div><RequestTable rows={requests.slow} /></section>

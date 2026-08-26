@@ -15,3 +15,6 @@ opsApi.interceptors.request.use((config) => {
 export async function getOpsAccess() { const response = await opsApi.get("/ops/access"); return response.data; }
 export async function getOpsOverview() { const response = await opsApi.get("/ops/overview"); return response.data; }
 export async function getOpsUser(email) { const response = await opsApi.get("/ops/users", { params: { email } }); return response.data; }
+export async function getOpsTeam() { const response = await opsApi.get("/ops/team"); return response.data; }
+export async function updateOpsRoles(userId, roles) { const response = await opsApi.patch(`/ops/team/${userId}/roles`, { roles }); return response.data; }
+export async function getOpsAudit() { const response = await opsApi.get("/ops/audit"); return response.data; }
