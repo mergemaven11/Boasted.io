@@ -27,6 +27,7 @@ def test_career_intelligence_combines_entries_and_receipts():
     assert result["summary"]["quantified_results"] == 2
     docker = next(skill for skill in result["skills"] if skill["skill"].casefold() == "docker")
     assert docker["demonstrations"] == 3
+    assert docker["quantified_examples"] == 2
     assert docker["evidence_items"] == 1
     assert docker["confirmations"] == 1
     assert docker["recent"] is True
