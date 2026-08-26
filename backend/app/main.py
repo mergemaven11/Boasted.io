@@ -14,29 +14,20 @@ from app.oauth_routes import router as oauth_router
 from app.billing_routes import router as billing_router
 from app.beta_metrics_routes import router as beta_metrics_router
 from app.career_intelligence_routes import router as career_intelligence_router
-from app.certification_packet_export_routes import router as certification_packet_export_router
-from app.certification_packet_routes import router as certification_packet_router
 from app.core_output_routes import router as core_output_router
 from app.database import client as mongo_client, entries_collection, impact_receipts_collection
 from app.impact_receipt_routes import router as impact_receipts_router
 from app.receipt_verification_routes import router as receipt_verification_router
 from app.interview_catalog_routes import router as interview_catalog_router
-from app.interview_packet_export_routes import router as interview_packet_export_router
-from app.interview_packet_routes import router as interview_packet_router
 from app.observability import record_persistent_request
 from app.ops_debug import new_request_id, record_request
 from app.ops_routes import router as ops_router
 from app.ops_user_routes import router as ops_user_router
 from app.packet_audit_routes import router as packet_audit_router
-from app.packet_platform_export_routes import router as packet_platform_export_router
-from app.packet_platform_routes import router as packet_platform_router
-from app.packet_share_routes import router as packet_share_router
-from app.performance_packet_export_routes import router as performance_packet_export_router
-from app.performance_packet_routes import router as performance_packet_router
 from app.plans import enforce_usage_limit
+from app.private_packet_routes import router as private_packet_router
+from app.private_packet_share_routes import router as private_packet_share_router
 from app.profile_media_routes import router as profile_media_router
-from app.promotion_packet_export_routes import router as promotion_packet_export_router
-from app.promotion_packet_routes import router as promotion_packet_router
 from app.public_slug_routes import router as public_slug_router
 from app.rate_limit import check_rate_limit
 from app.reports_routes import router as reports_router
@@ -130,19 +121,10 @@ app.include_router(core_output_router)
 app.include_router(beta_metrics_router)
 app.include_router(career_intelligence_router)
 app.include_router(reports_router)
-app.include_router(performance_packet_router)
-app.include_router(performance_packet_export_router)
-app.include_router(packet_platform_router)
-app.include_router(packet_platform_export_router)
+app.include_router(private_packet_router)
 app.include_router(packet_audit_router)
-app.include_router(packet_share_router)
-app.include_router(promotion_packet_router)
-app.include_router(promotion_packet_export_router)
+app.include_router(private_packet_share_router)
 app.include_router(interview_catalog_router)
-app.include_router(interview_packet_router)
-app.include_router(interview_packet_export_router)
-app.include_router(certification_packet_router)
-app.include_router(certification_packet_export_router)
 app.include_router(resume_builder_router)
 app.include_router(ops_router)
 app.include_router(ops_user_router)
