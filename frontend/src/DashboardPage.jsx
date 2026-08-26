@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { getCurrentUser, getEntries, getImpactReceipts, getTagsSummary } from "./api";
+import BragStackLoader from "./BragStackLoader.jsx";
 import "./DashboardPage.css";
 
 function DashboardPage() {
@@ -68,7 +69,7 @@ function DashboardPage() {
   const topSkills = Object.entries(tags).slice(0, 5);
 
   if (loading) {
-    return <main className="command-center"><div className="command-loading">Loading your career command center…</div></main>;
+    return <BragStackLoader compact message="Building your career command center…" detail="Loading your accomplishments, evidence, receipts, and skill signals." />;
   }
 
   return (
