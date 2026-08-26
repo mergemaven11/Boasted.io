@@ -16,19 +16,39 @@ export default function OpsConsolePage() {
   const [userError, setUserError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  async function load() {
-    setLoading(true); setError("");
+  async function refreshDiagnostics() {
+    setLoading(true);
+    setError("");
     try {
       const nextAccess = await getOpsAccess();
-      setAccess(nextAccess);
       const nextOverview = await getOpsOverview();
+      setAccess(nextAccess);
       setOverview(nextOverview);
     } catch (err) {
       setError(err.response?.status === 403 ? "This account is not authorized for BragStack Ops." : "Ops diagnostics could not be loaded.");
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const nextAccess = await getOpsAccess();
+        const nextOverview = await getOpsOverview();
+        if (!active) return;
+        setAccess(nextAccess);
+        setOverview(nextOverview);
+      } catch (err) {
+        if (!active) return;
+        setError(err.response?.status === 403 ? "This account is not authorized for BragStack Ops." : "Ops diagnostics could not be loaded.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
 
   async function lookupUser(event) {
     event.preventDefault(); setUserError(""); setUserResult(null);
@@ -45,7 +65,7 @@ export default function OpsConsolePage() {
 
   return <main className="ops-page">
     <header className="ops-header"><div><p className="ops-kicker">INTERNAL · READ ONLY</p><h1>BragStack Ops Console</h1><p>Live application diagnostics, request telemetry, database health, and safe user-state debugging.</p></div><div className={`ops-env ${service.environment === "production" ? "production" : "nonprod"}`}>{String(service.environment || access?.environment || "unknown").toUpperCase()}</div></header>
-    <div className="ops-toolbar"><span>Roles: {(access?.roles || []).join(", ")}</span><button type="button" onClick={load}>Refresh diagnostics</button></div>
+    <div className="ops-toolbar"><span>Roles: {(access?.roles || []).join(", ")}</span><button type="button" onClick={refreshDiagnostics}>Refresh diagnostics</button></div>
 
     <section className="ops-grid">
       <article className="ops-card"><span>API</span><strong>{service.name || "bragstack-api"}</strong><small>Commit {service.version || "unknown"}</small></article>
