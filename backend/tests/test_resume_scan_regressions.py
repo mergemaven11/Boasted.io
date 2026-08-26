@@ -99,10 +99,11 @@ PROFESSIONAL EXPERIENCE
 A role layout the parser cannot safely bind
 • Built a reliable production support workflow used by the engineering team.
 SKILLS
-Platforms
+Platforms | Python, Docker
 """
     parsed = parse_existing_resume_text(resume)
 
     assert parsed["source_signals"]["has_experience_heading"] is True
     assert parsed["source_signals"]["has_skills_heading"] is True
+    assert parsed["skills"]
     assert any("source" in warning.lower() or "visible" in warning.lower() for warning in parsed["parse_warnings"])
