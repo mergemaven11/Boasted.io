@@ -9,6 +9,7 @@ const AccomplishmentsPage = lazyPage(() => import("./AccomplishmentsPage.jsx"));
 const AppSidebar = lazyPage(() => import("./AppSidebar.jsx"));
 const AppearanceSettingsPage = lazyPage(() => import("./AppearanceSettingsPage.jsx"));
 const BillingSettingsPage = lazyPage(() => import("./BillingSettingsPage.jsx"));
+const CareerIntelligencePage = lazyPage(() => import("./CareerIntelligencePage.jsx"));
 const DashboardPage = lazyPage(() => import("./DashboardPage.jsx"));
 const DocsPage = lazyPage(() => import("./DocsPage.jsx"));
 const ImpactReceiptsPage = lazyPage(() => import("./ImpactReceiptsPage.jsx"));
@@ -88,6 +89,7 @@ function RootContent() {
     else if (path === "/app/settings/billing") Content = BillingSettingsPage;
     else if (path === "/app/accomplishments") Content = AccomplishmentsPage;
     else if (path === "/app/impact-receipts") Content = ImpactReceiptsWithVerification;
+    else if (path === "/app/intelligence") Content = CareerIntelligencePage;
     else if (path === "/app/resume-builder" && planLoaded) { Content = user?.entitlements?.resume_builder ? ResumeBuilderPage : ProRequired; contentProps = user?.entitlements?.resume_builder ? {} : { feature: "Resume Builder and ATS Guardian" }; }
     else if (path === "/app/reports" && planLoaded) { Content = user?.entitlements?.advanced_reports ? ProCareerPage : ProRequired; contentProps = user?.entitlements?.advanced_reports ? {} : { feature: "Career analytics and career packets" }; }
     else if (path === "/app/interview-practice" && planLoaded) { Content = user?.entitlements?.interview_practice ? InterviewPracticeExperience : ProRequired; contentProps = user?.entitlements?.interview_practice ? {} : { feature: "Practice Interviewer" }; }
