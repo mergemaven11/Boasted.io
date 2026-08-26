@@ -14,7 +14,7 @@ function getPublicBragPath(slug, suffix = "") {
   return normalizedSlug ? `/public/brag/${encodeURIComponent(normalizedSlug)}${suffix}` : `/public/brag${suffix}`;
 }
 
-function getPacketParams(startDate, endDate, options = {}) {
+function getPacketPayload(startDate, endDate, options = {}) {
   return {
     ...(startDate && endDate ? { start_date: startDate, end_date: endDate } : {}),
     ...(options.careerArea ? { career_area: options.careerArea } : {}),
@@ -23,16 +23,16 @@ function getPacketParams(startDate, endDate, options = {}) {
     ...(options.targetRole ? { target_role: options.targetRole } : {}),
     ...(options.targetLevel ? { target_level: options.targetLevel } : {}),
     ...(options.targetOrganization ? { target_organization: options.targetOrganization } : {}),
-    ...(options.selectedEntryIds?.length ? { selected_entry_ids: options.selectedEntryIds.join(",") } : {}),
+    ...(options.selectedEntryIds?.length ? { selected_entry_ids: options.selectedEntryIds } : {}),
     ...(options.includeEvidenceReferences ? { include_evidence_references: true } : {}),
     ...(options.credentialName ? { credential_name: options.credentialName } : {}),
     ...(options.issuingBody ? { issuing_body: options.issuingBody } : {}),
     ...(options.reviewType ? { review_type: options.reviewType } : {}),
     ...(options.requirementNotes ? { requirement_notes: options.requirementNotes } : {}),
-    ...(options.signatureEntryIds?.length ? { signature_entry_ids: options.signatureEntryIds.join(",") } : {}),
-    ...(Array.isArray(options.sections) ? { sections: options.sections.length ? options.sections.join(",") : "__none__" } : {}),
+    ...(options.signatureEntryIds?.length ? { signature_entry_ids: options.signatureEntryIds } : {}),
+    ...(Array.isArray(options.sections) ? { sections: options.sections } : {}),
     ...(options.packetNote ? { packet_note: options.packetNote } : {}),
-    ...(options.itemNotes && Object.keys(options.itemNotes).length ? { item_notes: JSON.stringify(options.itemNotes) } : {}),
+    ...(options.itemNotes && Object.keys(options.itemNotes).length ? { item_notes: options.itemNotes } : {}),
     ...(options.theme ? { theme: options.theme } : {}),
     ...(options.brandName ? { brand_name: options.brandName } : {}),
     ...(options.departmentLabel ? { department_label: options.departmentLabel } : {}),
@@ -89,10 +89,11 @@ function packetOptionsFromPacket(packet) {
 
 async function downloadPacketPdf(path, packet, fallbackFilename) {
   const options = packetOptionsFromPacket(packet);
-  const response = await api.get(path, {
-    params: getPacketParams(options.startDate, options.endDate, options),
-    responseType: "blob",
-  });
+  const response = await api.post(
+    path,
+    getPacketPayload(options.startDate, options.endDate, options),
+    { responseType: "blob" },
+  );
   return {
     blob: response.data,
     filename: parseDownloadFilename(response.headers["content-disposition"], fallbackFilename),
@@ -153,12 +154,12 @@ export async function getPerformancePacket(startDate, endDate, options = {}) {
       : options.packetType === "certification"
         ? "/packets/certification"
         : "/packets/performance-review-v12";
-  const response = await api.get(path, { params: getPacketParams(startDate, endDate, options) });
+  const response = await api.post(path, getPacketPayload(startDate, endDate, options));
   return response.data;
 }
-export async function getPromotionPacket(startDate, endDate, options = {}) { const response = await api.get("/packets/promotion", { params: getPacketParams(startDate, endDate, options) }); return response.data; }
-export async function getInterviewPacket(startDate, endDate, options = {}) { const response = await api.get("/packets/interview", { params: getPacketParams(startDate, endDate, options) }); return response.data; }
-export async function getCertificationPacket(startDate, endDate, options = {}) { const response = await api.get("/packets/certification", { params: getPacketParams(startDate, endDate, options) }); return response.data; }
+export async function getPromotionPacket(startDate, endDate, options = {}) { const response = await api.post("/packets/promotion", getPacketPayload(startDate, endDate, options)); return response.data; }
+export async function getInterviewPacket(startDate, endDate, options = {}) { const response = await api.post("/packets/interview", getPacketPayload(startDate, endDate, options)); return response.data; }
+export async function getCertificationPacket(startDate, endDate, options = {}) { const response = await api.post("/packets/certification", getPacketPayload(startDate, endDate, options)); return response.data; }
 
 export async function downloadPerformancePacketPdf(packet) { return downloadPacketPdf("/packets/performance-review-v12.pdf", packet, "bragstack-performance-review.pdf"); }
 export async function downloadPromotionPacketPdf(packet) { return downloadPacketPdf("/packets/promotion.pdf", packet, "bragstack-promotion-packet.pdf"); }
