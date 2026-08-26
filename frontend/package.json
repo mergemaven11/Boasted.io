@@ -10,6 +10,7 @@
     "test:interview": "node --test src/interviewEngine*.test.js",
     "test:resume": "node --test src/resumeStructured.test.js",
     "test:seo": "node scripts/verify-search-appearance.mjs",
+    "test:bundle": "node scripts/verify-bundle-budget.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

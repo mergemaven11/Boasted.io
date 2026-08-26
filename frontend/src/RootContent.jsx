@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { getCurrentUser } from "./api.js";
 import { getSeoLandingPage } from "./seoLandingContent.js";
 import useSearchAppearanceMeta from "./useSearchAppearanceMeta.js";
 
@@ -62,6 +61,10 @@ function RootContent() {
     let active = true;
     (async () => {
       try {
+        // Keep axios and the authenticated API surface out of public-page startup.
+        // App routes already wait for plan data, so loading the client here does not
+        // change the public routing contract or entitlement behavior.
+        const { getCurrentUser } = await import("./api.js");
         const data = await getCurrentUser();
         if (active) {
           setUser(data);

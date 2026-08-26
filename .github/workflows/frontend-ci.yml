@@ -53,5 +53,8 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Enforce production bundle budgets
+        run: npm run test:bundle
+
       - name: Verify Aisha production bundle
         run: node scripts/verify-aisha-build.mjs
