@@ -151,3 +151,19 @@ def test_failed_webhook_processing_releases_claim_for_retry(monkeypatch):
     assert len(calls) == 1
     stored = mock_db["stripe_webhook_events"].find_one({"_id": event["id"]})
     assert stored["status"] == "processed"
+
+
+def test_malformed_signed_event_is_rejected_before_claim(monkeypatch):
+    mock_db = _use_mock_billing_db(monkeypatch)
+    event = {
+        "created": 1_780_000_200,
+        "type": "invoice.paid",
+        "data": {"object": {}},
+    }
+    payload, headers = _signed_request(event)
+
+    response = client.post("/billing/webhook", content=payload, headers=headers)
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid Stripe webhook event"
+    assert mock_db["stripe_webhook_events"].count_documents({}) == 0
