@@ -94,7 +94,7 @@ def test_targeted_policy_selection_covers_abuse_sensitive_routes(monkeypatch):
     assert rate_limit.policy_for_request(_request("/entries", method="GET")) is None
 
 
-def test_login_429_is_generic_and_happens_before_account_lookup(monkeypatch):
+def test_login_429_is_generic_pre_lookup_and_browser_readable(monkeypatch):
     db = _use_mock_rate_limits(monkeypatch)
     monkeypatch.setitem(
         rate_limit.POLICIES,
@@ -106,13 +106,16 @@ def test_login_429_is_generic_and_happens_before_account_lookup(monkeypatch):
     monkeypatch.setattr(main_module, "record_persistent_request", lambda **kwargs: None)
 
     client = TestClient(app)
+    browser_headers = {"Origin": "http://localhost:5173"}
     first = client.post(
         "/auth/login",
         data={"username": "missing@example.com", "password": "wrong-password"},
+        headers=browser_headers,
     )
     second = client.post(
         "/auth/login",
         data={"username": "another@example.com", "password": "wrong-password"},
+        headers=browser_headers,
     )
 
     assert first.status_code == 401
@@ -120,5 +123,6 @@ def test_login_429_is_generic_and_happens_before_account_lookup(monkeypatch):
     assert second.json() == {"detail": "Too many requests. Try again later."}
     assert int(second.headers["Retry-After"]) >= 1
     assert second.headers["RateLimit-Limit"] == "1"
+    assert second.headers["access-control-allow-origin"] == "http://localhost:5173"
     assert "missing@example.com" not in second.text
     assert "another@example.com" not in second.text
