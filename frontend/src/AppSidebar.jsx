@@ -1,23 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  BarChart3,
-  FileCheck2,
-  FileText,
-  GraduationCap,
-  Home,
-  ListChecks,
-  LogOut,
-  Menu,
-  ReceiptText,
-  Settings,
-  ShieldCheck,
-  Sparkles,
-  Target,
-  TrendingUp,
-  UserRound,
-  Video,
-  X,
-} from "lucide-react";
+import { BarChart3, FileCheck2, FileText, GraduationCap, Home, ListChecks, LogOut, Menu, ReceiptText, Settings, ShieldCheck, Sparkles, Target, TrendingUp, UserRound, Users, Video, X } from "lucide-react";
 import { getCurrentUser } from "./api";
 import "./AppShell.css";
 
@@ -26,7 +8,6 @@ const WORKSPACE_ITEMS = [
   { href: "/app/accomplishments", label: "Accomplishments", icon: ListChecks },
   { href: "/app/impact-receipts", label: "Impact Receipts", icon: ReceiptText },
 ];
-
 const PRO_TOOLS = [
   { href: "/app/resume-builder", label: "Resume Builder", icon: FileText },
   { href: "/app/interview-practice", label: "Practice interview", icon: Video },
@@ -38,37 +19,11 @@ const PRO_TOOLS = [
 ];
 
 function AppSidebar() {
-  const [user, setUser] = useState(null);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const path = window.location.pathname;
-  const search = window.location.search;
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const data = await getCurrentUser();
-        if (mounted) setUser(data);
-      } catch (error) {
-        if (error.response?.status === 401) {
-          localStorage.removeItem("bragstack_token");
-          window.location.assign("/login");
-        }
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
-
-  function logout() {
-    localStorage.removeItem("bragstack_token");
-    window.location.assign("/login");
-  }
-
-  function proToolIsActive(href) {
-    const target = new URL(href, window.location.origin);
-    return path === target.pathname && search === target.search;
-  }
-
+  const [user, setUser] = useState(null); const [mobileOpen, setMobileOpen] = useState(false);
+  const path = window.location.pathname; const search = window.location.search;
+  useEffect(() => { let mounted = true; (async () => { try { const data = await getCurrentUser(); if (mounted) setUser(data); } catch (error) { if (error.response?.status === 401) { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); } } })(); return () => { mounted = false; }; }, []);
+  function logout() { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); }
+  function proToolIsActive(href) { const target = new URL(href, window.location.origin); return path === target.pathname && search === target.search; }
   const isPro = Boolean(user?.entitlements?.advanced_reports);
   const isCompanyUser = user?.email?.trim().toLowerCase().endsWith("@usebragstack.com") === true;
 
@@ -84,7 +39,7 @@ function AppSidebar() {
         {isPro && <><p className="sidebar-section-label">Pro career tools</p>{PRO_TOOLS.map(({ href, label, icon: Icon }) => <a className={proToolIsActive(href) ? "active" : ""} href={href} key={`${href}-${label}`}><Icon size={18} /><span>{label}</span></a>)}</>}
         <p className="sidebar-section-label">Account & tools</p>
         <a className={path.startsWith("/app/settings") || path === "/app/profile" ? "active" : ""} href="/app/settings"><Settings size={18} /><span>Settings</span></a>
-        {isCompanyUser && <a className={path === "/ops" ? "active" : ""} href="/ops"><ShieldCheck size={18} /><span>Debug</span></a>}
+        {isCompanyUser && <><p className="sidebar-section-label">Internal</p><a className={path === "/ops" ? "active" : ""} href="/ops"><ShieldCheck size={18} /><span>Ops Console</span></a><a className={path === "/ops/users" ? "active" : ""} href="/ops/users"><Users size={18} /><span>User Accounts</span></a></>}
         <a href="/docs"><FileText size={18} /><span>Docs & guides</span></a>
         {user?.public_slug && <a href={`/brag/${user.public_slug}`} target="_blank" rel="noreferrer"><UserRound size={18} /><span>Public Proof Profile</span></a>}
         {user && !isPro && <a className="sidebar-upgrade" href="/upgrade"><Sparkles size={18} /><span>Upgrade to Pro</span></a>}
@@ -94,5 +49,4 @@ function AppSidebar() {
     {mobileOpen && <button className="sidebar-scrim" type="button" onClick={() => setMobileOpen(false)} aria-label="Close navigation" />}
   </>;
 }
-
 export default AppSidebar;
