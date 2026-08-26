@@ -10,6 +10,7 @@ import {
   Menu,
   ReceiptText,
   Settings,
+  ShieldCheck,
   Sparkles,
   Target,
   TrendingUp,
@@ -69,6 +70,7 @@ function AppSidebar() {
   }
 
   const isPro = Boolean(user?.entitlements?.advanced_reports);
+  const isCompanyUser = user?.email?.trim().toLowerCase().endsWith("@usebragstack.com") === true;
 
   return <>
     <header className="mobile-app-bar"><a className="mobile-brand" href="/app"><img src="/brandmark.svg" alt="" /><strong>BragStack</strong></a><button type="button" onClick={() => setMobileOpen((open) => !open)} aria-label="Toggle navigation">{mobileOpen ? <X size={21} /> : <Menu size={21} />}</button></header>
@@ -82,6 +84,7 @@ function AppSidebar() {
         {isPro && <><p className="sidebar-section-label">Pro career tools</p>{PRO_TOOLS.map(({ href, label, icon: Icon }) => <a className={proToolIsActive(href) ? "active" : ""} href={href} key={`${href}-${label}`}><Icon size={18} /><span>{label}</span></a>)}</>}
         <p className="sidebar-section-label">Account & tools</p>
         <a className={path.startsWith("/app/settings") || path === "/app/profile" ? "active" : ""} href="/app/settings"><Settings size={18} /><span>Settings</span></a>
+        {isCompanyUser && <a className={path === "/ops" ? "active" : ""} href="/ops"><ShieldCheck size={18} /><span>Debug</span></a>}
         <a href="/docs"><FileText size={18} /><span>Docs & guides</span></a>
         {user?.public_slug && <a href={`/brag/${user.public_slug}`} target="_blank" rel="noreferrer"><UserRound size={18} /><span>Public Proof Profile</span></a>}
         {user && !isPro && <a className="sidebar-upgrade" href="/upgrade"><Sparkles size={18} /><span>Upgrade to Pro</span></a>}

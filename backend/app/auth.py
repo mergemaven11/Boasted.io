@@ -77,6 +77,11 @@ def serialize_user(user: dict) -> dict:
         "profile_background_color": user.get("profile_background_color", ""),
         "plan": get_plan_for_user(user),
         "entitlements": get_entitlements_for_user(user),
+        "internal_roles": [
+            str(role).strip().lower()
+            for role in user.get("internal_roles", [])
+            if str(role).strip().lower() in {"support", "ops", "security", "admin"}
+        ],
         "created_at": user.get("created_at"),
     }
 
