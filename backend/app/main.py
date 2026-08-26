@@ -39,7 +39,7 @@ from app.promotion_packet_routes import router as promotion_packet_router
 from app.public_slug_routes import router as public_slug_router
 from app.reports_routes import router as reports_router
 from app.resume_builder_routes import router as resume_builder_router
-from app.routes import public_router, router as entries_router
+from app.routes import router as entries_router
 
 app = FastAPI(title="BragStack API", description="Evidence-backed career proof for accomplishments, impact, and reports.", version="1.0.0")
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
@@ -105,7 +105,6 @@ app.include_router(oauth_router)
 app.include_router(profile_media_router)
 app.include_router(billing_router)
 app.include_router(entries_router, dependencies=[Depends(enforce_entry_usage)])
-app.include_router(public_router)
 app.include_router(public_slug_router)
 app.include_router(impact_receipts_router, dependencies=[Depends(enforce_receipt_usage)])
 app.include_router(receipt_verification_router)
