@@ -39,8 +39,9 @@ def ensure_core_indexes(db) -> dict[str, list[str]]:
             unique=True,
         ),
         verification_requests.create_index(
-            [("receipt_id", ASCENDING), ("email", ASCENDING), ("expires_at", ASCENDING)],
-            name="receipt_verification_pending_email",
+            [("receipt_id", ASCENDING), ("email", ASCENDING)],
+            name="uniq_receipt_verification_pending_email",
+            unique=True,
         ),
         verification_requests.create_index(
             [("expires_at", ASCENDING)],
