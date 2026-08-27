@@ -107,9 +107,46 @@ async function waitForProcessExit(child, timeoutMs = 3000) {
   await Promise.race([new Promise((resolve) => child.once("exit", resolve)), new Promise((resolve) => setTimeout(resolve, timeoutMs))]);
 }
 
+async function findActivePageTarget(previousWsUrl = null) {
+  return waitFor(async () => {
+    const response = await fetch(`http://${HOST}:${DEBUG_PORT}/json/list`);
+    if (!response.ok) return null;
+    const targets = await response.json();
+    const pages = targets.filter((item) => item.type === "page" && item.webSocketDebuggerUrl);
+    const appPages = pages.filter((item) => item.url === "about:blank" || item.url?.startsWith(BASE_URL));
+    return appPages.find((item) => previousWsUrl && item.webSocketDebuggerUrl !== previousWsUrl)
+      || appPages[0]
+      || pages.find((item) => previousWsUrl && item.webSocketDebuggerUrl !== previousWsUrl)
+      || pages[0]
+      || null;
+  }, 5000);
+}
+
+const CLICK_AUDIT_BOOTSTRAP = `
+  if (!window.__bragstackClickAuditInstalled) {
+    window.__bragstackClickAuditInstalled = true;
+    window.__clickAuditErrors = window.__clickAuditErrors || [];
+    window.addEventListener("error", (event) => window.__clickAuditErrors.push(String(event.error?.message || event.message)));
+    window.addEventListener("unhandledrejection", (event) => window.__clickAuditErrors.push(String(event.reason?.message || event.reason)));
+    try { Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => undefined, readText: async () => "" } }); } catch {}
+    try { Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: async () => ({ getTracks: () => [{ stop() {} }] }) } }); } catch {}
+    class MockSpeechRecognition { constructor(){ this.continuous=false; this.interimResults=false; this.lang="en-US"; } start(){ setTimeout(() => this.onstart?.(), 0); } stop(){ this.onend?.(); } abort(){ this.onend?.(); } }
+    window.SpeechRecognition = MockSpeechRecognition; window.webkitSpeechRecognition = MockSpeechRecognition;
+  }
+`;
+
 class CDP {
-  constructor(wsUrl) { this.ws = new WebSocket(wsUrl); this.nextId = 1; this.pending = new Map(); this.listeners = new Map(); }
-  async open() {
+  constructor(wsUrl) {
+    this.wsUrl = wsUrl;
+    this.ws = null;
+    this.nextId = 1;
+    this.pending = new Map();
+    this.listeners = new Map();
+    this.dialogHandlerInstalled = false;
+  }
+  async open(wsUrl = this.wsUrl) {
+    this.wsUrl = wsUrl;
+    this.ws = new WebSocket(wsUrl);
     await new Promise((resolve, reject) => { this.ws.addEventListener("open", resolve, { once: true }); this.ws.addEventListener("error", reject, { once: true }); });
     this.ws.addEventListener("message", (event) => {
       const message = JSON.parse(event.data);
@@ -120,12 +157,37 @@ class CDP {
       for (const handler of this.listeners.get(message.method) || []) handler(message.params || {});
     });
   }
+  async reconnect() {
+    const previousWsUrl = this.wsUrl;
+    for (const { reject } of this.pending.values()) reject(new Error("CDP session replaced during navigation"));
+    this.pending.clear();
+    try { this.ws?.close(); } catch { /* ignore */ }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const target = await findActivePageTarget(previousWsUrl);
+    await this.open(target.webSocketDebuggerUrl);
+    await configureCdp(this);
+  }
   on(method, handler) { this.listeners.set(method, [...(this.listeners.get(method) || []), handler]); }
   send(method, params = {}) {
     const id = this.nextId++;
     return new Promise((resolve, reject) => { this.pending.set(id, { resolve, reject }); this.ws.send(JSON.stringify({ id, method, params })); });
   }
-  close() { this.ws.close(); }
+  close() { this.ws?.close(); }
+}
+
+async function configureCdp(cdp) {
+  await Promise.all([cdp.send("Page.enable"), cdp.send("Runtime.enable")]);
+  if (!cdp.dialogHandlerInstalled) {
+    cdp.on("Page.javascriptDialogOpening", () => { void cdp.send("Page.handleJavaScriptDialog", { accept: true }); });
+    cdp.dialogHandlerInstalled = true;
+  }
+  await cdp.send("Page.addScriptToEvaluateOnNewDocument", { source: CLICK_AUDIT_BOOTSTRAP });
+  try {
+    const result = await cdp.send("Runtime.evaluate", { expression: CLICK_AUDIT_BOOTSTRAP, awaitPromise: true, returnByValue: true });
+    if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || "Audit bootstrap failed");
+  } catch (error) {
+    if (!isTransientNavigationError(error)) throw error;
+  }
 }
 
 function isTransientNavigationError(error) {
@@ -149,7 +211,12 @@ async function evaluate(cdp, expression, timeoutMs = 5000) {
     } catch (error) {
       if (!isTransientNavigationError(error)) throw error;
       lastError = error;
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      try {
+        await cdp.reconnect();
+      } catch (reconnectError) {
+        lastError = reconnectError;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
     }
   }
   throw lastError || new Error(`Timed out waiting for an active page after ${timeoutMs}ms`);
@@ -226,7 +293,12 @@ async function clickControl(cdp, control) {
   assert.ok(point, `No visible semantic equivalent before activation: ${control.identity}`);
   await cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: point.x, y: point.y });
   await cdp.send("Input.dispatchMouseEvent", { type: "mousePressed", x: point.x, y: point.y, button: "left", clickCount: 1 });
-  await cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: point.x, y: point.y, button: "left", clickCount: 1 });
+  try {
+    await cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: point.x, y: point.y, button: "left", clickCount: 1 });
+  } catch (error) {
+    if (!isTransientNavigationError(error)) throw error;
+    await cdp.reconnect();
+  }
   await new Promise((resolve) => setTimeout(resolve, 100));
   await waitForPageReady(cdp);
 }
@@ -287,29 +359,14 @@ let browser; let cdp; const failures = []; let totalClicks = 0;
 try {
   await server.listen();
   browser = spawn(chrome, ["--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage", `--remote-debugging-port=${DEBUG_PORT}`, `--user-data-dir=${userDataDir}`, "about:blank"], { stdio: ["ignore", "ignore", "pipe"] });
-  const target = await waitFor(async () => {
-    const response = await fetch(`http://${HOST}:${DEBUG_PORT}/json/list`); const targets = await response.json();
-    return targets.find((item) => item.type === "page" && item.webSocketDebuggerUrl);
-  });
+  const target = await findActivePageTarget();
   cdp = new CDP(target.webSocketDebuggerUrl); await cdp.open();
-  await Promise.all([cdp.send("Page.enable"), cdp.send("Runtime.enable")]);
-  cdp.on("Page.javascriptDialogOpening", () => { void cdp.send("Page.handleJavaScriptDialog", { accept: true }); });
-  await cdp.send("Page.addScriptToEvaluateOnNewDocument", { source: `
-    window.__clickAuditErrors = [];
-    window.addEventListener("error", (event) => window.__clickAuditErrors.push(String(event.error?.message || event.message)));
-    window.addEventListener("unhandledrejection", (event) => window.__clickAuditErrors.push(String(event.reason?.message || event.reason)));
-    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => undefined, readText: async () => "" } });
-    Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: async () => ({ getTracks: () => [{ stop() {} }] }) } });
-    class MockSpeechRecognition { constructor(){ this.continuous=false; this.interimResults=false; this.lang="en-US"; } start(){ setTimeout(() => this.onstart?.(), 0); } stop(){ this.onend?.(); } abort(){ this.onend?.(); } }
-    window.SpeechRecognition = MockSpeechRecognition; window.webkitSpeechRecognition = MockSpeechRecognition;
-  ` });
+  await configureCdp(cdp);
   for (const route of PUBLIC_ROUTES) totalClicks += await auditRoute(cdp, route, false, failures);
   for (const route of AUTH_ROUTES) totalClicks += await auditRoute(cdp, route, true, failures);
   if (failures.length) {
-    console.error("\
-FULL CLICK AUDIT FAILURES"); failures.forEach((failure) => console.error(`- ${failure}`)); process.exitCode = 1;
-  } else console.log(`\
-Full click audit passed: ${totalClicks} visible controls exercised across ${PUBLIC_ROUTES.length + AUTH_ROUTES.length} routes.`);
+    console.error("\nFULL CLICK AUDIT FAILURES"); failures.forEach((failure) => console.error(`- ${failure}`)); process.exitCode = 1;
+  } else console.log(`\nFull click audit passed: ${totalClicks} visible controls exercised across ${PUBLIC_ROUTES.length + AUTH_ROUTES.length} routes.`);
 } finally {
   cdp?.close();
   if (browser && browser.exitCode === null && browser.signalCode === null) browser.kill("SIGKILL");
