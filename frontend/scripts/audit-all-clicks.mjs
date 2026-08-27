@@ -128,10 +128,35 @@ class CDP {
   close() { this.ws.close(); }
 }
 
-async function evaluate(cdp, expression) {
-  const result = await cdp.send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true, userGesture: true });
-  if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || "Runtime evaluation failed");
-  return result.result?.value;
+function isTransientNavigationError(error) {
+  const message = String(error?.message || error || "");
+  return [
+    "Not attached to an active page",
+    "Execution context was destroyed",
+    "Cannot find context with specified id",
+    "Inspected target navigated or closed",
+  ].some((fragment) => message.includes(fragment));
+}
+
+async function evaluate(cdp, expression, timeoutMs = 5000) {
+  const started = Date.now();
+  let lastError;
+  while (Date.now() - started < timeoutMs) {
+    try {
+      const result = await cdp.send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true, userGesture: true });
+      if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || "Runtime evaluation failed");
+      return result.result?.value;
+    } catch (error) {
+      if (!isTransientNavigationError(error)) throw error;
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+  throw lastError || new Error(`Timed out waiting for an active page after ${timeoutMs}ms`);
+}
+
+async function waitForPageReady(cdp, timeoutMs = 5000) {
+  await waitFor(async () => evaluate(cdp, 'document.readyState !== "loading"', 750), timeoutMs);
 }
 
 async function navigate(cdp, route, authenticated) {
@@ -202,7 +227,8 @@ async function clickControl(cdp, control) {
   await cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: point.x, y: point.y });
   await cdp.send("Input.dispatchMouseEvent", { type: "mousePressed", x: point.x, y: point.y, button: "left", clickCount: 1 });
   await cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: point.x, y: point.y, button: "left", clickCount: 1 });
-  await new Promise((resolve) => setTimeout(resolve, 250));
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  await waitForPageReady(cdp);
 }
 
 async function exerciseControl(cdp, route, authenticated, control, initialSemanticIdentities) {
@@ -280,8 +306,10 @@ try {
   for (const route of PUBLIC_ROUTES) totalClicks += await auditRoute(cdp, route, false, failures);
   for (const route of AUTH_ROUTES) totalClicks += await auditRoute(cdp, route, true, failures);
   if (failures.length) {
-    console.error("\nFULL CLICK AUDIT FAILURES"); failures.forEach((failure) => console.error(`- ${failure}`)); process.exitCode = 1;
-  } else console.log(`\nFull click audit passed: ${totalClicks} visible controls exercised across ${PUBLIC_ROUTES.length + AUTH_ROUTES.length} routes.`);
+    console.error("\
+FULL CLICK AUDIT FAILURES"); failures.forEach((failure) => console.error(`- ${failure}`)); process.exitCode = 1;
+  } else console.log(`\
+Full click audit passed: ${totalClicks} visible controls exercised across ${PUBLIC_ROUTES.length + AUTH_ROUTES.length} routes.`);
 } finally {
   cdp?.close();
   if (browser && browser.exitCode === null && browser.signalCode === null) browser.kill("SIGKILL");
