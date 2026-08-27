@@ -44,6 +44,14 @@ DATE_RANGE_RE = re.compile(
 )
 SIMPLE_DATE_RANGE_RE = re.compile(r"\b(?:19|20)\d{2}\s*[-–—]\s*(?:(?:19|20)\d{2}|present|current)\b", re.I)
 SEPARATOR_RE = re.compile(r"\s*(?:[|·•]|\s+[–—]\s+|\s+-\s+)\s*")
+SKILL_LABELS = {
+    "languages", "frameworks", "libraries", "tools", "platforms", "databases", "cloud", "operating systems"
+}
+PROJECT_SIGNAL_RE = re.compile(
+    r"\b(?:app|application|website|web site|site|api|service|dashboard|bot|cli|pipeline|system|portfolio|"
+    r"repository|repo|project|tracker|tooling|extension|plugin|integration|automation)\b",
+    re.I,
+)
 
 
 def _clean(value: str) -> str:
@@ -401,6 +409,30 @@ def _structured_experience_lines(entries: list[dict]) -> list[str]:
     return out
 
 
+def _projects_are_skill_only(lines: list[str]) -> bool:
+    """Return True only when a projects section is clearly mislabeled skills."""
+    cleaned = [_clean(line) for line in lines if _clean(line)]
+    if not cleaned:
+        return False
+
+    label_count = 0
+    value_count = 0
+    for line in cleaned:
+        normalized = line.strip(" :|").lower()
+        if normalized in SKILL_LABELS:
+            label_count += 1
+            continue
+        if BULLET_RE.match(line) or _date_match(line):
+            return False
+        if PROJECT_SIGNAL_RE.search(line):
+            return False
+        if re.search(r"[.!?]$", line) or len(line.split()) > 12:
+            return False
+        value_count += 1
+
+    return label_count > 0 and value_count > 0
+
+
 def parse_existing_resume_text(raw_text: str) -> dict:
     lines = _repair(raw_text)
     sections = {key: [] for key in SECTION_KEYS}
@@ -416,6 +448,10 @@ def parse_existing_resume_text(raw_text: str) -> dict:
         else:
             sections[current].append(line)
 
+    if _projects_are_skill_only(sections["projects"]):
+        sections["skills"].extend(sections["projects"])
+        sections["projects"] = []
+
     skill_lines = sections["skills"]
     compact_skills: list[str] = []
     pending_label = ""
@@ -425,7 +461,7 @@ def parse_existing_resume_text(raw_text: str) -> dict:
         if (
             _looks_short_label(line)
             and not any(ch in line for ch in ",;|")
-            and line.lower() in {"languages", "frameworks", "libraries", "tools", "platforms", "databases", "cloud", "operating systems"}
+            and line.lower() in SKILL_LABELS
         ):
             pending_label = line
             continue
