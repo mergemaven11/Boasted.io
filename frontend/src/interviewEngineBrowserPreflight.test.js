@@ -32,15 +32,15 @@ test("primes speech and microphone, then releases the temporary stream", async (
   assert.equal(stopped, 1);
 });
 
-test("starts the microphone preflight from the interview start click", async () => {
+test("starts the microphone preflight from the validated interview submit", async () => {
   __resetInterviewBrowserPreflightForTests();
-  let clickHandler = null;
+  let submitHandler = null;
   let requested = 0;
   const documentObject = {
     addEventListener: (name, handler, capture) => {
-      assert.equal(name, "click");
+      assert.equal(name, "submit");
       assert.equal(capture, true);
-      clickHandler = handler;
+      submitHandler = handler;
     },
     removeEventListener: () => {},
   };
@@ -59,8 +59,8 @@ test("starts the microphone preflight from the interview start click", async () 
     speechRecognitionAvailable: true,
   });
 
-  assert.equal(typeof clickHandler, "function");
-  clickHandler({ target: { closest: () => ({}) } });
+  assert.equal(typeof submitHandler, "function");
+  submitHandler({ target: { matches: () => true } });
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(requested, 1);
   cleanup();
@@ -89,14 +89,14 @@ test("does not ask for microphone access when speech recognition is unavailable"
   assert.equal(requested, 0);
 });
 
-test("ignores unrelated clicks", async () => {
+test("ignores unrelated form submits", async () => {
   __resetInterviewBrowserPreflightForTests();
-  let clickHandler = null;
+  let submitHandler = null;
   let requested = 0;
 
   installInterviewBrowserPreflight({
     documentObject: {
-      addEventListener: (_name, handler) => { clickHandler = handler; },
+      addEventListener: (_name, handler) => { submitHandler = handler; },
       removeEventListener: () => {},
     },
     navigatorObject: {
@@ -110,7 +110,7 @@ test("ignores unrelated clicks", async () => {
     speechRecognitionAvailable: true,
   });
 
-  clickHandler({ target: { closest: () => null } });
+  submitHandler({ target: { matches: () => false, closest: () => null } });
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(requested, 0);
 });
