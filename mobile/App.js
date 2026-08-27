@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import Brandmark from './src/Brandmark';
@@ -26,6 +26,8 @@ function Brand({ small = false }) {
 }
 
 function Login({ onSuccess }) {
+  const { width, height } = useWindowDimensions();
+  const compact = height < 760 || width < 390;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -45,7 +47,7 @@ function Login({ onSuccess }) {
     if (Platform.OS === 'web' && typeof window !== 'undefined') window.location.assign(url);
     else await Linking.openURL(url);
   };
-  return <SafeAreaView style={styles.safe}><StatusBar style="light" /><View pointerEvents="none" style={styles.orbBlue}/><View pointerEvents="none" style={styles.orbPurple}/><ScrollView contentContainerStyle={styles.loginPage} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}><View style={styles.brandHeader}><Brand /><View style={styles.signalPill}><Text style={styles.signalDot}>●</Text><Text style={styles.signalText}>PRIVATE CAREER PROOF</Text></View></View><View style={[styles.card, styles.loginCard]}><Text style={styles.kicker}>WELCOME BACK</Text><Text style={styles.loginTitle}>Your proof is ready when you are.</Text><Text style={styles.muted}>Open your private workspace and keep building evidence that travels with your career.</Text><Text style={styles.label}>EMAIL</Text><TextInput value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" placeholderTextColor={colors.mutedStrong} style={styles.input} /><Text style={styles.label}>PASSWORD</Text><TextInput value={password} onChangeText={setPassword} secureTextEntry placeholder="Your password" placeholderTextColor={colors.mutedStrong} style={styles.input} onSubmitEditing={submit} />{error ? <Text style={styles.error}>{error}</Text> : null}<Pressable onPress={submit} disabled={busy || !email.trim() || !password} style={[styles.button, (busy || !email.trim() || !password) && styles.disabled]}>{busy ? <ActivityIndicator color={colors.background} /> : <Text style={styles.buttonText}>Sign in to BragStack</Text>}</Pressable><View style={styles.divider}><View style={styles.dividerLine}/><Text style={styles.dividerText}>OR CONTINUE WITH</Text><View style={styles.dividerLine}/></View><View style={styles.socialStack}><Pressable accessibilityRole="button" accessibilityLabel="Continue with Google" onPress={() => startOAuth('google')} style={[styles.socialButton, styles.googleButton]}><GoogleMark/><Text style={styles.googleText}>Continue with Google</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="Continue with GitHub" onPress={() => startOAuth('github')} style={[styles.socialButton, styles.githubButton]}><GitHubMark/><Text style={styles.githubText}>Continue with GitHub</Text></Pressable></View><View style={styles.securityRow}><Text style={styles.securityIcon}>⌁</Text><Text style={styles.note}>Your session stays on this device.</Text></View></View></ScrollView></SafeAreaView>;
+  return <SafeAreaView style={styles.safe}><StatusBar style="light" /><View pointerEvents="none" style={styles.orbBlue}/><View pointerEvents="none" style={styles.orbPurple}/><ScrollView style={styles.loginScroll} contentContainerStyle={[styles.loginPage, compact && styles.loginPageCompact]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentInsetAdjustmentBehavior="automatic"><View style={[styles.loginShell, compact && styles.loginShellCompact]}><View style={styles.brandHeader}><Brand /><View style={styles.signalPill}><Text style={styles.signalDot}>●</Text><Text style={styles.signalText}>PRIVATE CAREER PROOF</Text></View></View><View style={[styles.card, styles.loginCard, compact && styles.loginCardCompact]}><Text style={styles.kicker}>WELCOME BACK</Text><Text style={[styles.loginTitle, compact && styles.loginTitleCompact]}>Your proof is ready when you are.</Text><Text style={styles.muted}>Open your private workspace and keep building evidence that travels with your career.</Text><Text style={styles.label}>EMAIL</Text><TextInput value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" placeholderTextColor={colors.mutedStrong} style={[styles.input, compact && styles.inputCompact]} /><Text style={styles.label}>PASSWORD</Text><TextInput value={password} onChangeText={setPassword} secureTextEntry placeholder="Your password" placeholderTextColor={colors.mutedStrong} style={[styles.input, compact && styles.inputCompact]} onSubmitEditing={submit} />{error ? <Text style={styles.error}>{error}</Text> : null}<Pressable onPress={submit} disabled={busy || !email.trim() || !password} style={[styles.button, compact && styles.controlCompact, (busy || !email.trim() || !password) && styles.disabled]}>{busy ? <ActivityIndicator color={colors.background} /> : <Text style={styles.buttonText}>Sign in to BragStack</Text>}</Pressable><View style={styles.divider}><View style={styles.dividerLine}/><Text style={styles.dividerText}>OR CONTINUE WITH</Text><View style={styles.dividerLine}/></View><View style={styles.socialStack}><Pressable accessibilityRole="button" accessibilityLabel="Continue with Google" onPress={() => startOAuth('google')} style={[styles.socialButton, styles.googleButton, compact && styles.controlCompact]}><GoogleMark/><Text style={styles.googleText}>Continue with Google</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="Continue with GitHub" onPress={() => startOAuth('github')} style={[styles.socialButton, styles.githubButton, compact && styles.controlCompact]}><GitHubMark/><Text style={styles.githubText}>Continue with GitHub</Text></Pressable></View><View style={styles.securityRow}><Text style={styles.securityIcon}>⌁</Text><Text style={styles.note}>Your session stays on this device.</Text></View></View></View></ScrollView></SafeAreaView>;
 }
 
 function Page({ kicker, title, children }) {
@@ -88,7 +90,11 @@ export default function App() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   boot: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', gap: 20 },
-  loginPage: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 30, gap: 24 },
+  loginScroll: { flex: 1 },
+  loginPage: { flexGrow: 1, alignItems: 'center', paddingHorizontal: 20, paddingTop: 44, paddingBottom: 48 },
+  loginPageCompact: { paddingHorizontal: 14, paddingTop: 18, paddingBottom: 32 },
+  loginShell: { width: '100%', maxWidth: 480, gap: 24 },
+  loginShellCompact: { gap: 16 },
   brandHeader: { gap: 14, zIndex: 2 },
   signalPill: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: 'rgba(105,228,246,0.08)', borderWidth: 1, borderColor: 'rgba(105,228,246,0.20)' },
   signalDot: { color: colors.cyan, fontSize: 9 },
@@ -102,13 +108,17 @@ const styles = StyleSheet.create({
   kicker: { color: colors.primary, fontSize: 11, fontWeight: '900', letterSpacing: 2 },
   title: { color: colors.text, fontSize: 36, lineHeight: 40, fontWeight: '900' },
   loginTitle: { color: colors.text, fontSize: 32, lineHeight: 37, fontWeight: '900', letterSpacing: -0.8 },
+  loginTitleCompact: { fontSize: 28, lineHeight: 32 },
   muted: { color: colors.muted, fontSize: 14, lineHeight: 21 },
   card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: 20, gap: 12 },
   loginCard: { backgroundColor: 'rgba(13,21,38,0.94)', borderColor: 'rgba(173,145,255,0.26)', padding: 22, gap: 13, shadowColor: '#000000', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.28, shadowRadius: 30, elevation: 12 },
+  loginCardCompact: { padding: 17, gap: 10, borderRadius: 22 },
   label: { color: colors.muted, fontSize: 10, fontWeight: '900', letterSpacing: 1.5, marginTop: 5 },
   input: { minHeight: 54, backgroundColor: 'rgba(19,30,51,0.92)', borderWidth: 1, borderColor: 'rgba(166,220,255,0.14)', borderRadius: 16, color: colors.text, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15 },
+  inputCompact: { minHeight: 48, paddingVertical: 11 },
   tall: { minHeight: 85, textAlignVertical: 'top' },
   button: { minHeight: 54, borderRadius: radius.pill, backgroundColor: colors.primary, borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)', alignItems: 'center', justifyContent: 'center', shadowColor: colors.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.18, shadowRadius: 16, elevation: 5 },
+  controlCompact: { minHeight: 48 },
   disabled: { opacity: 0.4 },
   buttonText: { color: colors.background, fontWeight: '900', letterSpacing: 0.1 },
   note: { color: colors.mutedStrong, fontSize: 11, textAlign: 'center' },
