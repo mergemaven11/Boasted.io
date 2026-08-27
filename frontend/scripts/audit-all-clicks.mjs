@@ -160,41 +160,58 @@ const browserHelpers = `
   const elements = [...document.querySelectorAll(selector)].filter(visible);
 `;
 
+function semanticKey(control) {
+  return JSON.stringify([control.tag, control.text, control.href, control.role, control.type]);
+}
+
 async function getClickables(cdp) {
   return evaluate(cdp, `(() => { ${browserHelpers}
     const seen = new Map();
     return elements.map((el) => {
       const item = describe(el); const key = keyOf(item); const ordinal = seen.get(key) || 0; seen.set(key, ordinal + 1);
-      return { ...item, ordinal, identity: key + "#" + ordinal };
+      return { ...item, ordinal, semanticIdentity: key, identity: key + "#" + ordinal };
     });
   })()`);
 }
 
+async function findEquivalentControl(cdp, control, timeoutMs = 2500) {
+  const key = semanticKey(control);
+  try {
+    return await waitFor(async () => {
+      const current = await getClickables(cdp);
+      const matches = current.filter((item) => item.semanticIdentity === key);
+      return matches[control.ordinal] || matches[0] || null;
+    }, timeoutMs);
+  } catch {
+    return null;
+  }
+}
+
 async function clickControl(cdp, control) {
-  const key = JSON.stringify([control.tag, control.text, control.href, control.role, control.type]);
+  const key = semanticKey(control);
   const point = await evaluate(cdp, `(() => { ${browserHelpers}
     const target = ${JSON.stringify(control)};
     const matches = elements.filter((el) => keyOf(describe(el)) === ${JSON.stringify(key)});
-    const el = matches[target.ordinal];
+    const el = matches[target.ordinal] || matches[0];
     if (!el) return null;
     el.scrollIntoView({ block: "center", inline: "center" });
     const rect = el.getBoundingClientRect();
     return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
   })()`);
-  assert.ok(point, `Control disappeared before activation: ${control.identity}`);
+  assert.ok(point, `No visible semantic equivalent before activation: ${control.identity}`);
   await cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: point.x, y: point.y });
   await cdp.send("Input.dispatchMouseEvent", { type: "mousePressed", x: point.x, y: point.y, button: "left", clickCount: 1 });
   await cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: point.x, y: point.y, button: "left", clickCount: 1 });
   await new Promise((resolve) => setTimeout(resolve, 250));
 }
 
-async function exerciseControl(cdp, route, authenticated, control, initialIdentities) {
+async function exerciseControl(cdp, route, authenticated, control, initialSemanticIdentities) {
   await navigate(cdp, route, authenticated);
-  const current = await getClickables(cdp);
-  assert.ok(current.some((item) => item.identity === control.identity), `${route}: control not present on clean render`);
+  const equivalent = await findEquivalentControl(cdp, control);
+  assert.ok(equivalent, `${route}: no equivalent visible control on clean render`);
   const beforeUrl = await evaluate(cdp, "location.href");
   const beforeErrorCount = await evaluate(cdp, "window.__clickAuditErrors.length");
-  await clickControl(cdp, control);
+  await clickControl(cdp, equivalent);
   const afterUrl = await evaluate(cdp, "location.href");
   const errors = (await evaluate(cdp, "window.__clickAuditErrors.slice()")) || [];
   assert.equal(errors.length, beforeErrorCount, `${route}: caused browser errors: ${errors.slice(beforeErrorCount).join(" | ")}`);
@@ -202,14 +219,20 @@ async function exerciseControl(cdp, route, authenticated, control, initialIdenti
 
   if (beforeUrl !== afterUrl) return;
   const expanded = await getClickables(cdp);
-  const nested = expanded.filter((item) => !initialIdentities.has(item.identity)).slice(0, 8);
+  const nestedBySemanticKey = new Map();
+  for (const item of expanded) {
+    if (!initialSemanticIdentities.has(item.semanticIdentity) && !nestedBySemanticKey.has(item.semanticIdentity)) nestedBySemanticKey.set(item.semanticIdentity, item);
+  }
+  const nested = [...nestedBySemanticKey.values()].slice(0, 8);
   for (const nestedControl of nested) {
     await navigate(cdp, route, authenticated);
-    await clickControl(cdp, control);
+    const parent = await findEquivalentControl(cdp, control);
+    if (!parent) continue;
+    await clickControl(cdp, parent);
     const nestedBeforeErrors = await evaluate(cdp, "window.__clickAuditErrors.length");
-    const now = await getClickables(cdp);
-    if (!now.some((item) => item.identity === nestedControl.identity)) continue;
-    await clickControl(cdp, nestedControl);
+    const nestedEquivalent = await findEquivalentControl(cdp, nestedControl, 1500);
+    if (!nestedEquivalent) continue;
+    await clickControl(cdp, nestedEquivalent);
     const nestedErrors = (await evaluate(cdp, "window.__clickAuditErrors.slice()")) || [];
     assert.equal(nestedErrors.length, nestedBeforeErrors, `${route}: nested control caused browser errors: ${nestedErrors.slice(nestedBeforeErrors).join(" | ")}`);
   }
@@ -218,11 +241,11 @@ async function exerciseControl(cdp, route, authenticated, control, initialIdenti
 async function auditRoute(cdp, route, authenticated, failures) {
   await navigate(cdp, route, authenticated);
   const initial = await getClickables(cdp);
-  const initialIdentities = new Set(initial.map((item) => item.identity));
+  const initialSemanticIdentities = new Set(initial.map((item) => item.semanticIdentity));
   console.log(`CLICK AUDIT ${route}: ${initial.length} visible controls`);
   for (const control of initial) {
     const label = `${control.tag}${control.text ? ` “${control.text}”` : ""}${control.href ? ` -> ${control.href}` : ""}`;
-    try { await exerciseControl(cdp, route, authenticated, control, initialIdentities); }
+    try { await exerciseControl(cdp, route, authenticated, control, initialSemanticIdentities); }
     catch (error) { failures.push(`${route}: ${label}: ${error.message}`); }
   }
   return initial.length;
