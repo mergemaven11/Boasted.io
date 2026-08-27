@@ -1,0 +1,36 @@
+name: Mobile CI
+
+on:
+  pull_request:
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Expo dependency and config health
+        run: npm run doctor
+      - name: Unit tests
+        run: npm run test:ci
+      - name: Export bundle smoke test
+        run: npx expo export --platform web --output-dir dist-ci

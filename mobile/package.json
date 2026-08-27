@@ -8,7 +8,10 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "doctor": "expo-doctor"
+    "doctor": "expo-doctor",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:ci": "jest --runInBand --coverage"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^7.2.0",
@@ -24,6 +27,24 @@
     "react-native-svg": "^15.15.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.25.2"
+    "@babel/core": "^7.25.2",
+    "@testing-library/react-native": "^14.0.1",
+    "jest": "^30.4.2",
+    "jest-expo": "~57.0.5"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/Brandmark.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 65,
+        "functions": 75,
+        "lines": 75,
+        "statements": 75
+      }
+    }
   }
 }
