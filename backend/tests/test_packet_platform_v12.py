@@ -17,7 +17,7 @@ import app.performance_packet_routes as performance_routes
 from app.main import app
 
 
-client = TestClient(app)
+client = TestClient(app, base_url="https://testserver")
 
 
 @pytest.fixture
@@ -160,6 +160,8 @@ def test_private_share_access_code_evidence_controls_revocation_and_expiry(platf
     assert grant.status_code == 303
     assert "2468-secure" not in grant.headers["location"]
     assert "2468-secure" not in grant.headers["set-cookie"]
+    assert "Path=/shared/packets" in grant.headers["set-cookie"]
+    assert "Secure" in grant.headers["set-cookie"]
 
     view = client.get(f"/shared/packets/{token}")
     assert view.status_code == 200
