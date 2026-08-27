@@ -1,10 +1,11 @@
-const START_BUTTON_SELECTOR = "form.interview-setup-card .start-interview-button";
+const START_FORM_SELECTOR = "form.interview-setup-card";
 
 let installed = false;
 let microphonePreflightPromise = null;
 
-function isInterviewStartClick(target) {
-  return Boolean(target?.closest?.(START_BUTTON_SELECTOR));
+function isInterviewStartSubmit(target) {
+  if (target?.matches?.(START_FORM_SELECTOR)) return true;
+  return Boolean(target?.closest?.(START_FORM_SELECTOR));
 }
 
 function stopStream(stream) {
@@ -56,15 +57,15 @@ export function installInterviewBrowserPreflight({
   if (!documentObject?.addEventListener || installed) return () => {};
 
   const handleStartGesture = (event) => {
-    if (!isInterviewStartClick(event?.target)) return;
+    if (!isInterviewStartSubmit(event?.target)) return;
     void primeInterviewBrowserAudio({ navigatorObject, speechSynthesisObject, speechRecognitionAvailable });
   };
 
-  documentObject.addEventListener("click", handleStartGesture, true);
+  documentObject.addEventListener("submit", handleStartGesture, true);
   installed = true;
 
   return () => {
-    documentObject.removeEventListener?.("click", handleStartGesture, true);
+    documentObject.removeEventListener?.("submit", handleStartGesture, true);
     installed = false;
   };
 }
