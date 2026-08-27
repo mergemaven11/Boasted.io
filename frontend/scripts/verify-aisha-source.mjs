@@ -14,18 +14,20 @@ assert.match(interviewSource, /recognition\.interimResults = true/, "Speech reco
 assert.match(interviewSource, /recognition\.continuous = !appleMobile/, "Apple mobile speech recognition must use restartable short sessions");
 assert.match(interviewSource, /primeMicrophonePermission/, "Interviewer must prime microphone permission on mobile");
 assert.match(interviewSource, /role="dialog"/, "Per-question feedback must render as a modal dialog");
+assert.match(interviewSource, /Practice Interview with AJ/, "The interview room must identify the interviewer as AJ");
+assert.doesNotMatch(interviewSource, /Aisha Jordan|Aisha’s|Aisha is|with Aisha/, "Retired Aisha naming must not leak into the AJ experience");
 
-assert.match(avatarSource, /data-avatar-engine="bragstack-photo-v2"/, "Aisha must identify the photographic interviewer engine");
-assert.match(avatarSource, /aisha-jordan-interviewer\.jpg/, "Aisha must render the approved photographic interviewer asset");
-assert.match(avatarSource, /className="aisha-photo-avatar"/, "Aisha must expose the photographic stage image");
-assert.match(avatarSource, /data-aisha-state=\{safeState\}/, "Aisha must expose interview state to the browser");
-assert.doesNotMatch(avatarSource, /<svg|aisha-vector-avatar|aisha-mouth-opening/, "The retired vector/mouth animation renderer must not return");
-assert.match(avatarCss, /object-fit:cover/, "Photographic Aisha must fill the interview stage cleanly");
-assert.match(avatarCss, /prefers-reduced-motion:reduce/, "Aisha status motion must respect reduced-motion preferences");
+assert.match(avatarSource, /data-avatar-engine="bragstack-static-aj-v1"/, "AJ must identify the static interviewer engine");
+assert.match(avatarSource, /className="aj-avatar-monogram"/, "AJ must expose the static monogram avatar");
+assert.match(avatarSource, />AJ<\//, "AJ initials must render in the interviewer avatar");
+assert.match(avatarSource, /data-interviewer-state=\{safeState\}/, "AJ must expose interview state to the browser");
+assert.doesNotMatch(avatarSource, /aisha-jordan-interviewer\.jpg|<img|<svg|aisha-vector-avatar|aisha-mouth-opening/, "The static AJ renderer must not ship photo or lip-sync avatar code");
+assert.match(avatarCss, /aj-avatar-monogram/, "Static AJ styling must be present");
+assert.match(avatarCss, /prefers-reduced-motion:reduce/, "AJ status motion must respect reduced-motion preferences");
 
 const chromeCandidates = ["google-chrome", "chromium", "chromium-browser"];
 const chrome = chromeCandidates.find((name) => spawnSync("which", [name], { encoding: "utf8" }).status === 0);
-assert.ok(chrome, "A Chromium/Chrome binary is required for the Aisha browser verification");
+assert.ok(chrome, "A Chromium/Chrome binary is required for the AJ browser verification");
 
 function killProcessTree(child) {
   if (!child?.pid) return;
@@ -69,7 +71,7 @@ function runProcess(command, args, timeoutMs = 45000) {
 async function runChromeVerification(url) {
   let lastError;
   for (let attempt = 1; attempt <= 2; attempt += 1) {
-    const profileDir = await fs.mkdtemp(path.join(os.tmpdir(), `bragstack-aisha-${attempt}-`));
+    const profileDir = await fs.mkdtemp(path.join(os.tmpdir(), `bragstack-aj-${attempt}-`));
     try {
       const run = await runProcess(chrome, [
         "--headless=new",
@@ -84,7 +86,7 @@ async function runChromeVerification(url) {
         "--dump-dom",
         url,
       ]);
-      if (run.status === 0 && /data-aisha-result="ok"/.test(run.stdout)) return run;
+      if (run.status === 0 && /data-aj-result="ok"/.test(run.stdout)) return run;
       lastError = new Error(`Headless browser verification attempt ${attempt} failed: ${run.stderr || run.stdout.slice(-1800)}`);
     } catch (error) {
       lastError = error;
@@ -96,30 +98,30 @@ async function runChromeVerification(url) {
   throw lastError;
 }
 
-const harnessHtml = path.resolve("scripts/.aisha-browser-harness.html");
-const harnessJsx = path.resolve("scripts/.aisha-browser-harness.jsx");
-await fs.writeFile(harnessHtml, `<!doctype html><html><body><div id="root"></div><script type="module" src="/scripts/.aisha-browser-harness.jsx"></script></body></html>`);
+const harnessHtml = path.resolve("scripts/.aj-browser-harness.html");
+const harnessJsx = path.resolve("scripts/.aj-browser-harness.jsx");
+await fs.writeFile(harnessHtml, `<!doctype html><html><body><div id="root"></div><script type="module" src="/scripts/.aj-browser-harness.jsx"></script></body></html>`);
 await fs.writeFile(harnessJsx, `
 import React from "react";
 import { createRoot } from "react-dom/client";
 import AnimatedInterviewerAvatar from "../src/AnimatedInterviewerAvatar.jsx";
 import "../src/InterviewPracticePage.css";
 import "../src/AnimatedInterviewerAvatar.css";
-createRoot(document.getElementById("root")).render(<div className="interview-video-stage" style={{width:"816px"}}><div className="virtual-interviewer animated-interviewer-host"><AnimatedInterviewerAvatar state="speaking" /></div></div>);
-const verify=()=>{const stage=document.querySelector(".interview-video-stage");const shell=document.querySelector(".aisha-avatar-shell");const photo=document.querySelector(".aisha-photo-avatar");const sr=stage?.getBoundingClientRect();const ar=shell?.getBoundingClientRect();const src=photo?.getAttribute("src")||"";const ok=Boolean(stage&&shell&&photo&&sr&&ar&&ar.width>=sr.width*.99&&ar.height>=sr.height*.99&&shell.getAttribute("data-avatar-engine")==="bragstack-photo-v2"&&shell.getAttribute("data-aisha-state")==="speaking"&&src.includes("aisha-jordan-interviewer.jpg")&&!document.querySelector(".aisha-vector-avatar,.aisha-mouth-opening"));document.body.dataset.aishaResult=ok?"ok":"fail";document.body.dataset.aishaDetails=[Math.round(sr?.width||0),Math.round(sr?.height||0),Math.round(ar?.width||0),Math.round(ar?.height||0),shell?.getAttribute("data-aisha-state")].join(":");};
+createRoot(document.getElementById("root")).render(<div className="interview-video-stage" style={{width:"816px"}}><div className="virtual-interviewer animated-interviewer-host"><AnimatedInterviewerAvatar state="listening" /></div></div>);
+const verify=()=>{const stage=document.querySelector(".interview-video-stage");const shell=document.querySelector(".aisha-avatar-shell");const monogram=document.querySelector(".aj-avatar-monogram");const sr=stage?.getBoundingClientRect();const ar=shell?.getBoundingClientRect();const ok=Boolean(stage&&shell&&monogram&&sr&&ar&&ar.width>=sr.width*.99&&ar.height>=sr.height*.99&&shell.getAttribute("data-avatar-engine")==="bragstack-static-aj-v1"&&shell.getAttribute("data-interviewer-state")==="listening"&&monogram.textContent.trim()==="AJ"&&!document.querySelector(".aisha-photo-avatar,.aisha-vector-avatar,.aisha-mouth-opening"));document.body.dataset.ajResult=ok?"ok":"fail";document.body.dataset.ajDetails=[Math.round(sr?.width||0),Math.round(sr?.height||0),Math.round(ar?.width||0),Math.round(ar?.height||0),shell?.getAttribute("data-interviewer-state")].join(":");};
 requestAnimationFrame(()=>requestAnimationFrame(verify));
 `);
 
 const server = await createServer({ root: process.cwd(), logLevel: "error", server: { host: "127.0.0.1", port: 41739, strictPort: true } });
 try {
   await server.listen();
-  const run = await runChromeVerification("http://127.0.0.1:41739/scripts/.aisha-browser-harness.html");
+  const run = await runChromeVerification("http://127.0.0.1:41739/scripts/.aj-browser-harness.html");
   assert.equal(run.status, 0, `Headless browser failed: ${run.stderr || run.stdout}`);
-  assert.match(run.stdout, /data-aisha-result="ok"/, `Aisha photographic browser contract failed: ${run.stdout.slice(-1800)}`);
-  assert.match(run.stdout, /data-aisha-details="[0-9]+:[0-9]+:[0-9]+:[0-9]+:speaking"/, "Aisha browser contract must report stage fill and speaking state");
+  assert.match(run.stdout, /data-aj-result="ok"/, `AJ static browser contract failed: ${run.stdout.slice(-1800)}`);
+  assert.match(run.stdout, /data-aj-details="[0-9]+:[0-9]+:[0-9]+:[0-9]+:listening"/, "AJ browser contract must report stage fill and listening state");
 } finally {
   await server.close();
   await Promise.allSettled([fs.unlink(harnessHtml), fs.unlink(harnessJsx)]);
 }
 
-console.log("Aisha verified: approved photographic interviewer, responsive stage fill, interview state, and no retired vector mouth renderer.");
+console.log("AJ verified: static branded interviewer, responsive stage fill, interview state, and no photo/live-avatar renderer.");

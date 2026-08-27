@@ -2,7 +2,6 @@ import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { AlertTriangle, Camera, CameraOff, CheckCircle2, ChevronRight, Clock3, Mic, RefreshCw, Sparkles, Star, Volume2 } from "lucide-react";
 import AnimatedInterviewerAvatar from "./AnimatedInterviewerAvatar.jsx";
-import aishaJordanPhoto from "./assets/aisha-jordan-interviewer.jpg";
 import { getImpactReceipts } from "./api.js";
 import { EXPERIENCE_LEVELS, INTERVIEW_TYPES } from "./interviewKnowledgeBase.js";
 import { analyzeAnswer, buildInterviewPlan, getBrowserInterviewCapabilities, summarizeInterview } from "./interviewEngine.js";
@@ -17,7 +16,7 @@ import "./InterviewPracticePage.css";
 
 const HISTORY_KEY = "bragstack_interview_history_v1";
 const INTRO_SEGMENTS = [
-  "Hi, I’m Aisha Jordan. Welcome to your BragStack practice interview.",
+  "Hi, I’m AJ. Welcome to your BragStack practice interview.",
   "Here’s how this works. I’ll ask one question at a time. After I finish speaking, your response timer will begin and I’ll start listening.",
   "Answer naturally, just like you would in a real interview. I’ll evaluate what you said, and if an important detail is missing, I may ask one short follow-up.",
   "When your time ends, you’ll hear a soft chime and I’ll let you know. At the end, you’ll get your score, strengths, and specific ways to improve.",
@@ -287,8 +286,6 @@ export default function InterviewPracticePage() {
   }, [stage, questionIndex]);
 
   useEffect(() => {
-    const preload = new Image();
-    preload.src = aishaJordanPhoto;
     const cleanupVoices = warmSpeechVoices();
     const resumeSpeechWhenVisible = () => {
       if (document.visibilityState === "visible") window.speechSynthesis?.resume?.();
@@ -501,7 +498,7 @@ export default function InterviewPracticePage() {
       spoken = await speakSoftText(prompt, { cancelFirst: true });
     }
     if (!spoken) {
-      setAudioError("Aisha’s audio was blocked or interrupted. The interview is continuing in text mode; Replay question can retry the audio.");
+      setAudioError("AJ’s audio was blocked or interrupted. The interview is continuing in text mode; Replay question can retry the audio.");
       beginResponseClock();
       return true;
     }
@@ -524,12 +521,12 @@ export default function InterviewPracticePage() {
         await wait(INTRO_PAUSE_MS);
         const ok = await speakSoftText(INTRO_SEGMENTS[index]);
         if (!ok) {
-          setAudioError("Aisha’s intro was interrupted. The interview will continue with the first question.");
+          setAudioError("AJ’s intro was interrupted. The interview will continue with the first question.");
           break;
         }
       }
     } else {
-      setAudioError("Spoken audio is unavailable or blocked here. Aisha is still visible and the interview will continue in text mode.");
+      setAudioError("Spoken audio is unavailable or blocked here. AJ is still available and the interview will continue in text mode.");
     }
 
     const enrichedPlan = await catalogPromise;
@@ -748,8 +745,7 @@ export default function InterviewPracticePage() {
 
   if (stage === "setup") return (
     <main className="interview-practice-page">
-      <img src={aishaJordanPhoto} alt="" aria-hidden="true" decoding="sync" fetchPriority="high" style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }} />
-      <header className="interview-page-header"><div><span className="interview-pro-badge"><Sparkles size={14} /> BRAGSTACK CAREER INTELLIGENCE™</span><h1>Practice Interview</h1><p>Aisha greets you, asks each question out loud, starts your timer only after she finishes, listens to your response, and gives specific coaching.</p></div><div className="zero-cost-card"><strong>BragStack Intelligence</strong><span>Evidence-aware coaching personalized to your target role</span></div></header>
+      <header className="interview-page-header"><div><span className="interview-pro-badge"><Sparkles size={14} /> BRAGSTACK CAREER INTELLIGENCE™</span><h1>Practice Interview</h1><p>AJ greets you, asks each question out loud, starts your timer only after the question finishes, listens to your response, and gives specific coaching.</p></div><div className="zero-cost-card"><strong>BragStack Intelligence</strong><span>Evidence-aware coaching personalized to your target role</span></div></header>
       <section className="interview-setup-grid">
         <form className="interview-setup-card" onSubmit={startInterview}>
           <div className="section-kicker">BUILD YOUR INTERVIEW</div>
@@ -767,7 +763,7 @@ export default function InterviewPracticePage() {
           <label className="receipt-personalization"><input type="checkbox" name="useReceipts" checked={setup.useReceipts} onChange={updateSetup} /><span><strong>Personalize with my career proof</strong><small>{receipts.length ? `${receipts.length} Impact Receipt${receipts.length === 1 ? "" : "s"} available` : "No Impact Receipts loaded yet — the interview still works normally."}</small></span></label>
           <button className="start-interview-button" type="submit">Start practice interview <ChevronRight size={18} /></button>
         </form>
-        <aside className="interview-preview-card"><div className="preview-interviewer-window"><div className="interviewer-avatar">AJ</div><div><span>Aisha Jordan</span><strong>Senior Technical Recruiter</strong></div></div><div className="preview-question-card"><span>REAL INTERVIEW COACHING</span><p>Follow-ups target the missing part of your answer instead of simply repeating the original question.</p></div><div className="preview-capabilities"><div><CheckCircle2 size={17} /><span>Automatic greeting + spoken questions</span></div><div><CheckCircle2 size={17} /><span>1, 3, or 5 minute response timer</span></div><div><CheckCircle2 size={17} /><span>Specific strengths + improvements</span></div><div><CheckCircle2 size={17} /><span>Professional-language red flag warnings</span></div><div><CheckCircle2 size={17} /><span>1–5 star final interview rating</span></div></div></aside>
+        <aside className="interview-preview-card"><div className="preview-interviewer-window"><div className="interviewer-avatar">AJ</div><div><span>AJ</span><strong>Senior Technical Recruiter</strong></div></div><div className="preview-question-card"><span>REAL INTERVIEW COACHING</span><p>Follow-ups target the missing part of your answer instead of simply repeating the original question.</p></div><div className="preview-capabilities"><div><CheckCircle2 size={17} /><span>Automatic greeting + spoken questions</span></div><div><CheckCircle2 size={17} /><span>1, 3, or 5 minute response timer</span></div><div><CheckCircle2 size={17} /><span>Specific strengths + improvements</span></div><div><CheckCircle2 size={17} /><span>Professional-language red flag warnings</span></div><div><CheckCircle2 size={17} /><span>1–5 star final interview rating</span></div></div></aside>
       </section>
     </main>
   );
@@ -783,17 +779,17 @@ export default function InterviewPracticePage() {
   }
 
   return <main className="interview-practice-page interview-room-page">
-    <header className="interview-room-header"><div><span>{plan.roleTitle}</span><strong>Practice Interview with Aisha</strong></div><div className="question-progress"><span>Question {questionIndex + 1} of {plan.questions.length}</span><div><i style={{ width: `${((questionIndex + 1) / plan.questions.length) * 100}%` }} /></div></div></header>
+    <header className="interview-room-header"><div><span>{plan.roleTitle}</span><strong>Practice Interview with AJ</strong></div><div className="question-progress"><span>Question {questionIndex + 1} of {plan.questions.length}</span><div><i style={{ width: `${((questionIndex + 1) / plan.questions.length) * 100}%` }} /></div></div></header>
     <section className="interview-room-grid">
       <div className="interview-video-stage">
-        <div className="virtual-interviewer animated-interviewer-host"><AnimatedInterviewerAvatar state={avatarState} /><div className="animated-avatar-caption" aria-hidden="true"><strong>Aisha Jordan</strong><span>Senior Technical Recruiter</span></div></div>
+        <div className="virtual-interviewer animated-interviewer-host"><AnimatedInterviewerAvatar state={avatarState} name="AJ" /><div className="animated-avatar-caption" aria-hidden="true"><strong>AJ</strong><span>Senior Technical Recruiter</span></div></div>
         <div className="candidate-video-tile">{cameraStream ? <video ref={videoRef} autoPlay muted playsInline /> : <div className="camera-placeholder"><CameraOff size={28} /><span>Your camera is off</span></div>}<div className="candidate-video-label">You</div></div>
         <div className="video-controls">{cameraStream ? <button type="button" onClick={disableCamera}><CameraOff size={17} /> Camera off</button> : <button type="button" onClick={enableCamera} disabled={!capabilities.camera}><Camera size={17} /> Enable camera</button>}<button type="button" onClick={() => { void replayQuestion(); }} disabled={!capabilities.speechSynthesis || sequenceBusyRef.current}><Volume2 size={17} /> Replay question</button></div>
         {cameraError && <p className="camera-error">{cameraError}</p>}
       </div>
       <div className="interview-answer-panel">
         <div className="question-box"><div className="question-meta-row"><span>{followUpActive ? "TARGETED FOLLOW-UP" : `QUESTION ${questionIndex + 1}`}</span><strong className={`response-timer ${secondsLeft <= 20 && timerRunning ? "urgent" : ""}`}><Clock3 size={16} /> {formatTime(secondsLeft)}</strong></div><h1>{currentPrompt}</h1>{followUpActive && <small>This follow-up targets the missing part of your previous answer. You do not need to repeat the whole story.</small>}{audioError && <small>{audioError}</small>}</div>
-        {!feedback ? <form onSubmit={submitAnswer} className="answer-form"><label htmlFor="practice-answer">Your answer</label><textarea id="practice-answer" value={answer} onChange={(event) => { answerRef.current = event.target.value; setAnswer(event.target.value); }} rows="9" data-listening={listening ? "true" : "false"} placeholder="Answer naturally. Focus on the exact question, what YOU did, and what changed as a result." /><div className="answer-tools">{capabilities.speechRecognition ? (listening ? <button className="dictation-button active" type="button" onClick={() => stopDictation()}><Mic size={17} /> Stop dictation</button> : <button className="dictation-button" type="button" onClick={() => { autoListenRef.current = true; void startDictation({ userInitiated: true }); }} disabled={interviewPhase !== INTERVIEW_PHASES.LISTENING}><Mic size={17} /> Speak answer</button>) : <span>Voice dictation is unavailable here — typing still works.</span>}<span>{answer.trim() ? answer.trim().split(/\s+/).length : 0} words</span></div>{capabilities.speechRecognition && <div className={`microphone-status ${microphoneError ? "error" : listening ? "live" : ""}`} aria-live="polite"><Mic size={15} /><span>{microphoneError || microphoneStatus || "Aisha will start listening after she finishes speaking. If your phone blocks auto-listen, tap Speak answer."}</span></div>}<button className="start-interview-button" type="submit" disabled={!answer.trim()}>Review my answer</button></form> : <section ref={feedbackDialogRef} tabIndex="-1" className="answer-feedback-panel" role="dialog" aria-modal="true" aria-label={`Feedback for question ${questionIndex + 1}`}>{feedback.timedOut && <div className="timeout-warning"><Clock3 size={18} /><span>Time expired. This answer was scored as submitted.</span></div>}<div className="feedback-heading"><div><span>ANSWER FEEDBACK</span><h2>{feedback.overallLabel}</h2></div><strong>{feedback.overallScore}/100</strong></div><div className="answer-coaching-grid"><article className="answer-strengths"><span>WHAT WORKED</span>{feedback.strengths.map((item) => <p key={item}>✓ {item}</p>)}</article><article className="answer-improvements"><span>HOW TO IMPROVE</span>{feedback.improvements.map((item) => <p key={item}>→ {item}</p>)}</article></div><div className="feedback-dimensions">{Object.entries(feedback.dimensions).map(([name, value]) => <article key={name}><div><strong>{prettyDimension(name)}</strong><span className={value.label === "Excellent" || value.label === "Strong" ? "strong" : value.label === "Developing" ? "developing" : "needs-detail"}>{value.score}/100 · {value.label}</span></div><p>{value.note}</p><small><b>Improve:</b> {value.improve}</small></article>)}</div>{feedback.followUp && !followUpUsed && <div className="follow-up-card"><span>TARGETED INTERVIEWER FOLLOW-UP</span><p>{feedback.followUp}</p><button type="button" onClick={beginFollowUp}>Answer targeted follow-up</button></div>}<div className="feedback-actions"><button className="secondary-interview-button" type="button" onClick={retryAnswer}>Try this answer again</button><button className="start-interview-button" type="button" onClick={nextQuestion}>{questionIndex + 1 >= plan.questions.length ? "Finish interview" : "Continue"} <ChevronRight size={17} /></button></div></section>}
+        {!feedback ? <form onSubmit={submitAnswer} className="answer-form"><label htmlFor="practice-answer">Your answer</label><textarea id="practice-answer" value={answer} onChange={(event) => { answerRef.current = event.target.value; setAnswer(event.target.value); }} rows="9" data-listening={listening ? "true" : "false"} placeholder="Answer naturally. Focus on the exact question, what YOU did, and what changed as a result." /><div className="answer-tools">{capabilities.speechRecognition ? (listening ? <button className="dictation-button active" type="button" onClick={() => stopDictation()}><Mic size={17} /> Stop dictation</button> : <button className="dictation-button" type="button" onClick={() => { autoListenRef.current = true; void startDictation({ userInitiated: true }); }} disabled={interviewPhase !== INTERVIEW_PHASES.LISTENING}><Mic size={17} /> Speak answer</button>) : <span>Voice dictation is unavailable here — typing still works.</span>}<span>{answer.trim() ? answer.trim().split(/\s+/).length : 0} words</span></div>{capabilities.speechRecognition && <div className={`microphone-status ${microphoneError ? "error" : listening ? "live" : ""}`} aria-live="polite"><Mic size={15} /><span>{microphoneError || microphoneStatus || "AJ will start listening after the question finishes. If your phone blocks auto-listen, tap Speak answer."}</span></div>}<button className="start-interview-button" type="submit" disabled={!answer.trim()}>Review my answer</button></form> : <section ref={feedbackDialogRef} tabIndex="-1" className="answer-feedback-panel" role="dialog" aria-modal="true" aria-label={`Feedback for question ${questionIndex + 1}`}>{feedback.timedOut && <div className="timeout-warning"><Clock3 size={18} /><span>Time expired. This answer was scored as submitted.</span></div>}<div className="feedback-heading"><div><span>ANSWER FEEDBACK</span><h2>{feedback.overallLabel}</h2></div><strong>{feedback.overallScore}/100</strong></div><div className="answer-coaching-grid"><article className="answer-strengths"><span>WHAT WORKED</span>{feedback.strengths.map((item) => <p key={item}>✓ {item}</p>)}</article><article className="answer-improvements"><span>HOW TO IMPROVE</span>{feedback.improvements.map((item) => <p key={item}>→ {item}</p>)}</article></div><div className="feedback-dimensions">{Object.entries(feedback.dimensions).map(([name, value]) => <article key={name}><div><strong>{prettyDimension(name)}</strong><span className={value.label === "Excellent" || value.label === "Strong" ? "strong" : value.label === "Developing" ? "developing" : "needs-detail"}>{value.score}/100 · {value.label}</span></div><p>{value.note}</p><small><b>Improve:</b> {value.improve}</small></article>)}</div>{feedback.followUp && !followUpUsed && <div className="follow-up-card"><span>TARGETED INTERVIEWER FOLLOW-UP</span><p>{feedback.followUp}</p><button type="button" onClick={beginFollowUp}>Answer targeted follow-up</button></div>}<div className="feedback-actions"><button className="secondary-interview-button" type="button" onClick={retryAnswer}>Try this answer again</button><button className="start-interview-button" type="button" onClick={nextQuestion}>{questionIndex + 1 >= plan.questions.length ? "Finish interview" : "Continue"} <ChevronRight size={17} /></button></div></section>}
       </div>
     </section>
   </main>;
