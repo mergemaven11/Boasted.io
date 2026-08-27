@@ -26,16 +26,20 @@ export function primeInterviewBrowserAudio({ navigatorObject, speechSynthesisObj
   if (typeof getUserMedia !== "function") return Promise.resolve(false);
 
   if (!microphonePreflightPromise) {
-    microphonePreflightPromise = Promise.resolve()
-      .then(() => getUserMedia.call(navigatorObject.mediaDevices, { audio: true, video: false }))
-      .then((stream) => {
-        stopStream(stream);
-        return true;
-      })
-      .catch(() => false)
-      .finally(() => {
-        microphonePreflightPromise = null;
-      });
+    try {
+      const request = getUserMedia.call(navigatorObject.mediaDevices, { audio: true, video: false });
+      microphonePreflightPromise = Promise.resolve(request)
+        .then((stream) => {
+          stopStream(stream);
+          return true;
+        })
+        .catch(() => false)
+        .finally(() => {
+          microphonePreflightPromise = null;
+        });
+    } catch {
+      return Promise.resolve(false);
+    }
   }
 
   return microphonePreflightPromise;
