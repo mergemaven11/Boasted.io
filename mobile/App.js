@@ -93,13 +93,14 @@ export default function App() {
     : user
       ? <Tabs user={user} onSignOut={signOut} />
       : <Login onSuccess={setUser} />;
-  return <SafeAreaProvider>{content}</SafeAreaProvider>;
+  return <SafeAreaProvider style={styles.appRoot}>{content}</SafeAreaProvider>;
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  appRoot: { flex: 1, width: '100%', minWidth: '100%', minHeight: '100%', alignSelf: 'stretch', backgroundColor: colors.background },
+  safe: { flex: 1, width: '100%', alignSelf: 'stretch', backgroundColor: colors.background },
   boot: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', gap: 20 },
-  loginScroll: { flex: 1 },
+  loginScroll: { flex: 1, width: '100%' },
   loginPage: { flexGrow: 1, alignItems: 'center', paddingTop: 44, paddingBottom: 48 },
   loginPageCompact: { paddingTop: 18, paddingBottom: 32 },
   loginPageTablet: { justifyContent: 'center', paddingTop: 56, paddingBottom: 56 },
