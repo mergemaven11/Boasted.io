@@ -23,6 +23,7 @@ test("primes speech and microphone, then releases the temporary stream", async (
       },
     },
     speechSynthesisObject: { resume: () => { resumed += 1; } },
+    speechRecognitionAvailable: true,
   });
 
   assert.equal(allowed, true);
@@ -55,6 +56,7 @@ test("starts the microphone preflight from the interview start click", async () 
       },
     },
     speechSynthesisObject: { resume: () => {} },
+    speechRecognitionAvailable: true,
   });
 
   assert.equal(typeof clickHandler, "function");
@@ -62,6 +64,29 @@ test("starts the microphone preflight from the interview start click", async () 
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(requested, 1);
   cleanup();
+});
+
+test("does not ask for microphone access when speech recognition is unavailable", async () => {
+  __resetInterviewBrowserPreflightForTests();
+  let requested = 0;
+  let resumed = 0;
+
+  const allowed = await primeInterviewBrowserAudio({
+    navigatorObject: {
+      mediaDevices: {
+        getUserMedia: async () => {
+          requested += 1;
+          return { getTracks: () => [] };
+        },
+      },
+    },
+    speechSynthesisObject: { resume: () => { resumed += 1; } },
+    speechRecognitionAvailable: false,
+  });
+
+  assert.equal(allowed, false);
+  assert.equal(resumed, 1);
+  assert.equal(requested, 0);
 });
 
 test("ignores unrelated clicks", async () => {
@@ -82,6 +107,7 @@ test("ignores unrelated clicks", async () => {
         },
       },
     },
+    speechRecognitionAvailable: true,
   });
 
   clickHandler({ target: { closest: () => null } });
