@@ -2,10 +2,12 @@ import aishaJordanPhoto from "./assets/aisha-jordan-interviewer.jpg";
 
 const STATE_COPY = {
   idle: "Ready when you are",
+  greeting: "Aisha is introducing the interview",
+  asking: "Aisha is asking the question",
   speaking: "Aisha is speaking",
   listening: "Your turn — listening",
   thinking: "Reviewing your answer",
-  encouraging: "Follow-up coaching",
+  encouraging: "Preparing the next step",
 };
 
 const AVATAR_STYLES = `
@@ -51,7 +53,9 @@ const AVATAR_STYLES = `
   box-shadow: inset 0 0 0 1px rgba(165,180,252,.04);
   transition: box-shadow .2s ease, border-color .2s ease;
 }
-.aisha-avatar-shell.state-speaking::after {
+.aisha-avatar-shell.state-speaking::after,
+.aisha-avatar-shell.state-greeting::after,
+.aisha-avatar-shell.state-asking::after {
   border-color: rgba(196,181,253,.28);
   box-shadow: inset 0 0 38px rgba(139,92,246,.10);
   animation: aishaFrameBreathe 1.8s ease-in-out infinite;
@@ -96,7 +100,9 @@ const AVATAR_STYLES = `
   background: #a5b4fc;
   box-shadow: 0 0 0 4px rgba(165,180,252,.12);
 }
-.aisha-avatar-shell.state-speaking .avatar-state-dot {
+.aisha-avatar-shell.state-speaking .avatar-state-dot,
+.aisha-avatar-shell.state-greeting .avatar-state-dot,
+.aisha-avatar-shell.state-asking .avatar-state-dot {
   animation: aishaPulse .9s ease-in-out infinite;
   background: #c4b5fd;
 }
@@ -133,13 +139,21 @@ const AVATAR_STYLES = `
   background: rgba(199,210,254,.78);
   transform-origin: center;
 }
-.aisha-avatar-shell.state-speaking .avatar-motion-field span {
+.aisha-avatar-shell.state-speaking .avatar-motion-field span,
+.aisha-avatar-shell.state-greeting .avatar-motion-field span,
+.aisha-avatar-shell.state-asking .avatar-motion-field span {
   background: #c4b5fd;
   animation: aishaSpeechBar .72s ease-in-out infinite;
 }
-.aisha-avatar-shell.state-speaking .avatar-motion-field span:nth-child(2) { animation-delay: -.48s; }
-.aisha-avatar-shell.state-speaking .avatar-motion-field span:nth-child(3) { animation-delay: -.26s; }
-.aisha-avatar-shell.state-speaking .avatar-motion-field span:nth-child(4) { animation-delay: -.58s; }
+.aisha-avatar-shell.state-speaking .avatar-motion-field span:nth-child(2),
+.aisha-avatar-shell.state-greeting .avatar-motion-field span:nth-child(2),
+.aisha-avatar-shell.state-asking .avatar-motion-field span:nth-child(2) { animation-delay: -.48s; }
+.aisha-avatar-shell.state-speaking .avatar-motion-field span:nth-child(3),
+.aisha-avatar-shell.state-greeting .avatar-motion-field span:nth-child(3),
+.aisha-avatar-shell.state-asking .avatar-motion-field span:nth-child(3) { animation-delay: -.26s; }
+.aisha-avatar-shell.state-speaking .avatar-motion-field span:nth-child(4),
+.aisha-avatar-shell.state-greeting .avatar-motion-field span:nth-child(4),
+.aisha-avatar-shell.state-asking .avatar-motion-field span:nth-child(4) { animation-delay: -.58s; }
 .aisha-avatar-shell.state-listening .avatar-motion-field {
   border-color: rgba(110,231,183,.24);
   animation: aishaListeningHalo 1.65s ease-out infinite;
