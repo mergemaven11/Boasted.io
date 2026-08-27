@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 
 from app.auth import get_current_user, verify_password
-from app.database import packet_shares_collection
+import app.packet_share_routes as packet_share_routes
 from app.packet_share_routes import (
     PacketShareCreate,
     _aware,
@@ -42,7 +42,7 @@ SHARE_COOKIE_SECURE = os.getenv("PACKET_SHARE_COOKIE_SECURE", "true").strip().lo
 
 
 def _share_or_404(token: str) -> dict:
-    item = packet_shares_collection.find_one({"token_hash": _token_hash(token)})
+    item = packet_share_routes.packet_shares_collection.find_one({"token_hash": _token_hash(token)})
     if not item or item.get("revoked"):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared packet not found")
     expires_at = _aware(item.get("expires_at"))
