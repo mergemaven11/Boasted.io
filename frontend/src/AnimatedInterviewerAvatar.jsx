@@ -16,11 +16,11 @@ export default function AnimatedInterviewerAvatar({ state = "idle", name = "AJ" 
       className={`aisha-avatar-shell state-${safeState}`}
       data-avatar-engine="bragstack-static-aj-v1"
       data-interviewer-state={safeState}
+      aria-label={`${name}, BragStack Interviewer — ${STATE_COPY[safeState]}`}
     >
       <div className="aj-avatar-content">
         <div className="aj-avatar-monogram" aria-hidden="true">AJ</div>
         <div className="aj-avatar-identity">
-          <strong>{name}</strong>
           <span>BragStack Interviewer</span>
         </div>
         <div className={`aj-avatar-state state-${safeState}`} aria-live="polite">
