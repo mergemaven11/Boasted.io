@@ -2,7 +2,7 @@
 
 All notable changes to BragStack are documented here.
 
-This changelog tracks **merged, shipped repository changes only**. Open or draft pull requests are not listed as released work. Entries are grouped by date and by impact using a Keep a Changelog-style structure.
+This changelog tracks **merged, shipped repository changes only**. Open or draft pull requests are not listed as released work. Entries are grouped by date and by impact using a Keep a Changelog-style structure. The exhaustive event-level history, including the direct-commit era before pull requests, is maintained in the internal **BragStack — Changelog** Google Sheet.
 
 ## [Unreleased]
 
@@ -54,13 +54,92 @@ No merged changes have been recorded here yet.
 - Strengthened Google sitelink/search signals with crawlable public auth pages, route-aware robots metadata, structured navigation, sitemap alignment, and regression coverage. (#145, #148)
 
 ### Changed
-- Restored the professional photographic Aisha interviewer and improved the interview room’s mobile/iPhone layout, safe areas, camera placement, touch targets, answer controls, and microphone status presentation. (#143)
+- Restored and iterated on the professional Aisha interviewer across mobile/tablet/desktop, improving audio, visual rendering, responsive layout, interview sequencing, evidence-anchored scoring, and interview feedback. (#133, #134, #135, #136, #139, #140, #143)
+- Rebuilt Resume Builder around structured import, ATS-safe reconstruction, ATS coaching, editing, mobile support, and evidence-first analysis. (#123, #125, #127, #131, #138, #142)
+- Improved customer Docs with visual product guidance and clearer troubleshooting/support separation. (#128, #130, #137)
 
 ### Fixed
 - Fixed dark-mode contrast and readability on Settings → Plan & billing. (#146)
 
 ### Security
 - Hardened BragStack application security with API security headers, HSTS on HTTPS, narrower CORS rules, password byte-length protection, JWT lifecycle claims and IDs, dependency vulnerability auditing, safer authenticated search handling, and dedicated Security CI. (#151)
+
+## 2026-08-24
+
+### Added
+- Added the Pro Practice Interviewer, a Mongo-backed career/question catalog, question rotation, and meaning-aware Career Intelligence coaching without making the core flow dependent on a paid model API. (#90, #91, #93, #100)
+- Added the evidence-backed Pro Resume Builder MVP with job-description analysis, Impact Receipt matching, source-linked bullets, readiness/gap analysis, saved versions, and export paths. (#97)
+- Added production health/readiness probes, tested MongoDB indexes, and restore-validation safeguards for operational readiness. (#88, #94, #95, #96)
+- Added guided onboarding, Settings organization, profile appearance controls, and expanded Pro career-tool navigation. (#60, #61, #71, #72, #79)
+
+### Changed
+- Hardened Resume Builder provenance and ATS claims so manual edits require source review and matching remains evidence-aware rather than overstating parser certainty. (#99)
+- Iterated heavily on Aisha’s interview room, browser speech behavior, sequencing, device responsiveness, and catalog-backed question flow. (#104, #110, #111, #112, #114, #115, #116, #117, #118, #119, #120, #122, #124, #126, #129)
+- Expanded BragStack customer documentation and searchability. (#121)
+
+### Security
+- Hardened auth recovery against account-enumeration side channels. (#92)
+- Hardened production OAuth callback URL handling behind Render/proxy infrastructure. (#106)
+
+## 2026-08-23
+
+### Added
+- Added Google and GitHub OAuth, Stripe Checkout/subscription lifecycle handling, Free/Pro server-side entitlements, password reset, and email verification for password signups. (#40, #41, #43, #44)
+- Added customer-facing Privacy Policy, Terms, NDA/confidential-work guidance, Docs, SEO/search discovery assets, and expanded legal/product documentation. (#45, #46, #49, #55, #56)
+- Added profile editing, saved profile images, and career-inspired Proof Profile themes with private appearance settings. (#57, #58, #60, #61)
+- Added Google Analytics 4 and role-based BragStack contact routing. (#62, #65)
+
+### Changed
+- Redesigned the authenticated dashboard, auth pages, landing experience, mobile navigation, branding, and public profile presentation. (#42, #50, #51, #52, #53, #54, #59, #63, #69, #75, #80)
+- Added a one-hour correction window for newly created accomplishments. (#48)
+
+### Security
+- Moved JWT secrets and production CORS/OAuth credentials into environment-managed configuration. (#39)
+
+## 2026-08-22
+
+### Added
+- Stabilized Impact Receipt core loop v2 with standalone receipt creation, measurable impact, multiple evidence items, skills, privacy controls, CRUD/reopen behavior, evidence-only performance-review output, job-targeted resume material, and beta feedback/pull metrics. (#38)
+
+## 2026-08-20
+
+### Added
+- Shipped Packet Platform v1.2 with accomplishment selection/pinning, selective sections, user-authored annotations, packet themes, branding controls, export audit metadata, secure private sharing, and verified-recognition semantics. (#37)
+
+## 2026-08-19
+
+### Added
+- Landed the V1.1 product foundation and public career analytics experience. (#32, #10)
+- Added persistent app navigation, paginated accomplishment/receipt libraries, and the recruiter-facing Proof Profile. (#11)
+- Added the Free/Pro entitlement foundation and premium marketing/pricing experience. (#12)
+- Added Performance Review, Promotion, Interview, and Certification/Licensure packets with evidence-backed server-generated PDFs. (#19, #31, #33, #35)
+- Added cross-career packet regression coverage to keep packet behavior career-neutral across professions. (#34)
+
+## 2026-08-17
+
+### Changed
+- Polished BragStack for the V1 release with portable/searchable reports, cleanup of duplicated models, V1 product documentation, and an explicit separation between shipped product and post-V1 roadmap work. (#9)
+
+## 2026-08-07
+
+### Added
+- Added Reports Hub v1, owner-controlled Impact Receipt visibility, public receipts with private evidence filtered out, profile persistence, and report output covering accomplishments, receipts, evidence, confirmations, skills, categories, trust signals, quantified results, highlights, and resume bullets. (#8)
+
+## 2026-08-06
+
+### Added
+- Added Impact Receipts v1 with structured accomplishment/contribution/result/evidence/skills/credit/confirmation fields, persistence, ownership checks, duplicate protection, pagination, dashboard cards, and public-profile improvements. (#7)
+
+## 2026-06-09 to 2026-06-30
+
+### Added
+- Added JWT authentication and private entry ownership, frontend login/register, protected dashboard behavior, and authenticated API access. (#1)
+- Added public BragStack sharing APIs, slug-scoped public profiles, weekly/tag/category summaries, and frontend public-profile integration. (#2, #5, #6)
+- Added the initial backend test suite and GitHub Actions CI workflow. (#3, #4)
+
+## 2026-05-26 to 2026-06-09 — repository foundation
+
+Before the pull-request workflow began, the repository established the original BragStack MVP through direct commits: entry update and weekly reporting, skill/category summaries, keyword search, pagination, resume-bullet generation, a React dashboard, entry edit/delete, public brag metadata/page support, and the first JWT/private-ownership and frontend-auth implementation. The repository root commit is dated **2026-05-26**.
 
 ---
 
@@ -71,4 +150,5 @@ No merged changes have been recorded here yet.
 - Include the pull request number for traceability.
 - Use `Added`, `Changed`, `Fixed`, `Security`, `Deprecated`, or `Removed` when applicable.
 - Do not claim an open PR, draft, planned roadmap item, or unverified deployment as shipped.
+- Keep the Google Sheet as the exhaustive event-level ledger; keep this Markdown file focused on notable release/milestone history.
 - For customer-facing release notes, summarize this canonical engineering changelog rather than copying internal/security implementation details blindly.
