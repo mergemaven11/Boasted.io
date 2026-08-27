@@ -68,11 +68,17 @@ POLICIES = {
         _env_int("RATE_LIMIT_RECEIPT_VERIFICATION_PUBLIC", 60),
         60,
     ),
+    "packet_share_access": RateLimitPolicy(
+        "packet_share_access",
+        _env_int("RATE_LIMIT_PACKET_SHARE_ACCESS", 10),
+        10 * 60,
+    ),
     "public_profile": RateLimitPolicy("public_profile", _env_int("RATE_LIMIT_PUBLIC_PROFILE", 180), 60),
 }
 
 _RECEIPT_SEND_RE = re.compile(r"^/impact-receipts/[^/]+/verification-requests/?$")
 _RECEIPT_PUBLIC_RE = re.compile(r"^/receipt-verifications/[^/]+(?:/decision)?/?$")
+_PACKET_SHARE_ACCESS_RE = re.compile(r"^/shared/packets/[^/]+/access/?$")
 
 
 def policy_for_request(request: Request) -> RateLimitPolicy | None:
@@ -97,6 +103,8 @@ def policy_for_request(request: Request) -> RateLimitPolicy | None:
             return POLICIES["receipt_verification_send"]
         if _RECEIPT_PUBLIC_RE.fullmatch(path):
             return POLICIES["receipt_verification_public"]
+        if _PACKET_SHARE_ACCESS_RE.fullmatch(path):
+            return POLICIES["packet_share_access"]
 
     if method == "GET":
         if path in {

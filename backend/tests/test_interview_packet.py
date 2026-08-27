@@ -111,7 +111,7 @@ def test_free_user_cannot_build_interview_packet(interview_context):
     }
     app.dependency_overrides[packet_routes.get_current_user] = lambda: user
 
-    response = client.get("/packets/interview")
+    response = client.post("/packets/interview", json={})
 
     assert response.status_code == 403
     assert response.json()["detail"]["feature"] == "interview_packet"
@@ -129,16 +129,16 @@ def test_interview_packet_uses_only_selected_stories_and_hides_evidence_by_defau
     app.dependency_overrides[packet_routes.get_current_user] = lambda: user
     first_id, second_id, third_id = _seed_education_case(entries, receipts, user)
 
-    response = client.get(
+    response = client.post(
         "/packets/interview",
-        params={
+        json={
             "start_date": "2026-01-01",
             "end_date": "2026-06-30",
             "career_area": "Education",
             "role_title": "Elementary Educator",
             "target_role": "Instructional Coach",
             "target_organization": "Community School District",
-            "selected_entry_ids": f"{first_id},{third_id}",
+            "selected_entry_ids": [first_id, third_id],
         },
     )
 
@@ -169,11 +169,11 @@ def test_interview_packet_can_explicitly_export_evidence_references(interview_co
     app.dependency_overrides[packet_routes.get_current_user] = lambda: user
     first_id, _, _ = _seed_education_case(entries, receipts, user)
 
-    response = client.get(
+    response = client.post(
         "/packets/interview",
-        params={
-            "selected_entry_ids": first_id,
-            "include_evidence_references": "true",
+        json={
+            "selected_entry_ids": [first_id],
+            "include_evidence_references": True,
         },
     )
 
@@ -194,12 +194,12 @@ def test_interview_packet_pdf_download_is_real_and_named_for_interview(interview
     app.dependency_overrides[packet_routes.get_current_user] = lambda: user
     first_id, _, third_id = _seed_education_case(entries, receipts, user)
 
-    response = client.get(
+    response = client.post(
         "/packets/interview.pdf",
-        params={
+        json={
             "start_date": "2026-01-01",
             "end_date": "2026-06-30",
-            "selected_entry_ids": f"{first_id},{third_id}",
+            "selected_entry_ids": [first_id, third_id],
             "target_role": "Instructional Coach",
         },
     )

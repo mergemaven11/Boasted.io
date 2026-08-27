@@ -115,7 +115,7 @@ def test_free_user_cannot_build_certification_packet(certification_context):
     }
     app.dependency_overrides[packet_routes.get_current_user] = lambda: user
 
-    response = client.get("/packets/certification")
+    response = client.post("/packets/certification", json={})
 
     assert response.status_code == 403
     assert response.json()["detail"]["feature"] == "certification_packet"
@@ -133,9 +133,9 @@ def test_certification_packet_distinguishes_evidence_statuses(certification_cont
     app.dependency_overrides[packet_routes.get_current_user] = lambda: user
     _seed_cosmetology_case(entries, receipts, user)
 
-    response = client.get(
+    response = client.post(
         "/packets/certification",
-        params={
+        json={
             "start_date": "2026-01-01",
             "end_date": "2026-06-30",
             "career_area": "Beauty / Cosmetology",
@@ -180,9 +180,9 @@ def test_pro_user_downloads_certification_pdf(certification_context):
     app.dependency_overrides[packet_routes.get_current_user] = lambda: user
     _seed_cosmetology_case(entries, receipts, user)
 
-    response = client.get(
+    response = client.post(
         "/packets/certification.pdf",
-        params={
+        json={
             "start_date": "2026-01-01",
             "end_date": "2026-06-30",
             "credential_name": "Cosmetology License Renewal",
