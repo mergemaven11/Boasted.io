@@ -5,6 +5,9 @@ import "./index.css";
 import "./ReferencePolish.css";
 import "./MarketingFooterOrder.css";
 import RootContent from "./RootContent.jsx";
+import { installInterviewBrowserPreflight } from "./interviewBrowserPreflight.js";
+
+installInterviewBrowserPreflight();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
