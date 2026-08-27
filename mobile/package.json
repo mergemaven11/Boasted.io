@@ -18,13 +18,13 @@
     "@react-navigation/native": "^7.1.0",
     "axios": "^1.7.9",
     "expo": "~57.0.9",
-    "expo-secure-store": "~56.0.4",
+    "expo-secure-store": "~57.0.2",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-native": "0.86.3",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.26.0",
-    "react-native-svg": "^15.15.1"
+    "react-native-svg": "15.15.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
