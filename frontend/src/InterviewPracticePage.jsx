@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { AlertTriangle, Camera, CameraOff, CheckCircle2, ChevronRight, Clock3, Mic, RefreshCw, Sparkles, Star, Volume2 } from "lucide-react";
 import AnimatedInterviewerAvatar from "./AnimatedInterviewerAvatar.jsx";
@@ -6,6 +6,13 @@ import aishaJordanPhoto from "./assets/aisha-jordan-interviewer.jpg";
 import { getImpactReceipts } from "./api.js";
 import { EXPERIENCE_LEVELS, INTERVIEW_TYPES } from "./interviewKnowledgeBase.js";
 import { analyzeAnswer, buildInterviewPlan, getBrowserInterviewCapabilities, summarizeInterview } from "./interviewEngine.js";
+import {
+  INITIAL_INTERVIEW_CONVERSATION,
+  INTERVIEW_PHASES,
+  avatarStateForInterviewPhase,
+  canTransitionInterviewPhase,
+  interviewConversationReducer,
+} from "./interviewConversationState.js";
 import "./InterviewPracticePage.css";
 
 const HISTORY_KEY = "bragstack_interview_history_v1";
@@ -235,7 +242,7 @@ export default function InterviewPracticePage() {
   const [cameraStream, setCameraStream] = useState(null);
   const [cameraError, setCameraError] = useState("");
   const [listening, setListening] = useState(false);
-  const [interviewPhase, setInterviewPhaseState] = useState("idle");
+  const [conversation, dispatchConversation] = useReducer(interviewConversationReducer, { ...INITIAL_INTERVIEW_CONVERSATION });
   const [audioError, setAudioError] = useState("");
   const [microphoneError, setMicrophoneError] = useState("");
   const [microphoneStatus, setMicrophoneStatus] = useState("");
@@ -244,7 +251,7 @@ export default function InterviewPracticePage() {
   const recognitionRef = useRef(null);
   const cameraStreamRef = useRef(null);
   const answerRef = useRef("");
-  const phaseRef = useRef("idle");
+  const phaseRef = useRef(INTERVIEW_PHASES.IDLE);
   const timerRunningRef = useRef(false);
   const sequenceBusyRef = useRef(false);
   const timeoutHandledRef = useRef(false);
@@ -259,11 +266,15 @@ export default function InterviewPracticePage() {
   const currentQuestion = plan?.questions?.[questionIndex] || null;
   const currentPrompt = followUpActive ? followUpPrompt : currentQuestion?.text || "";
   const responseSeconds = Math.max(60, Number(setup.responseMinutes) * 60 || 180);
-  const avatarState = interviewPhase === "listening" ? "listening" : interviewPhase === "reviewing" ? "thinking" : interviewPhase === "transition" ? "encouraging" : interviewPhase === "speaking" ? "speaking" : "idle";
+  const interviewPhase = conversation.phase;
+  const avatarState = avatarStateForInterviewPhase(interviewPhase);
 
   function setInterviewPhase(value) {
+    const currentPhase = phaseRef.current;
+    if (!canTransitionInterviewPhase(currentPhase, value)) return false;
     phaseRef.current = value;
-    setInterviewPhaseState(value);
+    dispatchConversation({ type: "TRANSITION", phase: value });
+    return true;
   }
 
   useEffect(() => {
@@ -362,7 +373,7 @@ export default function InterviewPracticePage() {
   }
 
   async function startDictation({ userInitiated = false } = {}) {
-    if (!capabilities.speechRecognition || phaseRef.current !== "listening" || !timerRunningRef.current) return;
+    if (!capabilities.speechRecognition || phaseRef.current !== INTERVIEW_PHASES.LISTENING || !timerRunningRef.current) return;
     if (userInitiated) {
       const allowed = await primeMicrophonePermission();
       if (!allowed) return;
@@ -434,7 +445,7 @@ export default function InterviewPracticePage() {
         answerRef.current = committed;
         setAnswer(committed);
       }
-      if (autoListenRef.current && phaseRef.current === "listening" && timerRunningRef.current) {
+      if (autoListenRef.current && phaseRef.current === INTERVIEW_PHASES.LISTENING && timerRunningRef.current) {
         setMicrophoneStatus("Reconnecting microphone…");
         recognitionRestartRef.current = window.setTimeout(() => { void startDictation(); }, appleMobile ? 180 : 250);
       } else {
@@ -462,10 +473,10 @@ export default function InterviewPracticePage() {
     timerRunningRef.current = true;
     setTimerRunning(true);
     autoListenRef.current = capabilities.speechRecognition;
-    setInterviewPhase("listening");
+    setInterviewPhase(INTERVIEW_PHASES.LISTENING);
     if (capabilities.speechRecognition) {
       window.setTimeout(() => {
-        if (phaseRef.current === "listening" && timerRunningRef.current) void startDictation();
+        if (phaseRef.current === INTERVIEW_PHASES.LISTENING && timerRunningRef.current) void startDictation();
       }, isAppleMobileBrowser() ? 450 : 250);
     }
   }
@@ -476,7 +487,7 @@ export default function InterviewPracticePage() {
     timerRunningRef.current = false;
     setTimerRunning(false);
     setAudioError("");
-    setInterviewPhase("speaking");
+    setInterviewPhase(INTERVIEW_PHASES.ASKING);
 
     if (!capabilities.speechSynthesis || !window.speechSynthesis?.speak) {
       setAudioError("Spoken audio is not available in this browser, so the interview is continuing in text mode.");
@@ -500,7 +511,7 @@ export default function InterviewPracticePage() {
 
   async function continueGreeting(firstSegmentPromise, fallbackPlan, catalogPromise) {
     sequenceBusyRef.current = true;
-    setInterviewPhase("speaking");
+    setInterviewPhase(INTERVIEW_PHASES.GREETING);
     let spoken = await firstSegmentPromise;
 
     if (!spoken && capabilities.speechSynthesis) {
@@ -560,7 +571,7 @@ export default function InterviewPracticePage() {
       setSecondsLeft(responseSeconds);
       setTimerRunning(false);
       setListening(false);
-      setInterviewPhase("speaking");
+      setInterviewPhase(INTERVIEW_PHASES.GREETING);
       setStage("interview");
     });
 
@@ -584,7 +595,7 @@ export default function InterviewPracticePage() {
     stopDictation();
     timerRunningRef.current = false;
     setTimerRunning(false);
-    setInterviewPhase("speaking");
+    setInterviewPhase(INTERVIEW_PHASES.SPEAKING);
     playSoftChime();
     await wait(450);
     await speakSoftText("Okay, that’s time. Thank you.");
@@ -596,7 +607,7 @@ export default function InterviewPracticePage() {
     stopDictation();
     timerRunningRef.current = false;
     setTimerRunning(false);
-    setInterviewPhase("reviewing");
+    setInterviewPhase(INTERVIEW_PHASES.REVIEWING);
     const responseText = String(rawAnswer || "").trim();
     const combinedAnswer = followUpActive ? `${baseAnswer} ${responseText}`.trim() : responseText;
     const nextFeedback = analyzeAnswer(combinedAnswer, {
@@ -638,7 +649,7 @@ export default function InterviewPracticePage() {
     setFollowUpActive(true);
     setFollowUpUsed(true);
     setSecondsLeft(responseSeconds);
-    setInterviewPhase("transition");
+    setInterviewPhase(INTERVIEW_PHASES.TRANSITION);
     window.setTimeout(() => { void speakQuestion(prompt); }, 350);
   }
 
@@ -651,7 +662,7 @@ export default function InterviewPracticePage() {
     setFollowUpUsed(false);
     setSecondsLeft(responseSeconds);
     const prompt = currentQuestion?.text || "";
-    setInterviewPhase("transition");
+    setInterviewPhase(INTERVIEW_PHASES.TRANSITION);
     window.setTimeout(() => { void speakQuestion(prompt); }, 350);
   }
 
@@ -685,7 +696,7 @@ export default function InterviewPracticePage() {
     const prompt = plan.questions[nextIndex]?.text || "";
     setQuestionIndex(nextIndex);
     setSecondsLeft(responseSeconds);
-    setInterviewPhase("transition");
+    setInterviewPhase(INTERVIEW_PHASES.TRANSITION);
     window.setTimeout(() => { void speakQuestion(prompt); }, 350);
   }
 
@@ -718,6 +729,8 @@ export default function InterviewPracticePage() {
     stopDictation();
     window.speechSynthesis?.cancel?.();
     sequenceBusyRef.current = false;
+    phaseRef.current = INTERVIEW_PHASES.IDLE;
+    dispatchConversation({ type: "RESET" });
     setStage("setup");
     setPlan(null);
     setResponses([]);
@@ -730,7 +743,6 @@ export default function InterviewPracticePage() {
     setAudioError("");
     setMicrophoneError("");
     setMicrophoneStatus("");
-    setInterviewPhase("idle");
     scrollInterviewToTop();
   }
 
@@ -781,7 +793,7 @@ export default function InterviewPracticePage() {
       </div>
       <div className="interview-answer-panel">
         <div className="question-box"><div className="question-meta-row"><span>{followUpActive ? "TARGETED FOLLOW-UP" : `QUESTION ${questionIndex + 1}`}</span><strong className={`response-timer ${secondsLeft <= 20 && timerRunning ? "urgent" : ""}`}><Clock3 size={16} /> {formatTime(secondsLeft)}</strong></div><h1>{currentPrompt}</h1>{followUpActive && <small>This follow-up targets the missing part of your previous answer. You do not need to repeat the whole story.</small>}{audioError && <small>{audioError}</small>}</div>
-        {!feedback ? <form onSubmit={submitAnswer} className="answer-form"><label htmlFor="practice-answer">Your answer</label><textarea id="practice-answer" value={answer} onChange={(event) => { answerRef.current = event.target.value; setAnswer(event.target.value); }} rows="9" data-listening={listening ? "true" : "false"} placeholder="Answer naturally. Focus on the exact question, what YOU did, and what changed as a result." /><div className="answer-tools">{capabilities.speechRecognition ? (listening ? <button className="dictation-button active" type="button" onClick={() => stopDictation()}><Mic size={17} /> Stop dictation</button> : <button className="dictation-button" type="button" onClick={() => { autoListenRef.current = true; void startDictation({ userInitiated: true }); }} disabled={interviewPhase !== "listening"}><Mic size={17} /> Speak answer</button>) : <span>Voice dictation is unavailable here — typing still works.</span>}<span>{answer.trim() ? answer.trim().split(/\s+/).length : 0} words</span></div>{capabilities.speechRecognition && <div className={`microphone-status ${microphoneError ? "error" : listening ? "live" : ""}`} aria-live="polite"><Mic size={15} /><span>{microphoneError || microphoneStatus || "Aisha will start listening after she finishes speaking. If your phone blocks auto-listen, tap Speak answer."}</span></div>}<button className="start-interview-button" type="submit" disabled={!answer.trim()}>Review my answer</button></form> : <section ref={feedbackDialogRef} tabIndex="-1" className="answer-feedback-panel" role="dialog" aria-modal="true" aria-label={`Feedback for question ${questionIndex + 1}`}>{feedback.timedOut && <div className="timeout-warning"><Clock3 size={18} /><span>Time expired. This answer was scored as submitted.</span></div>}<div className="feedback-heading"><div><span>ANSWER FEEDBACK</span><h2>{feedback.overallLabel}</h2></div><strong>{feedback.overallScore}/100</strong></div><div className="answer-coaching-grid"><article className="answer-strengths"><span>WHAT WORKED</span>{feedback.strengths.map((item) => <p key={item}>✓ {item}</p>)}</article><article className="answer-improvements"><span>HOW TO IMPROVE</span>{feedback.improvements.map((item) => <p key={item}>→ {item}</p>)}</article></div><div className="feedback-dimensions">{Object.entries(feedback.dimensions).map(([name, value]) => <article key={name}><div><strong>{prettyDimension(name)}</strong><span className={value.label === "Excellent" || value.label === "Strong" ? "strong" : value.label === "Developing" ? "developing" : "needs-detail"}>{value.score}/100 · {value.label}</span></div><p>{value.note}</p><small><b>Improve:</b> {value.improve}</small></article>)}</div>{feedback.followUp && !followUpUsed && <div className="follow-up-card"><span>TARGETED INTERVIEWER FOLLOW-UP</span><p>{feedback.followUp}</p><button type="button" onClick={beginFollowUp}>Answer targeted follow-up</button></div>}<div className="feedback-actions"><button className="secondary-interview-button" type="button" onClick={retryAnswer}>Try this answer again</button><button className="start-interview-button" type="button" onClick={nextQuestion}>{questionIndex + 1 >= plan.questions.length ? "Finish interview" : "Continue"} <ChevronRight size={17} /></button></div></section>}
+        {!feedback ? <form onSubmit={submitAnswer} className="answer-form"><label htmlFor="practice-answer">Your answer</label><textarea id="practice-answer" value={answer} onChange={(event) => { answerRef.current = event.target.value; setAnswer(event.target.value); }} rows="9" data-listening={listening ? "true" : "false"} placeholder="Answer naturally. Focus on the exact question, what YOU did, and what changed as a result." /><div className="answer-tools">{capabilities.speechRecognition ? (listening ? <button className="dictation-button active" type="button" onClick={() => stopDictation()}><Mic size={17} /> Stop dictation</button> : <button className="dictation-button" type="button" onClick={() => { autoListenRef.current = true; void startDictation({ userInitiated: true }); }} disabled={interviewPhase !== INTERVIEW_PHASES.LISTENING}><Mic size={17} /> Speak answer</button>) : <span>Voice dictation is unavailable here — typing still works.</span>}<span>{answer.trim() ? answer.trim().split(/\s+/).length : 0} words</span></div>{capabilities.speechRecognition && <div className={`microphone-status ${microphoneError ? "error" : listening ? "live" : ""}`} aria-live="polite"><Mic size={15} /><span>{microphoneError || microphoneStatus || "Aisha will start listening after she finishes speaking. If your phone blocks auto-listen, tap Speak answer."}</span></div>}<button className="start-interview-button" type="submit" disabled={!answer.trim()}>Review my answer</button></form> : <section ref={feedbackDialogRef} tabIndex="-1" className="answer-feedback-panel" role="dialog" aria-modal="true" aria-label={`Feedback for question ${questionIndex + 1}`}>{feedback.timedOut && <div className="timeout-warning"><Clock3 size={18} /><span>Time expired. This answer was scored as submitted.</span></div>}<div className="feedback-heading"><div><span>ANSWER FEEDBACK</span><h2>{feedback.overallLabel}</h2></div><strong>{feedback.overallScore}/100</strong></div><div className="answer-coaching-grid"><article className="answer-strengths"><span>WHAT WORKED</span>{feedback.strengths.map((item) => <p key={item}>✓ {item}</p>)}</article><article className="answer-improvements"><span>HOW TO IMPROVE</span>{feedback.improvements.map((item) => <p key={item}>→ {item}</p>)}</article></div><div className="feedback-dimensions">{Object.entries(feedback.dimensions).map(([name, value]) => <article key={name}><div><strong>{prettyDimension(name)}</strong><span className={value.label === "Excellent" || value.label === "Strong" ? "strong" : value.label === "Developing" ? "developing" : "needs-detail"}>{value.score}/100 · {value.label}</span></div><p>{value.note}</p><small><b>Improve:</b> {value.improve}</small></article>)}</div>{feedback.followUp && !followUpUsed && <div className="follow-up-card"><span>TARGETED INTERVIEWER FOLLOW-UP</span><p>{feedback.followUp}</p><button type="button" onClick={beginFollowUp}>Answer targeted follow-up</button></div>}<div className="feedback-actions"><button className="secondary-interview-button" type="button" onClick={retryAnswer}>Try this answer again</button><button className="start-interview-button" type="button" onClick={nextQuestion}>{questionIndex + 1 >= plan.questions.length ? "Finish interview" : "Continue"} <ChevronRight size={17} /></button></div></section>}
       </div>
     </section>
   </main>;
