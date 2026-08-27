@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Brandmark from './src/Brandmark';
 import { getAuthErrorMessage, login, logout, restoreSession } from './src/authApi';
 import { colors, navigationTheme, radius, spacing } from './src/theme';
@@ -59,8 +59,12 @@ export default function App() {
   const [user, setUser] = useState(null); const [booting, setBooting] = useState(true);
   useEffect(() => { let live = true; restoreSession().then(u => live && setUser(u)).catch(() => {}).finally(() => live && setBooting(false)); return () => { live = false; }; }, []);
   const signOut = async () => { await logout(); setUser(null); };
-  if (booting) return <SafeAreaView style={styles.boot}><Brandmark size={76} /><ActivityIndicator color={colors.primary} /><Text style={styles.muted}>Opening your BragStack…</Text></SafeAreaView>;
-  return user ? <Tabs user={user} onSignOut={signOut} /> : <Login onSuccess={setUser} />;
+  const content = booting
+    ? <SafeAreaView style={styles.boot}><Brandmark size={76} /><ActivityIndicator color={colors.primary} /><Text style={styles.muted}>Opening your BragStack…</Text></SafeAreaView>
+    : user
+      ? <Tabs user={user} onSignOut={signOut} />
+      : <Login onSuccess={setUser} />;
+  return <SafeAreaProvider>{content}</SafeAreaProvider>;
 }
 
 const styles = StyleSheet.create({
