@@ -29,16 +29,12 @@ SENSITIVE_PACKET_PATHS = [
 
 
 def test_private_packet_builders_and_exports_are_post_only():
-    methods_by_path: dict[str, set[str]] = {}
-    for route in app.routes:
-        path = getattr(route, "path", None)
-        if path in SENSITIVE_PACKET_PATHS:
-            methods_by_path.setdefault(path, set()).update(getattr(route, "methods", set()) or set())
-
-    assert set(methods_by_path) == set(SENSITIVE_PACKET_PATHS)
+    paths = app.openapi()["paths"]
     for path in SENSITIVE_PACKET_PATHS:
-        assert "POST" in methods_by_path[path]
-        assert "GET" not in methods_by_path[path]
+        assert path in paths
+        methods = set(paths[path])
+        assert "post" in methods
+        assert "get" not in methods
 
 
 def test_sensitive_packet_context_is_accepted_in_json_body_not_query(monkeypatch):
@@ -106,7 +102,7 @@ def test_protected_share_code_is_exchanged_for_clean_cookie_grant(monkeypatch):
     }
     shares.insert_one(item)
 
-    monkeypatch.setattr(private_share_routes, "packet_shares_collection", shares)
+    monkeypatch.setattr(private_share_routes.packet_share_routes, "packet_shares_collection", shares)
     monkeypatch.setattr(rate_limit, "rate_limits_collection", rate_limits)
     monkeypatch.setattr(private_share_routes, "SHARE_COOKIE_SECURE", False)
     monkeypatch.setattr(
