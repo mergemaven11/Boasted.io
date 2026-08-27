@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "BragStack",
+    "slug": "bragstack",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "bragstack",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bragstack.app"
+    },
+    "android": {
+      "package": "com.bragstack.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#09090f"
+      }
+    },
+    "extra": {
+      "apiUrl": "${EXPO_PUBLIC_API_URL}"
+    }
+  }
+}
