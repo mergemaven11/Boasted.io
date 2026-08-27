@@ -1,15 +1,29 @@
 export const colors = {
-  background: '#09090f',
-  surface: '#0f172a',
-  surfaceElevated: '#111827',
-  border: 'rgba(148, 163, 184, 0.18)',
-  text: '#f8fafc',
-  muted: '#94a3b8',
-  primary: '#38bdf8',
-  primarySoft: '#bae6fd',
-  violet: '#a855f7',
-  success: '#22c55e',
-  danger: '#f87171',
+  // Authenticated app/admin palette — BragStack Brand Guide
+  background: '#090909',
+  sidebar: '#0B0B0B',
+  surface: '#111111',
+  surfaceElevated: '#121212',
+  border: 'rgba(247, 244, 238, 0.12)',
+  text: '#F7F4EE',
+  muted: '#AAA39A',
+  mutedStrong: '#817A73',
+  primary: '#FFB184',
+  primarySoft: '#FFD2B8',
+  danger: '#FFB0B0',
+
+  // Canonical brand/marketing accents retained for the official logo and
+  // occasional identity moments, not as the authenticated app's main UI color.
+  brandBackground: '#070B14',
+  brandSurface: '#0D1526',
+  brandSurfaceLight: '#131E33',
+  brandText: '#F8FAFC',
+  brandMuted: '#A7B4C9',
+  brandBlue: '#A6DCFF',
+  brandPurple: '#AD91FF',
+  brandCyan: '#69E4F6',
+
+  success: '#86E3B2',
 };
 
 export const spacing = {
@@ -32,9 +46,9 @@ export const navigationTheme = {
   colors: {
     primary: colors.primary,
     background: colors.background,
-    card: colors.surface,
+    card: colors.sidebar,
     text: colors.text,
     border: colors.border,
-    notification: colors.violet,
+    notification: colors.primary,
   },
 };
