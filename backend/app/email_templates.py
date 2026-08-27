@@ -118,6 +118,7 @@ def build_receipt_verification_html(*, owner_name: str, verifier_name: str, acco
     safe_verifier = _safe(verifier_name)
     safe_accomplishment = _safe(accomplishment)
     safe_message = _safe(message)
+    privacy_url = f"{BRAND_URL}/privacy"
     message_block = ""
     if safe_message:
         message_block = f"""
@@ -139,6 +140,7 @@ def build_receipt_verification_html(*, owner_name: str, verifier_name: str, acco
       </table>
       {message_block}
       <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#94a3b8;">Your response records your attestation. BragStack does not independently verify the underlying claim. No BragStack account is required to respond.</p>
+      <p style="margin:12px 0 0;font-size:12px;line-height:1.6;color:#64748b;">{safe_owner} provided your contact details so BragStack could deliver and manage this verification request. Pending request contact data is scheduled for automatic deletion after the request expires; completed responses retain only the minimum attestation details needed for the receipt. See the <a href="{privacy_url}" style="color:#93c5fd;">BragStack Privacy Policy</a>.</p>
     """
     return _shell(
         preheader=f"{owner_name} asked you to review an Impact Receipt on BragStack.",
