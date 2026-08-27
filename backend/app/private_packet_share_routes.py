@@ -153,7 +153,7 @@ def grant_shared_packet_access(token: str, access_code: str = Form(..., min_leng
         httponly=True,
         secure=SHARE_COOKIE_SECURE,
         samesite="lax",
-        path=f"/shared/packets/{token}",
+        path="/shared/packets",
     )
     response.headers["Cache-Control"] = "no-store"
     response.headers["Referrer-Policy"] = "no-referrer"
