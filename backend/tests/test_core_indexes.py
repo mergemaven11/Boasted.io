@@ -10,7 +10,14 @@ def test_core_indexes_are_created_with_expected_shapes():
 
     created = ensure_core_indexes(db)
 
-    assert set(created) == {"users", "entries", "impact_receipts", "resume_documents", "rate_limits"}
+    assert set(created) == {
+        "users",
+        "entries",
+        "impact_receipts",
+        "receipt_verification_requests",
+        "resume_documents",
+        "rate_limits",
+    }
 
     user_indexes = db.users.index_information()
     assert user_indexes["uniq_users_email"]["key"] == [("email", 1)]
@@ -25,6 +32,14 @@ def test_core_indexes_are_created_with_expected_shapes():
     receipt_indexes = db.impact_receipts.index_information()
     assert receipt_indexes["receipts_user_created"]["key"] == [("user_id", 1), ("created_at", -1)]
     assert receipt_indexes["receipts_source_entry"]["key"] == [("source_entry_id", 1)]
+
+    verification_indexes = db.receipt_verification_requests.index_information()
+    assert verification_indexes["uniq_receipt_verification_token"]["key"] == [("token_hash", 1)]
+    assert verification_indexes["uniq_receipt_verification_token"]["unique"] is True
+    assert verification_indexes["uniq_receipt_verification_pending_email"]["key"] == [("receipt_id", 1), ("email", 1)]
+    assert verification_indexes["uniq_receipt_verification_pending_email"]["unique"] is True
+    assert verification_indexes["receipt_verification_ttl"]["key"] == [("expires_at", 1)]
+    assert verification_indexes["receipt_verification_ttl"]["expireAfterSeconds"] == 0
 
     resume_indexes = db.resume_documents.index_information()
     assert resume_indexes["resumes_user_updated"]["key"] == [("user_id", 1), ("updated_at", -1)]
