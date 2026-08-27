@@ -3,7 +3,7 @@ import aishaJordanPhoto from "./assets/aisha-jordan-interviewer.jpg";
 const STATE_COPY = {
   idle: "Ready when you are",
   speaking: "Aisha is speaking",
-  listening: "Listening to you",
+  listening: "Your turn — listening",
   thinking: "Reviewing your answer",
   encouraging: "Follow-up coaching",
 };
@@ -26,9 +26,9 @@ const AVATAR_STYLES = `
   display: block;
   object-fit: cover;
   object-position: center 28%;
-  transform: scale(1.04);
-  transform-origin: 50% 45%;
-  will-change: transform, filter;
+  transform: none;
+  filter: none;
+  image-rendering: auto;
   user-select: none;
   pointer-events: none;
 }
@@ -38,8 +38,34 @@ const AVATAR_STYLES = `
   z-index: 2;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(4,8,18,.02) 45%, rgba(4,8,18,.78) 100%),
-    radial-gradient(circle at 50% 38%, transparent 48%, rgba(4,8,18,.2) 100%);
+    linear-gradient(180deg, rgba(4,8,18,.01) 48%, rgba(4,8,18,.76) 100%),
+    radial-gradient(circle at 50% 38%, transparent 52%, rgba(4,8,18,.16) 100%);
+}
+.aisha-avatar-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: inset 0 0 0 1px rgba(165,180,252,.04);
+  transition: box-shadow .2s ease, border-color .2s ease;
+}
+.aisha-avatar-shell.state-speaking::after {
+  border-color: rgba(196,181,253,.24);
+  box-shadow: inset 0 0 34px rgba(139,92,246,.08);
+}
+.aisha-avatar-shell.state-listening::after {
+  border-color: rgba(110,231,183,.28);
+  box-shadow: inset 0 0 34px rgba(16,185,129,.08);
+}
+.aisha-avatar-shell.state-thinking::after {
+  border-color: rgba(252,211,77,.22);
+  box-shadow: inset 0 0 30px rgba(245,158,11,.06);
+}
+.aisha-avatar-shell.state-encouraging::after {
+  border-color: rgba(249,168,212,.22);
+  box-shadow: inset 0 0 30px rgba(236,72,153,.06);
 }
 .avatar-state-pill {
   position: absolute;
@@ -54,7 +80,7 @@ const AVATAR_STYLES = `
   border: 1px solid rgba(255,255,255,.16);
   border-radius: 999px;
   color: #eef2ff;
-  background: rgba(7,16,31,.72);
+  background: rgba(7,16,31,.78);
   backdrop-filter: blur(9px);
   font-size: clamp(.72rem, 1.7vw, .82rem);
   line-height: 1;
@@ -68,21 +94,8 @@ const AVATAR_STYLES = `
   background: #a5b4fc;
   box-shadow: 0 0 0 4px rgba(165,180,252,.12);
 }
-.aisha-avatar-shell.state-speaking .aisha-photo-avatar {
-  animation: aishaSpeaking 1.6s ease-in-out infinite;
-}
-.aisha-avatar-shell.state-listening .aisha-photo-avatar {
-  animation: aishaListening 2.6s ease-in-out infinite;
-}
-.aisha-avatar-shell.state-thinking .aisha-photo-avatar {
-  animation: aishaThinking 2.2s ease-in-out infinite;
-  filter: saturate(.96) brightness(.96);
-}
-.aisha-avatar-shell.state-encouraging .aisha-photo-avatar {
-  animation: aishaEncouraging 1.9s ease-in-out infinite;
-}
 .aisha-avatar-shell.state-speaking .avatar-state-dot {
-  animation: aishaPulse .85s ease-in-out infinite;
+  animation: aishaPulse .9s ease-in-out infinite;
   background: #c4b5fd;
 }
 .aisha-avatar-shell.state-listening .avatar-state-dot {
@@ -92,23 +105,6 @@ const AVATAR_STYLES = `
 }
 .aisha-avatar-shell.state-thinking .avatar-state-dot { background: #fcd34d; }
 .aisha-avatar-shell.state-encouraging .avatar-state-dot { background: #f9a8d4; }
-@keyframes aishaSpeaking {
-  0%,100% { transform: scale(1.045) translate3d(0,0,0) rotate(0deg); }
-  30% { transform: scale(1.065) translate3d(.25%, -.35%, 0) rotate(.18deg); }
-  60% { transform: scale(1.055) translate3d(-.2%, .2%, 0) rotate(-.14deg); }
-}
-@keyframes aishaListening {
-  0%,100% { transform: scale(1.045) translate3d(0,0,0); }
-  50% { transform: scale(1.06) translate3d(-.35%, -.25%, 0); }
-}
-@keyframes aishaThinking {
-  0%,100% { transform: scale(1.045) translate3d(0,0,0); }
-  50% { transform: scale(1.055) translate3d(.45%, -.15%, 0); }
-}
-@keyframes aishaEncouraging {
-  0%,100% { transform: scale(1.045) translate3d(0,0,0) rotate(0deg); }
-  50% { transform: scale(1.065) translate3d(0,-.35%,0) rotate(.22deg); }
-}
 @keyframes aishaPulse {
   0%,100% { transform: scale(.9); opacity: .78; }
   50% { transform: scale(1.22); opacity: 1; }
@@ -117,13 +113,15 @@ const AVATAR_STYLES = `
   .aisha-photo-avatar { object-position: center 25%; }
 }
 @media (max-width: 620px) {
-  .aisha-photo-avatar { object-position: center 22%; transform: scale(1.08); }
+  .aisha-photo-avatar { object-position: center 22%; }
   .avatar-state-pill { left: 10px; top: 10px; max-width: calc(100% - 20px); padding: 7px 9px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .aisha-avatar-shell .aisha-photo-avatar,
   .aisha-avatar-shell .avatar-state-dot {
     animation: none !important;
+    transition: none !important;
+  }
+  .aisha-avatar-shell::after {
     transition: none !important;
   }
 }
@@ -132,12 +130,12 @@ const AVATAR_STYLES = `
 export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aisha Jordan" }) {
   const safeState = STATE_COPY[state] ? state : "idle";
   return (
-    <div className={`aisha-avatar-shell state-${safeState}`} data-aisha-state={safeState} data-avatar-engine="bragstack-photo-v2">
+    <div className={`aisha-avatar-shell state-${safeState}`} data-aisha-state={safeState} data-avatar-engine="bragstack-photo-v3-stable">
       <style>{AVATAR_STYLES}</style>
       <img className="aisha-photo-avatar" src={aishaJordanPhoto} alt={`${name}, BragStack virtual interviewer`} draggable="false" />
       <div className="aisha-photo-vignette" aria-hidden="true" />
       <div className={`avatar-state-pill state-${safeState}`} aria-live="polite">
-        <span className="avatar-state-dot" />
+        <span className="avatar-state-dot" aria-hidden="true" />
         <strong>{STATE_COPY[safeState]}</strong>
       </div>
     </div>
