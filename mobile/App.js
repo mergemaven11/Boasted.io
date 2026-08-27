@@ -13,6 +13,11 @@ import { colors, navigationTheme, radius } from './src/theme';
 const Tab = createBottomTabNavigator();
 const icons = { Home: '⌂', Proof: '✓', Add: '+', Profile: '◉', Settings: '⚙' };
 
+function responsiveWidth(width, maxWidth) {
+  const gutter = width < 390 ? 14 : width < 768 ? 20 : 32;
+  return Math.max(280, Math.min(width - (gutter * 2), maxWidth));
+}
+
 function GoogleMark() {
   return <Svg width={20} height={20} viewBox="0 0 24 24" aria-hidden="true"><Path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.4-.18-2.07H12v3.91h5.39a4.61 4.61 0 0 1-2 3.02v2.54h3.23c1.89-1.74 2.98-4.31 2.98-7.4Z"/><Path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.43l-3.23-2.54c-.9.6-2.05.96-3.39.96-2.6 0-4.81-1.76-5.6-4.13H3.06v2.61A10 10 0 0 0 12 22Z"/><Path fill="#FBBC05" d="M6.4 13.86A6.01 6.01 0 0 1 6.09 12c0-.65.11-1.28.31-1.86V7.53H3.06A10 10 0 0 0 2 12c0 1.61.38 3.14 1.06 4.47l3.34-2.61Z"/><Path fill="#EA4335" d="M12 6.01c1.47 0 2.79.5 3.83 1.5l2.87-2.87A9.62 9.62 0 0 0 12 2a10 10 0 0 0-8.94 5.53l3.34 2.61c.79-2.37 3-4.13 5.6-4.13Z"/></Svg>;
 }
@@ -22,12 +27,14 @@ function GitHubMark() {
 }
 
 function Brand({ small = false }) {
-  return <View style={styles.brand}><Brandmark size={small ? 34 : 58} /><View><Text style={[styles.brandName, small && styles.brandSmall]}>BragStack</Text>{!small && <Text style={styles.muted}>Proof of the impact you create.</Text>}</View></View>;
+  return <View style={styles.brand}><Brandmark size={small ? 34 : 58} /><View style={styles.brandCopy}><Text style={[styles.brandName, small && styles.brandSmall]}>BragStack</Text>{!small && <Text style={styles.muted}>Proof of the impact you create.</Text>}</View></View>;
 }
 
 function Login({ onSuccess }) {
   const { width, height } = useWindowDimensions();
   const compact = height < 760 || width < 390;
+  const tablet = width >= 768;
+  const shellWidth = responsiveWidth(width, tablet ? 560 : 480);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -47,11 +54,13 @@ function Login({ onSuccess }) {
     if (Platform.OS === 'web' && typeof window !== 'undefined') window.location.assign(url);
     else await Linking.openURL(url);
   };
-  return <SafeAreaView style={styles.safe}><StatusBar style="light" /><View pointerEvents="none" style={styles.orbBlue}/><View pointerEvents="none" style={styles.orbPurple}/><ScrollView style={styles.loginScroll} contentContainerStyle={[styles.loginPage, compact && styles.loginPageCompact]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentInsetAdjustmentBehavior="automatic"><View style={[styles.loginShell, compact && styles.loginShellCompact]}><View style={styles.brandHeader}><Brand /><View style={styles.signalPill}><Text style={styles.signalDot}>●</Text><Text style={styles.signalText}>PRIVATE CAREER PROOF</Text></View></View><View style={[styles.card, styles.loginCard, compact && styles.loginCardCompact]}><Text style={styles.kicker}>WELCOME BACK</Text><Text style={[styles.loginTitle, compact && styles.loginTitleCompact]}>Your proof is ready when you are.</Text><Text style={styles.muted}>Open your private workspace and keep building evidence that travels with your career.</Text><Text style={styles.label}>EMAIL</Text><TextInput value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" placeholderTextColor={colors.mutedStrong} style={[styles.input, compact && styles.inputCompact]} /><Text style={styles.label}>PASSWORD</Text><TextInput value={password} onChangeText={setPassword} secureTextEntry placeholder="Your password" placeholderTextColor={colors.mutedStrong} style={[styles.input, compact && styles.inputCompact]} onSubmitEditing={submit} />{error ? <Text style={styles.error}>{error}</Text> : null}<Pressable onPress={submit} disabled={busy || !email.trim() || !password} style={[styles.button, compact && styles.controlCompact, (busy || !email.trim() || !password) && styles.disabled]}>{busy ? <ActivityIndicator color={colors.background} /> : <Text style={styles.buttonText}>Sign in to BragStack</Text>}</Pressable><View style={styles.divider}><View style={styles.dividerLine}/><Text style={styles.dividerText}>OR CONTINUE WITH</Text><View style={styles.dividerLine}/></View><View style={styles.socialStack}><Pressable accessibilityRole="button" accessibilityLabel="Continue with Google" onPress={() => startOAuth('google')} style={[styles.socialButton, styles.googleButton, compact && styles.controlCompact]}><GoogleMark/><Text style={styles.googleText}>Continue with Google</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="Continue with GitHub" onPress={() => startOAuth('github')} style={[styles.socialButton, styles.githubButton, compact && styles.controlCompact]}><GitHubMark/><Text style={styles.githubText}>Continue with GitHub</Text></Pressable></View><View style={styles.securityRow}><Text style={styles.securityIcon}>⌁</Text><Text style={styles.note}>Your session stays on this device.</Text></View></View></View></ScrollView></SafeAreaView>;
+  return <SafeAreaView style={styles.safe}><StatusBar style="light" /><View pointerEvents="none" style={styles.orbBlue}/><View pointerEvents="none" style={styles.orbPurple}/><ScrollView style={styles.loginScroll} contentContainerStyle={[styles.loginPage, compact && styles.loginPageCompact, tablet && styles.loginPageTablet]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentInsetAdjustmentBehavior="automatic"><View style={[styles.loginShell, { width: shellWidth }, compact && styles.loginShellCompact]}><View style={styles.brandHeader}><Brand /><View style={styles.signalPill}><Text style={styles.signalDot}>●</Text><Text style={styles.signalText}>PRIVATE CAREER PROOF</Text></View></View><View style={[styles.card, styles.loginCard, compact && styles.loginCardCompact, tablet && styles.loginCardTablet]}><Text style={styles.kicker}>WELCOME BACK</Text><Text style={[styles.loginTitle, compact && styles.loginTitleCompact]}>Your proof is ready when you are.</Text><Text style={styles.muted}>Open your private workspace and keep building evidence that travels with your career.</Text><Text style={styles.label}>EMAIL</Text><TextInput value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" placeholderTextColor={colors.mutedStrong} style={[styles.input, compact && styles.inputCompact]} /><Text style={styles.label}>PASSWORD</Text><TextInput value={password} onChangeText={setPassword} secureTextEntry placeholder="Your password" placeholderTextColor={colors.mutedStrong} style={[styles.input, compact && styles.inputCompact]} onSubmitEditing={submit} />{error ? <Text style={styles.error}>{error}</Text> : null}<Pressable onPress={submit} disabled={busy || !email.trim() || !password} style={[styles.button, compact && styles.controlCompact, (busy || !email.trim() || !password) && styles.disabled]}>{busy ? <ActivityIndicator color={colors.background} /> : <Text style={styles.buttonText}>Sign in to BragStack</Text>}</Pressable><View style={styles.divider}><View style={styles.dividerLine}/><Text style={styles.dividerText}>OR CONTINUE WITH</Text><View style={styles.dividerLine}/></View><View style={styles.socialStack}><Pressable accessibilityRole="button" accessibilityLabel="Continue with Google" onPress={() => startOAuth('google')} style={[styles.socialButton, styles.googleButton, compact && styles.controlCompact]}><GoogleMark/><Text style={styles.googleText}>Continue with Google</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="Continue with GitHub" onPress={() => startOAuth('github')} style={[styles.socialButton, styles.githubButton, compact && styles.controlCompact]}><GitHubMark/><Text style={styles.githubText}>Continue with GitHub</Text></Pressable></View><View style={styles.securityRow}><Text style={styles.securityIcon}>⌁</Text><Text style={styles.note}>Your session stays on this device.</Text></View></View></View></ScrollView></SafeAreaView>;
 }
 
 function Page({ kicker, title, children }) {
-  return <SafeAreaView style={styles.safe} edges={['top']}><ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}><Brand small /><Text style={styles.kicker}>{kicker}</Text><Text style={styles.title}>{title}</Text>{children}</ScrollView></SafeAreaView>;
+  const { width } = useWindowDimensions();
+  const pageWidth = responsiveWidth(width, width >= 768 ? 760 : 640);
+  return <SafeAreaView style={styles.safe} edges={['top']}><ScrollView contentContainerStyle={styles.pageFrame} showsVerticalScrollIndicator={false}><View style={[styles.page, { width: pageWidth }]}><Brand small /><Text style={styles.kicker}>{kicker}</Text><Text style={styles.title}>{title}</Text>{children}</View></ScrollView></SafeAreaView>;
 }
 
 function Pill({ children }) { return <View style={styles.pill}><Text style={styles.pillText}>{children}</Text></View>; }
@@ -91,9 +100,10 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   boot: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', gap: 20 },
   loginScroll: { flex: 1 },
-  loginPage: { flexGrow: 1, alignItems: 'center', paddingHorizontal: 20, paddingTop: 44, paddingBottom: 48 },
-  loginPageCompact: { paddingHorizontal: 14, paddingTop: 18, paddingBottom: 32 },
-  loginShell: { width: '100%', maxWidth: 480, gap: 24 },
+  loginPage: { flexGrow: 1, alignItems: 'center', paddingTop: 44, paddingBottom: 48 },
+  loginPageCompact: { paddingTop: 18, paddingBottom: 32 },
+  loginPageTablet: { justifyContent: 'center', paddingTop: 56, paddingBottom: 56 },
+  loginShell: { gap: 24, alignSelf: 'center' },
   loginShellCompact: { gap: 16 },
   brandHeader: { gap: 14, zIndex: 2 },
   signalPill: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: 'rgba(105,228,246,0.08)', borderWidth: 1, borderColor: 'rgba(105,228,246,0.20)' },
@@ -101,8 +111,10 @@ const styles = StyleSheet.create({
   signalText: { color: colors.cyan, fontSize: 9, fontWeight: '900', letterSpacing: 1.4 },
   orbBlue: { position: 'absolute', width: 250, height: 250, borderRadius: 125, backgroundColor: 'rgba(166,220,255,0.08)', top: -90, right: -100 },
   orbPurple: { position: 'absolute', width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(173,145,255,0.08)', bottom: -90, left: -100 },
-  page: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 110, gap: 16 },
-  brand: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  pageFrame: { flexGrow: 1, alignItems: 'center', paddingBottom: 110 },
+  page: { paddingTop: 16, gap: 16 },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 14, minWidth: 0 },
+  brandCopy: { flexShrink: 1, minWidth: 0 },
   brandName: { color: colors.text, fontSize: 28, fontWeight: '900' },
   brandSmall: { fontSize: 20 },
   kicker: { color: colors.primary, fontSize: 11, fontWeight: '900', letterSpacing: 2 },
@@ -113,6 +125,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: 20, gap: 12 },
   loginCard: { backgroundColor: 'rgba(13,21,38,0.94)', borderColor: 'rgba(173,145,255,0.26)', padding: 22, gap: 13, shadowColor: '#000000', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.28, shadowRadius: 30, elevation: 12 },
   loginCardCompact: { padding: 17, gap: 10, borderRadius: 22 },
+  loginCardTablet: { padding: 28, gap: 15 },
   label: { color: colors.muted, fontSize: 10, fontWeight: '900', letterSpacing: 1.5, marginTop: 5 },
   input: { minHeight: 54, backgroundColor: 'rgba(19,30,51,0.92)', borderWidth: 1, borderColor: 'rgba(166,220,255,0.14)', borderRadius: 16, color: colors.text, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15 },
   inputCompact: { minHeight: 48, paddingVertical: 11 },
