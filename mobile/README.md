@@ -2,6 +2,8 @@
 
 Cross-platform iOS and Android client for BragStack, built with React Native and Expo.
 
+> **Status:** active pre-release development. The app is not yet publicly available in the Apple App Store or Google Play.
+
 ## Run locally
 
 ```bash
@@ -28,15 +30,27 @@ For a physical device, set `EXPO_PUBLIC_API_URL` to an address the device can re
 
 ## Auth behavior
 
-BragStack's backend requires verified email before login. The mobile client surfaces backend auth errors directly, stores successful JWT sessions securely, restores sessions on launch, and clears expired or invalid sessions.
+BragStack's backend requires verified email before password login. The mobile client surfaces backend auth errors directly, stores successful JWT sessions securely, restores sessions on launch, and clears expired or invalid sessions.
 
-Registration, email verification, password reset, and account deletion UX remain tracked store-readiness work. The existing backend already exposes registration, verification, password-reset, profile, and session APIs.
+Registration, email verification, password reset, recovery deep links, and account deletion UX remain required store-readiness work. The existing backend already exposes the relevant account/session APIs.
+
+## Data status
+
+Authentication is connected to the real backend. Some product screens still use preview proof data while live accomplishment and Impact Receipt reads/writes are completed. Customer-facing documentation must distinguish preview behavior from persisted production behavior.
 
 ## Next implementation slices
 
-1. Connect Impact Receipts to live API data.
-2. Add registration, verification, and reset flows appropriate for mobile.
+1. Connect Impact Receipts and accomplishments to live API data.
+2. Add registration, verification, reset, and recovery flows appropriate for mobile.
 3. Implement quick-add persistence, validation, and editing.
 4. Add public-profile controls and deep links.
 5. Add accessibility, offline/error states, automated tests, and release QA.
-6. Complete App Store / Google Play metadata, privacy disclosures, screenshots, signing, and internal testing.
+6. Complete App Store / Google Play metadata, privacy disclosures, screenshots, signing, internal testing, and mobile CI.
+
+## Documentation
+
+- `../docs/MOBILE_APP.md` — architecture, auth, brand, privacy, and store-readiness gates
+- `../docs/MOBILE_CUSTOMER_GUIDE.md` — customer-facing mobile guidance source
+- `../docs/ROADMAP.md` — phased delivery plan and success criteria
+- issue #200 — mobile program epic
+- PR #201 — initial mobile foundation
