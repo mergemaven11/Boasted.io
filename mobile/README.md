@@ -14,38 +14,58 @@ EXPO_PUBLIC_API_URL=http://localhost:8000 npm start
 
 For a physical device, set `EXPO_PUBLIC_API_URL` to an address the device can reach rather than `localhost`.
 
-## Foundation included
+Preview and production EAS profiles are configured to use the BragStack production API at `https://bragstack-api-bxf3.onrender.com`.
 
-- Official BragStack vector brandmark based on `frontend/public/brandmark.svg`
-- Official authenticated-app palette from the BragStack Brand Guide: `#090909`, `#F7F4EE`, and `#FFB184`
+## Current implementation
+
+- React Native / Expo app for iOS and Android
+- Official BragStack vector brandmark and authenticated-app theme
+- Responsive phone/tablet layout with safe-area handling
 - Home, Proof, Add, Profile, and Settings navigation
-- Real sign-in through `/auth/login`
+- Real password sign-in through `/auth/login`
+- In-app account registration through `/auth/register`
+- Verification-email resend support
+- Password-reset request support
 - Encrypted access-token storage through Expo SecureStore
 - Session restore through `/auth/me`
 - Sign out that clears the local token
-- Axios API client for the existing FastAPI backend
-- Interactive private-by-default Impact Receipt preview
+- Live accomplishments and Impact Receipts loaded from the production APIs
+- Pull-to-refresh, loading, empty, retry/error presentation
+- Real private-by-default accomplishment capture through `/entries`
+- Profile editing through `/auth/me/profile`
 - EAS preview and production build profiles
+- Mobile CI with Expo Doctor, unit/coverage tests, and bundle export smoke testing
 - No unnecessary native permissions
 
-## Auth behavior
+## Authentication behavior
 
-BragStack's backend requires verified email before password login. The mobile client surfaces backend auth errors directly, stores successful JWT sessions securely, restores sessions on launch, and clears expired or invalid sessions.
+BragStack Mobile shares the same identity system as the web app. Password login requires a verified email. Registration and reset requests use the existing BragStack email flows.
 
-Registration, email verification, password reset, recovery deep links, and account deletion UX remain required store-readiness work. The existing backend already exposes the relevant account/session APIs.
+Verification and password-reset emails currently finish in the BragStack web experience. Native deep-link completion remains a release-hardening task.
 
-## Data status
+Google and GitHub sign-in are intentionally not exposed in the native app yet. The current backend OAuth callback returns to the web app, and an iOS release that exposes third-party social login must also satisfy Apple's sign-in requirements. Web preview may continue to expose those providers.
 
-Authentication is connected to the real backend. Some product screens still use preview proof data while live accomplishment and Impact Receipt reads/writes are completed. Customer-facing documentation must distinguish preview behavior from persisted production behavior.
+## Data behavior
 
-## Next implementation slices
+Home and Proof use live authenticated BragStack data. Quick Capture writes a real accomplishment to the signed-in account and always creates it as private. The capture form requires context, contribution, and impact instead of inventing missing career evidence.
 
-1. Connect Impact Receipts and accomplishments to live API data.
-2. Add registration, verification, reset, and recovery flows appropriate for mobile.
-3. Implement quick-add persistence, validation, and editing.
-4. Add public-profile controls and deep links.
-5. Add accessibility, offline/error states, automated tests, and release QA.
-6. Complete App Store / Google Play metadata, privacy disclosures, screenshots, signing, internal testing, and mobile CI.
+Impact Receipts are read live. Full receipt creation/editing, evidence attachment, and verification workflows remain later mobile slices.
+
+## Public-store blockers
+
+Do not call the app store-ready until these gates are complete:
+
+- in-app account deletion and end-to-end deletion verification
+- native verification/reset deep links or an explicitly validated web-return flow
+- full accessibility and dynamic-text review
+- app icon, splash, screenshots, store copy, and support metadata
+- Apple privacy disclosures / required-reason review
+- Google Play Data safety disclosure
+- iOS signing and TestFlight validation
+- Android signing and Play internal testing
+- device/OS compatibility matrix and release QA
+- security review of tokens, deep links, logs, analytics, and evidence handling
+- native social sign-in only after the callback flow and Apple requirements are satisfied
 
 ## Documentation
 
@@ -53,4 +73,4 @@ Authentication is connected to the real backend. Some product screens still use 
 - `../docs/MOBILE_CUSTOMER_GUIDE.md` — customer-facing mobile guidance source
 - `../docs/ROADMAP.md` — phased delivery plan and success criteria
 - issue #200 — mobile program epic
-- PR #201 — initial mobile foundation
+- PR #201 — mobile foundation and store-readiness work
