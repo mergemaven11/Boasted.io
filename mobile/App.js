@@ -6,12 +6,12 @@ import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import Brandmark from './src/Brandmark';
+import { apiBaseURL } from './src/api';
 import { getAuthErrorMessage, login, logout, restoreSession } from './src/authApi';
 import { colors, navigationTheme, radius } from './src/theme';
 
 const Tab = createBottomTabNavigator();
 const icons = { Home: '⌂', Proof: '✓', Add: '+', Profile: '◉', Settings: '⚙' };
-const oauthBaseUrl = (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 
 function GoogleMark() {
   return <Svg width={20} height={20} viewBox="0 0 24 24" aria-hidden="true"><Path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.4-.18-2.07H12v3.91h5.39a4.61 4.61 0 0 1-2 3.02v2.54h3.23c1.89-1.74 2.98-4.31 2.98-7.4Z"/><Path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.43l-3.23-2.54c-.9.6-2.05.96-3.39.96-2.6 0-4.81-1.76-5.6-4.13H3.06v2.61A10 10 0 0 0 12 22Z"/><Path fill="#FBBC05" d="M6.4 13.86A6.01 6.01 0 0 1 6.09 12c0-.65.11-1.28.31-1.86V7.53H3.06A10 10 0 0 0 2 12c0 1.61.38 3.14 1.06 4.47l3.34-2.61Z"/><Path fill="#EA4335" d="M12 6.01c1.47 0 2.79.5 3.83 1.5l2.87-2.87A9.62 9.62 0 0 0 12 2a10 10 0 0 0-8.94 5.53l3.34 2.61c.79-2.37 3-4.13 5.6-4.13Z"/></Svg>;
@@ -38,11 +38,14 @@ function Login({ onSuccess }) {
     finally { setBusy(false); }
   };
   const startOAuth = async (provider) => {
-    const url = `${oauthBaseUrl}/auth/${provider}/login`;
+    const returnTo = Platform.OS === 'web' && typeof window !== 'undefined'
+      ? window.location.origin
+      : 'bragstack://oauth';
+    const url = `${apiBaseURL}/auth/${provider}/login?return_to=${encodeURIComponent(returnTo)}`;
     if (Platform.OS === 'web' && typeof window !== 'undefined') window.location.assign(url);
     else await Linking.openURL(url);
   };
-  return <SafeAreaView style={styles.safe}><StatusBar style="light" /><ScrollView contentContainerStyle={styles.loginPage} keyboardShouldPersistTaps="handled"><Brand /><View style={styles.card}><Text style={styles.kicker}>WELCOME BACK</Text><Text style={styles.loginTitle}>Your proof is waiting.</Text><Text style={styles.muted}>Sign in with your existing BragStack account.</Text><Text style={styles.label}>EMAIL</Text><TextInput value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" placeholderTextColor={colors.mutedStrong} style={styles.input} /><Text style={styles.label}>PASSWORD</Text><TextInput value={password} onChangeText={setPassword} secureTextEntry placeholder="Your password" placeholderTextColor={colors.mutedStrong} style={styles.input} onSubmitEditing={submit} />{error ? <Text style={styles.error}>{error}</Text> : null}<Pressable onPress={submit} disabled={busy || !email.trim() || !password} style={[styles.button, (busy || !email.trim() || !password) && styles.disabled]}>{busy ? <ActivityIndicator color={colors.background} /> : <Text style={styles.buttonText}>Sign in</Text>}</Pressable><View style={styles.divider}><View style={styles.dividerLine}/><Text style={styles.dividerText}>OR CONTINUE WITH</Text><View style={styles.dividerLine}/></View><View style={styles.socialStack}><Pressable accessibilityRole="button" accessibilityLabel="Continue with Google" onPress={() => startOAuth('google')} style={[styles.socialButton, styles.googleButton]}><GoogleMark/><Text style={styles.googleText}>Continue with Google</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="Continue with GitHub" onPress={() => startOAuth('github')} style={[styles.socialButton, styles.githubButton]}><GitHubMark/><Text style={styles.githubText}>Continue with GitHub</Text></Pressable></View><Text style={styles.note}>🔒 Session tokens are kept in encrypted device storage.</Text></View></ScrollView></SafeAreaView>;
+  return <SafeAreaView style={styles.safe}><StatusBar style="light" /><View pointerEvents="none" style={styles.orbBlue}/><View pointerEvents="none" style={styles.orbPurple}/><ScrollView contentContainerStyle={styles.loginPage} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}><View style={styles.brandHeader}><Brand /><View style={styles.signalPill}><Text style={styles.signalDot}>●</Text><Text style={styles.signalText}>PRIVATE CAREER PROOF</Text></View></View><View style={[styles.card, styles.loginCard]}><Text style={styles.kicker}>WELCOME BACK</Text><Text style={styles.loginTitle}>Your proof is ready when you are.</Text><Text style={styles.muted}>Open your private workspace and keep building evidence that travels with your career.</Text><Text style={styles.label}>EMAIL</Text><TextInput value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" placeholderTextColor={colors.mutedStrong} style={styles.input} /><Text style={styles.label}>PASSWORD</Text><TextInput value={password} onChangeText={setPassword} secureTextEntry placeholder="Your password" placeholderTextColor={colors.mutedStrong} style={styles.input} onSubmitEditing={submit} />{error ? <Text style={styles.error}>{error}</Text> : null}<Pressable onPress={submit} disabled={busy || !email.trim() || !password} style={[styles.button, (busy || !email.trim() || !password) && styles.disabled]}>{busy ? <ActivityIndicator color={colors.background} /> : <Text style={styles.buttonText}>Sign in to BragStack</Text>}</Pressable><View style={styles.divider}><View style={styles.dividerLine}/><Text style={styles.dividerText}>OR CONTINUE WITH</Text><View style={styles.dividerLine}/></View><View style={styles.socialStack}><Pressable accessibilityRole="button" accessibilityLabel="Continue with Google" onPress={() => startOAuth('google')} style={[styles.socialButton, styles.googleButton]}><GoogleMark/><Text style={styles.googleText}>Continue with Google</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="Continue with GitHub" onPress={() => startOAuth('github')} style={[styles.socialButton, styles.githubButton]}><GitHubMark/><Text style={styles.githubText}>Continue with GitHub</Text></Pressable></View><View style={styles.securityRow}><Text style={styles.securityIcon}>⌁</Text><Text style={styles.note}>Your session stays on this device.</Text></View></View></ScrollView></SafeAreaView>;
 }
 
 function Page({ kicker, title, children }) {
@@ -83,5 +86,63 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background }, boot: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', gap: 20 }, loginPage: { flexGrow: 1, justifyContent: 'center', padding: 24, gap: 30 }, page: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 110, gap: 16 }, brand: { flexDirection: 'row', alignItems: 'center', gap: 14 }, brandName: { color: colors.text, fontSize: 28, fontWeight: '900' }, brandSmall: { fontSize: 20 }, kicker: { color: colors.primary, fontSize: 11, fontWeight: '900', letterSpacing: 2 }, title: { color: colors.text, fontSize: 36, lineHeight: 40, fontWeight: '900' }, loginTitle: { color: colors.text, fontSize: 31, fontWeight: '900' }, muted: { color: colors.muted, fontSize: 14, lineHeight: 21 }, card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: 20, gap: 12 }, label: { color: colors.muted, fontSize: 10, fontWeight: '900', letterSpacing: 1.5, marginTop: 5 }, input: { minHeight: 52, backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, color: colors.text, padding: 14, fontSize: 15 }, tall: { minHeight: 85, textAlignVertical: 'top' }, button: { minHeight: 52, borderRadius: radius.pill, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }, disabled: { opacity: 0.4 }, buttonText: { color: colors.background, fontWeight: '900' }, note: { color: colors.mutedStrong, fontSize: 11, textAlign: 'center' }, error: { color: colors.danger, fontSize: 13 }, divider: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 2 }, dividerLine: { flex: 1, height: 1, backgroundColor: colors.border }, dividerText: { color: colors.mutedStrong, fontSize: 9, fontWeight: '900', letterSpacing: 1.2 }, socialStack: { gap: 10 }, socialButton: { minHeight: 50, borderRadius: radius.pill, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }, googleButton: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DADCE0' }, googleText: { color: '#202124', fontWeight: '800' }, githubButton: { backgroundColor: '#24292F', borderWidth: 1, borderColor: '#57606A' }, githubText: { color: '#FFFFFF', fontWeight: '800' }, hero: { backgroundColor: colors.surface, borderWidth: 1, borderColor: 'rgba(166,220,255,0.28)', borderRadius: radius.lg, padding: 20, gap: 10 }, heroLabel: { color: colors.primary, fontWeight: '900', fontSize: 10, letterSpacing: 1.8 }, heroTitle: { color: colors.text, fontSize: 24, lineHeight: 29, fontWeight: '900' }, metrics: { flexDirection: 'row', gap: 8, marginTop: 8 }, metric: { flex: 1, backgroundColor: colors.surfaceElevated, borderRadius: radius.md, padding: 10 }, metricNum: { color: colors.primary, fontSize: 22, fontWeight: '900' }, metricText: { color: colors.muted, fontSize: 10 }, action: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.surfaceElevated, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: 16 }, plus: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.primary, color: colors.background, textAlign: 'center', textAlignVertical: 'center', fontSize: 28 }, arrow: { color: colors.primary, fontSize: 30 }, cardTitle: { color: colors.text, fontSize: 17, fontWeight: '900' }, row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, pill: { borderRadius: radius.pill, borderWidth: 1, borderColor: 'rgba(166,220,255,0.28)', backgroundColor: 'rgba(166,220,255,0.10)', paddingHorizontal: 10, paddingVertical: 6 }, pillText: { color: colors.text, fontSize: 10, fontWeight: '900' }, private: { color: colors.mutedStrong, fontSize: 11 }, profileName: { color: colors.text, fontSize: 20, fontWeight: '900' }, signout: { minHeight: 52, borderRadius: radius.pill, borderWidth: 1, borderColor: 'rgba(255,176,176,0.3)', alignItems: 'center', justifyContent: 'center' }, signoutText: { color: colors.danger, fontWeight: '900' }, tabBar: { backgroundColor: colors.sidebar, borderTopColor: colors.border, height: 78, paddingTop: 8, paddingBottom: 10 }, tabLabel: { fontSize: 10, fontWeight: '800' }, tabIcon: { fontSize: 18, fontWeight: '800' }
+  safe: { flex: 1, backgroundColor: colors.background },
+  boot: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', gap: 20 },
+  loginPage: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 30, gap: 24 },
+  brandHeader: { gap: 14, zIndex: 2 },
+  signalPill: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: 'rgba(105,228,246,0.08)', borderWidth: 1, borderColor: 'rgba(105,228,246,0.20)' },
+  signalDot: { color: colors.cyan, fontSize: 9 },
+  signalText: { color: colors.cyan, fontSize: 9, fontWeight: '900', letterSpacing: 1.4 },
+  orbBlue: { position: 'absolute', width: 250, height: 250, borderRadius: 125, backgroundColor: 'rgba(166,220,255,0.08)', top: -90, right: -100 },
+  orbPurple: { position: 'absolute', width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(173,145,255,0.08)', bottom: -90, left: -100 },
+  page: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 110, gap: 16 },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  brandName: { color: colors.text, fontSize: 28, fontWeight: '900' },
+  brandSmall: { fontSize: 20 },
+  kicker: { color: colors.primary, fontSize: 11, fontWeight: '900', letterSpacing: 2 },
+  title: { color: colors.text, fontSize: 36, lineHeight: 40, fontWeight: '900' },
+  loginTitle: { color: colors.text, fontSize: 32, lineHeight: 37, fontWeight: '900', letterSpacing: -0.8 },
+  muted: { color: colors.muted, fontSize: 14, lineHeight: 21 },
+  card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: 20, gap: 12 },
+  loginCard: { backgroundColor: 'rgba(13,21,38,0.94)', borderColor: 'rgba(173,145,255,0.26)', padding: 22, gap: 13, shadowColor: '#000000', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.28, shadowRadius: 30, elevation: 12 },
+  label: { color: colors.muted, fontSize: 10, fontWeight: '900', letterSpacing: 1.5, marginTop: 5 },
+  input: { minHeight: 54, backgroundColor: 'rgba(19,30,51,0.92)', borderWidth: 1, borderColor: 'rgba(166,220,255,0.14)', borderRadius: 16, color: colors.text, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15 },
+  tall: { minHeight: 85, textAlignVertical: 'top' },
+  button: { minHeight: 54, borderRadius: radius.pill, backgroundColor: colors.primary, borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)', alignItems: 'center', justifyContent: 'center', shadowColor: colors.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.18, shadowRadius: 16, elevation: 5 },
+  disabled: { opacity: 0.4 },
+  buttonText: { color: colors.background, fontWeight: '900', letterSpacing: 0.1 },
+  note: { color: colors.mutedStrong, fontSize: 11, textAlign: 'center' },
+  securityRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 2 },
+  securityIcon: { color: colors.cyan, fontSize: 15 },
+  error: { color: colors.danger, fontSize: 13 },
+  divider: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 3 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
+  dividerText: { color: colors.mutedStrong, fontSize: 9, fontWeight: '900', letterSpacing: 1.2 },
+  socialStack: { gap: 10 },
+  socialButton: { minHeight: 52, borderRadius: 16, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  googleButton: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DADCE0' },
+  googleText: { color: '#202124', fontWeight: '800' },
+  githubButton: { backgroundColor: '#24292F', borderWidth: 1, borderColor: '#57606A' },
+  githubText: { color: '#FFFFFF', fontWeight: '800' },
+  hero: { backgroundColor: colors.surface, borderWidth: 1, borderColor: 'rgba(166,220,255,0.28)', borderRadius: radius.lg, padding: 20, gap: 10 },
+  heroLabel: { color: colors.primary, fontWeight: '900', fontSize: 10, letterSpacing: 1.8 },
+  heroTitle: { color: colors.text, fontSize: 24, lineHeight: 29, fontWeight: '900' },
+  metrics: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  metric: { flex: 1, backgroundColor: colors.surfaceElevated, borderRadius: radius.md, padding: 10 },
+  metricNum: { color: colors.primary, fontSize: 22, fontWeight: '900' },
+  metricText: { color: colors.muted, fontSize: 10 },
+  action: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.surfaceElevated, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: 16 },
+  plus: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.primary, color: colors.background, textAlign: 'center', textAlignVertical: 'center', fontSize: 28 },
+  arrow: { color: colors.primary, fontSize: 30 },
+  cardTitle: { color: colors.text, fontSize: 17, fontWeight: '900' },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  pill: { borderRadius: radius.pill, borderWidth: 1, borderColor: 'rgba(166,220,255,0.28)', backgroundColor: 'rgba(166,220,255,0.10)', paddingHorizontal: 10, paddingVertical: 6 },
+  pillText: { color: colors.text, fontSize: 10, fontWeight: '900' },
+  private: { color: colors.mutedStrong, fontSize: 11 },
+  profileName: { color: colors.text, fontSize: 20, fontWeight: '900' },
+  signout: { minHeight: 52, borderRadius: radius.pill, borderWidth: 1, borderColor: 'rgba(255,176,176,0.3)', alignItems: 'center', justifyContent: 'center' },
+  signoutText: { color: colors.danger, fontWeight: '900' },
+  tabBar: { backgroundColor: colors.sidebar, borderTopColor: colors.border, height: 78, paddingTop: 8, paddingBottom: 10 },
+  tabLabel: { fontSize: 10, fontWeight: '800' },
+  tabIcon: { fontSize: 18, fontWeight: '800' }
 });
