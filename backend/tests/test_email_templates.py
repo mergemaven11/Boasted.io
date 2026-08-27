@@ -25,7 +25,7 @@ def test_password_reset_email_is_branded_and_has_expiry_guidance():
     assert "current password remains unchanged" in html
 
 
-def test_receipt_verification_email_is_branded_and_escapes_user_content():
+def test_receipt_verification_email_is_branded_escapes_content_and_discloses_privacy_lifecycle():
     html = build_receipt_verification_html(
         owner_name='Tee <script>alert("owner")</script>',
         verifier_name="Manager <b>Jane</b>",
@@ -38,6 +38,10 @@ def test_receipt_verification_email_is_branded_and_escapes_user_content():
     assert "Review &amp; respond" in html
     assert "No BragStack account" in html
     assert "7 days" in html
+    assert "provided your contact details" in html
+    assert "scheduled for automatic deletion" in html
+    assert "minimum attestation details" in html
+    assert "https://usebragstack.com/privacy" in html
     assert "<script>" not in html
     assert "<unsafe>" not in html
     assert "<img src=x" not in html
