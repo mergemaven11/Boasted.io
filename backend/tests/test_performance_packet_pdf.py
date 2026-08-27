@@ -84,7 +84,7 @@ def test_free_user_cannot_export_pdf(pdf_context):
     }
     app.dependency_overrides[packet_routes.get_current_user] = lambda: user
 
-    response = client.get("/packets/performance-review.pdf")
+    response = client.post("/packets/performance-review.pdf", json={})
 
     assert response.status_code == 403
     assert response.json()["detail"]["code"] == "paid_feature_required"
@@ -104,15 +104,15 @@ def test_pro_user_downloads_real_pdf_with_expected_filename(pdf_context):
     app.dependency_overrides[packet_routes.get_current_user] = lambda: user
     _seed_packet(entries, receipts, user)
 
-    response = client.get(
+    response = client.post(
         "/packets/performance-review.pdf",
-        params={
+        json={
             "start_date": "2026-01-01",
             "end_date": "2026-06-30",
             "career_area": "Nonprofit",
             "role_title": "Community Programs Coordinator",
             "organization": "Neighborhood Learning Collaborative",
-            "confidential": "true",
+            "confidential": True,
         },
     )
 
@@ -175,7 +175,7 @@ def test_pdf_export_handles_long_evidence_index(pdf_context):
         }
     )
 
-    response = client.get("/packets/performance-review.pdf")
+    response = client.post("/packets/performance-review.pdf", json={})
 
     assert response.status_code == 200
     assert response.content.startswith(b"%PDF")
