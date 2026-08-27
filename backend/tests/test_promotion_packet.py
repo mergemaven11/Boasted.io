@@ -113,7 +113,7 @@ def test_free_user_cannot_build_promotion_packet(promotion_context):
     }
     app.dependency_overrides[packet_routes.get_current_user] = lambda: user
 
-    response = client.get("/packets/promotion")
+    response = client.post("/packets/promotion", json={})
 
     assert response.status_code == 403
     assert response.json()["detail"]["feature"] == "promotion_packet"
@@ -131,9 +131,9 @@ def test_pro_promotion_packet_is_evidence_backed_and_career_neutral(promotion_co
     app.dependency_overrides[packet_routes.get_current_user] = lambda: user
     _seed_operations_case(entries, receipts, user)
 
-    response = client.get(
+    response = client.post(
         "/packets/promotion",
-        params={
+        json={
             "start_date": "2026-01-01",
             "end_date": "2026-06-30",
             "career_area": "Operations",
@@ -171,9 +171,9 @@ def test_pro_user_downloads_dedicated_promotion_pdf(promotion_context):
     app.dependency_overrides[packet_routes.get_current_user] = lambda: user
     _seed_operations_case(entries, receipts, user)
 
-    response = client.get(
+    response = client.post(
         "/packets/promotion.pdf",
-        params={
+        json={
             "start_date": "2026-01-01",
             "end_date": "2026-06-30",
             "career_area": "Operations",

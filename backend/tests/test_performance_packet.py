@@ -36,7 +36,7 @@ def test_free_user_cannot_generate_performance_packet(packet_context):
     }
     app.dependency_overrides[packet_routes.get_current_user] = lambda: user
 
-    response = client.get("/packets/performance-review")
+    response = client.post("/packets/performance-review", json={})
 
     assert response.status_code == 403
     assert response.json()["detail"]["code"] == "paid_feature_required"
@@ -145,15 +145,15 @@ def test_pro_packet_is_career_neutral_and_contains_full_dossier_data(packet_cont
         }
     )
 
-    response = client.get(
+    response = client.post(
         "/packets/performance-review",
-        params={
+        json={
             "start_date": "2026-01-01",
             "end_date": "2026-06-30",
             "career_area": "Nonprofit",
             "role_title": "Community Programs Coordinator",
             "organization": "Neighborhood Learning Collaborative",
-            "confidential": "true",
+            "confidential": True,
         },
     )
 
@@ -228,18 +228,23 @@ def test_packet_period_validation_and_filtering(packet_context):
         ]
     )
 
-    response = client.get(
-        "/packets/performance-review?start_date=2026-07-01&end_date=2026-07-31"
+    response = client.post(
+        "/packets/performance-review",
+        json={"start_date": "2026-07-01", "end_date": "2026-07-31"},
     )
     assert response.status_code == 200
     packet = response.json()["packet"]
     assert packet["scorecard"]["accomplishments"] == 1
     assert packet["signature_accomplishments"][0]["title"] == "Summer work"
 
-    missing_end = client.get("/packets/performance-review?start_date=2026-07-01")
+    missing_end = client.post(
+        "/packets/performance-review",
+        json={"start_date": "2026-07-01"},
+    )
     assert missing_end.status_code == 422
 
-    reversed_period = client.get(
-        "/packets/performance-review?start_date=2026-08-01&end_date=2026-07-01"
+    reversed_period = client.post(
+        "/packets/performance-review",
+        json={"start_date": "2026-08-01", "end_date": "2026-07-01"},
     )
     assert reversed_period.status_code == 422
