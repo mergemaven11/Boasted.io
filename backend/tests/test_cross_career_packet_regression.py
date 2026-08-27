@@ -35,15 +35,7 @@ CAREER_CASES = [
         "category": "Student Outcomes",
         "result": "Raised reading proficiency to 86% for 28 students by the spring benchmark.",
         "skills": ["Instruction", "Student Engagement", "Assessment"],
-        "evidence": [
-            {
-                "title": "Spring reading benchmark summary",
-                "evidence_type": "documentation",
-                "reference": "READING-SPRING-2026",
-                "description": "Class-level benchmark comparison.",
-                "is_public": False,
-            }
-        ],
+        "evidence": [{"title": "Spring reading benchmark summary", "evidence_type": "documentation", "reference": "READING-SPRING-2026", "description": "Class-level benchmark comparison.", "is_public": False}],
         "confirmations": [],
         "expected_metric": "86%",
     },
@@ -56,23 +48,8 @@ CAREER_CASES = [
         "category": "Quality & Service",
         "result": "Cut average diagnostic turnaround by 2.5 hours across 36 service calls.",
         "skills": ["Diagnostics", "Customer Service", "Quality Control"],
-        "evidence": [
-            {
-                "title": "Service turnaround log",
-                "evidence_type": "metric",
-                "reference": "Q2-SERVICE-LOG",
-                "description": "Before-and-after service timing summary.",
-                "is_public": False,
-            }
-        ],
-        "confirmations": [
-            {
-                "name": "Shop Manager",
-                "role": "Service Manager",
-                "confirmation_type": "supervisor",
-                "status": "confirmed",
-            }
-        ],
+        "evidence": [{"title": "Service turnaround log", "evidence_type": "metric", "reference": "Q2-SERVICE-LOG", "description": "Before-and-after service timing summary.", "is_public": False}],
+        "confirmations": [{"name": "Shop Manager", "role": "Service Manager", "confirmation_type": "supervisor", "status": "confirmed"}],
         "expected_metric": "2.5 hours",
     },
     {
@@ -84,23 +61,8 @@ CAREER_CASES = [
         "category": "Customer Retention",
         "result": "Renewed $185,000 in annual contracts and retained 94% of at-risk accounts.",
         "skills": ["Relationship Management", "Negotiation", "Customer Success"],
-        "evidence": [
-            {
-                "title": "Renewal portfolio summary",
-                "evidence_type": "metric",
-                "reference": "FY26-RENEWALS",
-                "description": "Annual renewal value and retention summary.",
-                "is_public": False,
-            }
-        ],
-        "confirmations": [
-            {
-                "name": "Regional Director",
-                "role": "Customer Success Director",
-                "confirmation_type": "stakeholder",
-                "status": "confirmed",
-            }
-        ],
+        "evidence": [{"title": "Renewal portfolio summary", "evidence_type": "metric", "reference": "FY26-RENEWALS", "description": "Annual renewal value and retention summary.", "is_public": False}],
+        "confirmations": [{"name": "Regional Director", "role": "Customer Success Director", "confirmation_type": "stakeholder", "status": "confirmed"}],
         "expected_metric": "$185,000",
     },
     {
@@ -112,23 +74,8 @@ CAREER_CASES = [
         "category": "Quality",
         "result": "Reduced damaged shipments by 31% across 12,400 orders while maintaining daily throughput.",
         "skills": ["Quality Control", "Team Leadership", "Operations"],
-        "evidence": [
-            {
-                "title": "Damage-rate dashboard export",
-                "evidence_type": "metric",
-                "reference": "OPS-Q2-DAMAGE",
-                "description": "Shipment quality trend for the review period.",
-                "is_public": False,
-            }
-        ],
-        "confirmations": [
-            {
-                "name": "Operations Manager",
-                "role": "Operations Manager",
-                "confirmation_type": "supervisor",
-                "status": "confirmed",
-            }
-        ],
+        "evidence": [{"title": "Damage-rate dashboard export", "evidence_type": "metric", "reference": "OPS-Q2-DAMAGE", "description": "Shipment quality trend for the review period.", "is_public": False}],
+        "confirmations": [{"name": "Operations Manager", "role": "Operations Manager", "confirmation_type": "supervisor", "status": "confirmed"}],
         "expected_metric": "31%",
     },
     {
@@ -140,15 +87,7 @@ CAREER_CASES = [
         "category": "Client Impact",
         "result": "Delivered 14 client campaigns and increased repeat bookings by 22%.",
         "skills": ["Brand Design", "Client Communication", "Creative Direction"],
-        "evidence": [
-            {
-                "title": "Project delivery tracker",
-                "evidence_type": "project-artifact",
-                "reference": "2026-CLIENT-TRACKER",
-                "description": "Completed client engagements for the period.",
-                "is_public": False,
-            }
-        ],
+        "evidence": [{"title": "Project delivery tracker", "evidence_type": "project-artifact", "reference": "2026-CLIENT-TRACKER", "description": "Completed client engagements for the period.", "is_public": False}],
         "confirmations": [],
         "expected_metric": "22%",
     },
@@ -161,23 +100,8 @@ CAREER_CASES = [
         "category": "Reliability",
         "result": "Reduced deployment rollback rate from 8% to 3% and saved 6 hours per incident.",
         "skills": ["Reliability", "Automation", "Incident Response"],
-        "evidence": [
-            {
-                "title": "Release reliability report",
-                "evidence_type": "documentation",
-                "reference": "REL-2026-Q2",
-                "description": "Release and rollback trend report.",
-                "is_public": False,
-            }
-        ],
-        "confirmations": [
-            {
-                "name": "Engineering Manager",
-                "role": "Engineering Manager",
-                "confirmation_type": "supervisor",
-                "status": "confirmed",
-            }
-        ],
+        "evidence": [{"title": "Release reliability report", "evidence_type": "documentation", "reference": "REL-2026-Q2", "description": "Release and rollback trend report.", "is_public": False}],
+        "confirmations": [{"name": "Engineering Manager", "role": "Engineering Manager", "confirmation_type": "supervisor", "status": "confirmed"}],
         "expected_metric": "8%",
     },
 ]
@@ -189,75 +113,35 @@ def cross_career_context(monkeypatch):
     mock_db = mock_client["bragstack_cross_career_packet_test"]
     entries = mock_db["entries"]
     receipts = mock_db["impact_receipts"]
-
     monkeypatch.setattr(packet_routes, "entries_collection", entries)
     monkeypatch.setattr(packet_routes, "impact_receipts_collection", receipts)
-
     yield entries, receipts
     app.dependency_overrides.clear()
 
 
 def _seed_case(entries, receipts, user, case):
-    entry = entries.insert_one(
-        {
-            "user_id": str(user["_id"]),
-            "title": case["title"],
-            "category": case["category"],
-            "entry_type": "Current Job",
-            "entry_date": "2026-06-15",
-            "tags": case["skills"],
-            "impact": case["result"],
-            "resume_bullet": case["result"],
-            "created_at": datetime.now(timezone.utc),
-        }
-    )
-
-    receipts.insert_one(
-        {
-            "user_id": str(user["_id"]),
-            "source_entry_id": str(entry.inserted_id),
-            "accomplishment": case["title"],
-            "contribution": f"Led the documented work that produced this {case['category'].lower()} outcome.",
-            "result": case["result"],
-            "evidence": case["evidence"],
-            "skills": case["skills"],
-            "credit": [],
-            "confirmations": case["confirmations"],
-            "trust_signals": ["self-documented"]
-            + (["evidence-linked"] if case["evidence"] else [])
-            + (["stakeholder-verified"] if case["confirmations"] else []),
-            "is_public": False,
-            "created_at": datetime.now(timezone.utc),
-            "updated_at": datetime.now(timezone.utc),
-        }
-    )
+    entry = entries.insert_one({"user_id": str(user["_id"]), "title": case["title"], "category": case["category"], "entry_type": "Current Job", "entry_date": "2026-06-15", "tags": case["skills"], "impact": case["result"], "resume_bullet": case["result"], "created_at": datetime.now(timezone.utc)})
+    receipts.insert_one({"user_id": str(user["_id"]), "source_entry_id": str(entry.inserted_id), "accomplishment": case["title"], "contribution": f"Led the documented work that produced this {case['category'].lower()} outcome.", "result": case["result"], "evidence": case["evidence"], "skills": case["skills"], "credit": [], "confirmations": case["confirmations"], "trust_signals": ["self-documented"] + (["evidence-linked"] if case["evidence"] else []) + (["stakeholder-verified"] if case["confirmations"] else []), "is_public": False, "created_at": datetime.now(timezone.utc), "updated_at": datetime.now(timezone.utc)})
 
 
 @pytest.mark.parametrize("case", CAREER_CASES, ids=[case["id"] for case in CAREER_CASES])
 def test_performance_packet_and_pdf_work_across_careers(cross_career_context, case):
     entries, receipts = cross_career_context
-    user = {
-        "_id": ObjectId(),
-        "name": f"Regression {case['id'].title()}",
-        "email": f"{case['id']}@example.com",
-        "headline": case["role"],
-        "plan": "pro",
-    }
+    user = {"_id": ObjectId(), "name": f"Regression {case['id'].title()}", "email": f"{case['id']}@example.com", "headline": case["role"], "plan": "pro"}
     app.dependency_overrides[packet_routes.get_current_user] = lambda: user
     _seed_case(entries, receipts, user, case)
 
-    params = {
+    payload = {
         "start_date": "2026-01-01",
         "end_date": "2026-12-31",
         "career_area": case["career_area"],
         "role_title": case["role"],
         "organization": case["organization"],
-        "confidential": "true",
+        "confidential": True,
     }
 
-    response = client.get("/packets/performance-review", params=params)
+    response = client.post("/packets/performance-review", json=payload)
     assert response.status_code == 200
-
     packet = response.json()["packet"]
     assert packet["context"]["career_area"] == case["career_area"]
     assert packet["subject"]["role"] == case["role"]
@@ -281,18 +165,11 @@ def test_performance_packet_and_pdf_work_across_careers(cross_career_context, ca
     else:
         assert packet["scorecard"]["verification_coverage_percent"] == 0
 
-    # The universal packet contract should stay profession-neutral.
     serialized = response.text.lower()
-    for profession_specific_key in (
-        "pull_requests_completed",
-        "patients_seen",
-        "students_taught",
-        "units_repaired",
-        "deals_closed",
-    ):
+    for profession_specific_key in ("pull_requests_completed", "patients_seen", "students_taught", "units_repaired", "deals_closed"):
         assert profession_specific_key not in serialized
 
-    pdf_response = client.get("/packets/performance-review.pdf", params=params)
+    pdf_response = client.post("/packets/performance-review.pdf", json=payload)
     assert pdf_response.status_code == 200
     assert pdf_response.headers["content-type"].startswith("application/pdf")
     assert pdf_response.content.startswith(b"%PDF")
@@ -301,7 +178,6 @@ def test_performance_packet_and_pdf_work_across_careers(cross_career_context, ca
 
 def test_cross_career_fixture_set_covers_required_result_shapes():
     combined_results = " ".join(case["result"] for case in CAREER_CASES)
-
     assert "%" in combined_results
     assert "$" in combined_results
     assert "hours" in combined_results
