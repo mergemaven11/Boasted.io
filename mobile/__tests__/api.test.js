@@ -1,9 +1,9 @@
-const useRequestInterceptor = jest.fn();
-const create = jest.fn(() => ({
-  interceptors: { request: { use: useRequestInterceptor } },
+const mockUseRequestInterceptor = jest.fn();
+const mockCreate = jest.fn(() => ({
+  interceptors: { request: { use: mockUseRequestInterceptor } },
 }));
 
-jest.mock('axios', () => ({ create }));
+jest.mock('axios', () => ({ create: mockCreate }));
 jest.mock('../src/authStorage', () => ({ getAccessToken: jest.fn() }));
 
 import { getAccessToken } from '../src/authStorage';
@@ -12,14 +12,14 @@ describe('authenticated API client', () => {
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
-    useRequestInterceptor.mockClear();
-    create.mockClear();
+    mockUseRequestInterceptor.mockClear();
+    mockCreate.mockClear();
   });
 
   it('uses the configured API URL and a bounded timeout', () => {
     process.env.EXPO_PUBLIC_API_URL = 'https://api.example.test';
     require('../src/api');
-    expect(create).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
       baseURL: 'https://api.example.test',
       timeout: 15000,
     }));
@@ -27,7 +27,7 @@ describe('authenticated API client', () => {
 
   it('adds a bearer token when one exists and leaves anonymous requests alone', async () => {
     require('../src/api');
-    const interceptor = useRequestInterceptor.mock.calls[0][0];
+    const interceptor = mockUseRequestInterceptor.mock.calls[0][0];
 
     getAccessToken.mockResolvedValueOnce('abc123');
     const signed = await interceptor({ headers: {} });
