@@ -12,6 +12,7 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 from app.auth import create_access_token, get_current_user, hash_password, serialize_user, verify_password
 from app.database import users_collection
 from app.email_templates import build_email_verification_html, build_password_reset_html
+from app.product_analytics import EVENT_USER_SIGNED_UP, capture_product_event
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
@@ -151,6 +152,12 @@ async def register_user(payload: RegisterRequest):
     }
     result = users_collection.insert_one(doc)
     user = users_collection.find_one({"_id": result.inserted_id})
+    capture_product_event(
+        str(result.inserted_id),
+        EVENT_USER_SIGNED_UP,
+        source="web",
+        current_plan="free",
+    )
     raw, _ = _issue_verification_token(user)
     try:
         await _send_verification_email(email, f"{FRONTEND_URL}/login#verify_token={raw}")

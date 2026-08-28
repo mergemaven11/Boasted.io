@@ -13,6 +13,7 @@ from pymongo.errors import DuplicateKeyError
 from app.auth import get_current_user
 from app.database import stripe_webhook_events_collection, users_collection
 from app.plans import get_plan_for_user
+from app.product_analytics import EVENT_PLAN_UPGRADED, capture_product_event
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -369,9 +370,13 @@ async def stripe_webhook(request: Request):
     obj = ((event.get("data") or {}).get("object") or {})
 
     try:
+        upgraded_user_id = None
+        upgraded_subscription_id = None
         if event_type == "checkout.session.completed":
             user_id = obj.get("client_reference_id") or (obj.get("metadata") or {}).get("user_id")
             if user_id:
+                prior_user = users_collection.find_one({"_id": ObjectId(str(user_id))}) if ObjectId.is_valid(str(user_id)) else None
+                was_pro = bool(prior_user and get_plan_for_user(prior_user) == "pro")
                 _set_subscription_state(
                     str(user_id),
                     plan="pro",
@@ -380,10 +385,15 @@ async def stripe_webhook(request: Request):
                     subscription_id=obj.get("subscription"),
                     stripe_event_created=event_created,
                 )
+                if not was_pro:
+                    upgraded_user_id = str(user_id)
+                    upgraded_subscription_id = obj.get("subscription")
 
         elif event_type in {"customer.subscription.created", "customer.subscription.updated"}:
             user_id = _user_id_from_subscription(obj)
             if user_id:
+                prior_user = users_collection.find_one({"_id": ObjectId(user_id)}) if ObjectId.is_valid(user_id) else None
+                was_pro = bool(prior_user and get_plan_for_user(prior_user) == "pro")
                 stripe_status = str(obj.get("status") or "unknown")
                 paid = stripe_status in {"active", "trialing"}
                 _set_subscription_state(
@@ -396,6 +406,9 @@ async def stripe_webhook(request: Request):
                     current_period_end=obj.get("current_period_end"),
                     stripe_event_created=event_created,
                 )
+                if paid and not was_pro:
+                    upgraded_user_id = user_id
+                    upgraded_subscription_id = obj.get("id")
 
         elif event_type == "customer.subscription.deleted":
             user_id = _user_id_from_subscription(obj)
@@ -434,6 +447,17 @@ async def stripe_webhook(request: Request):
                     subscription_id=obj.get("subscription"),
                     stripe_event_created=event_created,
                 )
+
+        if upgraded_user_id:
+            capture_product_event(
+                upgraded_user_id,
+                EVENT_PLAN_UPGRADED,
+                source="stripe_webhook",
+                current_plan="pro",
+                stripe_event_id=event_id,
+                stripe_event_type=event_type,
+                subscription_id=upgraded_subscription_id,
+            )
 
         _mark_stripe_event_processed(event_id)
     except Exception:

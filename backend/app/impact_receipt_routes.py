@@ -11,6 +11,7 @@ from app.models import (
     ImpactReceiptResponse,
     ImpactReceiptUpdate,
 )
+from app.product_analytics import EVENT_IMPACT_RECEIPT_CREATED, capture_product_event
 
 
 router = APIRouter(
@@ -203,6 +204,15 @@ def create_impact_receipt(
     )
 
     insert_result = impact_receipts_collection.insert_one(receipt_document)
+    capture_product_event(
+        str(current_user["_id"]),
+        EVENT_IMPACT_RECEIPT_CREATED,
+        source="web",
+        current_plan=current_user.get("plan", "free"),
+        impact_receipt_id=str(insert_result.inserted_id),
+        is_public=receipt_document["is_public"],
+        schema_version=receipt_document["schema_version"],
+    )
     created_receipt = impact_receipts_collection.find_one(
         {"_id": insert_result.inserted_id}
     )
@@ -314,6 +324,16 @@ def create_impact_receipt_from_entry(
     )
 
     insert_result = impact_receipts_collection.insert_one(receipt_document)
+    capture_product_event(
+        user_id,
+        EVENT_IMPACT_RECEIPT_CREATED,
+        source="web",
+        current_plan=current_user.get("plan", "free"),
+        impact_receipt_id=str(insert_result.inserted_id),
+        source_brag_id=entry_id,
+        is_public=receipt_document["is_public"],
+        schema_version=receipt_document["schema_version"],
+    )
 
     created_receipt = impact_receipts_collection.find_one(
         {"_id": insert_result.inserted_id}

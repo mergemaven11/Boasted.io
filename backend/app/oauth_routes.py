@@ -10,6 +10,7 @@ from fastapi.responses import RedirectResponse
 
 from app.auth import create_access_token
 from app.database import users_collection
+from app.product_analytics import EVENT_USER_SIGNED_UP, capture_product_event
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -115,6 +116,12 @@ def _find_or_create_oauth_user(
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     result = users_collection.insert_one(user_doc)
+    capture_product_event(
+        str(result.inserted_id),
+        EVENT_USER_SIGNED_UP,
+        source="web",
+        current_plan="free",
+    )
     return users_collection.find_one({"_id": result.inserted_id})
 
 

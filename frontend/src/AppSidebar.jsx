@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { BarChart3, BrainCircuit, FileCheck2, FileText, GraduationCap, Home, ListChecks, LogOut, Menu, ReceiptText, Settings, ShieldCheck, Sparkles, Target, TrendingUp, UserRound, Users, Video, X } from "lucide-react";
 import { getCurrentUser } from "./api";
+import { resetAnalyticsUser } from "./analytics.js";
 import "./AppShell.css";
 
 const WORKSPACE_ITEMS = [
@@ -23,7 +24,7 @@ function AppSidebar() {
   const [user, setUser] = useState(null); const [mobileOpen, setMobileOpen] = useState(false);
   const path = window.location.pathname; const search = window.location.search;
   useEffect(() => { let mounted = true; (async () => { try { const data = await getCurrentUser(); if (mounted) setUser(data); } catch (error) { if (error.response?.status === 401) { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); } } })(); return () => { mounted = false; }; }, []);
-  function logout() { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); }
+  function logout() { void resetAnalyticsUser(); localStorage.removeItem("bragstack_token"); window.location.assign("/login"); }
   function proToolIsActive(href) { const target = new URL(href, window.location.origin); return path === target.pathname && search === target.search; }
   const isPro = Boolean(user?.entitlements?.advanced_reports);
   const isCompanyUser = user?.email?.trim().toLowerCase().endsWith("@usebragstack.com") === true;

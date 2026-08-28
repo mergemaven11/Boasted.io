@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from app.auth import get_current_user
 from app.database import entries_collection
 from app.models import BragEntryCreate
+from app.product_analytics import EVENT_BRAG_CREATED, capture_product_event
 
 router = APIRouter(prefix="/entries", tags=["entries"])
 public_router = APIRouter(prefix="/public", tags=["public"])
@@ -79,6 +80,15 @@ def create_entry(
     document["user_id"] = get_user_id(current_user)
 
     result = entries_collection.insert_one(document)
+
+    capture_product_event(
+        get_user_id(current_user),
+        EVENT_BRAG_CREATED,
+        source="web",
+        current_plan=current_user.get("plan", "free"),
+        brag_id=str(result.inserted_id),
+        is_public=bool(document.get("is_public", False)),
+    )
 
     created_entry = entries_collection.find_one({"_id": result.inserted_id})
 

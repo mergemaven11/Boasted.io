@@ -1,6 +1,7 @@
 import axios from "axios";
 
 import { normalizeDashboardTags } from "./dashboardTags.js";
+import { identifyAnalyticsUser } from "./analytics.js";
 
 function getDefaultApiBaseUrl() {
   if (window.location.hostname.endsWith(".app.github.dev")) return "/api";
@@ -114,7 +115,11 @@ export async function loginUser(credentials) {
   const response = await api.post("/auth/login", formData, { headers: { "Content-Type": "application/x-www-form-urlencoded" } });
   return response.data;
 }
-export async function getCurrentUser() { const response = await api.get("/auth/me"); return response.data; }
+export async function getCurrentUser() {
+  const response = await api.get("/auth/me");
+  void identifyAnalyticsUser(response.data);
+  return response.data;
+}
 export async function updateCurrentUserProfile(profile) { const response = await api.patch("/auth/me/profile", profile); return response.data; }
 export async function getBillingStatus() { const response = await api.get("/billing/status"); return response.data; }
 export async function cancelSubscription() { const response = await api.post("/billing/cancel"); return response.data; }
