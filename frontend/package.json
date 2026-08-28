@@ -11,6 +11,7 @@
     "test:resume": "node --test src/resumeStructured.test.js src/dashboardTags.test.js",
     "test:seo": "node scripts/verify-search-appearance.mjs",
     "test:clicks": "node scripts/audit-all-clicks.mjs",
+    "test:layout": "node scripts/audit-responsive-layout.mjs",
     "test:bundle": "node scripts/verify-bundle-budget.mjs",
     "preview": "vite preview"
   },

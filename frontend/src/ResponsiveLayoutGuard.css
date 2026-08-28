@@ -1,0 +1,88 @@
+/*
+ * Global layout guardrails for authenticated BragStack surfaces.
+ * Keep viewport ownership explicit so fixed navigation never adds width to the page.
+ */
+html,
+body,
+#root,
+.app-shell {
+  width: 100%;
+  max-width: 100%;
+}
+
+body,
+#root,
+.app-shell {
+  overflow-x: clip;
+}
+
+.authenticated-content {
+  width: 100%;
+  max-width: 100vw;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+.command-center {
+  max-width: calc(100% - 48px);
+}
+
+.command-header,
+.command-header > div,
+.command-header-actions,
+.command-metrics,
+.command-metrics article,
+.command-layout,
+.command-main-column,
+.command-side-column,
+.command-panel,
+.command-panel-heading,
+.command-entry,
+.command-entry-copy,
+.command-entry-top,
+.quick-actions > a,
+.quick-actions > a > span,
+.skill-signal,
+.accomplishments-page,
+.accomplishments-hero,
+.accomplishments-hero > div {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.command-entry-top h3,
+.command-entry p,
+.command-tags span,
+.quick-actions strong,
+.quick-actions small,
+.skill-signal span,
+.accomplishments-hero h1,
+.accomplishments-hero p {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@media (max-width: 720px) {
+  .command-center {
+    max-width: calc(100% - 24px);
+  }
+
+  .accomplishments-hero {
+    width: 100%;
+    padding: 24px;
+  }
+
+  .accomplishments-hero > div {
+    width: 100%;
+  }
+}
+
+@media (max-width: 390px) {
+  .command-center {
+    max-width: calc(100% - 18px);
+  }
+
+  .accomplishments-hero {
+    padding: 20px;
+  }
+}
