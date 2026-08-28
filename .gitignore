@@ -11,6 +11,10 @@ node_modules/
 dist/
 npm-debug.log*
 
+# Expo local state
+.expo/
+mobile/.expo/
+
 # Logs
 logs
 *.log
