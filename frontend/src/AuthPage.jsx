@@ -62,6 +62,7 @@ function AuthPage({ mode = "login", onLogin }) {
   const [isSlowSubmit, setIsSlowSubmit] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [connectingProvider, setConnectingProvider] = useState("");
+  const [oauthIsTakingLonger, setOauthIsTakingLonger] = useState(false);
   const [showReset, setShowReset] = useState(Boolean(initialResetToken));
   const [resetEmail, setResetEmail] = useState("");
   const [resetMessage, setResetMessage] = useState("");
@@ -209,7 +210,10 @@ function AuthPage({ mode = "login", onLogin }) {
 
   async function startOAuth(provider) {
     setConnectingProvider(provider);
+    setOauthIsTakingLonger(false);
     setErrorMessage("");
+
+    const slowTimer = window.setTimeout(() => setOauthIsTakingLonger(true), 4000);
 
     try {
       const ready = await ensureApiReady();
@@ -218,6 +222,9 @@ function AuthPage({ mode = "login", onLogin }) {
     } catch (error) {
       setErrorMessage(error.message || `Could not connect to ${provider}. Please try again.`);
       setConnectingProvider("");
+      setOauthIsTakingLonger(false);
+    } finally {
+      window.clearTimeout(slowTimer);
     }
   }
 
@@ -425,6 +432,11 @@ function AuthPage({ mode = "login", onLogin }) {
               <GitHubMark />
               <span>{connectingProvider === "github" ? "Connecting to GitHub..." : "Continue with GitHub"}</span>
             </button>
+            {connectingProvider && oauthIsTakingLonger && (
+              <p className="auth-oauth-status" role="status">
+                BragStack is waking up. This can take about a minute on the current low-cost server.
+              </p>
+            )}
           </div>
 
           <p className="auth-switch">
