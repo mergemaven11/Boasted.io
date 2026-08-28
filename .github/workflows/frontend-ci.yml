@@ -78,6 +78,19 @@ jobs:
         if: github.event_name != 'pull_request' || steps.changes.outputs.run_frontend == 'true'
         run: npm run test:clicks
 
+      - name: Confirm responsive UI on phone, tablet, and desktop
+        if: github.event_name != 'pull_request' || steps.changes.outputs.run_frontend == 'true'
+        run: npm run test:layout
+
+      - name: Upload responsive UI failure screenshots
+        if: failure() && (github.event_name != 'pull_request' || steps.changes.outputs.run_frontend == 'true')
+        uses: actions/upload-artifact@v4
+        with:
+          name: responsive-ui-failures
+          path: frontend/artifacts/ui-layout
+          if-no-files-found: ignore
+          retention-days: 3
+
       - name: Lint
         if: github.event_name != 'pull_request' || steps.changes.outputs.run_frontend == 'true'
         run: npm run lint
