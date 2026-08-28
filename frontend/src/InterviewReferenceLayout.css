@@ -236,9 +236,33 @@
   .interview-room-header .interview-end-button svg{margin:0;}
   .interview-room-grid{border-radius:0 0 18px 18px;}
   .interview-video-stage{aspect-ratio:4/3!important;min-height:0!important;}
-  .candidate-video-tile{right:12px!important;width:112px!important;max-width:30%!important;}
-  .interview-video-stage .video-controls{bottom:12px!important;gap:6px!important;}
-  .interview-video-stage .video-controls button{padding:7px 8px!important;}
+  .candidate-video-tile{
+    right:12px!important;
+    top:12px!important;
+    bottom:auto!important;
+    width:112px!important;
+    max-width:32%!important;
+    transform:none!important;
+  }
+  .interview-video-stage .video-controls{
+    left:12px!important;
+    right:12px!important;
+    bottom:12px!important;
+    width:auto!important;
+    transform:none!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:6px!important;
+  }
+  .interview-video-stage .video-controls button{
+    width:100%!important;
+    min-width:0!important;
+    padding:7px 6px!important;
+    overflow:hidden;
+    white-space:nowrap!important;
+    font-size:clamp(.66rem,3vw,.75rem)!important;
+  }
+  .interview-video-stage .video-controls button svg{flex:0 0 auto;}
   .aj-avatar-monogram{width:88px!important;height:88px!important;font-size:1.4rem!important;}
   .interview-answer-panel{padding:17px 16px 20px!important;}
   .answer-form textarea{min-height:88px!important;}
