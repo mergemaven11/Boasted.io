@@ -42,7 +42,10 @@ body,
 .command-entry-top,
 .quick-actions > a,
 .quick-actions > a > span,
-.skill-signal {
+.skill-signal,
+.accomplishments-page,
+.accomplishments-hero,
+.accomplishments-hero > div {
   min-width: 0;
   max-width: 100%;
 }
@@ -52,7 +55,9 @@ body,
 .command-tags span,
 .quick-actions strong,
 .quick-actions small,
-.skill-signal span {
+.skill-signal span,
+.accomplishments-hero h1,
+.accomplishments-hero p {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -61,10 +66,23 @@ body,
   .command-center {
     max-width: calc(100% - 24px);
   }
+
+  .accomplishments-hero {
+    width: 100%;
+    padding: 24px;
+  }
+
+  .accomplishments-hero > div {
+    width: 100%;
+  }
 }
 
 @media (max-width: 390px) {
   .command-center {
     max-width: calc(100% - 18px);
+  }
+
+  .accomplishments-hero {
+    padding: 20px;
   }
 }
