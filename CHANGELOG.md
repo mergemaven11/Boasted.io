@@ -6,7 +6,8 @@ This changelog tracks **merged, shipped repository changes only**. Open or draft
 
 ## [Unreleased]
 
-No merged changes have been recorded here yet.
+### Fixed
+- Kept the mobile Practice Interview camera and replay controls inside equal-width buttons, moved the self-view clear of the controls, and added honest progress feedback while the low-cost Render API wakes for OAuth sign-in. (#219)
 
 ## 2026-08-27
 
