@@ -21,11 +21,17 @@ Expected result: Expo Doctor passes, the Jest suites pass with coverage threshol
 
 ## Interactive Codespaces preview
 
-For the quickest end-to-end UI test in Codespaces, use the deployed BragStack API rather than `localhost`:
+For the quickest end-to-end UI test in Codespaces, use the canonical BragStack production API rather than `localhost`:
 
 ```bash
 cd mobile
-EXPO_PUBLIC_API_URL=https://bragstack-api-bxf3.onrender.com npm run web
+EXPO_PUBLIC_API_URL=https://api.usebragstack.com npm run web
+```
+
+Or use the repository shortcut:
+
+```bash
+npm run web:codespaces
 ```
 
 Open the forwarded Expo web port shown by Codespaces (normally 8081). If the Ports panel does not open it automatically, open the forwarded port from the Codespaces **Ports** tab.
