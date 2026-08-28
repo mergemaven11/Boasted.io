@@ -14,7 +14,7 @@ EXPO_PUBLIC_API_URL=http://localhost:8000 npm start
 
 For a physical device, set `EXPO_PUBLIC_API_URL` to an address the device can reach rather than `localhost`.
 
-Preview and production EAS profiles are configured to use the BragStack production API at `https://bragstack-api-bxf3.onrender.com`.
+Preview and production EAS profiles are configured to use the canonical BragStack production API at `https://api.usebragstack.com`.
 
 ## Current implementation
 
