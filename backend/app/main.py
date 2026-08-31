@@ -16,6 +16,7 @@ from app.billing_routes import router as billing_router
 from app.beta_metrics_routes import router as beta_metrics_router
 from app.career_intelligence_routes import router as career_intelligence_router
 from app.core_output_routes import router as core_output_router
+from app.executive_impact_routes import router as executive_impact_router
 from app.database import client as mongo_client, entries_collection, impact_receipts_collection
 from app.impact_receipt_routes import router as impact_receipts_router
 from app.receipt_verification_routes import router as receipt_verification_router
@@ -226,6 +227,7 @@ app.include_router(public_slug_router)
 app.include_router(impact_receipts_router, dependencies=[Depends(enforce_receipt_usage)])
 app.include_router(receipt_verification_router)
 app.include_router(core_output_router)
+app.include_router(executive_impact_router)
 app.include_router(beta_metrics_router)
 app.include_router(career_intelligence_router)
 app.include_router(reports_router)

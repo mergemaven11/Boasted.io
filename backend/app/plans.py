@@ -36,6 +36,7 @@ PLAN_FEATURES: dict[str, dict[str, Any]] = {
         "sso": False,
         "audit_logs": False,
         "retention_controls": False,
+        "executive_command_center": False,
     },
     "pro": {
         "max_entries": None,
@@ -57,6 +58,7 @@ PLAN_FEATURES: dict[str, dict[str, Any]] = {
         "sso": False,
         "audit_logs": False,
         "retention_controls": False,
+        "executive_command_center": False,
     },
     "team": {
         "max_entries": None,
@@ -78,6 +80,7 @@ PLAN_FEATURES: dict[str, dict[str, Any]] = {
         "sso": False,
         "audit_logs": False,
         "retention_controls": False,
+        "executive_command_center": False,
     },
     "enterprise": {
         "max_entries": None,
@@ -99,6 +102,7 @@ PLAN_FEATURES: dict[str, dict[str, Any]] = {
         "sso": True,
         "audit_logs": True,
         "retention_controls": True,
+        "executive_command_center": True,
     },
 }
 

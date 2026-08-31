@@ -144,6 +144,9 @@ export async function updateImpactReceipt(receiptId, payload) { const response =
 export async function deleteImpactReceipt(receiptId) { await api.delete(`/impact-receipts/${receiptId}`); }
 export async function getWeeklyCareerReport() { const response = await api.get("/reports/weekly"); return response.data; }
 export async function getAllTimeCareerReport() { const response = await api.get("/reports/all-time"); return response.data; }
+export async function getExecutiveImpactDashboard(lens) { const response = await api.get("/enterprise/executive-impact", { params: lens ? { lens } : {} }); return response.data; }
+export async function createExecutiveGoal(payload) { const response = await api.post("/enterprise/executive-impact/goals", payload); return response.data; }
+export async function requestExecutiveExport(goalIds, purpose) { const response = await api.post("/enterprise/executive-impact/exports", { goal_ids: goalIds, purpose }); return response.data; }
 export async function getCustomCareerReport(startDate, endDate) { const response = await api.get("/reports/custom", { params: { start_date: startDate, end_date: endDate } }); return response.data; }
 
 export async function getPerformancePacket(startDate, endDate, options = {}) {
