@@ -12,6 +12,7 @@ const BillingSettingsPage = lazyPage(() => import("./BillingSettingsPage.jsx"));
 const CareerIntelligencePage = lazyPage(() => import("./CareerIntelligencePage.jsx"));
 const DashboardPage = lazyPage(() => import("./DashboardPage.jsx"));
 const DocsPage = lazyPage(() => import("./DocsPage.jsx"));
+const ExecutiveImpactPage = lazyPage(() => import("./ExecutiveImpactPage.jsx"));
 const ImpactReceiptsPage = lazyPage(() => import("./ImpactReceiptsPage.jsx"));
 const InterviewPracticeExperience = lazyPage(() => import("./InterviewPracticeExperience.jsx"));
 const LandingInterviewShowcase = lazyPage(() => import("./LandingInterviewShowcase.jsx"));
@@ -146,6 +147,7 @@ function RootContent() {
     else if (path === "/app/accomplishments") Content = AccomplishmentsPage;
     else if (path === "/app/impact-receipts") Content = ImpactReceiptsWithVerification;
     else if (path === "/app/intelligence") Content = CareerIntelligencePage;
+    else if (path === "/app/executive-impact" && planLoaded) { Content = user?.entitlements?.executive_command_center ? ExecutiveImpactPage : ProRequired; contentProps = user?.entitlements?.executive_command_center ? {} : { feature: "Executive Impact Command Center (Enterprise)" }; }
     else if (path === "/app/resume-builder" && planLoaded) { Content = user?.entitlements?.resume_builder ? ResumeBuilderPage : ProRequired; contentProps = user?.entitlements?.resume_builder ? {} : { feature: "Resume Builder and ATS Guardian" }; }
     else if (path === "/app/reports" && planLoaded) { Content = user?.entitlements?.advanced_reports ? ProCareerPage : ProRequired; contentProps = user?.entitlements?.advanced_reports ? {} : { feature: "Career analytics and career packets" }; }
     else if (path === INTERVIEW_PATH && planLoaded) { Content = user?.entitlements?.interview_practice ? InterviewPracticeExperience : ProRequired; contentProps = user?.entitlements?.interview_practice ? {} : { feature: "Practice Interviewer" }; }

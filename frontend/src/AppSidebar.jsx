@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BarChart3, BrainCircuit, FileCheck2, FileText, GraduationCap, Home, ListChecks, LogOut, Menu, ReceiptText, Settings, ShieldCheck, Sparkles, Target, TrendingUp, UserRound, Users, Video, X } from "lucide-react";
+import { BarChart3, BrainCircuit, Building2, FileCheck2, FileText, GraduationCap, Home, ListChecks, LogOut, Menu, ReceiptText, Settings, ShieldCheck, Sparkles, Target, TrendingUp, UserRound, Users, Video, X } from "lucide-react";
 import { getCurrentUser } from "./api";
 import "./AppShell.css";
 
@@ -27,6 +27,7 @@ function AppSidebar() {
   function proToolIsActive(href) { const target = new URL(href, window.location.origin); return path === target.pathname && search === target.search; }
   const isPro = Boolean(user?.entitlements?.advanced_reports);
   const isCompanyUser = user?.email?.trim().toLowerCase().endsWith("@usebragstack.com") === true;
+  const hasExecutiveImpact = Boolean(user?.entitlements?.executive_command_center) && ["owner", "admin", "executive"].includes(user?.workspace_role);
 
   return <>
     <header className="mobile-app-bar"><a className="mobile-brand" href="/app"><img src="/brandmark.svg" alt="" /><strong>BragStack</strong></a><button type="button" onClick={() => setMobileOpen((open) => !open)} aria-label="Toggle navigation">{mobileOpen ? <X size={21} /> : <Menu size={21} />}</button></header>
@@ -38,6 +39,7 @@ function AppSidebar() {
         <p className="sidebar-section-label">Workspace</p>
         {WORKSPACE_ITEMS.map(({ href, label, icon: Icon }) => <a className={path === href ? "active" : ""} href={href} key={href}><Icon size={18} /><span>{label}</span></a>)}
         {isPro && <><p className="sidebar-section-label">Pro career tools</p>{PRO_TOOLS.map(({ href, label, icon: Icon }) => <a className={proToolIsActive(href) ? "active" : ""} href={href} key={`${href}-${label}`}><Icon size={18} /><span>{label}</span></a>)}</>}
+        {hasExecutiveImpact && <><p className="sidebar-section-label">Enterprise</p><a className={path === "/app/executive-impact" ? "active" : ""} href="/app/executive-impact"><Building2 size={18}/><span>Executive Impact</span></a></>}
         <p className="sidebar-section-label">Account & tools</p>
         <a className={path.startsWith("/app/settings") || path === "/app/profile" ? "active" : ""} href="/app/settings"><Settings size={18} /><span>Settings</span></a>
         {isCompanyUser && <><p className="sidebar-section-label">Internal</p><a className={path === "/ops" ? "active" : ""} href="/ops"><ShieldCheck size={18} /><span>Ops Console</span></a><a className={path === "/ops/users" ? "active" : ""} href="/ops/users"><Users size={18} /><span>User Accounts</span></a></>}
