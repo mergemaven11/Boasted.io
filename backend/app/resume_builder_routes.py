@@ -3,12 +3,9 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from io import BytesIO
 
-import fitz
 from bson import ObjectId
-from docx import Document
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
-from pypdf import PdfReader
 
 from app.auth import get_current_user
 from app.database import impact_receipts_collection, resume_documents_collection
@@ -120,8 +117,10 @@ def _server_readiness(bullets: list[ResumeBulletPayload]) -> dict:
 
 def _extract_pdf_text_pymupdf(data: bytes) -> str:
     """Primary born-digital PDF extraction with block geometry and stable reading-order sorting."""
+    import pymupdf
+
     lines: list[str] = []
-    with fitz.open(stream=data, filetype="pdf") as document:
+    with pymupdf.open(stream=data, filetype="pdf") as document:
         if document.page_count > MAX_RESUME_PAGES:
             raise HTTPException(status_code=400, detail=f"Resume PDFs can contain up to {MAX_RESUME_PAGES} pages")
         for page in document:
@@ -137,6 +136,8 @@ def _extract_pdf_text_pymupdf(data: bytes) -> str:
 
 
 def _extract_pdf_text_pypdf(data: bytes) -> str:
+    from pypdf import PdfReader
+
     reader = PdfReader(BytesIO(data))
     if len(reader.pages) > MAX_RESUME_PAGES:
         raise HTTPException(status_code=400, detail=f"Resume PDFs can contain up to {MAX_RESUME_PAGES} pages")
@@ -174,6 +175,8 @@ def _extract_uploaded_text(filename: str, content_type: str, data: bytes) -> str
     if content_type == "application/pdf" or suffix == ".pdf":
         return _extract_pdf_text(data)
     if content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" or suffix == ".docx":
+        from docx import Document
+
         document = Document(BytesIO(data))
         paragraphs = [paragraph.text for paragraph in document.paragraphs]
         table_rows = [" | ".join(cell.text for cell in row.cells) for table in document.tables for row in table.rows]
