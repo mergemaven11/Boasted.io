@@ -1,3 +1,3 @@
 import "./ResumeStructuredSaved.css";
 
-export { default } from "./ResumeBuilderStructuredPage.jsx";
+export { default } from "./ResumeBuilderGuidedPage.jsx";
