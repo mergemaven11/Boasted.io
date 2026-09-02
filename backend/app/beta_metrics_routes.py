@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -14,6 +15,7 @@ router = APIRouter(prefix="/beta", tags=["beta"])
 
 
 class BetaFeedbackCreate(BaseModel):
+    """Represent BetaFeedbackCreate."""
     willingness_to_pay: Literal["yes", "maybe", "no"]
     willing_price_cents: int | None = Field(default=None, ge=0, le=100000)
     would_miss_score: int = Field(..., ge=1, le=5)
@@ -22,6 +24,14 @@ class BetaFeedbackCreate(BaseModel):
 
 
 def _receipt_dates(user_id: str) -> list[str]:
+    """Handle receipt dates.
+
+    Args:
+        user_id: Function argument.
+
+    Returns:
+        Function result.
+    """
     dates = []
     for receipt in impact_receipts_collection.find({"user_id": user_id}):
         value = receipt.get("created_at")
@@ -33,6 +43,14 @@ def _receipt_dates(user_id: str) -> list[str]:
 
 
 def _user_product_metrics(user_id: str) -> dict:
+    """Handle user product metrics.
+
+    Args:
+        user_id: Function argument.
+
+    Returns:
+        Function result.
+    """
     receipt_count = impact_receipts_collection.count_documents({"user_id": user_id})
     distinct_days = _receipt_dates(user_id)
     return {
@@ -49,6 +67,15 @@ def submit_beta_feedback(
     payload: BetaFeedbackCreate,
     current_user: dict = Depends(get_current_user),
 ):
+    """Handle submit beta feedback.
+
+    Args:
+        payload: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     user_id = str(current_user["_id"])
     now = datetime.now(timezone.utc)
     document = {
@@ -81,6 +108,14 @@ def submit_beta_feedback(
 
 @router.get("/me")
 def my_beta_metrics(current_user: dict = Depends(get_current_user)):
+    """Handle my beta metrics.
+
+    Args:
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     user_id = str(current_user["_id"])
     feedback = beta_feedback_collection.find_one({"user_id": user_id})
     return {
@@ -118,6 +153,15 @@ def aggregate_beta_metrics(current_user: dict = Depends(get_current_user)):
     strong_miss = sum(1 for score in miss_scores if score >= 4)
 
     def pct(value: int, denominator: int) -> int:
+        """Handle pct.
+
+        Args:
+            value: Function argument.
+            denominator: Function argument.
+
+        Returns:
+            Function result.
+        """
         return round((value / denominator) * 100) if denominator else 0
 
     return {

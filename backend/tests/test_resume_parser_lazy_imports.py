@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import ast
@@ -10,6 +11,14 @@ HEAVY_RESUME_MODULES = {"fitz", "pymupdf", "pypdf", "docx"}
 
 
 def _top_level_import_roots(source: str) -> set[str]:
+    """Handle top level import roots.
+
+    Args:
+        source: Function argument.
+
+    Returns:
+        Function result.
+    """
     tree = ast.parse(source)
     imported: set[str] = set()
     for node in tree.body:
@@ -21,6 +30,7 @@ def _top_level_import_roots(source: str) -> set[str]:
 
 
 def test_resume_route_defers_heavy_document_parser_imports_until_upload_processing():
+    """Verify resume route defers heavy document parser imports until upload processing."""
     source = Path(routes.__file__).read_text(encoding="utf-8")
 
     assert HEAVY_RESUME_MODULES.isdisjoint(_top_level_import_roots(source))
@@ -31,6 +41,7 @@ def test_resume_route_defers_heavy_document_parser_imports_until_upload_processi
 
 
 def test_plain_text_resume_import_does_not_require_document_parser_libraries():
+    """Verify plain text resume import does not require document parser libraries."""
     text = routes._extract_uploaded_text("resume.txt", "text/plain", b"Platform engineer with Python and Docker experience")
 
     assert text == "Platform engineer with Python and Docker experience"

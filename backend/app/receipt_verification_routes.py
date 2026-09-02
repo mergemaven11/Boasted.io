@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timedelta, timezone
 import hashlib
 import os
@@ -25,6 +26,7 @@ TOKEN_TTL = timedelta(days=7)
 
 
 class VerificationRequest(BaseModel):
+    """Represent VerificationRequest."""
     name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
     role: str = Field(default="", max_length=120)
@@ -33,14 +35,31 @@ class VerificationRequest(BaseModel):
 
 
 class VerificationDecision(BaseModel):
+    """Represent VerificationDecision."""
     decision: str = Field(..., pattern="^(confirmed|declined)$")
 
 
 def _hash_token(token: str) -> str:
+    """Handle hash token.
+
+    Args:
+        token: Function argument.
+
+    Returns:
+        Function result.
+    """
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def _as_utc(value):
+    """Handle as utc.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     if isinstance(value, datetime):
         return value.replace(tzinfo=value.tzinfo or timezone.utc).astimezone(timezone.utc)
     if isinstance(value, str):
@@ -53,6 +72,13 @@ def _as_utc(value):
 
 
 def _remove_pending_confirmation(receipt_id: ObjectId, confirmation_id: str, *, now: datetime | None = None) -> None:
+    """Handle remove pending confirmation.
+
+    Args:
+        receipt_id: Function argument.
+        confirmation_id: Function argument.
+        now: Function argument.
+    """
     impact_receipts_collection.update_one(
         {"_id": receipt_id},
         {
@@ -63,6 +89,15 @@ def _remove_pending_confirmation(receipt_id: ObjectId, confirmation_id: str, *, 
 
 
 def _prune_expired_pending_confirmations(receipt: dict, now: datetime) -> dict:
+    """Handle prune expired pending confirmations.
+
+    Args:
+        receipt: Function argument.
+        now: Function argument.
+
+    Returns:
+        Function result.
+    """
     expired_ids = [
         item.get("id")
         for item in receipt.get("confirmations", [])
@@ -91,6 +126,14 @@ def _prune_expired_pending_confirmations(receipt: dict, now: datetime) -> dict:
 
 
 def _find_by_token(token: str):
+    """Handle find by token.
+
+    Args:
+        token: Function argument.
+
+    Returns:
+        Function result.
+    """
     token_hash = _hash_token(token)
     request_record = receipt_verification_requests_collection.find_one({"token_hash": token_hash})
     if not request_record:
@@ -137,6 +180,15 @@ async def _send_request_email(
     confirmation: dict,
     raw_token: str,
 ):
+    """Handle send request email.
+
+    Args:
+        to_email: Function argument.
+        owner_name: Function argument.
+        receipt: Function argument.
+        confirmation: Function argument.
+        raw_token: Function argument.
+    """
     if not RESEND_API_KEY:
         raise HTTPException(status_code=503, detail="Email delivery is not configured yet.")
 
@@ -170,6 +222,16 @@ async def request_receipt_verification(
     payload: VerificationRequest,
     current_user: dict = Depends(get_current_user),
 ):
+    """Handle request receipt verification.
+
+    Args:
+        receipt_id: Function argument.
+        payload: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     if not ObjectId.is_valid(receipt_id):
         raise HTTPException(status_code=400, detail="Invalid Impact Receipt ID")
     query = {"_id": ObjectId(receipt_id), "user_id": str(current_user["_id"])}
@@ -250,6 +312,14 @@ async def request_receipt_verification(
 
 @router.get("/receipt-verifications/{token}")
 def get_receipt_verification(token: str):
+    """Handle get receipt verification.
+
+    Args:
+        token: Function argument.
+
+    Returns:
+        Function result.
+    """
     receipt, confirmation, request_record = _find_by_token(token)
     return {
         "accomplishment": receipt.get("accomplishment", ""),
@@ -268,6 +338,15 @@ def get_receipt_verification(token: str):
 
 @router.post("/receipt-verifications/{token}/decision")
 def decide_receipt_verification(token: str, payload: VerificationDecision):
+    """Handle decide receipt verification.
+
+    Args:
+        token: Function argument.
+        payload: Function argument.
+
+    Returns:
+        Function result.
+    """
     receipt, confirmation, request_record = _find_by_token(token)
     now = datetime.now(timezone.utc)
     confirmations = receipt.get("confirmations", [])

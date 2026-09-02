@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import hashlib
@@ -25,6 +26,7 @@ router = APIRouter(tags=["packet-sharing"])
 
 
 class PacketShareCreate(BaseModel):
+    """Represent PacketShareCreate."""
     start_date: str | None = None
     end_date: str | None = None
     career_area: str = Field(default="", max_length=120)
@@ -48,17 +50,49 @@ class PacketShareCreate(BaseModel):
 
 
 def _token_hash(token: str) -> str:
+    """Handle token hash.
+
+    Args:
+        token: Function argument.
+
+    Returns:
+        Function result.
+    """
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def _aware(value: datetime | None) -> datetime | None:
+    """Handle aware.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     if value is None:
         return None
     return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
 
 
 def _serialize_share(item: dict[str, Any]) -> dict[str, Any]:
+    """Handle serialize share.
+
+    Args:
+        item: Function argument.
+
+    Returns:
+        Function result.
+    """
     def iso(value):
+        """Handle iso.
+
+        Args:
+            value: Function argument.
+
+        Returns:
+            Function result.
+        """
         return value.isoformat() if hasattr(value, "isoformat") else value
 
     return {
@@ -79,6 +113,15 @@ def _serialize_share(item: dict[str, Any]) -> dict[str, Any]:
 
 
 def _validate_share(item: dict[str, Any] | None, access_code: str | None) -> dict[str, Any]:
+    """Handle validate share.
+
+    Args:
+        item: Function argument.
+        access_code: Function argument.
+
+    Returns:
+        Function result.
+    """
     if not item or item.get("revoked"):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared packet not found")
     expires_at = _aware(item.get("expires_at"))
@@ -91,6 +134,14 @@ def _validate_share(item: dict[str, Any] | None, access_code: str | None) -> dic
 
 
 def _build_shared_packet(item: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Handle build shared packet.
+
+    Args:
+        item: Function argument.
+
+    Returns:
+        Function result.
+    """
     owner_id = item.get("user_id")
     if not ObjectId.is_valid(owner_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared packet not found")
@@ -134,6 +185,17 @@ def _build_shared_packet(item: dict[str, Any]) -> tuple[dict[str, Any], dict[str
 
 
 def _shared_html(packet: dict[str, Any], *, allow_download: bool, token: str, access_code: str | None) -> str:
+    """Handle shared html.
+
+    Args:
+        packet: Function argument.
+        allow_download: Function argument.
+        token: Function argument.
+        access_code: Function argument.
+
+    Returns:
+        Function result.
+    """
     subject = packet.get("subject", {})
     branding = packet.get("branding", {})
     score = packet.get("scorecard", {})
@@ -159,6 +221,15 @@ body{{margin:0;background:#eef0f1;color:#172126;font-family:Inter,system-ui,-app
 
 @router.post("/packets/shares")
 def create_packet_share(payload: PacketShareCreate, current_user: dict = Depends(get_current_user)):
+    """Handle create packet share.
+
+    Args:
+        payload: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(current_user, "performance_review_builder")
     parsed_start, parsed_end = _parse_period(payload.start_date, payload.end_date)
     now = datetime.now(timezone.utc)
@@ -204,6 +275,14 @@ def create_packet_share(payload: PacketShareCreate, current_user: dict = Depends
 
 @router.get("/packets/shares")
 def list_packet_shares(current_user: dict = Depends(get_current_user)):
+    """Handle list packet shares.
+
+    Args:
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(current_user, "performance_review_builder")
     items = list(packet_shares_collection.find({"user_id": str(current_user["_id"])}).sort("created_at", -1).limit(50))
     return {"shares": [_serialize_share(item) for item in items]}
@@ -211,6 +290,15 @@ def list_packet_shares(current_user: dict = Depends(get_current_user)):
 
 @router.delete("/packets/shares/{share_id}")
 def revoke_packet_share(share_id: str, current_user: dict = Depends(get_current_user)):
+    """Handle revoke packet share.
+
+    Args:
+        share_id: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     if not ObjectId.is_valid(share_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Share not found")
     result = packet_shares_collection.update_one(
@@ -224,6 +312,15 @@ def revoke_packet_share(share_id: str, current_user: dict = Depends(get_current_
 
 @router.get("/shared/packets/{token}", response_class=HTMLResponse)
 def view_shared_packet(token: str, code: str | None = Query(None, max_length=64)):
+    """Handle view shared packet.
+
+    Args:
+        token: Function argument.
+        code: Function argument.
+
+    Returns:
+        Function result.
+    """
     item = _validate_share(packet_shares_collection.find_one({"token_hash": _token_hash(token)}), code)
     _, packet = _build_shared_packet(item)
     return HTMLResponse(
@@ -239,6 +336,15 @@ def view_shared_packet(token: str, code: str | None = Query(None, max_length=64)
 
 @router.get("/shared/packets/{token}/download.pdf")
 def download_shared_packet(token: str, code: str | None = Query(None, max_length=64)):
+    """Handle download shared packet.
+
+    Args:
+        token: Function argument.
+        code: Function argument.
+
+    Returns:
+        Function result.
+    """
     item = _validate_share(packet_shares_collection.find_one({"token_hash": _token_hash(token)}), code)
     if not item.get("allow_download"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Download is disabled for this share")

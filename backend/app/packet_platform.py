@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import json
@@ -23,11 +24,29 @@ PACKET_THEMES = (
 
 
 def _clean(value: Any, limit: int | None = None) -> str:
+    """Handle clean.
+
+    Args:
+        value: Function argument.
+        limit: Function argument.
+
+    Returns:
+        Function result.
+    """
     text = str(value or "").strip()
     return text[:limit] if limit else text
 
 
 def parse_csv(value: str | None, *, max_items: int = 50) -> list[str]:
+    """Handle parse csv.
+
+    Args:
+        value: Function argument.
+        max_items: Function argument.
+
+    Returns:
+        Function result.
+    """
     if not value:
         return []
     result: list[str] = []
@@ -41,6 +60,14 @@ def parse_csv(value: str | None, *, max_items: int = 50) -> list[str]:
 
 
 def parse_sections(value: str | None) -> list[str]:
+    """Handle parse sections.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     if value == "__none__":
         return []
     if value is None or value == "":
@@ -50,6 +77,14 @@ def parse_sections(value: str | None) -> list[str]:
 
 
 def parse_item_notes(value: str | None) -> dict[str, str]:
+    """Handle parse item notes.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     if not value:
         return {}
     try:
@@ -69,6 +104,15 @@ def parse_item_notes(value: str | None) -> dict[str, str]:
 
 
 def recognition_label(confirmation_type: str | None, role: str | None = None) -> str:
+    """Handle recognition label.
+
+    Args:
+        confirmation_type: Function argument.
+        role: Function argument.
+
+    Returns:
+        Function result.
+    """
     kind = _clean(confirmation_type).lower().replace("_", "-")
     role_text = _clean(role).lower()
 
@@ -90,6 +134,15 @@ def recognition_label(confirmation_type: str | None, role: str | None = None) ->
 
 
 def normalize_recognition(confirmations: list[dict] | None, trust_signals: list[str] | None = None) -> list[dict]:
+    """Handle normalize recognition.
+
+    Args:
+        confirmations: Function argument.
+        trust_signals: Function argument.
+
+    Returns:
+        Function result.
+    """
     recognition: list[dict] = []
     seen: set[tuple[str, str, str]] = set()
 
@@ -130,6 +183,11 @@ def normalize_recognition(confirmations: list[dict] | None, trust_signals: list[
 
 
 def _add_recognition(packet: dict[str, Any]) -> None:
+    """Handle add recognition.
+
+    Args:
+        packet: Function argument.
+    """
     for record in packet.get("receipt_records", []) or []:
         record["recognition"] = normalize_recognition(
             record.get("confirmations"), record.get("trust_signals")
@@ -159,6 +217,25 @@ def apply_packet_platform(
     reviewer_name: str | None = None,
     review_cycle_label: str | None = None,
 ) -> dict[str, Any]:
+    """Handle apply packet platform.
+
+    Args:
+        packet: Function argument.
+        signature_entry_ids: Function argument.
+        signature_candidates: Function argument.
+        sections: Function argument.
+        packet_note: Function argument.
+        item_notes: Function argument.
+        include_notes: Function argument.
+        theme: Function argument.
+        brand_name: Function argument.
+        department_label: Function argument.
+        reviewer_name: Function argument.
+        review_cycle_label: Function argument.
+
+    Returns:
+        Function result.
+    """
     result = deepcopy(packet)
     selected_sections = list(OPTIONAL_SECTIONS) if sections is None else sections
     selected_sections = [key for key in OPTIONAL_SECTIONS if key in selected_sections]
@@ -216,6 +293,16 @@ def apply_packet_platform(
 
 
 def sanitize_shared_packet(packet: dict[str, Any], *, include_evidence: bool, include_notes: bool) -> dict[str, Any]:
+    """Handle sanitize shared packet.
+
+    Args:
+        packet: Function argument.
+        include_evidence: Function argument.
+        include_notes: Function argument.
+
+    Returns:
+        Function result.
+    """
     result = deepcopy(packet)
     if not include_evidence:
         result["evidence_index"] = []

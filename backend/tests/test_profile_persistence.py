@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timezone
 
 import mongomock
@@ -15,6 +16,14 @@ client = TestClient(app)
 
 @pytest.fixture
 def profile_context(monkeypatch):
+    """Handle profile context.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Yields:
+        Values produced by the function.
+    """
     mock_client = mongomock.MongoClient()
     mock_db = mock_client["bragstack_profile_test"]
     users = mock_db["users"]
@@ -46,6 +55,11 @@ def profile_context(monkeypatch):
 
 
 def test_profile_update_persists_and_is_visible_publicly(profile_context):
+    """Verify profile update persists and is visible publicly.
+
+    Args:
+        profile_context: Function argument.
+    """
     user, users = profile_context
 
     payload = {
@@ -80,6 +94,11 @@ def test_profile_update_persists_and_is_visible_publicly(profile_context):
 
 
 def test_profile_update_rejects_non_http_links(profile_context):
+    """Verify profile update rejects non http links.
+
+    Args:
+        profile_context: Function argument.
+    """
     response = client.patch(
         "/auth/me/profile",
         json={

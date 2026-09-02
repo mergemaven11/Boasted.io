@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timedelta, timezone
 
 import mongomock
@@ -29,6 +30,7 @@ SENSITIVE_PACKET_PATHS = [
 
 
 def test_private_packet_builders_and_exports_are_post_only():
+    """Verify private packet builders and exports are post only."""
     paths = app.openapi()["paths"]
     for path in SENSITIVE_PACKET_PATHS:
         assert path in paths
@@ -38,10 +40,27 @@ def test_private_packet_builders_and_exports_are_post_only():
 
 
 def test_sensitive_packet_context_is_accepted_in_json_body_not_query(monkeypatch):
+    """Verify sensitive packet context is accepted in json body not query.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Returns:
+        Function result.
+    """
     user = {"_id": ObjectId(), "email": "packet@example.com", "name": "Packet User", "plan": "pro"}
     captured = {}
 
     def build_platform(payload, current_user):
+        """Handle build platform.
+
+        Args:
+            payload: Function argument.
+            current_user: Function argument.
+
+        Returns:
+            Function result.
+        """
         captured["payload"] = payload
         captured["user"] = current_user
         return {
@@ -87,6 +106,11 @@ def test_sensitive_packet_context_is_accepted_in_json_body_not_query(monkeypatch
 
 
 def test_protected_share_code_is_exchanged_for_clean_cookie_grant(monkeypatch):
+    """Verify protected share code is exchanged for clean cookie grant.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     mock_db = mongomock.MongoClient()["packet_privacy_test"]
     shares = mock_db["packet_shares"]
     rate_limits = mock_db["rate_limits"]
@@ -140,6 +164,11 @@ def test_protected_share_code_is_exchanged_for_clean_cookie_grant(monkeypatch):
 
 
 def test_expired_signed_share_grant_is_rejected(monkeypatch):
+    """Verify expired signed share grant is rejected.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     token = "expiring-share"
     item = {"access_code_hash": "stored-access-hash"}
     expires_epoch = 2_000_000_000

@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 PHASE2_MORE_CAREER_FAMILIES = {
     "automotive-service": ["Service Advisor", "Auto Body Technician", "Collision Repair Technician", "Diesel Mechanic", "Diesel Technician", "Tire Technician", "Lube Technician", "Automotive Service Manager", "Parts Specialist", "Parts Manager", "Automotive Sales Consultant", "Car Detailer", "Vehicle Inspector", "Fleet Mechanic", "Motorcycle Technician", "Marine Technician", "Small Engine Mechanic", "Heavy Equipment Mechanic", "Automotive Electrician", "Warranty Administrator"],
     "beauty-wellness": ["Cosmetologist", "Hair Stylist", "Barber", "Esthetician", "Nail Technician", "Makeup Artist", "Massage Therapist", "Spa Manager", "Salon Manager", "Fitness Trainer", "Personal Trainer", "Group Fitness Instructor", "Yoga Instructor", "Pilates Instructor", "Wellness Coach", "Health Coach", "Fitness Manager", "Recreation Coordinator", "Recreation Specialist", "Aquatics Coordinator"],

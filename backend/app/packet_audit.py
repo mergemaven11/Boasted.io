@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import re
@@ -8,6 +9,14 @@ from app.database import packet_export_audit_collection
 
 
 def count_pdf_pages(pdf_bytes: bytes) -> int | None:
+    """Handle count pdf pages.
+
+    Args:
+        pdf_bytes: Function argument.
+
+    Returns:
+        Function result.
+    """
     if not pdf_bytes:
         return None
     count = len(re.findall(rb"/Type\s*/Page(?!s)\b", pdf_bytes))
@@ -41,6 +50,14 @@ def record_packet_export(
 
 
 def serialize_export(item: dict[str, Any]) -> dict[str, Any]:
+    """Handle serialize export.
+
+    Args:
+        item: Function argument.
+
+    Returns:
+        Function result.
+    """
     generated = item.get("generated_at")
     return {
         "id": str(item.get("_id")),

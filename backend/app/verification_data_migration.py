@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -5,6 +6,14 @@ from typing import Any
 
 
 def _as_utc(value: Any) -> datetime | None:
+    """Handle as utc.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     if isinstance(value, datetime):
         return value.replace(tzinfo=value.tzinfo or timezone.utc).astimezone(timezone.utc)
     if isinstance(value, str):
@@ -17,6 +26,17 @@ def _as_utc(value: Any) -> datetime | None:
 
 
 def _active_request_for_confirmation(requests, *, receipt_id: str, confirmation_id: str, now: datetime):
+    """Handle active request for confirmation.
+
+    Args:
+        requests: Function argument.
+        receipt_id: Function argument.
+        confirmation_id: Function argument.
+        now: Function argument.
+
+    Returns:
+        Function result.
+    """
     if not confirmation_id:
         return None
     request = requests.find_one({"receipt_id": receipt_id, "confirmation_id": confirmation_id})

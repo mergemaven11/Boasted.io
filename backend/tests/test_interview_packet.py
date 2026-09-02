@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timezone
 
 import mongomock
@@ -15,6 +16,14 @@ client = TestClient(app)
 
 @pytest.fixture
 def interview_context(monkeypatch):
+    """Handle interview context.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Yields:
+        Values produced by the function.
+    """
     mock_client = mongomock.MongoClient()
     mock_db = mock_client["bragstack_interview_packet_test"]
     entries = mock_db["entries"]
@@ -29,6 +38,16 @@ def interview_context(monkeypatch):
 
 
 def _seed_education_case(entries, receipts, user):
+    """Handle seed education case.
+
+    Args:
+        entries: Function argument.
+        receipts: Function argument.
+        user: Function argument.
+
+    Returns:
+        Function result.
+    """
     first = entries.insert_one(
         {
             "user_id": str(user["_id"]),
@@ -103,6 +122,11 @@ def _seed_education_case(entries, receipts, user):
 
 
 def test_free_user_cannot_build_interview_packet(interview_context):
+    """Verify free user cannot build interview packet.
+
+    Args:
+        interview_context: Function argument.
+    """
     user = {
         "_id": ObjectId(),
         "name": "Free Member",
@@ -118,6 +142,11 @@ def test_free_user_cannot_build_interview_packet(interview_context):
 
 
 def test_interview_packet_uses_only_selected_stories_and_hides_evidence_by_default(interview_context):
+    """Verify interview packet uses only selected stories and hides evidence by default.
+
+    Args:
+        interview_context: Function argument.
+    """
     entries, receipts = interview_context
     user = {
         "_id": ObjectId(),
@@ -158,6 +187,11 @@ def test_interview_packet_uses_only_selected_stories_and_hides_evidence_by_defau
 
 
 def test_interview_packet_can_explicitly_export_evidence_references(interview_context):
+    """Verify interview packet can explicitly export evidence references.
+
+    Args:
+        interview_context: Function argument.
+    """
     entries, receipts = interview_context
     user = {
         "_id": ObjectId(),
@@ -183,6 +217,11 @@ def test_interview_packet_can_explicitly_export_evidence_references(interview_co
 
 
 def test_interview_packet_pdf_download_is_real_and_named_for_interview(interview_context):
+    """Verify interview packet pdf download is real and named for interview.
+
+    Args:
+        interview_context: Function argument.
+    """
     entries, receipts = interview_context
     user = {
         "_id": ObjectId(),

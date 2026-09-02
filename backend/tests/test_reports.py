@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timedelta, timezone
 
 import mongomock
@@ -14,6 +15,14 @@ client = TestClient(app)
 
 @pytest.fixture
 def report_context(monkeypatch):
+    """Handle report context.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Yields:
+        Values produced by the function.
+    """
     mock_client = mongomock.MongoClient()
     mock_db = mock_client["bragstack_reports_test"]
 
@@ -35,6 +44,11 @@ def report_context(monkeypatch):
 
 
 def test_weekly_report_uses_entry_date_and_combines_receipts(report_context):
+    """Verify weekly report uses entry date and combines receipts.
+
+    Args:
+        report_context: Function argument.
+    """
     user, entries, receipts = report_context
     today = datetime.now(timezone.utc).date()
     recent_date = (today - timedelta(days=2)).isoformat()
@@ -118,6 +132,11 @@ def test_weekly_report_uses_entry_date_and_combines_receipts(report_context):
 
 
 def test_all_time_report_includes_all_owned_entries(report_context):
+    """Verify all time report includes all owned entries.
+
+    Args:
+        report_context: Function argument.
+    """
     user, entries, _ = report_context
 
     entries.insert_many(
@@ -166,6 +185,11 @@ def test_all_time_report_includes_all_owned_entries(report_context):
 
 
 def test_custom_report_validates_dates_and_filters_period(report_context):
+    """Verify custom report validates dates and filters period.
+
+    Args:
+        report_context: Function argument.
+    """
     user, entries, _ = report_context
 
     entries.insert_many(
@@ -209,6 +233,11 @@ def test_custom_report_validates_dates_and_filters_period(report_context):
 
 
 def test_performance_packet_requires_pro_entitlement(report_context):
+    """Verify performance packet requires pro entitlement.
+
+    Args:
+        report_context: Function argument.
+    """
     user, _, _ = report_context
     user["plan"] = "free"
 
@@ -221,6 +250,11 @@ def test_performance_packet_requires_pro_entitlement(report_context):
 
 
 def test_performance_packet_builds_transparent_scorecard(report_context):
+    """Verify performance packet builds transparent scorecard.
+
+    Args:
+        report_context: Function argument.
+    """
     user, entries, receipts = report_context
     user["plan"] = "pro"
     user["headline"] = "Community Programs Coordinator"

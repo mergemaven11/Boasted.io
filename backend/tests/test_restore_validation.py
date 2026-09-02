@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 import mongomock
 from bson import ObjectId
 
@@ -5,6 +6,14 @@ from app.restore_validation import OPTIONAL_COLLECTIONS, REQUIRED_COLLECTIONS, v
 
 
 def _restored_db(*, include_optional=True):
+    """Handle restored db.
+
+    Args:
+        include_optional: Function argument.
+
+    Returns:
+        Function result.
+    """
     client = mongomock.MongoClient()
     db = client["bragstack_restore_test"]
     for name in REQUIRED_COLLECTIONS:
@@ -23,6 +32,7 @@ def _restored_db(*, include_optional=True):
 
 
 def test_restore_validator_passes_valid_restored_database():
+    """Verify restore validator passes valid restored database."""
     db = _restored_db()
     user_id = ObjectId()
     entry_id = ObjectId()
@@ -58,6 +68,7 @@ def test_restore_validator_passes_valid_restored_database():
 
 
 def test_restore_validator_allows_absent_lazy_optional_collections():
+    """Verify restore validator allows absent lazy optional collections."""
     db = _restored_db(include_optional=False)
     user_id = ObjectId()
     db.users.insert_one({"_id": user_id, "email": "restore@example.com"})
@@ -72,6 +83,7 @@ def test_restore_validator_allows_absent_lazy_optional_collections():
 
 
 def test_restore_validator_fails_when_required_collection_is_missing():
+    """Verify restore validator fails when required collection is missing."""
     db = _restored_db()
     db.drop_collection("users")
 
@@ -83,6 +95,7 @@ def test_restore_validator_fails_when_required_collection_is_missing():
 
 
 def test_restore_validator_fails_for_orphaned_user_owned_record():
+    """Verify restore validator fails for orphaned user owned record."""
     db = _restored_db()
     db.entries.insert_one(
         {
@@ -101,6 +114,7 @@ def test_restore_validator_fails_for_orphaned_user_owned_record():
 
 
 def test_restore_validator_fails_cross_user_receipt_source_link():
+    """Verify restore validator fails cross user receipt source link."""
     db = _restored_db()
     owner_a = ObjectId()
     owner_b = ObjectId()
@@ -126,6 +140,7 @@ def test_restore_validator_fails_cross_user_receipt_source_link():
 
 
 def test_restore_validator_fails_invalid_privacy_flags():
+    """Verify restore validator fails invalid privacy flags."""
     db = _restored_db()
     user_id = ObjectId()
 
@@ -148,6 +163,7 @@ def test_restore_validator_fails_invalid_privacy_flags():
 
 
 def test_restore_validator_fails_when_interview_catalog_has_no_active_careers():
+    """Verify restore validator fails when interview catalog has no active careers."""
     db = _restored_db()
     db.interview_careers.update_many({}, {"$set": {"active": False}})
 

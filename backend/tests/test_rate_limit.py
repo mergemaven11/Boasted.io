@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 import mongomock
 from fastapi.testclient import TestClient
 from starlette.requests import Request
@@ -11,6 +12,16 @@ TEST_EPOCH = 1_800_000_000
 
 
 def _request(path: str, *, method: str = "POST", client_ip: str = "203.0.113.10") -> Request:
+    """Handle request.
+
+    Args:
+        path: Function argument.
+        method: Function argument.
+        client_ip: Function argument.
+
+    Returns:
+        Function result.
+    """
     scope = {
         "type": "http",
         "http_version": "1.1",
@@ -27,6 +38,14 @@ def _request(path: str, *, method: str = "POST", client_ip: str = "203.0.113.10"
 
 
 def _use_mock_rate_limits(monkeypatch):
+    """Handle use mock rate limits.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Returns:
+        Function result.
+    """
     db = mongomock.MongoClient()["bragstack_test"]
     monkeypatch.setattr(rate_limit, "rate_limits_collection", db["rate_limits"])
     monkeypatch.setattr(rate_limit, "RATE_LIMIT_ENABLED", True)
@@ -34,6 +53,11 @@ def _use_mock_rate_limits(monkeypatch):
 
 
 def test_fixed_window_limit_returns_retry_after_and_resets(monkeypatch):
+    """Verify fixed window limit returns retry after and resets.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     db = _use_mock_rate_limits(monkeypatch)
     monkeypatch.setitem(
         rate_limit.POLICIES,
@@ -56,6 +80,11 @@ def test_fixed_window_limit_returns_retry_after_and_resets(monkeypatch):
 
 
 def test_rate_limit_bucket_does_not_store_raw_client_address(monkeypatch):
+    """Verify rate limit bucket does not store raw client address.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     db = _use_mock_rate_limits(monkeypatch)
     client_ip = "198.51.100.42"
     request = _request("/auth/register", client_ip=client_ip)
@@ -70,6 +99,11 @@ def test_rate_limit_bucket_does_not_store_raw_client_address(monkeypatch):
 
 
 def test_targeted_policy_selection_covers_abuse_sensitive_routes(monkeypatch):
+    """Verify targeted policy selection covers abuse sensitive routes.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     monkeypatch.setattr(rate_limit, "RATE_LIMIT_ENABLED", True)
 
     cases = [
@@ -98,6 +132,11 @@ def test_targeted_policy_selection_covers_abuse_sensitive_routes(monkeypatch):
 
 
 def test_login_429_is_generic_pre_lookup_and_browser_readable(monkeypatch):
+    """Verify login 429 is generic pre lookup and browser readable.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     db = _use_mock_rate_limits(monkeypatch)
     monkeypatch.setitem(
         rate_limit.POLICIES,

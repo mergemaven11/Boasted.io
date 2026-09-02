@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from bson import ObjectId
 from pydantic import ValidationError
 import pytest
@@ -6,6 +7,11 @@ from app import resume_builder_routes as routes
 
 
 def structured_payload():
+    """Handle structured payload.
+
+    Returns:
+        Function result.
+    """
     return routes.ResumeSaveRequest(
         title="Platform Engineer · Aug 25",
         target_role="Platform Engineer",
@@ -47,6 +53,7 @@ def structured_payload():
 
 
 def test_structured_save_payload_keeps_role_boundaries():
+    """Verify structured save payload keeps role boundaries."""
     payload = structured_payload()
     assert payload.experience[0].company == "Example Co"
     assert payload.experience[0].title == "Platform Engineer"
@@ -56,6 +63,7 @@ def test_structured_save_payload_keeps_role_boundaries():
 
 
 def test_structured_roles_require_employer_and_title():
+    """Verify structured roles require employer and title."""
     with pytest.raises(ValidationError):
         routes.ResumeExperiencePayload(company="", title="Platform Engineer")
     with pytest.raises(ValidationError):
@@ -63,10 +71,27 @@ def test_structured_roles_require_employer_and_title():
 
 
 def test_save_resume_writes_structured_schema(monkeypatch):
+    """Verify save resume writes structured schema.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Returns:
+        Function result.
+    """
     captured = {}
 
     class FakeCollection:
+        """Represent FakeCollection."""
         def insert_one(self, document):
+            """Handle insert one.
+
+            Args:
+                document: Function argument.
+
+            Returns:
+                Function result.
+            """
             captured.update(document)
             return type("InsertResult", (), {"inserted_id": ObjectId("507f1f77bcf86cd799439011")})()
 
@@ -84,10 +109,27 @@ def test_save_resume_writes_structured_schema(monkeypatch):
 
 
 def test_master_resume_can_save_without_target_job_or_work_history(monkeypatch):
+    """Verify master resume can save without target job or work history.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Returns:
+        Function result.
+    """
     captured = {}
 
     class FakeCollection:
+        """Represent FakeCollection."""
         def insert_one(self, document):
+            """Handle insert one.
+
+            Args:
+                document: Function argument.
+
+            Returns:
+                Function result.
+            """
             captured.update(document)
             return type("InsertResult", (), {"inserted_id": ObjectId("507f1f77bcf86cd799439012")})()
 
@@ -115,6 +157,7 @@ def test_master_resume_can_save_without_target_job_or_work_history(monkeypatch):
 
 
 def test_legacy_save_payload_without_structured_history_still_validates():
+    """Verify legacy save payload without structured history still validates."""
     payload = routes.ResumeSaveRequest(
         title="Legacy saved resume",
         target_role="Support Engineer",

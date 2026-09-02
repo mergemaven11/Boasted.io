@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timedelta, timezone
 
 import mongomock
@@ -13,6 +14,14 @@ client = TestClient(app)
 
 @pytest.fixture
 def verification_context(monkeypatch):
+    """Handle verification context.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Yields:
+        Values produced by the function.
+    """
     db = mongomock.MongoClient()["receipt_verification_test"]
     receipts = db["impact_receipts"]
     requests = db["receipt_verification_requests"]
@@ -37,6 +46,15 @@ def verification_context(monkeypatch):
     sent = {}
 
     async def fake_send(to_email, owner_name, receipt, confirmation, raw_token):
+        """Handle fake send.
+
+        Args:
+            to_email: Function argument.
+            owner_name: Function argument.
+            receipt: Function argument.
+            confirmation: Function argument.
+            raw_token: Function argument.
+        """
         sent.update({"to": to_email, "owner": owner_name, "token": raw_token, "message": confirmation.get("message")})
 
     monkeypatch.setattr(verification_routes, "impact_receipts_collection", receipts)
@@ -48,6 +66,11 @@ def verification_context(monkeypatch):
 
 
 def test_owner_can_request_verification_without_storing_contact_payload_on_receipt(verification_context):
+    """Verify owner can request verification without storing contact payload on receipt.
+
+    Args:
+        verification_context: Function argument.
+    """
     _, receipts, requests, receipt_id, sent = verification_context
     response = client.post(f"/impact-receipts/{receipt_id}/verification-requests", json={
         "name": "Jane Manager",
@@ -76,6 +99,11 @@ def test_owner_can_request_verification_without_storing_contact_payload_on_recei
 
 
 def test_public_link_exposes_claim_and_optional_message_but_not_verifier_email(verification_context):
+    """Verify public link exposes claim and optional message but not verifier email.
+
+    Args:
+        verification_context: Function argument.
+    """
     _, _, _, receipt_id, sent = verification_context
     client.post(
         f"/impact-receipts/{receipt_id}/verification-requests",
@@ -92,6 +120,11 @@ def test_public_link_exposes_claim_and_optional_message_but_not_verifier_email(v
 
 
 def test_confirm_minimizes_attestation_and_deletes_pending_contact_payload(verification_context):
+    """Verify confirm minimizes attestation and deletes pending contact payload.
+
+    Args:
+        verification_context: Function argument.
+    """
     _, receipts, requests, receipt_id, sent = verification_context
     client.post(
         f"/impact-receipts/{receipt_id}/verification-requests",
@@ -117,6 +150,11 @@ def test_confirm_minimizes_attestation_and_deletes_pending_contact_payload(verif
 
 
 def test_decline_is_minimized_and_contact_payload_deleted(verification_context):
+    """Verify decline is minimized and contact payload deleted.
+
+    Args:
+        verification_context: Function argument.
+    """
     _, receipts, requests, receipt_id, sent = verification_context
     client.post(
         f"/impact-receipts/{receipt_id}/verification-requests",
@@ -135,6 +173,11 @@ def test_decline_is_minimized_and_contact_payload_deleted(verification_context):
 
 
 def test_duplicate_active_verification_request_for_same_email_is_rejected(verification_context):
+    """Verify duplicate active verification request for same email is rejected.
+
+    Args:
+        verification_context: Function argument.
+    """
     _, _, requests, receipt_id, _ = verification_context
     first = client.post(
         f"/impact-receipts/{receipt_id}/verification-requests",
@@ -150,6 +193,11 @@ def test_duplicate_active_verification_request_for_same_email_is_rejected(verifi
 
 
 def test_expired_request_removes_pending_confirmation_and_contact_payload(verification_context):
+    """Verify expired request removes pending confirmation and contact payload.
+
+    Args:
+        verification_context: Function argument.
+    """
     _, receipts, requests, receipt_id, _ = verification_context
     raw_token = "expired-token"
     confirmation_id = "expired-confirmation"

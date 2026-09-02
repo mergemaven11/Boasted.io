@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -17,12 +18,14 @@ MINIMUM_COHORT_SIZE = 5
 
 
 class SourceRecord(BaseModel):
+    """Represent SourceRecord."""
     title: str = Field(min_length=1, max_length=160)
     reference: str = Field(min_length=1, max_length=500)
     observed_at: datetime
 
 
 class OutcomeMetric(BaseModel):
+    """Represent OutcomeMetric."""
     key: str = Field(pattern=r"^[a-z0-9][a-z0-9_-]{1,63}$")
     definition: str = Field(min_length=1, max_length=500)
     lens: Literal["revenue", "reliability", "customer", "efficiency", "risk", "people-development"]
@@ -38,12 +41,18 @@ class OutcomeMetric(BaseModel):
 
     @model_validator(mode="after")
     def actual_requires_source(self):
+        """Handle actual requires source.
+
+        Returns:
+            Function result.
+        """
         if self.actual is not None and not self.sources:
             raise ValueError("Actual values require at least one source record")
         return self
 
 
 class GoalCreate(BaseModel):
+    """Represent GoalCreate."""
     title: str = Field(min_length=1, max_length=160)
     description: str = Field(min_length=1, max_length=800)
     status: Literal["on-track", "at-risk", "stalled", "complete"] = "on-track"
@@ -54,11 +63,20 @@ class GoalCreate(BaseModel):
 
 
 class ExportRequest(BaseModel):
+    """Represent ExportRequest."""
     goal_ids: list[str] = Field(min_length=1, max_length=50)
     purpose: Literal["board", "leadership", "investor"]
 
 
 def _authorize(user: dict) -> str:
+    """Handle authorize.
+
+    Args:
+        user: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(user, "executive_command_center")
     role = str(user.get("workspace_role") or "").lower()
     if role not in EXECUTIVE_ROLES:
@@ -70,6 +88,15 @@ def _authorize(user: dict) -> str:
 
 
 def _metric_view(metric: dict, now: datetime) -> dict:
+    """Handle metric view.
+
+    Args:
+        metric: Function argument.
+        now: Function argument.
+
+    Returns:
+        Function result.
+    """
     item = dict(metric)
     cohort = item.get("cohort_size")
     item["suppressed"] = cohort is not None and cohort < MINIMUM_COHORT_SIZE
@@ -85,6 +112,14 @@ def _metric_view(metric: dict, now: datetime) -> dict:
 
 
 def _serialize(goal: dict) -> dict:
+    """Handle serialize.
+
+    Args:
+        goal: Function argument.
+
+    Returns:
+        Function result.
+    """
     now = datetime.now(timezone.utc)
     return {
         "id": str(goal["_id"]), "title": goal["title"], "description": goal["description"],
@@ -97,6 +132,15 @@ def _serialize(goal: dict) -> dict:
 
 @router.get("")
 def dashboard(lens: str | None = Query(default=None), current_user: dict = Depends(get_current_user)):
+    """Handle dashboard.
+
+    Args:
+        lens: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     workspace_id = _authorize(current_user)
     goals = list(executive_goals_collection.find({"workspace_id": workspace_id, "restricted": {"$ne": True}}).sort("updated_at", -1))
     serialized = [_serialize(goal) for goal in goals]
@@ -113,6 +157,15 @@ def dashboard(lens: str | None = Query(default=None), current_user: dict = Depen
 
 @router.post("/goals", status_code=status.HTTP_201_CREATED)
 def create_goal(payload: GoalCreate, current_user: dict = Depends(get_current_user)):
+    """Handle create goal.
+
+    Args:
+        payload: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     workspace_id = _authorize(current_user)
     now = datetime.now(timezone.utc)
     document = {**payload.model_dump(), "workspace_id": workspace_id, "restricted": False, "created_by": str(current_user["_id"]), "created_at": now, "updated_at": now, "definition_version": 1}
@@ -122,6 +175,15 @@ def create_goal(payload: GoalCreate, current_user: dict = Depends(get_current_us
 
 @router.post("/exports", status_code=status.HTTP_202_ACCEPTED)
 def request_export(payload: ExportRequest, current_user: dict = Depends(get_current_user)):
+    """Handle request export.
+
+    Args:
+        payload: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     workspace_id = _authorize(current_user)
     ids = [ObjectId(value) for value in payload.goal_ids if ObjectId.is_valid(value)]
     visible_count = executive_goals_collection.count_documents({"_id": {"$in": ids}, "workspace_id": workspace_id, "restricted": {"$ne": True}})
