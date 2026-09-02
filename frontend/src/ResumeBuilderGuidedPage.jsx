@@ -66,6 +66,8 @@ export default function ResumeBuilderGuidedPage() {
     };
 
     const handleClick = (event) => {
+      if (event.target.closest(".resume-v2-start-blank")) pendingStepRef.current = 2;
+      if (event.target.closest(".resume-v2-saved-item")) pendingStepRef.current = 3;
       if (event.target.closest(".resume-confirm-primary")) pendingStepRef.current = 3;
       if (event.target.closest(".resume-v2-paper-banner button")) pendingStepRef.current = 2;
     };
