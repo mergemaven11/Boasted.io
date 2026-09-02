@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import re
@@ -55,6 +56,14 @@ def _entry_work_date(entry: dict) -> date | None:
 
 
 def _sorted_counts(counter: Counter) -> dict[str, int]:
+    """Handle sorted counts.
+
+    Args:
+        counter: Function argument.
+
+    Returns:
+        Function result.
+    """
     return dict(sorted(counter.items(), key=lambda item: (-item[1], item[0].lower())))
 
 
@@ -77,6 +86,16 @@ def _entries_in_period(
     start_date: date | None = None,
     end_date: date | None = None,
 ) -> list[dict]:
+    """Handle entries in period.
+
+    Args:
+        user_id: Function argument.
+        start_date: Function argument.
+        end_date: Function argument.
+
+    Returns:
+        Function result.
+    """
     entries = list(entries_collection.find({"user_id": user_id}))
 
     if start_date is None and end_date is None:
@@ -108,6 +127,18 @@ def _build_report(
     start_date: date | None = None,
     end_date: date | None = None,
 ) -> dict:
+    """Handle build report.
+
+    Args:
+        user_id: Function argument.
+        period_key: Function argument.
+        period_label: Function argument.
+        start_date: Function argument.
+        end_date: Function argument.
+
+    Returns:
+        Function result.
+    """
     entries = _entries_in_period(user_id, start_date, end_date)
     entry_ids = {str(entry["_id"]) for entry in entries}
 

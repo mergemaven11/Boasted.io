@@ -1,9 +1,11 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timezone
 
 from app.career_intelligence import build_career_intelligence
 
 
 def test_career_intelligence_combines_entries_and_receipts():
+    """Verify career intelligence combines entries and receipts."""
     now = datetime(2026, 8, 26, tzinfo=timezone.utc)
     entries = [
         {"category": "Platform Engineering", "tags": ["Docker", "Python"], "impact": "Reduced deployment time by 40%", "entry_date": "2026-08-01"},
@@ -35,6 +37,7 @@ def test_career_intelligence_combines_entries_and_receipts():
 
 
 def test_linked_receipt_enriches_instead_of_double_counting_proof():
+    """Verify linked receipt enriches instead of double counting proof."""
     now = datetime(2026, 8, 26, tzinfo=timezone.utc)
     entries = [
         {
@@ -71,6 +74,7 @@ def test_linked_receipt_enriches_instead_of_double_counting_proof():
 
 
 def test_career_intelligence_surfaces_proof_gaps_without_readiness_score():
+    """Verify career intelligence surfaces proof gaps without readiness score."""
     result = build_career_intelligence(
         [
             {"category": "Operations", "tags": [], "impact": "Improved the process", "entry_date": "2026-08-01"},

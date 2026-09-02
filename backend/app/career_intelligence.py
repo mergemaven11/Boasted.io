@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import re
@@ -12,10 +13,26 @@ QUANTIFIED_PATTERN = re.compile(
 
 
 def _clean_text(value) -> str:
+    """Handle clean text.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return str(value or "").strip()
 
 
 def _normalized_skill(value) -> tuple[str, str] | None:
+    """Handle normalized skill.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     display = _clean_text(value)
     if not display:
         return None
@@ -23,6 +40,14 @@ def _normalized_skill(value) -> tuple[str, str] | None:
 
 
 def _as_datetime(value) -> datetime | None:
+    """Handle as datetime.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     if isinstance(value, datetime):
         if value.tzinfo is None:
             return value.replace(tzinfo=timezone.utc)
@@ -47,6 +72,14 @@ def _as_datetime(value) -> datetime | None:
 
 
 def _document_datetime(document: dict) -> datetime | None:
+    """Handle document datetime.
+
+    Args:
+        document: Function argument.
+
+    Returns:
+        Function result.
+    """
     return (
         _as_datetime(document.get("entry_date"))
         or _as_datetime(document.get("updated_at"))
@@ -55,10 +88,26 @@ def _document_datetime(document: dict) -> datetime | None:
 
 
 def _has_quantified_text(*values) -> bool:
+    """Handle has quantified text.
+
+    Args:
+        values: Function argument.
+
+    Returns:
+        Function result.
+    """
     return any(QUANTIFIED_PATTERN.search(_clean_text(value)) for value in values)
 
 
 def _confirmed_count(receipt: dict) -> int:
+    """Handle confirmed count.
+
+    Args:
+        receipt: Function argument.
+
+    Returns:
+        Function result.
+    """
     return sum(
         1
         for confirmation in receipt.get("confirmations", []) or []
@@ -67,6 +116,14 @@ def _confirmed_count(receipt: dict) -> int:
 
 
 def _document_id(document: dict) -> str | None:
+    """Handle document id.
+
+    Args:
+        document: Function argument.
+
+    Returns:
+        Function result.
+    """
     value = document.get("_id") or document.get("id")
     text = _clean_text(value)
     return text or None

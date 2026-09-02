@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 import hashlib
 import hmac
 import json
@@ -17,6 +18,14 @@ client_without_server_exceptions = TestClient(app, raise_server_exceptions=False
 
 
 def _signed_request(event: dict) -> tuple[bytes, dict[str, str]]:
+    """Handle signed request.
+
+    Args:
+        event: Function argument.
+
+    Returns:
+        Function result.
+    """
     payload = json.dumps(event, separators=(",", ":")).encode("utf-8")
     timestamp = str(int(time.time()))
     digest = hmac.new(
@@ -28,6 +37,14 @@ def _signed_request(event: dict) -> tuple[bytes, dict[str, str]]:
 
 
 def _use_mock_billing_db(monkeypatch):
+    """Handle use mock billing db.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Returns:
+        Function result.
+    """
     mock_db = mongomock.MongoClient()["bragstack_test"]
     monkeypatch.setattr(billing_routes, "users_collection", mock_db["users"])
     monkeypatch.setattr(
@@ -40,11 +57,22 @@ def _use_mock_billing_db(monkeypatch):
 
 
 def test_duplicate_stripe_event_is_processed_once(monkeypatch):
+    """Verify duplicate stripe event is processed once.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     mock_db = _use_mock_billing_db(monkeypatch)
     user_id = str(ObjectId())
     calls: list[tuple[str, dict]] = []
 
     def record_state_change(received_user_id: str, **kwargs):
+        """Handle record state change.
+
+        Args:
+            received_user_id: Function argument.
+            kwargs: Function argument.
+        """
         calls.append((received_user_id, kwargs))
 
     monkeypatch.setattr(billing_routes, "_set_subscription_state", record_state_change)
@@ -78,6 +106,11 @@ def test_duplicate_stripe_event_is_processed_once(monkeypatch):
 
 
 def test_older_stripe_event_cannot_regress_newer_subscription_state(monkeypatch):
+    """Verify older stripe event cannot regress newer subscription state.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     mock_db = _use_mock_billing_db(monkeypatch)
     user_id = ObjectId()
     billing_routes.users_collection.insert_one(
@@ -114,6 +147,11 @@ def test_older_stripe_event_cannot_regress_newer_subscription_state(monkeypatch)
 
 
 def test_failed_webhook_processing_releases_claim_for_retry(monkeypatch):
+    """Verify failed webhook processing releases claim for retry.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     mock_db = _use_mock_billing_db(monkeypatch)
     user_id = str(ObjectId())
     event = {
@@ -131,6 +169,12 @@ def test_failed_webhook_processing_releases_claim_for_retry(monkeypatch):
     payload, headers = _signed_request(event)
 
     def fail_once(*args, **kwargs):
+        """Handle fail once.
+
+        Args:
+            args: Function argument.
+            kwargs: Function argument.
+        """
         raise RuntimeError("simulated processing failure")
 
     monkeypatch.setattr(billing_routes, "_set_subscription_state", fail_once)
@@ -141,6 +185,12 @@ def test_failed_webhook_processing_releases_claim_for_retry(monkeypatch):
     calls = []
 
     def succeed(received_user_id: str, **kwargs):
+        """Handle succeed.
+
+        Args:
+            received_user_id: Function argument.
+            kwargs: Function argument.
+        """
         calls.append((received_user_id, kwargs))
 
     monkeypatch.setattr(billing_routes, "_set_subscription_state", succeed)
@@ -154,6 +204,11 @@ def test_failed_webhook_processing_releases_claim_for_retry(monkeypatch):
 
 
 def test_malformed_signed_event_is_rejected_before_claim(monkeypatch):
+    """Verify malformed signed event is rejected before claim.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     mock_db = _use_mock_billing_db(monkeypatch)
     event = {
         "created": 1_780_000_200,

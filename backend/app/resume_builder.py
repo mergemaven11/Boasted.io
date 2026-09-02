@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import re
@@ -61,6 +62,14 @@ DATE_RANGE_RE = re.compile(
 
 
 def normalize_text(value: str) -> str:
+    """Handle normalize text.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     text = (value or "").lower()
     for alias, expanded in ALIASES.items():
         pattern = rf"(?<![a-z0-9]){re.escape(alias)}(?![a-z0-9])"
@@ -69,11 +78,28 @@ def normalize_text(value: str) -> str:
 
 
 def _tokens(value: str) -> list[str]:
+    """Handle tokens.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     normalized = normalize_text(value)
     return [token.strip("./-") for token in normalized.split() if token.strip("./-")]
 
 
 def extract_terms(job_description: str, limit: int = 24) -> list[str]:
+    """Handle extract terms.
+
+    Args:
+        job_description: Function argument.
+        limit: Function argument.
+
+    Returns:
+        Function result.
+    """
     tokens = [
         token for token in _tokens(job_description)
         if len(token) >= 3 and token not in STOPWORDS and token not in LEGAL_BOILERPLATE
@@ -85,6 +111,14 @@ def extract_terms(job_description: str, limit: int = 24) -> list[str]:
 
 
 def receipt_text(receipt: dict) -> str:
+    """Handle receipt text.
+
+    Args:
+        receipt: Function argument.
+
+    Returns:
+        Function result.
+    """
     metric_text = " ".join(
         f"{metric.get('label', '')} {metric.get('value', '')} {metric.get('context', '')}"
         for metric in receipt.get("metrics", [])
@@ -99,10 +133,28 @@ def receipt_text(receipt: dict) -> str:
 
 
 def _term_matches(term: str, text: str) -> bool:
+    """Handle term matches.
+
+    Args:
+        term: Function argument.
+        text: Function argument.
+
+    Returns:
+        Function result.
+    """
     return term in set(_tokens(text))
 
 
 def score_receipt(receipt: dict, terms: Iterable[str]) -> tuple[int, list[str]]:
+    """Handle score receipt.
+
+    Args:
+        receipt: Function argument.
+        terms: Function argument.
+
+    Returns:
+        Function result.
+    """
     text = receipt_text(receipt)
     matches = [term for term in terms if _term_matches(term, text)]
     score = len(matches) * 4
@@ -118,6 +170,14 @@ def score_receipt(receipt: dict, terms: Iterable[str]) -> tuple[int, list[str]]:
 
 
 def build_resume_bullet(receipt: dict) -> str:
+    """Handle build resume bullet.
+
+    Args:
+        receipt: Function argument.
+
+    Returns:
+        Function result.
+    """
     accomplishment = str(receipt.get("accomplishment", "")).strip().rstrip(".")
     contribution = str(receipt.get("contribution", "")).strip().rstrip(".")
     result = str(receipt.get("result", "")).strip().rstrip(".")
@@ -135,10 +195,26 @@ def build_resume_bullet(receipt: dict) -> str:
 
 
 def _clean_line(line: str) -> str:
+    """Handle clean line.
+
+    Args:
+        line: Function argument.
+
+    Returns:
+        Function result.
+    """
     return re.sub(r"\s+", " ", line or "").strip()
 
 
 def _heading_key(line: str) -> str | None:
+    """Handle heading key.
+
+    Args:
+        line: Function argument.
+
+    Returns:
+        Function result.
+    """
     normalized = re.sub(r"[^a-z& ]+", "", line.lower()).strip()
     for key, names in SECTION_NAMES.items():
         if normalized in names:
@@ -147,11 +223,27 @@ def _heading_key(line: str) -> str | None:
 
 
 def _split_embedded_bullets(raw_text: str) -> list[str]:
+    """Handle split embedded bullets.
+
+    Args:
+        raw_text: Function argument.
+
+    Returns:
+        Function result.
+    """
     expanded = re.sub(r"(?<=\S)\s+([•▪◦])\s*", r"\n\1 ", raw_text or "")
     return [_clean_line(line) for line in expanded.splitlines() if _clean_line(line)]
 
 
 def _is_date_fragment(line: str) -> bool:
+    """Handle is date fragment.
+
+    Args:
+        line: Function argument.
+
+    Returns:
+        Function result.
+    """
     value = line.strip().lower().strip(".,")
     if value in {"-", "–", "—"}:
         return True
@@ -165,6 +257,14 @@ def _is_date_fragment(line: str) -> bool:
 
 
 def _is_role_line(line: str) -> bool:
+    """Handle is role line.
+
+    Args:
+        line: Function argument.
+
+    Returns:
+        Function result.
+    """
     value = line.strip()
     if "|" in value and len(value.split()) <= 18:
         return True
@@ -172,16 +272,40 @@ def _is_role_line(line: str) -> bool:
 
 
 def _is_structural_line(line: str) -> bool:
+    """Handle is structural line.
+
+    Args:
+        line: Function argument.
+
+    Returns:
+        Function result.
+    """
     return bool(_heading_key(line) or BULLET_RE.match(line) or _is_date_fragment(line) or _is_role_line(line))
 
 
 def _normalize_date_parts(parts: list[str]) -> str:
+    """Handle normalize date parts.
+
+    Args:
+        parts: Function argument.
+
+    Returns:
+        Function result.
+    """
     text = " ".join(parts)
     text = re.sub(r"\s*[-–—]\s*", " – ", text)
     return re.sub(r"\s+", " ", text).strip()
 
 
 def _repair_extracted_lines(raw_text: str) -> list[str]:
+    """Handle repair extracted lines.
+
+    Args:
+        raw_text: Function argument.
+
+    Returns:
+        Function result.
+    """
     lines = _split_embedded_bullets(raw_text)
     repaired: list[str] = []
     index = 0
@@ -235,6 +359,14 @@ def _repair_extracted_lines(raw_text: str) -> list[str]:
 
 
 def parse_existing_resume_text(raw_text: str) -> dict:
+    """Handle parse existing resume text.
+
+    Args:
+        raw_text: Function argument.
+
+    Returns:
+        Function result.
+    """
     lines = _repair_extracted_lines(raw_text)
     sections: dict[str, list[str]] = {key: [] for key in SECTION_HEADINGS}
     current: str | None = None
@@ -294,6 +426,16 @@ def parse_existing_resume_text(raw_text: str) -> dict:
 
 
 def build_summary(target_role: str, matched_receipts: list[dict], imported_summary: str = "") -> str:
+    """Handle build summary.
+
+    Args:
+        target_role: Function argument.
+        matched_receipts: Function argument.
+        imported_summary: Function argument.
+
+    Returns:
+        Function result.
+    """
     if imported_summary.strip():
         return imported_summary.strip()[:1200]
     skills = []
@@ -308,6 +450,14 @@ def build_summary(target_role: str, matched_receipts: list[dict], imported_summa
 
 
 def _score_label(score: int) -> str:
+    """Handle score label.
+
+    Args:
+        score: Function argument.
+
+    Returns:
+        Function result.
+    """
     if score >= 85:
         return "Excellent"
     if score >= 75:
@@ -320,6 +470,18 @@ def _score_label(score: int) -> str:
 
 
 def _build_ats_scan(*, imported: dict, coverage: int, bullets: list[dict], skills: list[str], unsupported_terms: list[str]) -> dict:
+    """Handle build ats scan.
+
+    Args:
+        imported: Function argument.
+        coverage: Function argument.
+        bullets: Function argument.
+        skills: Function argument.
+        unsupported_terms: Function argument.
+
+    Returns:
+        Function result.
+    """
     source_signals = imported.get("source_signals", {})
     has_content = bool(imported.get("text"))
     has_skills = bool(skills) or source_signals.get("has_skills_heading", False)
@@ -375,6 +537,17 @@ def _build_ats_scan(*, imported: dict, coverage: int, bullets: list[dict], skill
 
 
 def analyze_resume(*, target_role: str, job_description: str, receipts: list[dict], existing_resume_text: str = "") -> dict:
+    """Handle analyze resume.
+
+    Args:
+        target_role: Function argument.
+        job_description: Function argument.
+        receipts: Function argument.
+        existing_resume_text: Function argument.
+
+    Returns:
+        Function result.
+    """
     terms = extract_terms(job_description)
     imported = parse_existing_resume_text(existing_resume_text) if existing_resume_text.strip() else {
         "summary": "", "bullets": [], "skills": [], "sections_found": [], "sections": {}, "header_lines": [], "line_count": 0, "text": "",

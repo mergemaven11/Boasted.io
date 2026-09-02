@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timezone
 
 import mongomock
@@ -14,6 +15,14 @@ client = TestClient(app)
 
 @pytest.fixture
 def certification_context(monkeypatch):
+    """Handle certification context.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Yields:
+        Values produced by the function.
+    """
     mock_client = mongomock.MongoClient()
     mock_db = mock_client["bragstack_certification_packet_test"]
     entries = mock_db["entries"]
@@ -27,6 +36,13 @@ def certification_context(monkeypatch):
 
 
 def _seed_cosmetology_case(entries, receipts, user):
+    """Handle seed cosmetology case.
+
+    Args:
+        entries: Function argument.
+        receipts: Function argument.
+        user: Function argument.
+    """
     cases = [
         (
             "Completed state sanitation renewal",
@@ -107,6 +123,11 @@ def _seed_cosmetology_case(entries, receipts, user):
 
 
 def test_free_user_cannot_build_certification_packet(certification_context):
+    """Verify free user cannot build certification packet.
+
+    Args:
+        certification_context: Function argument.
+    """
     user = {
         "_id": ObjectId(),
         "name": "Free Member",
@@ -122,6 +143,11 @@ def test_free_user_cannot_build_certification_packet(certification_context):
 
 
 def test_certification_packet_distinguishes_evidence_statuses(certification_context):
+    """Verify certification packet distinguishes evidence statuses.
+
+    Args:
+        certification_context: Function argument.
+    """
     entries, receipts = certification_context
     user = {
         "_id": ObjectId(),
@@ -169,6 +195,11 @@ def test_certification_packet_distinguishes_evidence_statuses(certification_cont
 
 
 def test_pro_user_downloads_certification_pdf(certification_context):
+    """Verify pro user downloads certification pdf.
+
+    Args:
+        certification_context: Function argument.
+    """
     entries, receipts = certification_context
     user = {
         "_id": ObjectId(),

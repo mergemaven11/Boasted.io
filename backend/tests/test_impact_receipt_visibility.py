@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timezone
 
 import mongomock
@@ -15,6 +16,14 @@ client = TestClient(app)
 
 @pytest.fixture
 def receipt_context(monkeypatch):
+    """Handle receipt context.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Yields:
+        Values produced by the function.
+    """
     mock_client = mongomock.MongoClient()
     mock_db = mock_client["bragstack_receipt_visibility_test"]
 
@@ -44,6 +53,11 @@ def receipt_context(monkeypatch):
 
 
 def test_owner_can_toggle_receipt_visibility(receipt_context):
+    """Verify owner can toggle receipt visibility.
+
+    Args:
+        receipt_context: Function argument.
+    """
     user, receipts = receipt_context
     now = datetime.now(timezone.utc)
 
@@ -83,6 +97,11 @@ def test_owner_can_toggle_receipt_visibility(receipt_context):
 
 
 def test_public_receipts_hide_private_evidence(receipt_context):
+    """Verify public receipts hide private evidence.
+
+    Args:
+        receipt_context: Function argument.
+    """
     user, receipts = receipt_context
     now = datetime.now(timezone.utc)
 

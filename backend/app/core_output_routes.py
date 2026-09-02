@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import re
@@ -16,16 +17,33 @@ router = APIRouter(prefix="/outputs", tags=["outputs"])
 
 
 class ResumeTargetRequest(BaseModel):
+    """Represent ResumeTargetRequest."""
     target_role: str = Field(..., min_length=2, max_length=200)
     target_description: str = Field(default="", max_length=12000)
     max_bullets: int = Field(default=8, ge=1, le=20)
 
 
 def _clean(value: Any) -> str:
+    """Handle clean.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return str(value or "").strip()
 
 
 def _receipt_date(receipt: dict) -> date | None:
+    """Handle receipt date.
+
+    Args:
+        receipt: Function argument.
+
+    Returns:
+        Function result.
+    """
     value = receipt.get("created_at")
     if isinstance(value, datetime):
         if value.tzinfo is None:
@@ -40,6 +58,16 @@ def _receipt_date(receipt: dict) -> date | None:
 
 
 def _receipts_for_user(user_id: str, start_date: date | None = None, end_date: date | None = None) -> list[dict]:
+    """Handle receipts for user.
+
+    Args:
+        user_id: Function argument.
+        start_date: Function argument.
+        end_date: Function argument.
+
+    Returns:
+        Function result.
+    """
     receipts = list(impact_receipts_collection.find({"user_id": user_id}).sort("created_at", -1))
     if start_date is None and end_date is None:
         return receipts
@@ -56,6 +84,14 @@ def _receipts_for_user(user_id: str, start_date: date | None = None, end_date: d
 
 
 def _metric_text(receipt: dict) -> list[str]:
+    """Handle metric text.
+
+    Args:
+        receipt: Function argument.
+
+    Returns:
+        Function result.
+    """
     values = []
     for metric in receipt.get("metrics", []) or []:
         label = _clean(metric.get("label"))
@@ -71,6 +107,14 @@ def _metric_text(receipt: dict) -> list[str]:
 
 
 def _evidence_summary(receipt: dict) -> list[dict]:
+    """Handle evidence summary.
+
+    Args:
+        receipt: Function argument.
+
+    Returns:
+        Function result.
+    """
     return [
         {
             "title": _clean(item.get("title")),
@@ -85,6 +129,14 @@ def _evidence_summary(receipt: dict) -> list[dict]:
 
 
 def _proof_strength(receipt: dict) -> int:
+    """Handle proof strength.
+
+    Args:
+        receipt: Function argument.
+
+    Returns:
+        Function result.
+    """
     score = min(len(receipt.get("evidence", []) or []), 3)
     score += min(len(receipt.get("metrics", []) or []), 2)
     score += 1 if any(
@@ -95,6 +147,14 @@ def _proof_strength(receipt: dict) -> int:
 
 
 def _receipt_record(receipt: dict) -> dict:
+    """Handle receipt record.
+
+    Args:
+        receipt: Function argument.
+
+    Returns:
+        Function result.
+    """
     created = _receipt_date(receipt)
     return {
         "receipt_id": str(receipt["_id"]),
@@ -111,6 +171,14 @@ def _receipt_record(receipt: dict) -> dict:
 
 
 def _tokenize(value: str) -> set[str]:
+    """Handle tokenize.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     stop_words = {
         "and", "the", "with", "for", "from", "that", "this", "your", "you", "our", "are",
         "will", "have", "has", "into", "using", "use", "job", "role", "work", "team", "their",
@@ -123,6 +191,15 @@ def _tokenize(value: str) -> set[str]:
 
 
 def _resume_score(receipt: dict, target_tokens: set[str]) -> tuple[int, int]:
+    """Handle resume score.
+
+    Args:
+        receipt: Function argument.
+        target_tokens: Function argument.
+
+    Returns:
+        Function result.
+    """
     searchable = " ".join(
         [
             _clean(receipt.get("accomplishment")),
@@ -136,6 +213,14 @@ def _resume_score(receipt: dict, target_tokens: set[str]) -> tuple[int, int]:
 
 
 def _resume_bullet(receipt: dict) -> str:
+    """Handle resume bullet.
+
+    Args:
+        receipt: Function argument.
+
+    Returns:
+        Function result.
+    """
     contribution = _clean(receipt.get("contribution"))
     result = _clean(receipt.get("result"))
     accomplishment = _clean(receipt.get("accomplishment"))

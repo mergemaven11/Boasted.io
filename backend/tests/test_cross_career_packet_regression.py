@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timezone
 
 import mongomock
@@ -109,6 +110,14 @@ CAREER_CASES = [
 
 @pytest.fixture
 def cross_career_context(monkeypatch):
+    """Handle cross career context.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Yields:
+        Values produced by the function.
+    """
     mock_client = mongomock.MongoClient()
     mock_db = mock_client["bragstack_cross_career_packet_test"]
     entries = mock_db["entries"]
@@ -120,12 +129,26 @@ def cross_career_context(monkeypatch):
 
 
 def _seed_case(entries, receipts, user, case):
+    """Handle seed case.
+
+    Args:
+        entries: Function argument.
+        receipts: Function argument.
+        user: Function argument.
+        case: Function argument.
+    """
     entry = entries.insert_one({"user_id": str(user["_id"]), "title": case["title"], "category": case["category"], "entry_type": "Current Job", "entry_date": "2026-06-15", "tags": case["skills"], "impact": case["result"], "resume_bullet": case["result"], "created_at": datetime.now(timezone.utc)})
     receipts.insert_one({"user_id": str(user["_id"]), "source_entry_id": str(entry.inserted_id), "accomplishment": case["title"], "contribution": f"Led the documented work that produced this {case['category'].lower()} outcome.", "result": case["result"], "evidence": case["evidence"], "skills": case["skills"], "credit": [], "confirmations": case["confirmations"], "trust_signals": ["self-documented"] + (["evidence-linked"] if case["evidence"] else []) + (["stakeholder-verified"] if case["confirmations"] else []), "is_public": False, "created_at": datetime.now(timezone.utc), "updated_at": datetime.now(timezone.utc)})
 
 
 @pytest.mark.parametrize("case", CAREER_CASES, ids=[case["id"] for case in CAREER_CASES])
 def test_performance_packet_and_pdf_work_across_careers(cross_career_context, case):
+    """Verify performance packet and pdf work across careers.
+
+    Args:
+        cross_career_context: Function argument.
+        case: Function argument.
+    """
     entries, receipts = cross_career_context
     user = {"_id": ObjectId(), "name": f"Regression {case['id'].title()}", "email": f"{case['id']}@example.com", "headline": case["role"], "plan": "pro"}
     app.dependency_overrides[packet_routes.get_current_user] = lambda: user
@@ -177,6 +200,7 @@ def test_performance_packet_and_pdf_work_across_careers(cross_career_context, ca
 
 
 def test_cross_career_fixture_set_covers_required_result_shapes():
+    """Verify cross career fixture set covers required result shapes."""
     combined_results = " ".join(case["result"] for case in CAREER_CASES)
     assert "%" in combined_results
     assert "$" in combined_results

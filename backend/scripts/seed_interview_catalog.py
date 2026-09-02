@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from pathlib import Path
 import sys
 
@@ -12,6 +13,11 @@ from app.interview_catalog_seed import build_catalog
 
 
 def seed_interview_catalog() -> dict:
+    """Handle seed interview catalog.
+
+    Returns:
+        Function result.
+    """
     documents = build_catalog()
     interview_careers_collection.create_index([("slug", ASCENDING)], unique=True, name="uniq_interview_career_slug")
     interview_careers_collection.create_index([("family", ASCENDING), ("active", ASCENDING)], name="interview_career_family_active")

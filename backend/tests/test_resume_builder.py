@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 import pytest
 from fastapi import HTTPException
 from pydantic import ValidationError
@@ -8,6 +9,14 @@ from app import resume_builder_routes as routes
 
 
 def sample_receipt(**overrides):
+    """Handle sample receipt.
+
+    Args:
+        overrides: Function argument.
+
+    Returns:
+        Function result.
+    """
     receipt = {
         "_id": "507f1f77bcf86cd799439011",
         "accomplishment": "Built Docker incident automation",
@@ -23,6 +32,7 @@ def sample_receipt(**overrides):
 
 
 def test_resume_builder_is_pro_only():
+    """Verify resume builder is pro only."""
     assert PLAN_FEATURES["free"]["resume_builder"] is False
     assert PLAN_FEATURES["pro"]["resume_builder"] is True
     assert PLAN_FEATURES["team"]["resume_builder"] is True
@@ -30,6 +40,7 @@ def test_resume_builder_is_pro_only():
 
 
 def test_job_terms_are_extracted_without_common_noise():
+    """Verify job terms are extracted without common noise."""
     terms = extract_terms("We need a Data Analyst with SQL, SQL, Python, Tableau and stakeholder communication.")
     assert "sql" in terms
     assert "python" in terms
@@ -38,6 +49,7 @@ def test_job_terms_are_extracted_without_common_noise():
 
 
 def test_legal_footer_words_do_not_become_evidence_gaps():
+    """Verify legal footer words do not become evidence gaps."""
     terms = extract_terms("Solutions Engineer customer support. This process is based on legitimate interest and pre-contractual measures under applicable data protection laws including GDPR. You may exercise rights of access, rectification, erasure, objection at any time.")
     assert "solutions" in terms
     assert "engineer" in terms
@@ -46,6 +58,7 @@ def test_legal_footer_words_do_not_become_evidence_gaps():
 
 
 def test_grammar_and_generic_job_words_do_not_become_ats_gaps():
+    """Verify grammar and generic job words do not become ats gaps."""
     terms = extract_terms("Work with them on their own live internal tooling before launch. When cases are reviewed over several months, explain what happened without adding noise. Python Kubernetes Terraform incident response automation.")
     for noisy in ("them", "own", "live", "internal", "tooling", "before", "when", "cases", "months", "what", "without", "review"):
         assert noisy not in terms
@@ -54,6 +67,7 @@ def test_grammar_and_generic_job_words_do_not_become_ats_gaps():
 
 
 def test_alias_expansion_does_not_replace_inside_unrelated_words():
+    """Verify alias expansion does not replace inside unrelated words."""
     terms = extract_terms("Chair design and AI operations")
     assert "artificial" in terms
     assert "intelligence" in terms
@@ -61,12 +75,14 @@ def test_alias_expansion_does_not_replace_inside_unrelated_words():
 
 
 def test_requirement_matching_is_token_aware_not_substring_based():
+    """Verify requirement matching is token aware not substring based."""
     receipt = sample_receipt(accomplishment="Managed NoSQL databases", skills=["NoSQL"])
     _, matches = score_receipt(receipt, ["sql"])
     assert "sql" not in matches
 
 
 def test_resume_uses_evidence_backed_receipts_and_keeps_provenance():
+    """Verify resume uses evidence backed receipts and keeps provenance."""
     result = analyze_resume(
         target_role="Platform Support Engineer",
         job_description="Docker Python incident response troubleshooting Kubernetes",
@@ -84,6 +100,7 @@ def test_resume_uses_evidence_backed_receipts_and_keeps_provenance():
 
 
 def test_existing_resume_is_preserved_and_combined_with_receipts():
+    """Verify existing resume is preserved and combined with receipts."""
     existing = """PROFESSIONAL SUMMARY
 Solutions Engineer experienced in technical discovery and enterprise software.
 EXPERIENCE
@@ -108,6 +125,7 @@ Discovery, Solution Design, Python
 
 
 def test_resume_parser_finds_summary_bullets_and_skills():
+    """Verify resume parser finds summary bullets and skills."""
     parsed = parse_existing_resume_text("""SUMMARY
 Customer operations leader with measurable retention impact.
 EXPERIENCE
@@ -123,6 +141,7 @@ Coaching, Customer Retention, Salesforce
 
 
 def test_resume_parser_preserves_projects_education_and_header_for_preview():
+    """Verify resume parser preserves projects education and header for preview."""
     parsed = parse_existing_resume_text("""Tobias Scott
 Atlanta, GA | tobias@example.com
 SUMMARY
@@ -141,12 +160,14 @@ Example University — Computer Science
 
 
 def test_summary_never_announces_zero_documented_accomplishments():
+    """Verify summary never announces zero documented accomplishments."""
     result = analyze_resume(target_role="Solutions Engineer", job_description="technical discovery solution design", receipts=[])
     assert "0 relevant" not in result["summary"].lower()
     assert "documented accomplishment" not in result["summary"].lower()
 
 
 def test_metrics_raise_quantified_impact_signal():
+    """Verify metrics raise quantified impact signal."""
     result = analyze_resume(
         target_role="Support Engineer",
         job_description="Docker Python troubleshooting",
@@ -156,6 +177,7 @@ def test_metrics_raise_quantified_impact_signal():
 
 
 def test_empty_receipts_never_invent_requirements():
+    """Verify empty receipts never invent requirements."""
     result = analyze_resume(target_role="Risk Analyst", job_description="SAS SQL operational risk controls", receipts=[])
     assert result["bullets"] == []
     assert result["supported_requirements"] == []
@@ -163,6 +185,7 @@ def test_empty_receipts_never_invent_requirements():
 
 
 def test_saved_resume_payload_is_bounded_and_readiness_not_client_supplied():
+    """Verify saved resume payload is bounded and readiness not client supplied."""
     bullet = {"text": "Built and improved a workflow", "source_receipt_id": "507f1f77bcf86cd799439011"}
     payload = routes.ResumeSaveRequest(
         title="Platform Support Engineer",
@@ -183,6 +206,11 @@ def test_saved_resume_payload_is_bounded_and_readiness_not_client_supplied():
 
 
 def test_saved_bullet_sources_validate_receipts_but_allow_imported(monkeypatch):
+    """Verify saved bullet sources validate receipts but allow imported.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     valid = routes.ResumeBulletPayload(text="Built workflow", source_receipt_id="507f1f77bcf86cd799439011")
     imported = routes.ResumeBulletPayload(text="Existing resume claim", source_kind="imported", source_title="Imported resume")
     monkeypatch.setattr(routes.impact_receipts_collection, "count_documents", lambda query: 1)
@@ -200,6 +228,7 @@ def test_saved_bullet_sources_validate_receipts_but_allow_imported(monkeypatch):
 
 
 def test_server_readiness_marks_mixed_sources_for_review():
+    """Verify server readiness marks mixed sources for review."""
     source_linked = routes.ResumeBulletPayload(text="Built workflow", source_receipt_id="507f1f77bcf86cd799439011", edited=False)
     imported = routes.ResumeBulletPayload(text="Imported claim", source_kind="imported", source_title="Imported resume")
     edited = routes.ResumeBulletPayload(text="Edited workflow claim", source_receipt_id="507f1f77bcf86cd799439011", edited=True)

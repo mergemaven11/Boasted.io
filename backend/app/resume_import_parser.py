@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import re
@@ -47,10 +48,26 @@ SEPARATOR_RE = re.compile(r"\s*(?:[|·•]|\s+[–—]\s+|\s+-\s+)\s*")
 
 
 def _clean(value: str) -> str:
+    """Handle clean.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return re.sub(r"\s+", " ", value or "").strip()
 
 
 def _heading(line: str) -> str | None:
+    """Handle heading.
+
+    Args:
+        line: Function argument.
+
+    Returns:
+        Function result.
+    """
     normalized = re.sub(r"[^a-z& ]", "", line.lower()).strip()
     for key, names in SECTION_NAMES.items():
         if normalized in names:
@@ -59,17 +76,41 @@ def _heading(line: str) -> str | None:
 
 
 def _date_atom(line: str) -> bool:
+    """Handle date atom.
+
+    Args:
+        line: Function argument.
+
+    Returns:
+        Function result.
+    """
     value = _clean(line).strip("|,.-–— ")
     return bool(MONTH_RE.fullmatch(value) or YEAR_RE.fullmatch(value) or value in {"-", "–", "—"})
 
 
 def _date_range(parts: list[str]) -> str:
+    """Handle date range.
+
+    Args:
+        parts: Function argument.
+
+    Returns:
+        Function result.
+    """
     text = " ".join(_clean(p).strip("|") for p in parts)
     text = re.sub(r"\s+[-–—]\s+", " – ", text)
     return _clean(text)
 
 
 def _looks_role(line: str) -> bool:
+    """Handle looks role.
+
+    Args:
+        line: Function argument.
+
+    Returns:
+        Function result.
+    """
     return bool(ROLE_RE.search(line)) and len(line.split()) <= 20
 
 
@@ -86,11 +127,27 @@ def _looks_role_header(line: str) -> bool:
 
 
 def _looks_short_label(line: str) -> bool:
+    """Handle looks short label.
+
+    Args:
+        line: Function argument.
+
+    Returns:
+        Function result.
+    """
     words = line.split()
     return 0 < len(words) <= 10 and not re.search(r"[.!?]$", line)
 
 
 def _looks_location(line: str) -> bool:
+    """Handle looks location.
+
+    Args:
+        line: Function argument.
+
+    Returns:
+        Function result.
+    """
     value = _clean(line).strip("|, ")
     if not value or CONTACT_RE.search(value):
         return False
@@ -102,6 +159,14 @@ def _looks_location(line: str) -> bool:
 
 
 def _repair(raw_text: str) -> list[str]:
+    """Handle repair.
+
+    Args:
+        raw_text: Function argument.
+
+    Returns:
+        Function result.
+    """
     raw_text = re.sub(r"(?<=\S)\s+([•▪◦])\s*", r"\n\1 ", raw_text or "")
     source = [_clean(x) for x in raw_text.splitlines() if _clean(x)]
     out: list[str] = []
@@ -167,6 +232,14 @@ def _split_role_company(line: str) -> tuple[str, str, str]:
 
 
 def _parse_dates(value: str) -> dict:
+    """Handle parse dates.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     raw = _clean(value).replace("—", "–")
     match = DATE_RANGE_RE.search(raw)
     if not match:
@@ -190,6 +263,14 @@ def _parse_dates(value: str) -> dict:
 
 
 def _parse_contact(header: list[str]) -> dict:
+    """Handle parse contact.
+
+    Args:
+        header: Function argument.
+
+    Returns:
+        Function result.
+    """
     contact = {
         "name": "",
         "email": "",
@@ -239,6 +320,16 @@ def _parse_contact(header: list[str]) -> dict:
 
 
 def _blank_entry(*, company: str = "", title: str = "", confidence: str = "low") -> dict:
+    """Handle blank entry.
+
+    Args:
+        company: Function argument.
+        title: Function argument.
+        confidence: Function argument.
+
+    Returns:
+        Function result.
+    """
     return {
         "company": company,
         "title": title,
@@ -253,10 +344,26 @@ def _blank_entry(*, company: str = "", title: str = "", confidence: str = "low")
 
 
 def _date_match(line: str):
+    """Handle date match.
+
+    Args:
+        line: Function argument.
+
+    Returns:
+        Function result.
+    """
     return DATE_RANGE_RE.search(line) or SIMPLE_DATE_RANGE_RE.search(line)
 
 
 def _identity_and_location_around_dates(line: str) -> tuple[str, str]:
+    """Handle identity and location around dates.
+
+    Args:
+        line: Function argument.
+
+    Returns:
+        Function result.
+    """
     match = _date_match(line)
     remainder = line
     if match:
@@ -277,12 +384,22 @@ def _identity_and_location_around_dates(line: str) -> tuple[str, str]:
 
 
 def _parse_experience(lines: list[str], *, inferred_mode: bool = False) -> tuple[list[dict], list[str]]:
+    """Handle parse experience.
+
+    Args:
+        lines: Function argument.
+        inferred_mode: Function argument.
+
+    Returns:
+        Function result.
+    """
     entries: list[dict] = []
     warnings: list[str] = []
     current: dict | None = None
     pending_company = ""
 
     def flush() -> None:
+        """Handle flush."""
         nonlocal current
         if not current:
             return
@@ -385,6 +502,14 @@ def _parse_experience(lines: list[str], *, inferred_mode: bool = False) -> tuple
 
 
 def _structured_experience_lines(entries: list[dict]) -> list[str]:
+    """Handle structured experience lines.
+
+    Args:
+        entries: Function argument.
+
+    Returns:
+        Function result.
+    """
     out: list[str] = []
     for entry in entries:
         heading = " | ".join(part for part in [entry.get("company", ""), entry.get("title", "")] if part)
@@ -402,6 +527,14 @@ def _structured_experience_lines(entries: list[dict]) -> list[str]:
 
 
 def parse_existing_resume_text(raw_text: str) -> dict:
+    """Handle parse existing resume text.
+
+    Args:
+        raw_text: Function argument.
+
+    Returns:
+        Function result.
+    """
     lines = _repair(raw_text)
     sections = {key: [] for key in SECTION_KEYS}
     header: list[str] = []

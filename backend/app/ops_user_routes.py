@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import re
@@ -21,6 +22,14 @@ router = APIRouter(prefix="/ops/user-directory", tags=["ops"])
 
 
 def _safe_summary(user: dict) -> dict:
+    """Handle safe summary.
+
+    Args:
+        user: Function argument.
+
+    Returns:
+        Function result.
+    """
     user_id = str(user.get("_id", ""))
     return {
         "id": user_id,
@@ -46,6 +55,18 @@ def list_users(
     limit: int = Query(default=50, ge=1, le=100),
     current_user: dict = Depends(require_internal_role("support", "ops", "security", "admin")),
 ):
+    """Handle list users.
+
+    Args:
+        q: Function argument.
+        plan: Function argument.
+        verified: Function argument.
+        limit: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     del current_user
     filters: dict = {}
     query = q.strip()
@@ -73,6 +94,15 @@ async def resend_verification_email(
     user_id: str,
     current_user: dict = Depends(require_internal_role("support", "ops", "security", "admin")),
 ):
+    """Handle resend verification email.
+
+    Args:
+        user_id: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     if not ObjectId.is_valid(user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 

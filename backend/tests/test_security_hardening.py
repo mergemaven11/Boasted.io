@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from jose import jwt
@@ -10,6 +11,7 @@ client = TestClient(main.app)
 
 
 def test_api_responses_include_security_headers():
+    """Verify api responses include security headers."""
     response = client.get("/health")
 
     assert response.status_code == 200
@@ -21,6 +23,7 @@ def test_api_responses_include_security_headers():
 
 
 def test_hsts_is_only_added_for_https_requests():
+    """Verify hsts is only added for https requests."""
     insecure = client.get("/health")
     secure = client.get("/health", headers={"x-forwarded-proto": "https"})
 
@@ -29,6 +32,7 @@ def test_hsts_is_only_added_for_https_requests():
 
 
 def test_password_hashing_rejects_values_beyond_bcrypt_limit():
+    """Verify password hashing rejects values beyond bcrypt limit."""
     too_long = "a" * (auth.MAX_BCRYPT_PASSWORD_BYTES + 1)
 
     try:
@@ -43,6 +47,7 @@ def test_password_hashing_rejects_values_beyond_bcrypt_limit():
 
 
 def test_access_tokens_include_lifecycle_and_unique_identifier_claims():
+    """Verify access tokens include lifecycle and unique identifier claims."""
     token = auth.create_access_token({"sub": "507f1f77bcf86cd799439011"})
     payload = jwt.decode(token, auth.SECRET_KEY, algorithms=[auth.ALGORITHM])
 

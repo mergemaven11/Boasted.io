@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 import mongomock
 import pytest
 from pymongo.errors import DuplicateKeyError
@@ -6,6 +7,7 @@ from app.indexes import ensure_core_indexes
 
 
 def test_core_indexes_are_created_with_expected_shapes():
+    """Verify core indexes are created with expected shapes."""
     db = mongomock.MongoClient()["bragstack_test"]
 
     created = ensure_core_indexes(db)
@@ -50,6 +52,7 @@ def test_core_indexes_are_created_with_expected_shapes():
 
 
 def test_unique_email_index_rejects_duplicate_accounts():
+    """Verify unique email index rejects duplicate accounts."""
     db = mongomock.MongoClient()["bragstack_test"]
     ensure_core_indexes(db)
     db.users.insert_one({"email": "person@example.com", "public_slug": "person-a"})
@@ -59,6 +62,7 @@ def test_unique_email_index_rejects_duplicate_accounts():
 
 
 def test_sparse_public_slug_allows_missing_values_but_rejects_duplicate_slug():
+    """Verify sparse public slug allows missing values but rejects duplicate slug."""
     db = mongomock.MongoClient()["bragstack_test"]
     ensure_core_indexes(db)
     db.users.insert_many([{"email": "one@example.com"}, {"email": "two@example.com"}])
@@ -69,6 +73,7 @@ def test_sparse_public_slug_allows_missing_values_but_rejects_duplicate_slug():
 
 
 def test_index_creation_is_idempotent():
+    """Verify index creation is idempotent."""
     db = mongomock.MongoClient()["bragstack_test"]
     first = ensure_core_indexes(db)
     second = ensure_core_indexes(db)

@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -19,6 +20,7 @@ MAX_RESUME_PAGES = 12
 
 
 class ResumeBuildRequest(BaseModel):
+    """Represent ResumeBuildRequest."""
     target_role: str = Field(min_length=2, max_length=120)
     job_description: str = Field(min_length=20, max_length=20000)
     selected_receipt_ids: list[str] = Field(default_factory=list, max_length=100)
@@ -26,6 +28,7 @@ class ResumeBuildRequest(BaseModel):
 
 
 class ResumeBulletPayload(BaseModel):
+    """Represent ResumeBulletPayload."""
     text: str = Field(min_length=1, max_length=500)
     source_receipt_id: str = Field(default="", max_length=64)
     source_title: str = Field(default="Impact Receipt", max_length=240)
@@ -37,6 +40,7 @@ class ResumeBulletPayload(BaseModel):
 
 
 class ResumeContactPayload(BaseModel):
+    """Represent ResumeContactPayload."""
     name: str = Field(default="", max_length=160)
     email: str = Field(default="", max_length=254)
     phone: str = Field(default="", max_length=80)
@@ -46,6 +50,7 @@ class ResumeContactPayload(BaseModel):
 
 
 class ResumeExperiencePayload(BaseModel):
+    """Represent ResumeExperiencePayload."""
     company: str = Field(min_length=1, max_length=240)
     title: str = Field(min_length=1, max_length=240)
     location: str = Field(default="", max_length=160)
@@ -58,11 +63,13 @@ class ResumeExperiencePayload(BaseModel):
 
 
 class ResumeSupportingSectionsPayload(BaseModel):
+    """Represent ResumeSupportingSectionsPayload."""
     projects: list[str] = Field(default_factory=list, max_length=50)
     education: list[str] = Field(default_factory=list, max_length=50)
 
 
 class ResumeSaveRequest(BaseModel):
+    """Represent ResumeSaveRequest."""
     title: str = Field(min_length=2, max_length=160)
     target_role: str = Field(default="", max_length=120)
     job_description: str = Field(default="", max_length=20000)
@@ -75,6 +82,15 @@ class ResumeSaveRequest(BaseModel):
 
 
 def _owned_receipts(user_id: str, selected_ids: list[str]) -> list[dict]:
+    """Handle owned receipts.
+
+    Args:
+        user_id: Function argument.
+        selected_ids: Function argument.
+
+    Returns:
+        Function result.
+    """
     query: dict = {"user_id": user_id}
     if selected_ids:
         valid_ids = [ObjectId(value) for value in selected_ids if ObjectId.is_valid(value)]
@@ -85,6 +101,12 @@ def _owned_receipts(user_id: str, selected_ids: list[str]) -> list[dict]:
 
 
 def _validate_saved_bullet_sources(user_id: str, bullets: list[ResumeBulletPayload]) -> None:
+    """Handle validate saved bullet sources.
+
+    Args:
+        user_id: Function argument.
+        bullets: Function argument.
+    """
     receipt_bullets = [bullet for bullet in bullets if bullet.source_kind == "impact-receipt"]
     raw_ids = {bullet.source_receipt_id for bullet in receipt_bullets}
     source_ids = {value for value in raw_ids if ObjectId.is_valid(value)}
@@ -98,11 +120,27 @@ def _validate_saved_bullet_sources(user_id: str, bullets: list[ResumeBulletPaylo
 
 
 def _canonical_saved_bullets(payload: ResumeSaveRequest) -> list[ResumeBulletPayload]:
+    """Handle canonical saved bullets.
+
+    Args:
+        payload: Function argument.
+
+    Returns:
+        Function result.
+    """
     structured = [bullet for role in payload.experience for bullet in role.bullets]
     return structured if payload.experience else payload.bullets
 
 
 def _server_readiness(bullets: list[ResumeBulletPayload]) -> dict:
+    """Handle server readiness.
+
+    Args:
+        bullets: Function argument.
+
+    Returns:
+        Function result.
+    """
     edited_count = sum(1 for bullet in bullets if bullet.edited)
     imported_count = sum(1 for bullet in bullets if bullet.source_kind == "imported")
     source_linked_count = sum(1 for bullet in bullets if bullet.source_kind == "impact-receipt")
@@ -136,6 +174,14 @@ def _extract_pdf_text_pymupdf(data: bytes) -> str:
 
 
 def _extract_pdf_text_pypdf(data: bytes) -> str:
+    """Handle extract pdf text pypdf.
+
+    Args:
+        data: Function argument.
+
+    Returns:
+        Function result.
+    """
     from pypdf import PdfReader
 
     reader = PdfReader(BytesIO(data))
@@ -171,6 +217,16 @@ def _extract_pdf_text(data: bytes) -> str:
 
 
 def _extract_uploaded_text(filename: str, content_type: str, data: bytes) -> str:
+    """Handle extract uploaded text.
+
+    Args:
+        filename: Function argument.
+        content_type: Function argument.
+        data: Function argument.
+
+    Returns:
+        Function result.
+    """
     suffix = "." + filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
     if content_type == "application/pdf" or suffix == ".pdf":
         return _extract_pdf_text(data)
@@ -188,6 +244,15 @@ def _extract_uploaded_text(filename: str, content_type: str, data: bytes) -> str
 
 @router.post("/import")
 async def import_resume(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    """Handle import resume.
+
+    Args:
+        file: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(current_user, "resume_builder")
     filename = (file.filename or "resume").strip()[:240]
     data = await file.read(MAX_RESUME_BYTES + 1)
@@ -227,6 +292,15 @@ async def import_resume(file: UploadFile = File(...), current_user: dict = Depen
 
 @router.post("/build")
 def build_resume(payload: ResumeBuildRequest, current_user: dict = Depends(get_current_user)):
+    """Handle build resume.
+
+    Args:
+        payload: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(current_user, "resume_builder")
     receipts = _owned_receipts(str(current_user["_id"]), payload.selected_receipt_ids)
     result = analyze_resume(
@@ -241,6 +315,15 @@ def build_resume(payload: ResumeBuildRequest, current_user: dict = Depends(get_c
 
 @router.post("/resumes", status_code=status.HTTP_201_CREATED)
 def save_resume(payload: ResumeSaveRequest, current_user: dict = Depends(get_current_user)):
+    """Handle save resume.
+
+    Args:
+        payload: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(current_user, "resume_builder")
     user_id = str(current_user["_id"])
     canonical_bullets = _canonical_saved_bullets(payload)
@@ -273,6 +356,14 @@ def save_resume(payload: ResumeSaveRequest, current_user: dict = Depends(get_cur
 
 @router.get("/resumes")
 def list_resumes(current_user: dict = Depends(get_current_user)):
+    """Handle list resumes.
+
+    Args:
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(current_user, "resume_builder")
     cursor = resume_documents_collection.find({"user_id": str(current_user["_id"])}).sort("updated_at", -1).limit(50)
     return {
@@ -300,6 +391,15 @@ def list_resumes(current_user: dict = Depends(get_current_user)):
 
 @router.delete("/resumes/{resume_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_resume(resume_id: str, current_user: dict = Depends(get_current_user)):
+    """Handle delete resume.
+
+    Args:
+        resume_id: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(current_user, "resume_builder")
     if not ObjectId.is_valid(resume_id):
         raise HTTPException(status_code=400, detail="Invalid resume ID")

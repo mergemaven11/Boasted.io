@@ -1,9 +1,18 @@
+"""Document this first-party Python module."""
 from fastapi import Request
 
 import app.oauth_routes as oauth_routes
 
 
 def _request(url: str = "http://internal-service/auth/google/login") -> Request:
+    """Handle request.
+
+    Args:
+        url: Function argument.
+
+    Returns:
+        Function result.
+    """
     scope = {
         "type": "http",
         "method": "GET",
@@ -19,6 +28,11 @@ def _request(url: str = "http://internal-service/auth/google/login") -> Request:
 
 
 def test_redirect_uri_uses_explicit_callback_base(monkeypatch):
+    """Verify redirect uri uses explicit callback base.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     monkeypatch.setattr(
         oauth_routes,
         "OAUTH_CALLBACK_BASE_URL",
@@ -35,10 +49,27 @@ def test_redirect_uri_uses_explicit_callback_base(monkeypatch):
 
 
 def test_redirect_uri_falls_back_to_request_url_for_local_dev(monkeypatch):
+    """Verify redirect uri falls back to request url for local dev.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Returns:
+        Function result.
+    """
     monkeypatch.setattr(oauth_routes, "OAUTH_CALLBACK_BASE_URL", "")
 
     class FakeRequest:
+        """Represent FakeRequest."""
         def url_for(self, name):
+            """Handle url for.
+
+            Args:
+                name: Function argument.
+
+            Returns:
+                Function result.
+            """
             return f"http://localhost:8000/{name}"
 
     request = FakeRequest()

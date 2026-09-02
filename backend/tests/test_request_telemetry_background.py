@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 import asyncio
 
 from starlette.background import BackgroundTask, BackgroundTasks
@@ -7,6 +8,11 @@ import app.main as main
 
 
 def _telemetry_kwargs():
+    """Handle telemetry kwargs.
+
+    Returns:
+        Function result.
+    """
     return {
         "request_id": "req-background",
         "method": "GET",
@@ -17,6 +23,11 @@ def _telemetry_kwargs():
 
 
 def test_persistent_request_is_deferred_until_background_runs(monkeypatch):
+    """Verify persistent request is deferred until background runs.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     calls = []
     monkeypatch.setattr(main, "record_persistent_request", lambda **kwargs: calls.append(kwargs))
     response = Response("ok")
@@ -32,6 +43,11 @@ def test_persistent_request_is_deferred_until_background_runs(monkeypatch):
 
 
 def test_existing_background_task_is_preserved(monkeypatch):
+    """Verify existing background task is preserved.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     order = []
     monkeypatch.setattr(
         main,

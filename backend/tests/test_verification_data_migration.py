@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timedelta, timezone
 
 import mongomock
@@ -7,6 +8,7 @@ from app.verification_data_migration import migrate_receipt_verification_privacy
 
 
 def test_migration_preserves_live_links_and_minimizes_receipts():
+    """Verify migration preserves live links and minimizes receipts."""
     db = mongomock.MongoClient()["verification_privacy_migration"]
     receipts = db["impact_receipts"]
     requests = db["receipt_verification_requests"]

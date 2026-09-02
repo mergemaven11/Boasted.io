@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 import os
 import re
 import secrets
@@ -30,11 +31,27 @@ GITHUB_EMAILS_URL = "https://api.github.com/user/emails"
 
 
 def _slugify(value: str) -> str:
+    """Handle slugify.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
     return slug or "user"
 
 
 def _generate_unique_public_slug(name: str) -> str:
+    """Handle generate unique public slug.
+
+    Args:
+        name: Function argument.
+
+    Returns:
+        Function result.
+    """
     base_slug = _slugify(name)
     while True:
         slug = f"{base_slug}-{secrets.token_hex(3)}"
@@ -43,6 +60,11 @@ def _generate_unique_public_slug(name: str) -> str:
 
 
 def _require_credentials(provider: str) -> None:
+    """Handle require credentials.
+
+    Args:
+        provider: Function argument.
+    """
     configured = {
         "google": GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET,
         "github": GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET,
@@ -55,6 +77,15 @@ def _require_credentials(provider: str) -> None:
 
 
 def _redirect_uri(request: Request, provider: str) -> str:
+    """Handle redirect uri.
+
+    Args:
+        request: Function argument.
+        provider: Function argument.
+
+    Returns:
+        Function result.
+    """
     if OAUTH_CALLBACK_BASE_URL:
         return f"{OAUTH_CALLBACK_BASE_URL}/auth/{provider}/callback"
     return str(request.url_for(f"{provider}_callback"))
@@ -66,6 +97,17 @@ def _find_or_create_oauth_user(
     email: str,
     name: str,
 ) -> dict:
+    """Handle find or create oauth user.
+
+    Args:
+        provider: Function argument.
+        provider_user_id: Function argument.
+        email: Function argument.
+        name: Function argument.
+
+    Returns:
+        Function result.
+    """
     normalized_email = email.lower().strip()
     provider_field = f"oauth.{provider}_id"
     verified_at = datetime.now(timezone.utc).isoformat()
@@ -119,6 +161,14 @@ def _find_or_create_oauth_user(
 
 
 def _frontend_success_redirect(user: dict) -> RedirectResponse:
+    """Handle frontend success redirect.
+
+    Args:
+        user: Function argument.
+
+    Returns:
+        Function result.
+    """
     token = create_access_token({"sub": str(user["_id"])})
     return RedirectResponse(
         url=f"{FRONTEND_URL}/login#oauth_token={token}",
@@ -127,6 +177,13 @@ def _frontend_success_redirect(user: dict) -> RedirectResponse:
 
 
 def _set_state_cookie(response: RedirectResponse, provider: str, state_value: str) -> None:
+    """Handle set state cookie.
+
+    Args:
+        response: Function argument.
+        provider: Function argument.
+        state_value: Function argument.
+    """
     response.set_cookie(
         key=f"oauth_state_{provider}",
         value=state_value,
@@ -138,6 +195,13 @@ def _set_state_cookie(response: RedirectResponse, provider: str, state_value: st
 
 
 def _validate_state(request: Request, provider: str, state_value: str | None) -> None:
+    """Handle validate state.
+
+    Args:
+        request: Function argument.
+        provider: Function argument.
+        state_value: Function argument.
+    """
     expected = request.cookies.get(f"oauth_state_{provider}")
     if not expected or not state_value or not secrets.compare_digest(expected, state_value):
         raise HTTPException(
@@ -148,6 +212,14 @@ def _validate_state(request: Request, provider: str, state_value: str | None) ->
 
 @router.get("/google/login", name="google_login")
 def google_login(request: Request):
+    """Handle google login.
+
+    Args:
+        request: Function argument.
+
+    Returns:
+        Function result.
+    """
     _require_credentials("google")
     state_value = secrets.token_urlsafe(32)
     params = {
@@ -165,6 +237,16 @@ def google_login(request: Request):
 
 @router.get("/google/callback", name="google_callback")
 async def google_callback(request: Request, code: str, state: str | None = None):
+    """Handle google callback.
+
+    Args:
+        request: Function argument.
+        code: Function argument.
+        state: Function argument.
+
+    Returns:
+        Function result.
+    """
     _require_credentials("google")
     _validate_state(request, "google", state)
 
@@ -207,6 +289,14 @@ async def google_callback(request: Request, code: str, state: str | None = None)
 
 @router.get("/github/login", name="github_login")
 def github_login(request: Request):
+    """Handle github login.
+
+    Args:
+        request: Function argument.
+
+    Returns:
+        Function result.
+    """
     _require_credentials("github")
     state_value = secrets.token_urlsafe(32)
     params = {
@@ -222,6 +312,16 @@ def github_login(request: Request):
 
 @router.get("/github/callback", name="github_callback")
 async def github_callback(request: Request, code: str, state: str | None = None):
+    """Handle github callback.
+
+    Args:
+        request: Function argument.
+        code: Function argument.
+        state: Function argument.
+
+    Returns:
+        Function result.
+    """
     _require_credentials("github")
     _validate_state(request, "github", state)
 
