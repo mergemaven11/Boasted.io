@@ -1,5 +1,6 @@
 """Regression tests for BragStack's AI evidence-assistance safety foundation."""
 from app.ai.contracts import AISuggestion, EvidenceContext
+from app.ai.feature_flags import experimental_ai_enabled
 from app.ai.guards import validate_grounded_suggestion
 from app.ai.licensing import ModelLicenseRecord, ProductionLicenseGate
 
@@ -107,3 +108,13 @@ def test_license_gate_fails_closed_for_noncommercial_or_unpinned_model():
     assert "license_not_allowlisted" in violations
     assert "commercial_use_not_confirmed" in violations
     assert "revision_missing" in violations
+
+
+def test_experimental_ai_is_disabled_by_default(monkeypatch):
+    monkeypatch.delenv("BRAGSTACK_EXPERIMENTAL_AI", raising=False)
+    assert experimental_ai_enabled() is False
+
+
+def test_experimental_ai_requires_explicit_opt_in(monkeypatch):
+    monkeypatch.setenv("BRAGSTACK_EXPERIMENTAL_AI", "true")
+    assert experimental_ai_enabled() is True
