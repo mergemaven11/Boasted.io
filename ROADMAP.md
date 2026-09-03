@@ -142,6 +142,89 @@ BragStack should own the evidence layer of a person's career. It is not another 
 
 ---
 
+## AI / ML Evidence Assistant
+
+AI is an **assistive evidence layer**, never the source of truth. BragStack should remain useful when AI is disabled or unavailable.
+
+### Non-negotiable evidence rule
+
+**AI may extract, organize, classify, summarize, suggest, search, and rewrite. It may not manufacture career evidence.**
+
+AI must never invent metrics, verification, employers, dates, outcomes, credentials, evidence, employment history, customer results, or other career facts. Unsupported fields stay blank or become explicit questions for the user.
+
+### Initial capabilities
+
+1. **Evidence extraction** — turn user-provided notes and artifacts into candidate contribution, result, skills, dates, people, and evidence references.
+2. **Impact Receipt drafting** — draft structured receipts using only captured evidence and retain links to supporting evidence IDs.
+3. **Evidence quality checks** — flag vague, unsupported, or internally inconsistent claims and ask for stronger support rather than fabricating specificity.
+4. **Grounded career writing** — create résumé bullets, review summaries, promotion narratives, and STAR/interview preparation from evidence the user explicitly selects.
+5. **Semantic evidence search** — support private queries such as “show examples where I demonstrated leadership” across the user's own evidence record.
+6. **Skill/category suggestions** — suggest classifications with transparent provenance; user confirmation is required before they become durable record data.
+7. **Optional local/private inference** — provide a path for sensitive evidence to be processed without requiring a paid hosted inference provider.
+
+### Architecture
+
+- Introduce a provider-neutral `AIProvider` / inference adapter; domain logic must not depend on one model vendor.
+- Prefer deterministic parsing/validation before invoking a model where rules can solve the task reliably.
+- Require structured model outputs and validate schemas server-side.
+- Pass evidence IDs/source references into generation and retain provenance with every suggestion.
+- Store generated content as **AI suggestion/draft state** until the user accepts it; AI output does not silently become evidence.
+- Add deterministic guards for unsupported numeric claims, verification language, credentials, and other high-risk factual fields.
+- Keep prompts/schema versions auditable so behavior can be reproduced during evaluation.
+- Put AI capabilities behind feature flags and entitlement boundaries for incremental rollout and instant rollback.
+- Core capture, receipts, profiles, and packets must have a non-AI path.
+- Do not train on user evidence by default. Any future training/feedback use requires an explicit policy, privacy review, and consent design.
+
+### Free/open-weight and licensing strategy
+
+Early development should favor local/self-hostable inference where practical so BragStack does not inherit a mandatory per-request AI bill.
+
+For every model considered for production, record:
+
+- exact model ID and version/revision;
+- upstream source/model card;
+- exact license and permanent license source where available;
+- commercial-use, modification, and redistribution rights;
+- attribution/notice requirements;
+- runtime requirements and expected hardware envelope;
+- intended BragStack task;
+- evaluation result and known limitations.
+
+Prefer models with clear commercially usable permissive terms such as Apache-2.0 or MIT **after model-by-model review**. A permissively licensed runtime does not make the model weights permissively licensed; both must pass the licensing gate independently. Models with unclear, research-only, noncommercial, use-restricted, or incompatible terms do not ship.
+
+Paid inference providers may be supported later through the same adapter, but they remain optional rather than architectural dependencies.
+
+### Evaluation gate before customer-facing AI
+
+No AI feature becomes customer-facing merely because its demo looks good. Each task needs a documented evaluation set and release threshold covering, where applicable:
+
+- groundedness / unsupported-claim rate;
+- numeric hallucination rate;
+- evidence citation/reference correctness;
+- structured-output validity;
+- extraction precision and recall;
+- cross-profession fixtures so behavior is not optimized only for software/office careers;
+- privacy/redaction behavior;
+- adversarial prompt-injection tests for pasted/uploaded evidence;
+- latency and memory/compute envelope;
+- model/version regression testing;
+- documented limitations;
+- kill switch / rollback path.
+
+Use blinded fixtures for release evaluation where practical. Customer-facing proof generated with AI must still be traceable back to user-controlled evidence.
+
+### AI rollout order
+
+**P0 foundation:** architecture contract, evidence-grounding rules, provenance schema, licensing gate, evaluation harness design, feature flags. Do not delay the brand reshape to ship model inference.
+
+**P1:** evidence extraction and evidence-quality suggestions behind an experimental flag, followed by grounded Impact Receipt assistance after evaluation passes.
+
+**P2:** semantic evidence search, grounded résumé/review/interview assistance, and optional local inference packaging.
+
+**Later:** additional providers/models only when measured quality, privacy, cost, or hardware coverage justifies them.
+
+---
+
 ## Scope priority
 
 ### P0 — Must ship
@@ -151,6 +234,7 @@ BragStack should own the evidence layer of a person's career. It is not another 
 - Proof Profile 2.0 core presentation + privacy clarity
 - Open to Talk foundation
 - Cross-product navigation/copy consistency
+- AI evidence-grounding architecture contract + licensing/evaluation gates (not mandatory model inference)
 - Regression, privacy, accessibility, and CI hardening
 
 ### P1 — Ship if P0 is stable
@@ -160,6 +244,7 @@ BragStack should own the evidence layer of a person's career. It is not another 
 - Branded/selective packet sections
 - Recognition workflow polish
 - External booking-link / controlled-availability implementation
+- Experimental evidence extraction / quality assistance after evaluation gates pass
 
 ### P2 — Design now, implement after sprint if needed
 
@@ -169,6 +254,7 @@ BragStack should own the evidence layer of a person's career. It is not another 
 - Deeper HRIS integrations
 - Advanced organization skill intelligence
 - SSO/SCIM/RBAC expansion
+- Semantic evidence search and broader local/open-weight AI assistance
 
 ---
 
@@ -200,6 +286,7 @@ The sprint is complete when a new visitor can answer these questions without exp
 3. **What can I do with it?** Capture, prove, package, share, and use that proof to create opportunities.
 4. **Can I trust it with workplace information?** Private by default, explicit sharing, no invented verification, and no surveillance model.
 5. **What happens when someone likes my work?** They can explore the proof I chose to publish and, if I opt in, request a conversation through Open to Talk.
+6. **What does AI do?** It assists with organizing and using my evidence; it does not manufacture my career history or proof.
 
 ## After this sprint
 
