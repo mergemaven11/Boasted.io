@@ -5,7 +5,7 @@ import {
   Check,
   FileText,
   GraduationCap,
-  LockKeyhole,
+  Link2,
   MessageSquare,
   ReceiptText,
   ShieldCheck,
@@ -31,19 +31,19 @@ const useCases = [
 ];
 
 const workflowSteps = [
-  { number: "01", title: "Capture the win", description: "Save the situation, your action, the result, lessons, and skills while the details are still fresh." },
-  { number: "02", title: "Turn it into proof", description: "Create Impact Receipts with contribution, result, evidence, skills, credit, and optional public visibility." },
-  { number: "03", title: "See your career patterns", description: "Watch skills, categories, evidence coverage, and accomplishment activity build into a career analytics story." },
-  { number: "04", title: "Package the evidence", description: "Use your history for performance reviews, promotion packets, résumé bullets, interview stories, and public proof." },
-  { number: "05", title: "Walk in prepared", description: "Stop rebuilding your career from memory. Bring organized evidence into the conversations that affect your next move." },
+  { number: "01", title: "Capture", description: "Save the work while the context is fresh: what happened, what you did, what changed, and what supports it." },
+  { number: "02", title: "Prove", description: "Turn important accomplishments into Impact Receipts with contribution, result, evidence, skills, and shared credit." },
+  { number: "03", title: "Package", description: "Reuse selected evidence for reviews, promotions, résumés, interview stories, packets, and career analytics." },
+  { number: "04", title: "Share", description: "Publish only the proof you choose through a selective Proof Profile while the rest stays private." },
+  { number: "05", title: "Connect", description: "When your proof creates interest, opt in to a conversation path without exposing a private calendar or work history." },
 ];
 
 const plans = [
   {
     name: "Free",
     price: "$0",
-    tagline: "Prove the habit works",
-    features: ["5 proof entries", "1 Impact Receipt", "Basic reports", "Basic public proof profile", "Skill tracking"],
+    tagline: "Start your evidence record",
+    features: ["5 proof entries", "1 Impact Receipt", "Basic reports", "Basic Proof Profile", "Skill tracking"],
     cta: "Start free",
     href: "/register",
   },
@@ -51,10 +51,10 @@ const plans = [
     name: "Pro",
     price: "$9",
     suffix: "/month",
-    tagline: "Turn your work history into leverage",
+    tagline: "Turn your evidence into career leverage",
     featured: true,
     badge: "Best for your career",
-    features: ["Unlimited proof + Impact Receipts", "Advanced career analytics", "Performance Review Builder", "Promotion Packet", "PDF and career exports", "Integrations and advanced public profile"],
+    features: ["Unlimited proof + Impact Receipts", "Advanced career analytics", "Performance Review Builder", "Promotion Packet", "PDF and career exports", "Advanced profile capabilities"],
     cta: "Unlock BragStack Pro",
     href: "/upgrade",
   },
@@ -62,17 +62,17 @@ const plans = [
     name: "Team",
     price: "$15",
     suffix: "/user / month",
-    tagline: "Help teams document growth without surveillance",
+    tagline: "Support growth without surveillance",
     badge: "Coming soon",
-    features: ["Everything in Pro", "Shared review templates", "Optional manager verification", "Review-cycle packets", "Organization analytics", "Centralized billing"],
+    features: ["Everything in Pro", "Shared review templates", "Optional manager confirmation", "Review-cycle packets", "Bounded organization analytics", "Centralized billing"],
     cta: "Join Team waitlist",
     href: "mailto:hello@bragstack.app?subject=BragStack%20Team%20waitlist",
   },
   {
     name: "Enterprise",
     price: "Custom",
-    tagline: "Security and governance for larger organizations",
-    features: ["Everything in Team", "SSO / SCIM", "Audit logs", "Retention controls", "Advanced admin policies", "Custom integrations and support"],
+    tagline: "Governance for larger organizations",
+    features: ["Everything in Team", "Enterprise identity roadmap", "Audit and governance controls", "Retention controls", "Admin policy controls", "Custom integrations and support"],
     cta: "Contact us",
     href: "mailto:hello@bragstack.app?subject=BragStack%20Enterprise",
   },
@@ -81,28 +81,33 @@ const plans = [
 const productDetails = [
   {
     id: "product-impact-receipts",
+    icon: ReceiptText,
     title: "Impact Receipts",
-    description: "Turn an accomplishment into structured proof: what happened, what you contributed, the result, skills used, evidence references, measurable outcomes, shared credit, and optional trust signals. Receipts remain private unless you explicitly make them public.",
-  },
-  {
-    id: "product-career-analytics",
-    title: "Career Analytics",
-    description: "See patterns across the work you capture: recurring skills, categories of impact, evidence coverage, activity over time, and the kinds of ownership your proof demonstrates. Advanced analytics are part of Pro.",
-  },
-  {
-    id: "product-reports",
-    title: "Reports",
-    description: "Free accounts get basic proof summaries. Pro unlocks deeper career reports and packaging designed for review cycles, promotion conversations, interviews, exports, and repeatable career storytelling.",
+    description: "BragStack's signature evidence object: what happened, what you contributed, the result, supporting evidence, skills, measurable outcomes when you have them, and shared credit. Unsupported details stay unsupported instead of being invented.",
   },
   {
     id: "product-public-profiles",
-    title: "Public Proof Profiles",
-    description: "Your account is private by default. A public proof profile only exposes the entries and Impact Receipts you intentionally mark public, so you can share selected evidence without publishing your entire work history.",
+    icon: Link2,
+    title: "Proof Profiles",
+    description: "A portable professional evidence page built from the accomplishments and Impact Receipts you intentionally choose to publish. Your private workspace and unshared evidence stay private.",
   },
   {
-    id: "product-pricing",
-    title: "Pricing",
-    description: "Free includes 5 proof entries and 1 Impact Receipt. Pro is $9/month and unlocks unlimited proof, advanced reports, review and promotion builders, PDF exports, integrations, and advanced profile capabilities.",
+    id: "product-reports",
+    icon: FileText,
+    title: "Professional Packets",
+    description: "Package selected evidence for reviews, promotions, interviews, résumés, and other career moments without rebuilding your work history from memory.",
+  },
+  {
+    id: "product-career-analytics",
+    icon: BarChart3,
+    title: "Career Analytics",
+    description: "See patterns across the evidence you captured: recurring skills, categories of impact, activity over time, and evidence coverage. BragStack does not turn those patterns into an employee score.",
+  },
+  {
+    id: "product-open-to-talk",
+    icon: MessageSquare,
+    title: "Open to Talk",
+    description: "An opt-in connection path for people who want to discuss the proof you shared. The first version is designed around user-controlled contact or booking links, not access to your private calendar.",
   },
 ];
 
@@ -110,17 +115,17 @@ const solutionDetails = [
   {
     id: "solution-performance-reviews",
     title: "Performance Reviews",
-    description: "Capture wins throughout the cycle, then use the evidence later instead of reconstructing months of work from memory. Pro review builders organize documented impact into review-ready material.",
+    description: "Capture wins throughout the cycle, then use the evidence later instead of reconstructing months of work from memory.",
   },
   {
     id: "solution-promotions",
     title: "Promotions",
-    description: "Build a record of scope, ownership, outcomes, leadership, and growth. Promotion packets help organize those receipts into a clearer case for the next level.",
+    description: "Build a record of scope, ownership, outcomes, leadership, and growth, then organize that evidence into a stronger promotion case.",
   },
   {
     id: "solution-interviews",
     title: "Interviews",
-    description: "Keep real situations, actions, outcomes, skills, and metrics close at hand so interview stories come from documented work rather than last-minute memory searches.",
+    description: "Keep real situations, actions, outcomes, skills, and evidence close at hand so interview stories come from documented work.",
   },
   {
     id: "solution-freelancers",
@@ -130,7 +135,7 @@ const solutionDetails = [
   {
     id: "solution-teams",
     title: "Teams",
-    description: "The planned Team tier focuses on shared review templates, optional verification, review-cycle packets, organization-level analytics, and centralized billing without turning BragStack into employee surveillance.",
+    description: "Use employee-approved evidence for recognition and review workflows while keeping individual ownership separate from bounded organization analytics.",
   },
 ];
 
@@ -140,8 +145,8 @@ function LandingPage() {
       <header className="landing-nav">
         <a className="landing-logo" href="/">BragStack</a>
         <nav className="landing-nav-links" aria-label="Main navigation">
-          <a href="#use-cases">Use cases</a>
           <a href="#how-it-works">How it works</a>
+          <a href="#product">Product</a>
           <a href="#pricing">Pricing</a>
         </nav>
         <div className="landing-nav-actions">
@@ -152,140 +157,111 @@ function LandingPage() {
 
       <section className="landing-hero">
         <div className="landing-hero-copy">
-          <div className="landing-eyebrow"><Sparkles size={15} />Career proof, organized</div>
-          <h1>Your work deserves<span> receipts.</span></h1>
+          <div className="landing-eyebrow"><ShieldCheck size={15} />The evidence layer for professional growth</div>
+          <h1>Turn your work into<span> career proof.</span></h1>
           <p className="landing-hero-description">
-            BragStack turns everyday wins into career evidence you can actually use — for promotions, reviews, interviews, résumés, public proof, and the next opportunity you have not even planned for yet.
+            BragStack gives you an employee-owned record of what you did, what you contributed, what changed, and what supports the claim — so your best work is ready for reviews, promotions, interviews, résumés, selective sharing, and the opportunities that follow.
           </p>
           <div className="landing-hero-actions">
-            <a className="landing-btn" href="/register">Start building proof <ArrowRight size={18} /></a>
-            <a className="landing-btn landing-btn-secondary" href="#how-it-works">See the career system</a>
+            <a className="landing-btn" href="/register">Build my evidence record <ArrowRight size={18} /></a>
+            <a className="landing-btn landing-btn-secondary" href="#how-it-works">See how proof travels</a>
           </div>
-          <p className="landing-trust-line">Free to start <span>•</span> No credit card required <span>•</span> Private by default</p>
+          <p className="landing-trust-line">Private by default <span>•</span> Evidence-backed <span>•</span> You choose what becomes public</p>
         </div>
 
         <div className="landing-proof-preview">
           <div className="preview-glow" />
           <article className="proof-preview-card">
-            <div className="proof-preview-header"><div><p>Impact Receipt</p><span>Evidence-linked</span></div><div className="proof-preview-avatar">T</div></div>
-            <div className="proof-preview-meta">Platform Engineering · August 2026</div>
-            <h2>Reduced repeat Docker escalations by 30%</h2>
-            <p>Identified common networking failure patterns, documented diagnostics, and standardized the troubleshooting path.</p>
-            <div className="proof-preview-result"><span>Result</span><strong>Faster resolution paths and less repeated escalation work.</strong></div>
-            <div className="proof-preview-tags"><span>Docker</span><span>Reliability</span><span>Leadership</span></div>
+            <div className="proof-preview-header"><div><p>Impact Receipt</p><span>Evidence-linked</span></div><div className="proof-preview-avatar">B</div></div>
+            <div className="proof-preview-meta">Selected professional evidence</div>
+            <h2>Improved a recurring customer escalation workflow</h2>
+            <p>Documented the failure pattern, clarified the diagnostic path, and created a reusable troubleshooting guide.</p>
+            <div className="proof-preview-result"><span>Result</span><strong>A clearer, repeatable resolution path backed by the evidence the user chose to attach.</strong></div>
+            <div className="proof-preview-tags"><span>Contribution</span><span>Evidence</span><span>Shared credit</span></div>
           </article>
-          <div className="floating-proof-card floating-proof-top"><span>Evidence coverage</span><strong>84%</strong></div>
-          <div className="floating-proof-card floating-proof-bottom"><span>Career signal</span><strong>Platform ownership ↑</strong></div>
+          <div className="floating-proof-card floating-proof-top"><span>Default visibility</span><strong>Private</strong></div>
+          <div className="floating-proof-card floating-proof-bottom"><span>Public proof</span><strong>You choose</strong></div>
         </div>
       </section>
 
-      <section className="landing-use-strip" aria-label="Popular use cases">
-        <span>Promotions</span><span>Interviews</span><span>1:1s</span><span>Reviews</span><span>Clients</span><span>Portfolios</span><span>Career analytics</span>
+      <section className="landing-workflow premium-workflow" id="how-it-works">
+        <div className="landing-section-heading">
+          <p>ONE PORTABLE EVIDENCE LOOP</p>
+          <h2>Capture → Prove → Package → Share → Connect</h2>
+          <span>Capture the work once, keep the evidence under your control, then reuse the right proof when a career moment needs it.</span>
+        </div>
+        <div className="career-flow" aria-label="BragStack evidence workflow">
+          <span>Capture</span><ArrowRight size={18} /><span>Prove</span><ArrowRight size={18} /><span>Package</span><ArrowRight size={18} /><span>Share</span><ArrowRight size={18} /><span>Connect</span>
+        </div>
+        <div className="premium-workflow-grid">{workflowSteps.map((step) => <article className="workflow-card premium-workflow-card" key={step.number}><span className="workflow-number">{step.number}</span><h3>{step.title}</h3><p>{step.description}</p></article>)}</div>
       </section>
 
       <section className="landing-problem-section">
         <div className="landing-section-heading">
-          <p>THE PROBLEM</p><h2>Your career is happening faster than your memory can track it.</h2>
-          <span>Tickets close. Projects ship. Praise disappears into Slack. Six months later, someone asks what you accomplished — and your strongest evidence is scattered everywhere.</span>
+          <p>WHY IT EXISTS</p><h2>Your career is happening faster than your memory can track it.</h2>
+          <span>Projects ship. Praise disappears into chat. Metrics move. Teams change. BragStack gives the evidence somewhere durable to live before the context disappears.</span>
         </div>
         <div className="problem-card-grid">
-          <article className="problem-card"><span>01</span><h3>“I know I did a lot…”</h3><p>The work happened, but the details, numbers, and context are already fading.</p></article>
-          <article className="problem-card"><span>02</span><h3>“My résumé sounds generic.”</h3><p>Your strongest examples are trapped across tickets, notes, messages, and memory.</p></article>
-          <article className="problem-card"><span>03</span><h3>“My review is next week.”</h3><p>Now you are rebuilding an entire year of impact in one stressful sitting.</p></article>
+          <article className="problem-card"><span>01</span><h3>Capture while it is fresh</h3><p>Keep the situation, contribution, result, skills, and source evidence connected.</p></article>
+          <article className="problem-card"><span>02</span><h3>Prove without exaggerating</h3><p>Impact Receipts preserve what is supported and leave unsupported claims out.</p></article>
+          <article className="problem-card"><span>03</span><h3>Reuse when it matters</h3><p>Turn selected proof into the story a review, interview, résumé, client, or recruiter needs.</p></article>
         </div>
-      </section>
-
-      <section className="landing-use-cases" id="use-cases">
-        <div className="landing-section-heading"><p>BUILT FOR REAL LIFE</p><h2>Useful whenever progress needs to be proven.</h2><span>BragStack is not a diary. It is an evidence system for the moments when your work needs to speak clearly.</span></div>
-        <div className="use-case-grid">{useCases.map(({ icon: Icon, title, description }) => <article className="use-case-card" key={title}><div className="use-case-icon"><Icon size={21} /></div><h3>{title}</h3><p>{description}</p></article>)}</div>
-      </section>
-
-      <section className="landing-workflow premium-workflow" id="how-it-works">
-        <div className="landing-section-heading"><p>HOW IT WORKS</p><h2>Capture once. Turn it into career leverage again and again.</h2><span>BragStack connects the daily work you are already doing to the career artifacts you usually scramble to create later.</span></div>
-        <div className="career-flow" aria-label="BragStack career proof workflow">
-          <span>Daily work</span><ArrowRight size={18} /><span>Proof entries</span><ArrowRight size={18} /><span>Impact Receipts</span><ArrowRight size={18} /><span>Career analytics</span><ArrowRight size={18} /><span>Reviews · promotions · interviews</span>
-        </div>
-        <div className="premium-workflow-grid">{workflowSteps.map((step) => <article className="workflow-card premium-workflow-card" key={step.number}><span className="workflow-number">{step.number}</span><h3>{step.title}</h3><p>{step.description}</p></article>)}</div>
-
-        <div className="career-intelligence-demo">
-          <div className="career-intelligence-copy">
-            <p className="landing-mini-label">CAREER INTELLIGENCE</p>
-            <h2>Your accomplishments become a story you can see.</h2>
-            <p>Instead of a flat list of tasks, BragStack can surface patterns in the proof you have already captured: where your impact is concentrated, which skills keep showing up, and how much of your work has evidence behind it.</p>
-            <div className="career-output-list">
-              <span><BarChart3 size={18} /> Career activity and skill trends</span>
-              <span><ReceiptText size={18} /> Evidence and Impact Receipt coverage</span>
-              <span><FileText size={18} /> Review and promotion-ready packaging</span>
-              <span><ShieldCheck size={18} /> Private-by-default visibility controls</span>
-            </div>
-          </div>
-          <div className="mock-analytics-panel">
-            <div className="mock-analytics-header"><span>Illustrative career dashboard</span><strong>Last 6 months</strong></div>
-            <div className="mock-stat-row"><div><span>Proof captured</span><strong>38</strong></div><div><span>Impact Receipts</span><strong>24</strong></div><div><span>Skills demonstrated</span><strong>17</strong></div></div>
-            <div className="mock-chart">
-              {[38, 55, 46, 72, 64, 92].map((height, index) => <div key={height + index}><span style={{ height: `${height}%` }} /><small>{["Mar", "Apr", "May", "Jun", "Jul", "Aug"][index]}</small></div>)}
-            </div>
-            <div className="mock-signal"><span>Strongest documented signal</span><strong>Platform ownership</strong><em>Based on your captured proof</em></div>
-          </div>
-        </div>
-
-        <div className="pro-output-grid">
-          <article><LockKeyhole size={20} /><small>PRO</small><h3>Performance Review Builder</h3><p>Turn months of entries into a structured review without starting from a blank page.</p></article>
-          <article><LockKeyhole size={20} /><small>PRO</small><h3>Promotion Packet</h3><p>Organize evidence around ownership, impact, leadership, execution, and growth.</p></article>
-          <article><LockKeyhole size={20} /><small>PRO</small><h3>Advanced Analytics</h3><p>See accomplishment activity, category strength, skills, and evidence coverage over time.</p></article>
-          <article><LockKeyhole size={20} /><small>PRO</small><h3>Integrations</h3><p>Bring work signals from tools like GitHub into BragStack as suggestions you control.</p></article>
-        </div>
-      </section>
-
-      <section className="landing-feature-section">
-        <div className="landing-feature-copy"><p className="landing-mini-label">YOUR PROOF LIBRARY</p><h2>Remember what you did — and why it mattered.</h2><p>Each entry captures context, action, impact, lessons, and skills. Important accomplishments can become richer Impact Receipts with evidence, shared credit, and trust signals.</p><div className="landing-feature-list"><div><Check size={17} /> Structured accomplishment entries</div><div><Check size={17} /> Evidence-backed Impact Receipts</div><div><Check size={17} /> Public or private visibility controls</div><div><Check size={17} /> Skill and progress analytics</div></div></div>
-        <div className="feature-dashboard-preview"><div className="feature-preview-header"><div><span>Entries this quarter</span><strong>12</strong></div><div><span>Evidence coverage</span><strong>83%</strong></div></div><div className="feature-preview-entry"><div><span className="feature-preview-badge">Impact Receipt</span><small>Reliability · Current Job</small></div><h3>Improved escalation response process</h3><p>Reduced repeated troubleshooting and gave the team a clearer path for complex customer cases.</p><div className="feature-preview-tags"><span>Leadership</span><span>Communication</span><span>Process</span></div></div></div>
       </section>
 
       <section className="landing-use-cases" id="product">
-        <div className="landing-section-heading"><p>PRODUCT</p><h2>Career proof that stays useful after the moment passes.</h2><span>Each part of BragStack is designed to move from private capture to reusable evidence without forcing you to publish your whole work history.</span></div>
-        <div className="use-case-grid">{productDetails.map((item) => <article className="use-case-card" id={item.id} key={item.id}><div className="use-case-icon"><ReceiptText size={21} /></div><h3>{item.title}</h3><p>{item.description}</p></article>)}</div>
+        <div className="landing-section-heading"><p>THE EVIDENCE SYSTEM</p><h2>One record. Multiple career outcomes.</h2><span>Impact Receipts are the core primitive; profiles, packets, analytics, and conversations are ways to use the evidence you control.</span></div>
+        <div className="use-case-grid">{productDetails.map(({ icon: Icon, ...item }) => <article className="use-case-card" id={item.id} key={item.id}><div className="use-case-icon"><Icon size={21} /></div><h3>{item.title}</h3><p>{item.description}</p></article>)}</div>
+      </section>
+
+      <section className="landing-use-cases" id="use-cases">
+        <div className="landing-section-heading"><p>BUILT FOR REAL CAREER MOMENTS</p><h2>Useful whenever progress needs to be proven.</h2><span>BragStack is not a social feed or a workplace surveillance system. It is your portable evidence record for the moments when your work needs to speak clearly.</span></div>
+        <div className="use-case-grid">{useCases.map(({ icon: Icon, title, description }) => <article className="use-case-card" key={title}><div className="use-case-icon"><Icon size={21} /></div><h3>{title}</h3><p>{description}</p></article>)}</div>
+      </section>
+
+      <section className="landing-feature-section">
+        <div className="landing-feature-copy"><p className="landing-mini-label">IMPACT RECEIPTS</p><h2>Your work deserves receipts.</h2><p>Important accomplishments become structured, reusable proof with contribution, result, evidence, skills, measurable outcomes when available, and shared credit.</p><div className="landing-feature-list"><div><Check size={17} /> Evidence stays attached to the claim it supports</div><div><Check size={17} /> Shared work preserves shared credit</div><div><Check size={17} /> Public visibility is explicit, never assumed</div><div><Check size={17} /> AI assistance cannot silently become career evidence</div></div></div>
+        <div className="feature-dashboard-preview"><div className="feature-preview-header"><div><span>Evidence state</span><strong>User controlled</strong></div><div><span>Visibility</span><strong>Private by default</strong></div></div><div className="feature-preview-entry"><div><span className="feature-preview-badge">Impact Receipt</span><small>Portable career evidence</small></div><h3>Contribution → Result → Evidence</h3><p>The receipt keeps the story and its support connected, so the same proof can later power a review, packet, résumé, interview story, or selected public profile.</p><div className="feature-preview-tags"><span>Evidence</span><span>Skills</span><span>Credit</span></div></div></div>
       </section>
 
       <section className="landing-use-cases" id="solutions">
-        <div className="landing-section-heading"><p>SOLUTIONS</p><h2>Use the same proof across the moments that shape your career.</h2><span>Capture once, then organize the evidence differently depending on the conversation in front of you.</span></div>
+        <div className="landing-section-heading"><p>SOLUTIONS</p><h2>Package the same proof for the conversation in front of you.</h2><span>The evidence remains yours; BragStack changes how selected evidence is organized for each career moment.</span></div>
         <div className="use-case-grid">{solutionDetails.map((item) => <article className="use-case-card" id={item.id} key={item.id}><div className="use-case-icon"><Target size={21} /></div><h3>{item.title}</h3><p>{item.description}</p></article>)}</div>
       </section>
 
       <section className="landing-feature-section" id="security">
         <div className="landing-feature-copy">
-          <p className="landing-mini-label">PRIVACY & SECURITY</p>
-          <h2>Your career record starts private.</h2>
-          <p>BragStack stores the account information and career-proof content you submit so the app can provide your private workspace. Proof entries and Impact Receipts are private by default. Content only appears on a public proof profile when you intentionally mark that item public.</p>
+          <p className="landing-mini-label">TRUST MODEL</p>
+          <h2>Your work record belongs to you.</h2>
+          <p>BragStack starts private and makes sharing selective. It is designed to help people document and use their own evidence, not to turn daily work into an employer surveillance stream.</p>
           <div className="landing-feature-list">
-            <div><ShieldCheck size={17} /> Authentication is required for private account data and private proof APIs.</div>
-            <div><ShieldCheck size={17} /> Google and GitHub sign-in use OAuth; BragStack does not need your provider password.</div>
-            <div><ShieldCheck size={17} /> BragStack stores billing status and Stripe identifiers needed to enforce your plan; card details are entered with Stripe and are not stored in the BragStack database.</div>
-            <div><ShieldCheck size={17} /> Paid features are enforced on the server, so hiding a button is not the security boundary.</div>
-            <div><ShieldCheck size={17} /> Public sharing is opt-in at the item level; your unshared entries and receipts remain behind authentication.</div>
+            <div><ShieldCheck size={17} /> Private account data and private proof stay behind authentication.</div>
+            <div><ShieldCheck size={17} /> Public profiles expose only content the user intentionally publishes.</div>
+            <div><ShieldCheck size={17} /> BragStack does not invent verification, metrics, credentials, outcomes, or employment claims.</div>
+            <div><ShieldCheck size={17} /> Team and enterprise analytics remain separated from individual evidence ownership and avoid employee scoring.</div>
+            <div><ShieldCheck size={17} /> Open to Talk is opt-in and does not require exposing private calendar details.</div>
           </div>
         </div>
         <div className="feature-dashboard-preview">
-          <div className="feature-preview-header"><div><span>Default visibility</span><strong>Private</strong></div><div><span>Public sharing</span><strong>User controlled</strong></div></div>
-          <div className="feature-preview-entry"><div><span className="feature-preview-badge">Security note</span><small>Specific, not inflated</small></div><h3>We do not claim certifications we have not earned.</h3><p>As the product matures, formal security documentation, retention controls, audit features, and enterprise identity capabilities can be added and documented when they are actually implemented.</p><div className="feature-preview-tags"><span>Private by default</span><span>OAuth</span><span>Stripe-hosted payment</span></div></div>
+          <div className="feature-preview-header"><div><span>Default visibility</span><strong>Private</strong></div><div><span>Sharing</span><strong>Selective</strong></div></div>
+          <div className="feature-preview-entry"><div><span className="feature-preview-badge">Design principle</span><small>Employee first</small></div><h3>No surveillance. No manufactured proof.</h3><p>BragStack helps people capture, support, package, and selectively share evidence they control. Organization features must not weaken that ownership model.</p><div className="feature-preview-tags"><span>Private by default</span><span>No scoring</span><span>User controlled</span></div></div>
         </div>
       </section>
 
       <section className="landing-pricing" id="pricing">
-        <div className="landing-section-heading"><p>PRICING</p><h2>Start with proof. Upgrade when you want leverage.</h2><span>Free lets you experience the workflow. Pro unlocks the tools designed to turn a growing work history into reviews, promotion evidence, analytics, exports, and integrations.</span></div>
+        <div className="landing-section-heading"><p>PRICING</p><h2>Start your evidence record free.</h2><span>Upgrade when you want to package, analyze, and reuse more of the proof you have already captured.</span></div>
         <div className="pricing-grid pricing-grid-four">{plans.map((plan) => <article className={`pricing-card ${plan.featured ? "pricing-card-featured pricing-card-pro" : ""}`} key={plan.name}>{plan.badge && <div className="pricing-popular-label">{plan.badge}</div>}<div className="pricing-card-header"><div><p>{plan.name}</p><h3>{plan.price}{plan.suffix && <span>{plan.suffix}</span>}</h3></div></div><p className="pricing-tagline">{plan.tagline}</p><ul>{plan.features.map((feature) => <li key={feature}><Check size={17} />{feature}</li>)}</ul><a className={`landing-btn pricing-button ${plan.featured ? "" : "landing-btn-secondary"}`} href={plan.href}>{plan.cta}{plan.featured && <ArrowRight size={17} />}</a></article>)}</div>
-        <div className="pricing-conversion-note"><Zap size={20} /><div><strong>Free proves the habit. Pro turns the habit into a career system.</strong><span>Your existing proof stays yours. Upgrade when you are ready to do more with it.</span></div></div>
+        <div className="pricing-conversion-note"><Zap size={20} /><div><strong>Your existing proof stays yours.</strong><span>Start with capture and Impact Receipts. Upgrade when you are ready to do more with the evidence.</span></div></div>
       </section>
 
-      <section className="landing-final-cta"><div><p>YOUR NEXT OPPORTUNITY WILL ASK WHAT YOU HAVE DONE.</p><h2>Make sure you have the proof — not just the memory.</h2><span>Start capturing the work now. When review season, an interview, a promotion conversation, or an unexpected opportunity arrives, your evidence is already waiting.</span></div><a className="landing-btn landing-final-button" href="/register">Build my BragStack <ArrowRight size={18} /></a></section>
+      <section className="landing-final-cta"><div><p>YOUR WORK IS ALREADY HAPPENING.</p><h2>Give the proof somewhere to live.</h2><span>Capture it now, keep it under your control, and have the right evidence ready when the next review, interview, promotion, client, or opportunity arrives.</span></div><a className="landing-btn landing-final-button" href="/register">Build my BragStack <ArrowRight size={18} /></a></section>
 
       <footer className="mega-footer">
-        <div className="mega-footer-brand"><a className="landing-logo" href="/">BragStack</a><p>Turn everyday work into career proof you can use when it matters.</p><a className="footer-cta" href="/register">Start building proof <ArrowRight size={15} /></a></div>
+        <div className="mega-footer-brand"><a className="landing-logo" href="/">BragStack</a><p>The evidence layer for professional growth.</p><a className="footer-cta" href="/register">Start building proof <ArrowRight size={15} /></a></div>
         <div className="mega-footer-columns">
-          <div><h3>Product</h3><a href="#product-impact-receipts">Impact Receipts</a><a href="#product-career-analytics">Career Analytics</a><a href="#product-reports">Reports</a><a href="#product-public-profiles">Public Proof Profiles</a><a href="#pricing">Pricing</a></div>
+          <div><h3>Product</h3><a href="#product-impact-receipts">Impact Receipts</a><a href="#product-public-profiles">Proof Profiles</a><a href="#product-reports">Professional Packets</a><a href="#product-career-analytics">Career Analytics</a><a href="#product-open-to-talk">Open to Talk</a></div>
           <div><h3>Solutions</h3><a href="#solution-performance-reviews">Performance Reviews</a><a href="#solution-promotions">Promotions</a><a href="#solution-interviews">Interviews</a><a href="#solution-freelancers">Freelancers</a><a href="#solution-teams">Teams</a></div>
-          <div><h3>Resources</h3><a href="#how-it-works">How it works</a><a href="#use-cases">Use cases</a><a href="/login">Sign in</a><a href="/register">Create account</a><span>Docs · coming soon</span></div>
-          <div><h3>Company</h3><a href="mailto:hello@bragstack.app">Contact</a><a href="mailto:hello@bragstack.app?subject=BragStack%20Team%20waitlist">Team waitlist</a><a href="mailto:hello@bragstack.app?subject=BragStack%20Enterprise">Enterprise</a><span>Changelog · coming soon</span><a href="#security">Security</a></div>
+          <div><h3>Resources</h3><a href="#how-it-works">How it works</a><a href="#use-cases">Use cases</a><a href="/login">Sign in</a><a href="/register">Create account</a></div>
+          <div><h3>Company</h3><a href="mailto:hello@bragstack.app">Contact</a><a href="mailto:hello@bragstack.app?subject=BragStack%20Team%20waitlist">Team waitlist</a><a href="mailto:hello@bragstack.app?subject=BragStack%20Enterprise">Enterprise</a><a href="#security">Trust & privacy</a></div>
         </div>
         <div className="mega-footer-bottom"><span>© 2026 BragStack</span><span>Private by default · Your proof stays yours.</span><div><a href="/login">Log in</a><a href="/register">Start free</a></div></div>
       </footer>
