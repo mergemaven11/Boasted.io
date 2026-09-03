@@ -1,4 +1,4 @@
-import { Activity, ArrowRight, BriefcaseBusiness, Gauge, ReceiptText, UsersRound } from "lucide-react";
+import { Activity, ArrowRight, BriefcaseBusiness, Gauge, ReceiptText, Tags, UsersRound } from "lucide-react";
 import "./FounderAnalyticsPanel.css";
 
 function percent(value) {
@@ -45,17 +45,25 @@ function EndpointList({ title, rows = [], mode }) {
   </article>;
 }
 
+function RankedList({ title, rows = [], emptyText }) {
+  return <article className="founder-list-card">
+    <div className="founder-card-title"><Tags size={18} /><div><h3>{title}</h3><p>Aggregated from user-authored career evidence metadata.</p></div></div>
+    {rows.length === 0 ? <p>{emptyText}</p> : <div className="founder-rank-list">{rows.map((item, index) => <div key={item.name}><strong>{index + 1}</strong><span>{item.name}</span><b>{number(item.count)}</b></div>)}</div>}
+  </article>;
+}
+
 export default function FounderAnalyticsPanel({ analytics = {} }) {
   const users = analytics.users || {};
   const engagement = analytics.engagement || {};
   const profiles = analytics.profiles || {};
   const packets = analytics.packets || {};
+  const content = analytics.content || {};
   const business = analytics.business || {};
   const api = analytics.api || {};
 
   return <section className="ops-panel founder-analytics-panel">
     <div className="founder-analytics-heading">
-      <div><p className="ops-kicker">FOUNDER · PRODUCT SIGNALS</p><h2>How BragStack is being used</h2><p>Growth, activation, evidence depth, Proof Profile engagement, packet adoption, subscriptions, and API health from first-party metadata.</p></div>
+      <div><p className="ops-kicker">FOUNDER · PRODUCT SIGNALS</p><h2>How BragStack is being used</h2><p>Growth, activation, evidence depth, Proof Profile engagement, packet adoption, content signals, subscriptions, and API health from first-party metadata.</p></div>
       <a href="/ops/users"><UsersRound size={16} /> User-level analysis</a>
     </div>
 
@@ -98,6 +106,11 @@ export default function FounderAnalyticsPanel({ analytics = {} }) {
           <Metric label="Packets · 30d" value={number(packets.generated_30d)} detail={`${number(packets.generated_all_time)} generated all time`} />
         </div>
       </article>
+    </div>
+
+    <div className="founder-two-column">
+      <RankedList title="Most common skills" rows={content.top_skills || []} emptyText="No skill metadata yet." />
+      <RankedList title="Most common career categories" rows={content.top_categories || []} emptyText="No category metadata yet." />
     </div>
 
     <div className="founder-two-column">
