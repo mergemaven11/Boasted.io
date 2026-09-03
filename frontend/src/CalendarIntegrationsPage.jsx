@@ -4,7 +4,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
-  ExternalLink,
   Link2,
   RefreshCw,
   ShieldCheck,
@@ -54,6 +53,7 @@ export default function CalendarIntegrationsPage() {
   const [month, setMonth] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState(() => new Date());
   const [providerState] = useState({ google: "disconnected", microsoft: "disconnected" });
+  const [connectionMessage, setConnectionMessage] = useState("");
   const days = useMemo(() => buildMonthDays(month), [month]);
   const today = dayKey(new Date());
   const selected = dayKey(selectedDay);
@@ -70,8 +70,8 @@ export default function CalendarIntegrationsPage() {
   }
 
   function connectProvider(provider) {
-    const params = new URLSearchParams({ provider });
-    window.location.assign(`/app/settings/integrations/calendar/connect?${params.toString()}`);
+    const providerName = PROVIDERS.find((item) => item.id === provider)?.name || "calendar";
+    setConnectionMessage(`${providerName} is ready for OAuth wiring. BragStack has not connected or read any calendar data yet.`);
   }
 
   return (
@@ -95,13 +95,15 @@ export default function CalendarIntegrationsPage() {
                 <div className="provider-title-row"><h2>{provider.name}</h2><span className={`connection-state ${state}`}>{state}</span></div>
                 <p>{provider.description}</p>
                 <button type="button" className="provider-connect" onClick={() => connectProvider(provider.id)}>
-                  <Link2 size={16}/> Connect {provider.name} <ExternalLink size={14}/>
+                  <Link2 size={16}/> Connect {provider.name}
                 </button>
               </div>
             </article>
           );
         })}
       </section>
+
+      {connectionMessage && <div className="calendar-connection-notice" role="status"><ShieldCheck size={16}/><span>{connectionMessage}</span></div>}
 
       <section className="calendar-shell">
         <div className="calendar-main">
@@ -163,7 +165,7 @@ export default function CalendarIntegrationsPage() {
             <div className="agenda-empty">
               <div className="agenda-empty-icon"><CalendarDays size={28}/></div>
               <h3>No synced meetings yet</h3>
-              <p>Connect Google Calendar or Microsoft Outlook above. BragStack will show upcoming meetings here once calendar sync is authorized.</p>
+              <p>Connect Google Calendar or Microsoft Outlook above. BragStack will show upcoming meetings here once provider OAuth and calendar sync are authorized.</p>
               <span><Sparkles size={14}/> We will never publish your calendar to your Proof Profile.</span>
             </div>
           )}
