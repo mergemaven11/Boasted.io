@@ -9,7 +9,7 @@
   const BILLING_EMAIL = "billing@usebragstack.com";
 
   const routeMeta = {
-    "/": ["BragStack | Resume Accomplishments, Career Portfolio & Job Search Proof", "Capture work accomplishments and turn them into evidence-backed resume bullets, career portfolios, interview stories, performance reviews, promotion packets, and job-search proof."],
+    "/": ["BragStack | Turn Your Work Into Career Proof", "BragStack helps professionals capture wins, attach evidence, create Impact Receipts, build Proof Profiles and Professional Packets, and selectively share career proof when it matters."],
     "/docs": ["BragStack Docs | Career Proof, Billing, Privacy & Product Help", "Customer documentation for BragStack accounts, Impact Receipts, reports, public proof profiles, privacy, billing, and BragStack Pro."],
     "/resume-accomplishments": ["Resume Accomplishments & Achievement Tracker | BragStack", "Track work accomplishments, measurable impact, and evidence so you can build stronger resume bullets from real career proof."],
     "/career-portfolio": ["Career Portfolio & Professional Proof Profile | BragStack", "Build a professional career portfolio from selected accomplishments, skills, evidence, and measurable impact while keeping your account private by default."],
@@ -56,7 +56,7 @@
     const nav = root.querySelector?.(".landing-nav") || document.querySelector(".landing-nav");
     if (!nav || nav.dataset.brandPatched === "true") return;
     const logo = nav.querySelector(".landing-logo");
-    if (logo) { logo.textContent = ""; logo.setAttribute("aria-label", "BragStack home"); }
+    if (logo) { logo.textContent = "BragStack"; logo.setAttribute("aria-label", "BragStack home"); }
     const actions = nav.querySelector(".landing-nav-actions");
     if (actions) {
       if (!actions.querySelector('a[href="/docs"]')) {
