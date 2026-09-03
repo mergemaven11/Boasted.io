@@ -20,6 +20,7 @@ import {
   updateOpsRoles,
 } from "./opsApi";
 import BragStackLoader from "./BragStackLoader.jsx";
+import FounderAnalyticsPanel from "./FounderAnalyticsPanel.jsx";
 import "./OpsConsolePage.css";
 
 const OPS_INBOX_STORAGE_KEY = "bragstack_ops_inbox_state_v1";
@@ -108,12 +109,12 @@ function buildOpsMessages({ service = {}, persisted = {}, audit = null }) {
       id: `failure:${row.request_id || `${row.method}:${row.path}:${row.created_at || row.timestamp}`}`,
       source: "Application",
       category: "application",
-      priority: status >= 500 ? "warning" : "action",
+      priority: "warning",
       title: `${status} response on ${row.path || "request"}`,
       summary: `${row.method || "REQUEST"} ${row.path || "unknown path"} returned ${status}${row.duration_ms != null ? ` in ${row.duration_ms} ms` : ""}.`,
       detail: row.request_id ? `Request ${row.request_id}` : null,
       createdAt: row.created_at || row.timestamp,
-      syncRecommended: status >= 500,
+      syncRecommended: true,
     });
   });
 
@@ -158,7 +159,7 @@ function buildOpsMessages({ service = {}, persisted = {}, audit = null }) {
 }
 
 function PriorityIcon({ priority }) {
-  if (priority === "urgent" || priority === "warning" || priority === "action") return <AlertTriangle size={18} aria-hidden="true" />;
+  if (ATTENTION_PRIORITIES.has(priority)) return <AlertTriangle size={18} aria-hidden="true" />;
   return <Info size={18} aria-hidden="true" />;
 }
 
@@ -169,13 +170,12 @@ function OpsInbox({ service, persisted, audit }) {
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    try { window.localStorage.setItem(OPS_INBOX_STORAGE_KEY, JSON.stringify(state)); } catch { /* storage is optional */ }
+    try { window.localStorage.setItem(OPS_INBOX_STORAGE_KEY, JSON.stringify(state)); } catch { /* optional */ }
   }, [state]);
 
   const isSnoozed = (id) => isFutureTimestamp(state.snoozedUntil[id]);
   const isArchived = (id) => Boolean(state.archived[id]);
   const isRead = (id) => Boolean(state.read[id]);
-
   const unreadCount = messages.filter((message) => !isRead(message.id) && !isArchived(message.id) && !isSnoozed(message.id)).length;
   const attentionCount = messages.filter((message) => ATTENTION_PRIORITIES.has(message.priority) && !isArchived(message.id) && !isSnoozed(message.id)).length;
   const snoozedCount = messages.filter((message) => isSnoozed(message.id) && !isArchived(message.id)).length;
@@ -229,7 +229,7 @@ function OpsInbox({ service, persisted, audit }) {
       <div>
         <p className="ops-kicker">FOUNDER · OPS INBOX</p>
         <h2><Inbox size={22} aria-hidden="true" /> Messages worth reading</h2>
-        <p>Important production, admin, performance, and future integration updates without the raw-log noise. GitHub, PostHog, HubSpot, Metricool, Stripe, Netlify, Render, and Atlas can plug into this normalized message stream as integrations are wired.</p>
+        <p>Important production, admin, performance, and integration updates without raw-log noise.</p>
       </div>
       <div className="ops-inbox-summary" aria-label="Ops inbox summary">
         <div><Bell size={17} /><strong>{unreadCount}</strong><span>Unread</span></div>
@@ -239,34 +239,18 @@ function OpsInbox({ service, persisted, audit }) {
 
     <div className="ops-inbox-controls">
       <div className="ops-inbox-tabs" role="tablist" aria-label="Ops Inbox filters">
-        {filters.map(([value, label, count]) => <button
-          className={filter === value ? "active" : ""}
-          key={value}
-          type="button"
-          onClick={() => setFilter(value)}
-        >{label}<span>{count}</span></button>)}
+        {filters.map(([value, label, count]) => <button className={filter === value ? "active" : ""} key={value} type="button" onClick={() => setFilter(value)}>{label}<span>{count}</span></button>)}
       </div>
-      <label className="ops-inbox-search">
-        <Search size={16} aria-hidden="true" />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search messages" />
-      </label>
+      <label className="ops-inbox-search"><Search size={16} aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search messages" /></label>
     </div>
 
     <div className="ops-message-list">
-      {filteredMessages.length === 0 && <div className="ops-inbox-empty"><CheckCheck size={30} /><strong>Nothing needs your attention here.</strong><span>Try another filter, or come back after the next diagnostics refresh.</span></div>}
+      {filteredMessages.length === 0 && <div className="ops-inbox-empty"><CheckCheck size={30} /><strong>Nothing needs your attention here.</strong><span>Try another filter, or refresh diagnostics.</span></div>}
       {filteredMessages.map((message) => <article className={`ops-message ${message.priority} ${isRead(message.id) ? "read" : "unread"}`} key={message.id}>
         <div className="ops-message-icon"><PriorityIcon priority={message.priority} /></div>
         <div className="ops-message-body">
-          <div className="ops-message-meta">
-            <span className={`ops-priority ${message.priority}`}>{message.priority}</span>
-            <span>{message.source}</span>
-            <span>{relativeTime(message.createdAt)}</span>
-            {!isRead(message.id) && <span className="ops-unread-dot">Unread</span>}
-            {message.syncRecommended && <span className="ops-sync-badge">Discuss recommended</span>}
-          </div>
-          <h3>{message.title}</h3>
-          <p>{message.summary}</p>
-          {message.detail && <small>{message.detail}</small>}
+          <div className="ops-message-meta"><span className={`ops-priority ${message.priority}`}>{message.priority}</span><span>{message.source}</span><span>{relativeTime(message.createdAt)}</span>{!isRead(message.id) && <span className="ops-unread-dot">Unread</span>}{message.syncRecommended && <span className="ops-sync-badge">Discuss recommended</span>}</div>
+          <h3>{message.title}</h3><p>{message.summary}</p>{message.detail && <small>{message.detail}</small>}
         </div>
         <div className="ops-message-actions">
           {!isRead(message.id) && <button type="button" onClick={() => markRead(message.id)}><CheckCheck size={15} /> Mark read</button>}
@@ -290,9 +274,7 @@ function ErrorGroups({ rows = [] }) {
 }
 
 function AuditEventRow({ event }) {
-  if (event.event === "verification_email_resent") {
-    return <div><strong>{event.actor_email}</strong><span>resent verification email</span><code>{event.target_email}</code></div>;
-  }
+  if (event.event === "verification_email_resent") return <div><strong>{event.actor_email}</strong><span>resent verification email</span><code>{event.target_email}</code></div>;
   return <div><strong>{event.actor_email}</strong><span>changed {event.target_email}</span><code>{(event.previous_roles || []).join(", ") || "none"} → {(event.next_roles || []).join(", ") || "none"}</code></div>;
 }
 
@@ -302,17 +284,12 @@ function RoleManager({ team, setTeam, audit, setAudit }) {
   const roles = team?.allowed_roles || [];
 
   async function toggleRole(member, role) {
-    const nextRoles = member.roles.includes(role)
-      ? member.roles.filter((item) => item !== role)
-      : [...member.roles, role];
+    const nextRoles = member.roles.includes(role) ? member.roles.filter((item) => item !== role) : [...member.roles, role];
     setSaving(member.id);
     setRoleError("");
     try {
       const updated = await updateOpsRoles(member.id, nextRoles);
-      setTeam((current) => ({
-        ...current,
-        members: current.members.map((item) => item.id === member.id ? updated : item),
-      }));
+      setTeam((current) => ({ ...current, members: current.members.map((item) => item.id === member.id ? updated : item) }));
       setAudit(await getOpsAudit());
     } catch (err) {
       setRoleError(err.response?.data?.detail || "Role update failed.");
@@ -323,29 +300,13 @@ function RoleManager({ team, setTeam, audit, setAudit }) {
 
   return <>
     {roleError && <p className="ops-error">{roleError}</p>}
-    <div className="ops-team-grid">
-      {(team?.members || []).map((member) => <article className="ops-team-card" key={member.id}>
-        <div><strong>{member.name || member.email}</strong><small>{member.email}</small></div>
-        {member.bootstrap_admin && <span className="ops-bootstrap-badge">Bootstrap admin</span>}
-        <div className="ops-role-list">
-          {roles.map((role) => <label key={role}>
-            <input
-              type="checkbox"
-              checked={member.roles.includes(role)}
-              disabled={saving === member.id}
-              onChange={() => void toggleRole(member, role)}
-            />
-            <span>{role}</span>
-          </label>)}
-        </div>
-        <small>Effective: {(member.effective_roles || []).join(", ") || "none"}</small>
-      </article>)}
-    </div>
-    <div className="ops-audit-list">
-      <h3>Recent admin actions</h3>
-      {(audit?.events || []).length === 0 && <p className="ops-empty">No admin actions recorded yet.</p>}
-      {(audit?.events || []).map((event, index) => <AuditEventRow event={event} key={`${event.created_at}-${index}`} />)}
-    </div>
+    <div className="ops-team-grid">{(team?.members || []).map((member) => <article className="ops-team-card" key={member.id}>
+      <div><strong>{member.name || member.email}</strong><small>{member.email}</small></div>
+      {member.bootstrap_admin && <span className="ops-bootstrap-badge">Bootstrap admin</span>}
+      <div className="ops-role-list">{roles.map((role) => <label key={role}><input type="checkbox" checked={member.roles.includes(role)} disabled={saving === member.id} onChange={() => void toggleRole(member, role)} /><span>{role}</span></label>)}</div>
+      <small>Effective: {(member.effective_roles || []).join(", ") || "none"}</small>
+    </article>)}</div>
+    <div className="ops-audit-list"><h3>Recent admin actions</h3>{(audit?.events || []).length === 0 && <p className="ops-empty">No admin actions recorded yet.</p>}{(audit?.events || []).map((event, index) => <AuditEventRow event={event} key={`${event.created_at}-${index}`} />)}</div>
   </>;
 }
 
@@ -361,20 +322,21 @@ export default function OpsConsolePage() {
   const [userError, setUserError] = useState("");
   const [loading, setLoading] = useState(true);
 
+  async function loadDiagnostics() {
+    const nextAccess = await getOpsAccess();
+    const [nextOverview, nextObservability] = await Promise.all([getOpsOverview(), getOpsObservability()]);
+    let nextTeam = null;
+    let nextAudit = null;
+    if ((nextAccess.roles || []).includes("admin")) [nextTeam, nextAudit] = await Promise.all([getOpsTeam(), getOpsAudit()]);
+    return { nextAccess, nextOverview, nextObservability, nextTeam, nextAudit };
+  }
+
   async function refreshDiagnostics() {
     setLoading(true);
     setError("");
     try {
-      const nextAccess = await getOpsAccess();
-      const [nextOverview, nextObservability] = await Promise.all([getOpsOverview(), getOpsObservability()]);
-      setAccess(nextAccess);
-      setOverview(nextOverview);
-      setObservability(nextObservability);
-      if ((nextAccess.roles || []).includes("admin")) {
-        const [nextTeam, nextAudit] = await Promise.all([getOpsTeam(), getOpsAudit()]);
-        setTeam(nextTeam);
-        setAudit(nextAudit);
-      }
+      const data = await loadDiagnostics();
+      setAccess(data.nextAccess); setOverview(data.nextOverview); setObservability(data.nextObservability); setTeam(data.nextTeam); setAudit(data.nextAudit);
     } catch (err) {
       setError(err.response?.status === 403 ? "This account is not authorized for BragStack Ops." : "Ops diagnostics could not be loaded.");
     } finally {
@@ -386,19 +348,9 @@ export default function OpsConsolePage() {
     let active = true;
     void (async () => {
       try {
-        const nextAccess = await getOpsAccess();
-        const [nextOverview, nextObservability] = await Promise.all([getOpsOverview(), getOpsObservability()]);
-        let nextTeam = null;
-        let nextAudit = null;
-        if ((nextAccess.roles || []).includes("admin")) {
-          [nextTeam, nextAudit] = await Promise.all([getOpsTeam(), getOpsAudit()]);
-        }
+        const data = await loadDiagnostics();
         if (!active) return;
-        setAccess(nextAccess);
-        setOverview(nextOverview);
-        setObservability(nextObservability);
-        setTeam(nextTeam);
-        setAudit(nextAudit);
+        setAccess(data.nextAccess); setOverview(data.nextOverview); setObservability(data.nextObservability); setTeam(data.nextTeam); setAudit(data.nextAudit);
       } catch (err) {
         if (!active) return;
         setError(err.response?.status === 403 ? "This account is not authorized for BragStack Ops." : "Ops diagnostics could not be loaded.");
@@ -415,17 +367,18 @@ export default function OpsConsolePage() {
     catch (err) { setUserError(err.response?.data?.detail || "User diagnostics could not be loaded."); }
   }
 
-  if (loading) return <BragStackLoader compact message="Loading BragStack Ops…" detail="Checking service health, telemetry, database state, and authorized diagnostics." />;
+  if (loading) return <BragStackLoader compact message="Loading BragStack Ops…" detail="Checking founder analytics, service health, telemetry, database state, and authorized diagnostics." />;
   if (error) return <main className="ops-page"><section className="ops-denied"><h1>BragStack Ops</h1><p>{error}</p><a href="/app">Return to BragStack</a></section></main>;
 
   const service = overview?.service || {};
   const database = overview?.database || {};
   const requests = overview?.requests || {};
+  const analytics = overview?.analytics || {};
   const persisted = observability || {};
   const isAdmin = (access?.roles || []).includes("admin");
 
   return <main className="ops-page">
-    <header className="ops-header"><div><p className="ops-kicker">INTERNAL · CONTROLLED ACCESS</p><h1>BragStack Ops Console</h1><p>Founder operations, live application diagnostics, persistent request tracing, grouped errors, database health, safe user-state debugging, and audited internal access management.</p></div><div className={`ops-env ${service.environment === "production" ? "production" : "nonprod"}`}>{String(service.environment || access?.environment || "unknown").toUpperCase()}</div></header>
+    <header className="ops-header"><div><p className="ops-kicker">INTERNAL · CONTROLLED ACCESS</p><h1>BragStack Ops Console</h1><p>Founder analytics, application diagnostics, persistent request tracing, grouped errors, database health, safe user-state debugging, and audited internal access management.</p></div><div className={`ops-env ${service.environment === "production" ? "production" : "nonprod"}`}>{String(service.environment || access?.environment || "unknown").toUpperCase()}</div></header>
     <div className="ops-toolbar"><span>Roles: {(access?.roles || []).join(", ")}</span><button type="button" onClick={refreshDiagnostics}>Refresh diagnostics</button></div>
 
     <section className="ops-grid">
@@ -435,6 +388,7 @@ export default function OpsConsolePage() {
       <article className="ops-card"><span>Stored users</span><strong>{database.users ?? "—"}</strong><small>{database.entries ?? "—"} accomplishments · {database.impact_receipts ?? "—"} receipts</small></article>
     </section>
 
+    <FounderAnalyticsPanel analytics={analytics} />
     <OpsInbox service={service} persisted={persisted} audit={isAdmin ? audit : null} />
 
     <section className="ops-panel"><div className="ops-panel-heading"><div><p className="ops-kicker">PERSISTENT OBSERVABILITY V2</p><h2>Grouped backend exceptions</h2><p>Sanitized fingerprints survive restarts and deployments without storing request bodies, headers, tokens, query strings, or exception messages.</p></div></div><ErrorGroups rows={persisted.errors} /></section>
