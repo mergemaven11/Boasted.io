@@ -1,10 +1,13 @@
 """Opt-in connection settings for BragStack Proof Profiles."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import datetime, timedelta, timezone
+from typing import Literal
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
 
 from app.auth import get_current_user
-from app.database import users_collection
+from app.database import analytics_events_collection, users_collection
 from app.public_slug_routes import get_user_by_public_slug
 
 router = APIRouter(tags=["profile-connection"])
@@ -15,6 +18,14 @@ ALLOWED_CONVERSATION_TYPES = {
     "networking",
     "mentoring",
     "consulting",
+}
+
+PUBLIC_PROFILE_EVENT_TYPES = {
+    "profile_view",
+    "open_to_talk_click",
+    "github_click",
+    "portfolio_click",
+    "resume_click",
 }
 
 
@@ -46,6 +57,29 @@ class ProfileConnectionUpdate(BaseModel):
                 raise ValueError(f"Unknown Open to Talk conversation type: {item}")
             if item not in normalized:
                 normalized.append(item)
+        return normalized
+
+
+class PublicProfileAnalyticsEvent(BaseModel):
+    """Privacy-minimized analytics emitted by a public Proof Profile."""
+
+    event_type: Literal[
+        "profile_view",
+        "open_to_talk_click",
+        "github_click",
+        "portfolio_click",
+        "resume_click",
+    ]
+    visitor_id: str = Field(default="", max_length=80, pattern=r"^[A-Za-z0-9._:-]*$")
+    referrer_host: str = Field(default="", max_length=160)
+
+    @field_validator("referrer_host")
+    @classmethod
+    def normalize_referrer_host(cls, value: str) -> str:
+        """Keep only a compact hostname-like value supplied by the browser."""
+        normalized = value.strip().lower()
+        if any(char in normalized for char in ("/", "?", "#", "@")):
+            raise ValueError("Referrer host must not contain a URL path or user information")
         return normalized
 
 
@@ -109,3 +143,36 @@ def get_public_profile_connection(slug: str):
     """Return only connection settings the profile owner explicitly enabled."""
     user = get_user_by_public_slug(slug)
     return serialize_connection_settings(user, public=True)
+
+
+@router.post("/public/brag/{slug}/analytics", status_code=status.HTTP_202_ACCEPTED)
+def record_public_profile_analytics(slug: str, payload: PublicProfileAnalyticsEvent):
+    """Record privacy-minimized Proof Profile engagement without IPs or user agents."""
+    user = get_user_by_public_slug(slug)
+    now = datetime.now(timezone.utc)
+    user_id = str(user["_id"])
+
+    if payload.event_type == "profile_view" and payload.visitor_id:
+        recent_view = analytics_events_collection.find_one(
+            {
+                "user_id": user_id,
+                "event_type": "profile_view",
+                "visitor_id": payload.visitor_id,
+                "created_at": {"$gte": now - timedelta(minutes=30)},
+            },
+            {"_id": 1},
+        )
+        if recent_view is not None:
+            return {"recorded": False, "deduplicated": True}
+
+    analytics_events_collection.insert_one(
+        {
+            "user_id": user_id,
+            "public_slug": (user.get("public_slug") or slug).strip().lower(),
+            "event_type": payload.event_type,
+            "visitor_id": payload.visitor_id,
+            "referrer_host": payload.referrer_host,
+            "created_at": now,
+        }
+    )
+    return {"recorded": True, "deduplicated": False}
