@@ -25,7 +25,13 @@ _HIGH_RISK_TERMS = (
 
 @dataclass(frozen=True)
 class GroundingViolation:
-    """One deterministic reason a suggestion cannot be trusted as grounded."""
+    """Represent one deterministic reason a suggestion is not grounded.
+
+    Attributes:
+        code: Stable machine-readable violation identifier.
+        message: Human-readable explanation of the violation.
+        value: Optional unsupported value or phrase that triggered the violation.
+    """
 
     code: str
     message: str
@@ -33,6 +39,14 @@ class GroundingViolation:
 
 
 def _flatten_strings(value: Any) -> Iterable[str]:
+    """Yield every nested string contained in a structured value.
+
+    Args:
+        value: Arbitrarily nested structured value from an AI suggestion payload.
+
+    Yields:
+        String values discovered recursively in dictionaries and iterable containers.
+    """
     if isinstance(value, str):
         yield value
     elif isinstance(value, dict):
@@ -44,6 +58,14 @@ def _flatten_strings(value: Any) -> Iterable[str]:
 
 
 def _normalized_corpus(evidence: Iterable[EvidenceContext]) -> str:
+    """Build a case-insensitive corpus from supplied evidence text.
+
+    Args:
+        evidence: Evidence contexts supplied to the inference task.
+
+    Returns:
+        Newline-delimited case-folded evidence text for deterministic matching.
+    """
     return "\n".join(item.content for item in evidence).casefold()
 
 
@@ -56,6 +78,14 @@ def validate_grounded_suggestion(
     This guard is deliberately conservative. It does not attempt semantic fact
     checking; it blocks obvious classes of unsupported claims before a model
     output can be surfaced as a BragStack suggestion.
+
+    Args:
+        suggestion: Unaccepted AI suggestion to validate before it is surfaced.
+        evidence: User-controlled evidence supplied to the originating inference task.
+
+    Returns:
+        Deterministic grounding violations. An empty list means this guard found
+        no provenance, unsupported-number, or high-risk-language violations.
     """
     evidence_items = tuple(evidence)
     known_ids = {evidence_id for item in evidence_items for evidence_id in item.evidence_ids}
