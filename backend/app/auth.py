@@ -129,6 +129,10 @@ def serialize_user(user: dict) -> dict:
         "profile_primary_color": user.get("profile_primary_color", ""),
         "profile_secondary_color": user.get("profile_secondary_color", ""),
         "profile_background_color": user.get("profile_background_color", ""),
+        "open_to_talk": bool(user.get("open_to_talk", False)),
+        "open_to_talk_url": user.get("open_to_talk_url", ""),
+        "open_to_talk_note": user.get("open_to_talk_note", ""),
+        "open_to_talk_types": user.get("open_to_talk_types", []),
         "plan": get_plan_for_user(user),
         "entitlements": get_entitlements_for_user(user),
         "internal_roles": [
