@@ -1,5 +1,6 @@
 import axios from "axios";
 
+import { ANALYTICS_EVENTS, trackAnalyticsEvent } from "./analytics.js";
 import { normalizeDashboardTags } from "./dashboardTags.js";
 
 function getDefaultApiBaseUrl() {
@@ -104,6 +105,25 @@ api.interceptors.request.use((config) => {
   const token = localStorage.getItem("bragstack_token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
+});
+
+api.interceptors.response.use((response) => {
+  const method = String(response.config?.method || "").toLowerCase();
+  const url = String(response.config?.url || "").split("?")[0];
+
+  if (method !== "post") return response;
+
+  if (url === "/auth/register") {
+    trackAnalyticsEvent(ANALYTICS_EVENTS.SIGN_UP, { method: "email_password" });
+  } else if (url === "/entries") {
+    trackAnalyticsEvent(ANALYTICS_EVENTS.ACCOMPLISHMENT_CREATED);
+  } else if (url === "/impact-receipts") {
+    trackAnalyticsEvent(ANALYTICS_EVENTS.IMPACT_RECEIPT_CREATED, { creation_source: "manual" });
+  } else if (url.startsWith("/impact-receipts/from-entry/")) {
+    trackAnalyticsEvent(ANALYTICS_EVENTS.IMPACT_RECEIPT_CREATED, { creation_source: "accomplishment" });
+  }
+
+  return response;
 });
 
 export async function registerUser(user) { const response = await api.post("/auth/register", user); return response.data; }
