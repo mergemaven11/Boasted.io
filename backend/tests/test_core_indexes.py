@@ -18,6 +18,7 @@ def test_core_indexes_are_created_with_expected_shapes():
         "impact_receipts",
         "receipt_verification_requests",
         "resume_documents",
+        "analytics_events",
         "rate_limits",
     }
 
@@ -45,6 +46,10 @@ def test_core_indexes_are_created_with_expected_shapes():
 
     resume_indexes = db.resume_documents.index_information()
     assert resume_indexes["resumes_user_updated"]["key"] == [("user_id", 1), ("updated_at", -1)]
+
+    analytics_indexes = db.analytics_events.index_information()
+    assert analytics_indexes["analytics_user_event_created"]["key"] == [("user_id", 1), ("event_type", 1), ("created_at", -1)]
+    assert analytics_indexes["analytics_visitor_created"]["key"] == [("visitor_id", 1), ("created_at", -1)]
 
     rate_limit_indexes = db.rate_limits.index_information()
     assert rate_limit_indexes["rate_limits_ttl"]["key"] == [("expires_at", 1)]

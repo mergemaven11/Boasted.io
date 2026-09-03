@@ -56,6 +56,19 @@ def ensure_core_indexes(db) -> dict[str, list[str]]:
         resumes.create_index([("user_id", ASCENDING), ("updated_at", DESCENDING)], name="resumes_user_updated"),
     ]
 
+    analytics_events = db["analytics_events"]
+    created["analytics_events"] = [
+        analytics_events.create_index(
+            [("user_id", ASCENDING), ("event_type", ASCENDING), ("created_at", DESCENDING)],
+            name="analytics_user_event_created",
+        ),
+        analytics_events.create_index(
+            [("visitor_id", ASCENDING), ("created_at", DESCENDING)],
+            name="analytics_visitor_created",
+            sparse=True,
+        ),
+    ]
+
     rate_limits = db["rate_limits"]
     created["rate_limits"] = [
         rate_limits.create_index(
