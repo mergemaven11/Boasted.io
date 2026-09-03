@@ -6,6 +6,23 @@ Evaluation suite version: `ai-eval-v1`
 
 BragStack evaluates model behavior separately from model licensing. A model may be commercially license-eligible and still be blocked from customer-facing use until it passes BragStack's evidence-grounded evaluation gates.
 
+## Zero-dollar commercial-use requirement
+
+BragStack's AI stack must use software, model weights, and runtimes that can be legally used for commercial purposes without a required license fee or paid subscription. This is a hard product constraint, not a preference.
+
+A production candidate must therefore satisfy all of the following before approval:
+
+- the exact model weights are available for commercial use without a required license fee;
+- the selected inference/runtime software is available for commercial use without a required license fee;
+- required modification, redistribution, attribution, and notice obligations are documented and acceptable;
+- no research-only, noncommercial, evaluation-only, source-available-with-commercial-restrictions, or otherwise ambiguous license is accepted;
+- no paid hosted inference API is required for core BragStack AI behavior;
+- model and runtime licenses are reviewed separately because a permissive model license does not make the runtime permissive, and vice versa.
+
+Infrastructure is a separate cost category. BragStack may still incur ordinary compute, storage, bandwidth, or hosting costs when operating freely licensed software. The requirement is zero-dollar software licensing for commercial use, not a claim that production infrastructure itself will cost nothing.
+
+If any license or commercial-use term is unclear, the candidate fails closed until the uncertainty is resolved from authoritative license material.
+
 ## Deterministic gates
 
 Every candidate suggestion is checked for:
@@ -31,15 +48,16 @@ Passing `ai-eval-v1` does not automatically authorize customer-facing deployment
 
 1. exact model ID and immutable revision;
 2. model-weight license and runtime license review;
-3. commercial-use, modification, redistribution, and notice requirements;
-4. structured-output validity and task-specific extraction quality;
-5. latency and memory measurements for the intended runtime;
-6. privacy/redaction and adversarial testing results;
-7. known limitations and rollback/kill-switch readiness.
+3. confirmation that both model and runtime meet the zero-dollar commercial-use requirement;
+4. commercial-use, modification, redistribution, attribution, and notice requirements;
+5. structured-output validity and task-specific extraction quality;
+6. latency and memory measurements for the intended runtime;
+7. privacy/redaction and adversarial testing results;
+8. known limitations and rollback/kill-switch readiness.
 
 ## Candidate model progression
 
-`HuggingFaceTB/SmolLM2-1.7B-Instruct` and `sentence-transformers/all-MiniLM-L6-v2` remain license-eligible candidates only. They should be marked customer-facing approved only after the applicable BragStack evaluation suites pass and the release review is recorded.
+`HuggingFaceTB/SmolLM2-1.7B-Instruct` and `sentence-transformers/all-MiniLM-L6-v2` remain license-eligible candidates only. They should be marked customer-facing approved only after the applicable BragStack evaluation suites pass, their exact model/runtime licenses satisfy the zero-dollar commercial-use requirement, and the release review is recorded.
 
 SmolLM2 is expected to be evaluated against evidence extraction, evidence quality, and grounded drafting fixtures. MiniLM is intended for a future semantic-search evaluation suite; semantic similarity must never be treated as verification.
 
