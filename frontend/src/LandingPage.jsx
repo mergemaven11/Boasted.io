@@ -6,7 +6,6 @@ import {
   FileText,
   GraduationCap,
   Link2,
-  LockKeyhole,
   MessageSquare,
   ReceiptText,
   ShieldCheck,
