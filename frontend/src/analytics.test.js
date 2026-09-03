@@ -79,9 +79,9 @@ describe("BragStack analytics", () => {
     assert.equal(document.head.querySelectorAll("script[data-bragstack-analytics]").length, 1);
   });
 
-  it("captures session and first-touch UTM attribution without storing unrelated query parameters", () => {
+  it("captures approved UTM attribution without storing unrelated query parameters", () => {
     setUrl(
-      "/?utm_source=linkedin&utm_medium=social&utm_campaign=founder_launch&utm_content=profile&email=private@example.com",
+      "/?utm_source=linkedin&utm_medium=paid_social&utm_campaign=founder_launch&utm_source_platform=linkedin_ads&utm_content=profile&utm_creative_format=video&utm_marketing_tactic=prospecting&email=private@example.com",
     );
 
     const captured = captureCampaignAttribution();
@@ -89,17 +89,27 @@ describe("BragStack analytics", () => {
 
     assert.deepEqual(captured, {
       utm_source: "linkedin",
-      utm_medium: "social",
+      utm_medium: "paid_social",
       utm_campaign: "founder_launch",
+      utm_source_platform: "linkedin_ads",
       utm_content: "profile",
+      utm_creative_format: "video",
+      utm_marketing_tactic: "prospecting",
     });
     assert.equal(parameters.utm_source, "linkedin");
-    assert.equal(parameters.utm_medium, "social");
-    assert.equal(parameters.utm_campaign, "founder_launch");
+    assert.equal(parameters.utm_source_platform, "linkedin_ads");
     assert.equal(parameters.first_utm_source, "linkedin");
-    assert.equal(parameters.first_utm_medium, "social");
-    assert.equal(parameters.first_utm_campaign, "founder_launch");
+    assert.equal(parameters.first_utm_source_platform, "linkedin_ads");
     assert.doesNotMatch(JSON.stringify(parameters), /private@example\.com/);
+  });
+
+  it("caps UTM values at the GA4 event-parameter value limit", () => {
+    const oversizedCampaign = "x".repeat(150);
+    setUrl(`/?utm_source=linkedin&utm_campaign=${oversizedCampaign}`);
+
+    const captured = captureCampaignAttribution();
+
+    assert.equal(captured.utm_campaign.length, 100);
   });
 
   it("keeps first-touch attribution while allowing a later campaign to become the active session campaign", () => {
