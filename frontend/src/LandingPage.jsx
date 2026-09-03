@@ -157,15 +157,16 @@ function LandingPage() {
 
       <section className="landing-hero">
         <div className="landing-hero-copy">
-          <div className="landing-eyebrow"><ShieldCheck size={15} />The evidence layer for professional growth</div>
-          <h1>Turn your work into<span> career proof.</span></h1>
+          <div className="landing-eyebrow"><ShieldCheck size={15} />NEW BRAGSTACK · CAREER EVIDENCE, NOT JUST CLAIMS</div>
+          <h1>Your work deserves<span> receipts.</span></h1>
           <p className="landing-hero-description">
-            BragStack gives you an employee-owned record of what you did, what you contributed, what changed, and what supports the claim — so your best work is ready for reviews, promotions, interviews, résumés, selective sharing, and the opportunities that follow.
+            BragStack helps you capture wins, attach evidence, and turn important work into Impact Receipts. Reuse that proof for performance reviews, promotions, résumés, interviews, and a selective public Proof Profile.
           </p>
           <div className="landing-hero-actions">
-            <a className="landing-btn" href="/register">Build my evidence record <ArrowRight size={18} /></a>
-            <a className="landing-btn landing-btn-secondary" href="#how-it-works">See how proof travels</a>
+            <a className="landing-btn" href="/register">Start my BragStack <ArrowRight size={18} /></a>
+            <a className="landing-btn landing-btn-secondary" href="#product">See what&apos;s new</a>
           </div>
+          <p className="landing-trust-line">Impact Receipts <span>•</span> Proof Profiles <span>•</span> Professional Packets <span>•</span> Open to Talk</p>
           <p className="landing-trust-line">Private by default <span>•</span> Evidence-backed <span>•</span> You choose what becomes public</p>
         </div>
 
@@ -209,7 +210,7 @@ function LandingPage() {
       </section>
 
       <section className="landing-use-cases" id="product">
-        <div className="landing-section-heading"><p>THE EVIDENCE SYSTEM</p><h2>One record. Multiple career outcomes.</h2><span>Impact Receipts are the core primitive; profiles, packets, analytics, and conversations are ways to use the evidence you control.</span></div>
+        <div className="landing-section-heading"><p>WHAT&apos;S NEW IN BRAGSTACK</p><h2>One place for your career evidence.</h2><span>Impact Receipts are the core. Proof Profiles, Professional Packets, Career Analytics, and Open to Talk help you use that evidence when it matters.</span></div>
         <div className="use-case-grid">{productDetails.map(({ icon: Icon, ...item }) => <article className="use-case-card" id={item.id} key={item.id}><div className="use-case-icon"><Icon size={21} /></div><h3>{item.title}</h3><p>{item.description}</p></article>)}</div>
       </section>
 
