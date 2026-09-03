@@ -6,6 +6,15 @@ from app.ai.licensing import ModelLicenseRecord, ProductionLicenseGate
 
 
 def _suggestion(payload, source_ids=("ev-1",)):
+    """Build a deterministic AI suggestion fixture.
+
+    Args:
+        payload: Structured payload to place in the test suggestion.
+        source_ids: Evidence identifiers cited by the suggestion.
+
+    Returns:
+        AI suggestion populated with deterministic test provenance metadata.
+    """
     return AISuggestion(
         task="impact_receipt",
         payload=payload,
@@ -19,10 +28,19 @@ def _suggestion(payload, source_ids=("ev-1",)):
 
 
 def _evidence(text="Reduced build time by 30% for the release pipeline."):
+    """Build a deterministic evidence-context fixture.
+
+    Args:
+        text: User-controlled evidence text supplied to the grounding guard.
+
+    Returns:
+        Single evidence context wrapped in a tuple for validator input.
+    """
     return (EvidenceContext(evidence_ids=("ev-1",), content=text),)
 
 
 def test_grounded_numeric_claim_is_allowed():
+    """Verify numeric claims already present in evidence pass the guard."""
     violations = validate_grounded_suggestion(
         _suggestion({"result": "Reduced build time by 30%."}),
         _evidence(),
@@ -31,6 +49,7 @@ def test_grounded_numeric_claim_is_allowed():
 
 
 def test_new_numeric_claim_is_rejected():
+    """Verify invented numeric specificity is rejected."""
     violations = validate_grounded_suggestion(
         _suggestion({"result": "Reduced build time by 55%."}),
         _evidence(),
@@ -39,6 +58,7 @@ def test_new_numeric_claim_is_rejected():
 
 
 def test_unknown_provenance_id_is_rejected():
+    """Verify suggestions cannot cite evidence absent from the request."""
     violations = validate_grounded_suggestion(
         _suggestion({"result": "Improved the release pipeline."}, source_ids=("ev-missing",)),
         _evidence(),
@@ -47,6 +67,7 @@ def test_unknown_provenance_id_is_rejected():
 
 
 def test_missing_provenance_is_rejected():
+    """Verify every AI suggestion must cite at least one evidence identifier."""
     violations = validate_grounded_suggestion(
         _suggestion({"result": "Improved the release pipeline."}, source_ids=()),
         _evidence(),
@@ -55,6 +76,7 @@ def test_missing_provenance_is_rejected():
 
 
 def test_unsupported_verification_language_is_rejected():
+    """Verify unsupported verification language is rejected."""
     violations = validate_grounded_suggestion(
         _suggestion({"evidence": "Result was verified by leadership."}),
         _evidence(),
@@ -63,6 +85,7 @@ def test_unsupported_verification_language_is_rejected():
 
 
 def test_supported_high_risk_language_is_allowed():
+    """Verify high-risk wording passes when directly supported by evidence."""
     evidence = _evidence("Leadership verified the release-pipeline result.")
     violations = validate_grounded_suggestion(
         _suggestion({"evidence": "Leadership verified the release-pipeline result."}),
@@ -72,6 +95,7 @@ def test_supported_high_risk_language_is_allowed():
 
 
 def test_permissive_complete_model_record_passes_license_gate():
+    """Verify a complete permissive commercial-use record passes licensing."""
     record = ModelLicenseRecord(
         model_id="example/model",
         revision="deadbeef",
@@ -90,6 +114,7 @@ def test_permissive_complete_model_record_passes_license_gate():
 
 
 def test_license_gate_fails_closed_for_noncommercial_or_unpinned_model():
+    """Verify unclear commercial rights and missing revisions fail closed."""
     record = ModelLicenseRecord(
         model_id="example/research-only",
         revision="",
@@ -111,10 +136,12 @@ def test_license_gate_fails_closed_for_noncommercial_or_unpinned_model():
 
 
 def test_experimental_ai_is_disabled_by_default(monkeypatch):
+    """Verify experimental AI remains disabled when no flag is configured."""
     monkeypatch.delenv("BRAGSTACK_EXPERIMENTAL_AI", raising=False)
     assert experimental_ai_enabled() is False
 
 
 def test_experimental_ai_requires_explicit_opt_in(monkeypatch):
+    """Verify experimental AI activates only after explicit environment opt-in."""
     monkeypatch.setenv("BRAGSTACK_EXPERIMENTAL_AI", "true")
     assert experimental_ai_enabled() is True
