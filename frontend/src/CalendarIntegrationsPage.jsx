@@ -54,6 +54,7 @@ export default function CalendarIntegrationsPage() {
   const [selectedDay, setSelectedDay] = useState(() => new Date());
   const [providerState] = useState({ google: "disconnected", microsoft: "disconnected" });
   const [connectionMessage, setConnectionMessage] = useState("");
+  const [calendarView, setCalendarView] = useState("month");
   const days = useMemo(() => buildMonthDays(month), [month]);
   const today = dayKey(new Date());
   const selected = dayKey(selectedDay);
@@ -64,6 +65,7 @@ export default function CalendarIntegrationsPage() {
     return map;
   }, {}), [meetings]);
   const selectedMeetings = meetingsByDay[selected] || [];
+  const connectedProviders = Object.values(providerState).filter((state) => state === "connected").length;
 
   function moveMonth(offset) {
     setMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
@@ -84,6 +86,12 @@ export default function CalendarIntegrationsPage() {
         </div>
         <div className="calendar-privacy-pill"><ShieldCheck size={16}/> Private workspace only</div>
       </header>
+
+      <section className="calendar-overview" aria-label="Calendar overview">
+        <article><span>Connected calendars</span><strong>{connectedProviders}</strong><small>Google + Microsoft supported</small></article>
+        <article><span>Upcoming meetings</span><strong>{meetings.length}</strong><small>Nothing is imported until you authorize it</small></article>
+        <article><span>Public exposure</span><strong>None</strong><small>Your schedule never becomes profile proof</small></article>
+      </section>
 
       <section className="provider-grid" aria-label="Calendar providers">
         {PROVIDERS.map((provider) => {
@@ -112,42 +120,63 @@ export default function CalendarIntegrationsPage() {
               <p className="calendar-kicker">UPCOMING MEETINGS</p>
               <h2>{monthLabel(month)}</h2>
             </div>
-            <div className="calendar-toolbar-actions">
-              <button type="button" onClick={() => { const now = new Date(); setMonth(now); setSelectedDay(now); }}>Today</button>
-              <button type="button" aria-label="Previous month" onClick={() => moveMonth(-1)}><ChevronLeft size={18}/></button>
-              <button type="button" aria-label="Next month" onClick={() => moveMonth(1)}><ChevronRight size={18}/></button>
+            <div className="calendar-toolbar-right">
+              <div className="calendar-view-switch" aria-label="Calendar view">
+                <button type="button" className={calendarView === "month" ? "active" : ""} onClick={() => setCalendarView("month")}>Month</button>
+                <button type="button" className={calendarView === "agenda" ? "active" : ""} onClick={() => setCalendarView("agenda")}>Agenda</button>
+              </div>
+              <div className="calendar-toolbar-actions">
+                <button type="button" onClick={() => { const now = new Date(); setMonth(now); setSelectedDay(now); }}>Today</button>
+                <button type="button" aria-label="Previous month" onClick={() => moveMonth(-1)}><ChevronLeft size={18}/></button>
+                <button type="button" aria-label="Next month" onClick={() => moveMonth(1)}><ChevronRight size={18}/></button>
+              </div>
             </div>
           </div>
 
-          <div className="calendar-weekdays">{WEEKDAYS.map((day) => <span key={day}>{day}</span>)}</div>
-          <div className="calendar-grid">
-            {days.map((date) => {
-              const key = dayKey(date);
-              const inMonth = date.getMonth() === month.getMonth();
-              const hasMeetings = Boolean(meetingsByDay[key]?.length);
-              return (
-                <button
-                  type="button"
-                  key={key}
-                  className={`calendar-day ${inMonth ? "" : "outside"} ${key === today ? "today" : ""} ${key === selected ? "selected" : ""}`}
-                  onClick={() => setSelectedDay(date)}
-                  aria-label={date.toLocaleDateString()}
-                >
-                  <span>{date.getDate()}</span>
-                  {hasMeetings && <i aria-label={`${meetingsByDay[key].length} meetings`}>{meetingsByDay[key].length}</i>}
-                </button>
-              );
-            })}
-          </div>
+          {calendarView === "month" ? (
+            <>
+              <div className="calendar-weekdays">{WEEKDAYS.map((day) => <span key={day}>{day}</span>)}</div>
+              <div className="calendar-grid">
+                {days.map((date) => {
+                  const key = dayKey(date);
+                  const inMonth = date.getMonth() === month.getMonth();
+                  const hasMeetings = Boolean(meetingsByDay[key]?.length);
+                  return (
+                    <button
+                      type="button"
+                      key={key}
+                      className={`calendar-day ${inMonth ? "" : "outside"} ${key === today ? "today" : ""} ${key === selected ? "selected" : ""}`}
+                      onClick={() => setSelectedDay(date)}
+                      aria-label={date.toLocaleDateString()}
+                    >
+                      <span>{date.getDate()}</span>
+                      {hasMeetings && <i aria-label={`${meetingsByDay[key].length} meetings`}>{meetingsByDay[key].length}</i>}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <div className="calendar-agenda-view">
+              <div className="agenda-empty-icon"><CalendarDays size={28}/></div>
+              <h3>Your agenda will live here</h3>
+              <p>Once a calendar is connected, BragStack can show a clean chronological list of upcoming meetings without exposing private calendar data publicly.</p>
+            </div>
+          )}
         </div>
 
         <aside className="agenda-panel">
           <div className="agenda-heading">
             <div>
-              <p className="calendar-kicker">AGENDA</p>
+              <p className="calendar-kicker">SELECTED DAY</p>
               <h2>{selectedDay.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}</h2>
             </div>
             <button type="button" className="icon-button" aria-label="Refresh calendar"><RefreshCw size={16}/></button>
+          </div>
+
+          <div className="calendar-provider-legend" aria-label="Calendar provider legend">
+            <span><i className="legend-dot google"/>Google</span>
+            <span><i className="legend-dot microsoft"/>Microsoft</span>
           </div>
 
           {selectedMeetings.length ? (
