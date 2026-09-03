@@ -182,15 +182,16 @@ def _percentile(values: list[float], percentile: float) -> float:
 
 
 def _founder_analytics() -> dict:
-    """Build product, growth, profile, packet, business, and API analytics from safe metadata."""
+    """Build product, growth, profile, packet, content, business, and API analytics from safe metadata."""
     now = datetime.now(timezone.utc)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     day_ago = now - timedelta(days=1)
     week_ago = now - timedelta(days=7)
     month_ago = now - timedelta(days=30)
     sixty_days_ago = now - timedelta(days=60)
 
     total_users = users_collection.count_documents({})
-    new_users_today = users_collection.count_documents({"created_at": {"$gte": day_ago.isoformat()}})
+    new_users_today = users_collection.count_documents({"created_at": {"$gte": today_start.isoformat()}})
     new_users_7d = users_collection.count_documents({"created_at": {"$gte": week_ago.isoformat()}})
 
     entry_users = _distinct_user_ids(entries_collection)
@@ -213,31 +214,19 @@ def _founder_analytics() -> dict:
         | _distinct_user_ids(packet_export_audit_collection, {"generated_at": {"$gte": month_ago}})
     )
 
-    published_profiles = users_collection.count_documents(
-        {"public_slug": {"$exists": True, "$nin": [None, ""]}}
-    )
+    published_profiles = users_collection.count_documents({"public_slug": {"$exists": True, "$nin": [None, ""]}})
     total_entries = entries_collection.count_documents({})
     total_receipts = impact_receipts_collection.count_documents({})
     total_packet_exports = packet_export_audit_collection.count_documents({})
     packet_exports_30d = packet_export_audit_collection.count_documents({"generated_at": {"$gte": month_ago}})
 
     evidence_receipts = impact_receipts_collection.count_documents({"evidence.0": {"$exists": True}})
-    confirmed_receipts = impact_receipts_collection.count_documents(
-        {"confirmations": {"$elemMatch": {"status": "confirmed"}}}
-    )
+    confirmed_receipts = impact_receipts_collection.count_documents({"confirmations": {"$elemMatch": {"status": "confirmed"}}})
 
     profile_view_query = {"event_type": "profile_view", "created_at": {"$gte": month_ago}}
     profile_views_30d = analytics_events_collection.count_documents(profile_view_query)
-    unique_profile_visitors_30d = len(
-        {
-            value
-            for value in analytics_events_collection.distinct("visitor_id", profile_view_query)
-            if value
-        }
-    )
-    booking_clicks_30d = analytics_events_collection.count_documents(
-        {"event_type": "open_to_talk_click", "created_at": {"$gte": month_ago}}
-    )
+    unique_profile_visitors_30d = len({value for value in analytics_events_collection.distinct("visitor_id", profile_view_query) if value})
+    booking_clicks_30d = analytics_events_collection.count_documents({"event_type": "open_to_talk_click", "created_at": {"$gte": month_ago}})
     outbound_clicks_30d = analytics_events_collection.count_documents(
         {
             "event_type": {"$in": ["open_to_talk_click", "github_click", "portfolio_click", "resume_click"]},
@@ -255,15 +244,30 @@ def _founder_analytics() -> dict:
     retained_cohort = cohort_users & active_30d
 
     packet_types = Counter()
-    for item in packet_export_audit_collection.find(
-        {"generated_at": {"$gte": month_ago}}, {"packet_kind": 1}
-    ).limit(5000):
+    for item in packet_export_audit_collection.find({"generated_at": {"$gte": month_ago}}, {"packet_kind": 1}).limit(5000):
         packet_types[str(item.get("packet_kind") or "unknown")] += 1
 
+    category_counts = Counter()
+    skill_counts = Counter()
+    for entry in entries_collection.find({}, {"category": 1, "tags": 1}).limit(5000):
+        category = str(entry.get("category") or "").strip()
+        if category:
+            category_counts[category] += 1
+        tags = entry.get("tags") or []
+        if isinstance(tags, str):
+            tags = [part.strip() for part in tags.split(",")]
+        for tag in tags:
+            normalized = str(tag).strip()
+            if normalized:
+                skill_counts[normalized] += 1
+    for receipt in impact_receipts_collection.find({}, {"skills": 1}).limit(5000):
+        for skill in receipt.get("skills", []) or []:
+            normalized = str(skill).strip()
+            if normalized:
+                skill_counts[normalized] += 1
+
     pro_subscribers = users_collection.count_documents({"plan": "pro"})
-    cancellation_pending = users_collection.count_documents(
-        {"plan": "pro", "billing_cancel_at_period_end": True}
-    )
+    cancellation_pending = users_collection.count_documents({"plan": "pro", "billing_cancel_at_period_end": True})
     former_subscribers = users_collection.count_documents(
         {"stripe_subscription_id": {"$exists": True, "$ne": ""}, "plan": {"$ne": "pro"}}
     )
@@ -276,9 +280,7 @@ def _founder_analytics() -> dict:
     request_durations = [float(event.get("duration_ms") or 0) for event in request_events]
     failed_requests = sum(1 for event in request_events if int(event.get("status_code") or 0) >= 400)
     server_errors = sum(1 for event in request_events if int(event.get("status_code") or 0) >= 500)
-    endpoint_counts = Counter(
-        f"{event.get('method') or 'REQUEST'} {event.get('path') or 'unknown'}" for event in request_events
-    )
+    endpoint_counts = Counter(f"{event.get('method') or 'REQUEST'} {event.get('path') or 'unknown'}" for event in request_events)
     endpoint_durations: dict[str, list[float]] = {}
     for event in request_events:
         key = f"{event.get('method') or 'REQUEST'} {event.get('path') or 'unknown'}"
@@ -337,10 +339,11 @@ def _founder_analytics() -> dict:
         "packets": {
             "generated_all_time": total_packet_exports,
             "generated_30d": packet_exports_30d,
-            "popular_types_30d": [
-                {"packet_kind": kind, "count": count}
-                for kind, count in packet_types.most_common(6)
-            ],
+            "popular_types_30d": [{"packet_kind": kind, "count": count} for kind, count in packet_types.most_common(6)],
+        },
+        "content": {
+            "top_skills": [{"name": name, "count": count} for name, count in skill_counts.most_common(10)],
+            "top_categories": [{"name": name, "count": count} for name, count in category_counts.most_common(10)],
         },
         "business": {
             "pro_subscribers": pro_subscribers,
@@ -354,10 +357,7 @@ def _founder_analytics() -> dict:
             "p50_ms": _percentile(request_durations, 0.50),
             "p95_ms": _percentile(request_durations, 0.95),
             "p99_ms": _percentile(request_durations, 0.99),
-            "top_endpoints": [
-                {"endpoint": endpoint, "requests": count}
-                for endpoint, count in endpoint_counts.most_common(8)
-            ],
+            "top_endpoints": [{"endpoint": endpoint, "requests": count} for endpoint, count in endpoint_counts.most_common(8)],
             "slowest_endpoints": slowest_endpoints,
         },
         "generated_at": now.isoformat(),
@@ -414,9 +414,7 @@ def overview(current_user: dict = Depends(require_internal_role("ops", "security
 
 
 @router.get("/observability")
-def persistent_observability(
-    current_user: dict = Depends(require_internal_role("ops", "security", "admin")),
-):
+def persistent_observability(current_user: dict = Depends(require_internal_role("ops", "security", "admin"))):
     """Handle persistent observability."""
     del current_user
     raw_events = list(ops_events_collection.find({}, {"_id": 0}).sort("created_at", -1).limit(500))
