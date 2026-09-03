@@ -9,6 +9,10 @@ function number(value) {
   return Number(value || 0).toLocaleString();
 }
 
+function currency(value) {
+  return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(Number(value || 0));
+}
+
 function stepConversion(current, previous) {
   if (!previous) return "—";
   return `${Math.round((Number(current || 0) / Number(previous)) * 1000) / 10}%`;
@@ -71,8 +75,8 @@ export default function FounderAnalyticsPanel({ analytics = {} }) {
       <Metric label="Total users" value={number(users.total)} detail={`+${number(users.new_today)} today · +${number(users.new_7d)} last 7d`} />
       <Metric label="Activation rate" value={percent(users.activation_rate)} detail="Signed up → first accomplishment" />
       <Metric label="Active creators · 30d" value={number(users.active_creators_30d)} detail={`${number(users.active_creators_7d)} in 7d · ${number(users.active_creators_1d)} in 24h`} />
+      <Metric label="MRR" value={currency(business.mrr)} detail={`${number(business.pro_subscribers)} Pro @ ${currency(business.pro_monthly_price)}/mo`} />
       <Metric label="Public profile rate" value={percent(users.public_profile_rate)} detail="Accounts with a published Proof Profile" />
-      <Metric label="Pro subscribers" value={number(business.pro_subscribers)} detail={`${number(business.cancellation_pending)} cancellation pending`} />
     </div>
 
     <div className="founder-section-heading"><div><UsersRound size={18} /><h3>Activation & retention</h3></div><span>Creator activity = accomplishment, receipt, or packet activity</span></div>
@@ -117,8 +121,8 @@ export default function FounderAnalyticsPanel({ analytics = {} }) {
       <article className="founder-list-card">
         <h3>Popular packet types · 30 days</h3>
         {(packets.popular_types_30d || []).length === 0 ? <p>No packet exports in this window yet.</p> : <div className="founder-rank-list">{packets.popular_types_30d.map((item, index) => <div key={item.packet_kind}><strong>{index + 1}</strong><span>{String(item.packet_kind || "unknown").replace(/-/g, " ")}</span><b>{number(item.count)}</b></div>)}</div>}
-        <div className="founder-business-row"><span>Former subscribers <strong>{number(business.former_subscribers)}</strong></span><span>Cancellation pending <strong>{number(business.cancellation_pending)}</strong></span></div>
-        <p className="founder-data-note">MRR and true churn are not estimated here. Those need authoritative price and billing-history data rather than a guessed number.</p>
+        <div className="founder-business-row"><span>Pro subscribers <strong>{number(business.pro_subscribers)}</strong></span><span>Cancellation pending <strong>{number(business.cancellation_pending)} · {percent(business.cancellation_pending_rate)}</strong></span><span>Former subscribers <strong>{number(business.former_subscribers)}</strong></span></div>
+        <p className="founder-data-note">MRR uses BragStack's configured Pro monthly price. True churn is intentionally not estimated until subscription-history events can support a time-bounded churn calculation.</p>
       </article>
 
       <article className="founder-list-card">
