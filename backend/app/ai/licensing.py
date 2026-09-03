@@ -8,7 +8,24 @@ _PERMISSIVE_LICENSES = {"apache-2.0", "mit", "bsd-2-clause", "bsd-3-clause"}
 
 @dataclass(frozen=True)
 class ModelLicenseRecord:
-    """Auditable model licensing and deployment metadata."""
+    """Represent auditable model licensing and deployment metadata.
+
+    Attributes:
+        model_id: Exact upstream model identifier.
+        revision: Immutable reviewed model revision or commit identifier.
+        source_url: Permanent HTTPS source for the model or model card.
+        license_id: Normalized SPDX-style license identifier.
+        license_url: Permanent HTTPS URL for the reviewed license text.
+        commercial_use: Whether commercial use is explicitly permitted.
+        modification: Whether modification is explicitly permitted.
+        redistribution: Whether redistribution is explicitly permitted.
+        attribution_notice: Required attribution or notice text, when applicable.
+        runtime: Runtime selected or proposed for model execution.
+        hardware_envelope: Documented CPU, GPU, memory, or platform expectations.
+        intended_task: BragStack task for which the model is being evaluated.
+        evaluation_status: Current BragStack-specific evaluation state.
+        known_limitations: Known model, runtime, or task limitations.
+    """
 
     model_id: str
     revision: str
@@ -31,7 +48,15 @@ class ProductionLicenseGate:
 
     @staticmethod
     def violations(record: ModelLicenseRecord) -> list[str]:
-        """Return every reason the model is not eligible for production use."""
+        """Return every reason a model record is not license-eligible for production.
+
+        Args:
+            record: Auditable model-license record to evaluate.
+
+        Returns:
+            Stable violation identifiers. An empty list means the licensing
+            metadata satisfies this gate; it does not imply quality approval.
+        """
         problems: list[str] = []
         if record.license_id.casefold() not in _PERMISSIVE_LICENSES:
             problems.append("license_not_allowlisted")
@@ -53,5 +78,13 @@ class ProductionLicenseGate:
 
     @classmethod
     def allows_production(cls, record: ModelLicenseRecord) -> bool:
-        """Return true only when all licensing metadata passes the gate."""
+        """Return whether the record passes the production licensing gate.
+
+        Args:
+            record: Auditable model-license record to evaluate.
+
+        Returns:
+            True only when no licensing metadata violations are present. This
+            result does not replace BragStack's separate model-evaluation gate.
+        """
         return not cls.violations(record)
