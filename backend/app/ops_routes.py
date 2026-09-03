@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 import re
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Callable
 
 from bson import ObjectId
@@ -14,11 +14,13 @@ from pymongo.errors import PyMongoError
 
 from app.auth import get_current_user
 from app.database import (
+    analytics_events_collection,
     client as mongo_client,
     entries_collection,
     impact_receipts_collection,
     ops_audit_collection,
     ops_events_collection,
+    packet_export_audit_collection,
     resume_documents_collection,
     users_collection,
 )
@@ -42,27 +44,13 @@ class InternalRoleUpdate(BaseModel):
 
 
 def _email_is_company(email: str) -> bool:
-    """Handle email is company.
-
-    Args:
-        email: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle email is company."""
     normalized = (email or "").strip().lower()
     return bool(normalized) and normalized.endswith(f"@{COMPANY_DOMAIN}")
 
 
 def _roles_for_user(user: dict) -> set[str]:
-    """Handle roles for user.
-
-    Args:
-        user: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle roles for user."""
     email = (user.get("email") or "").strip().lower()
     roles = {str(role).strip().lower() for role in user.get("internal_roles", [])}
     roles &= INTERNAL_ROLES
@@ -72,25 +60,11 @@ def _roles_for_user(user: dict) -> set[str]:
 
 
 def require_internal_role(*allowed_roles: str) -> Callable:
-    """Handle require internal role.
-
-    Args:
-        allowed_roles: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle require internal role."""
     allowed = {role.lower() for role in allowed_roles}
 
     async def dependency(current_user: dict = Depends(get_current_user)) -> dict:
-        """Handle dependency.
-
-        Args:
-            current_user: Function argument.
-
-        Returns:
-            Function result.
-        """
+        """Handle dependency."""
         email = (current_user.get("email") or "").strip().lower()
         roles = _roles_for_user(current_user)
         if not _email_is_company(email) or not roles.intersection(allowed):
@@ -106,14 +80,7 @@ def require_internal_role(*allowed_roles: str) -> Callable:
 
 
 def _safe_user(user: dict) -> dict:
-    """Handle safe user.
-
-    Args:
-        user: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle safe user."""
     user_id = str(user.get("_id", ""))
     return {
         "id": user_id,
@@ -133,14 +100,7 @@ def _safe_user(user: dict) -> dict:
 
 
 def _safe_team_member(user: dict) -> dict:
-    """Handle safe team member.
-
-    Args:
-        user: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle safe team member."""
     email = (user.get("email") or "").strip().lower()
     stored_roles = sorted({str(role).strip().lower() for role in user.get("internal_roles", [])} & INTERNAL_ROLES)
     effective_roles = sorted(_roles_for_user(user))
@@ -155,14 +115,7 @@ def _safe_team_member(user: dict) -> dict:
 
 
 def _normalize_roles(roles: list[str]) -> list[str]:
-    """Handle normalize roles.
-
-    Args:
-        roles: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle normalize roles."""
     normalized = {str(role).strip().lower() for role in roles}
     invalid = sorted(normalized - INTERNAL_ROLES)
     if invalid:
@@ -171,15 +124,7 @@ def _normalize_roles(roles: list[str]) -> list[str]:
 
 
 def _would_remove_last_admin(target: dict, next_roles: list[str]) -> bool:
-    """Handle would remove last admin.
-
-    Args:
-        target: Function argument.
-        next_roles: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle would remove last admin."""
     email = (target.get("email") or "").strip().lower()
     if email in BOOTSTRAP_ADMINS or "admin" in next_roles:
         return False
@@ -192,14 +137,7 @@ def _would_remove_last_admin(target: dict, next_roles: list[str]) -> bool:
 
 
 def _audit_role_change(*, actor: dict, target: dict, previous_roles: list[str], next_roles: list[str]) -> None:
-    """Handle audit role change.
-
-    Args:
-        actor: Function argument.
-        target: Function argument.
-        previous_roles: Function argument.
-        next_roles: Function argument.
-    """
+    """Handle audit role change."""
     ops_audit_collection.insert_one(
         {
             "event": "internal_roles_updated",
@@ -215,30 +153,220 @@ def _audit_role_change(*, actor: dict, target: dict, previous_roles: list[str], 
 
 
 def _serialize_event(event: dict) -> dict:
-    """Handle serialize event.
-
-    Args:
-        event: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle serialize event."""
     result = {key: value for key, value in event.items() if key != "_id"}
     if isinstance(result.get("created_at"), datetime):
         result["created_at"] = result["created_at"].isoformat()
     return result
 
 
+def _percentage(numerator: int | float, denominator: int | float) -> float:
+    """Return a stable percentage for founder analytics."""
+    if not denominator:
+        return 0.0
+    return round((float(numerator) / float(denominator)) * 100, 1)
+
+
+def _distinct_user_ids(collection, query: dict | None = None) -> set[str]:
+    """Return non-empty user IDs from an activity collection."""
+    return {str(value) for value in collection.distinct("user_id", query or {}) if value}
+
+
+def _percentile(values: list[float], percentile: float) -> float:
+    """Calculate a simple nearest-rank percentile without external dependencies."""
+    if not values:
+        return 0.0
+    ordered = sorted(float(value) for value in values)
+    index = max(0, min(len(ordered) - 1, round((len(ordered) - 1) * percentile)))
+    return round(ordered[index], 1)
+
+
+def _founder_analytics() -> dict:
+    """Build product, growth, profile, packet, business, and API analytics from safe metadata."""
+    now = datetime.now(timezone.utc)
+    day_ago = now - timedelta(days=1)
+    week_ago = now - timedelta(days=7)
+    month_ago = now - timedelta(days=30)
+    sixty_days_ago = now - timedelta(days=60)
+
+    total_users = users_collection.count_documents({})
+    new_users_today = users_collection.count_documents({"created_at": {"$gte": day_ago.isoformat()}})
+    new_users_7d = users_collection.count_documents({"created_at": {"$gte": week_ago.isoformat()}})
+
+    entry_users = _distinct_user_ids(entries_collection)
+    receipt_users = _distinct_user_ids(impact_receipts_collection)
+    packet_users = _distinct_user_ids(packet_export_audit_collection)
+
+    active_1d = (
+        _distinct_user_ids(entries_collection, {"created_at": {"$gte": day_ago}})
+        | _distinct_user_ids(impact_receipts_collection, {"created_at": {"$gte": day_ago}})
+        | _distinct_user_ids(packet_export_audit_collection, {"generated_at": {"$gte": day_ago}})
+    )
+    active_7d = (
+        _distinct_user_ids(entries_collection, {"created_at": {"$gte": week_ago}})
+        | _distinct_user_ids(impact_receipts_collection, {"created_at": {"$gte": week_ago}})
+        | _distinct_user_ids(packet_export_audit_collection, {"generated_at": {"$gte": week_ago}})
+    )
+    active_30d = (
+        _distinct_user_ids(entries_collection, {"created_at": {"$gte": month_ago}})
+        | _distinct_user_ids(impact_receipts_collection, {"created_at": {"$gte": month_ago}})
+        | _distinct_user_ids(packet_export_audit_collection, {"generated_at": {"$gte": month_ago}})
+    )
+
+    published_profiles = users_collection.count_documents(
+        {"public_slug": {"$exists": True, "$nin": [None, ""]}}
+    )
+    total_entries = entries_collection.count_documents({})
+    total_receipts = impact_receipts_collection.count_documents({})
+    total_packet_exports = packet_export_audit_collection.count_documents({})
+    packet_exports_30d = packet_export_audit_collection.count_documents({"generated_at": {"$gte": month_ago}})
+
+    evidence_receipts = impact_receipts_collection.count_documents({"evidence.0": {"$exists": True}})
+    confirmed_receipts = impact_receipts_collection.count_documents(
+        {"confirmations": {"$elemMatch": {"status": "confirmed"}}}
+    )
+
+    profile_view_query = {"event_type": "profile_view", "created_at": {"$gte": month_ago}}
+    profile_views_30d = analytics_events_collection.count_documents(profile_view_query)
+    unique_profile_visitors_30d = len(
+        {
+            value
+            for value in analytics_events_collection.distinct("visitor_id", profile_view_query)
+            if value
+        }
+    )
+    booking_clicks_30d = analytics_events_collection.count_documents(
+        {"event_type": "open_to_talk_click", "created_at": {"$gte": month_ago}}
+    )
+    outbound_clicks_30d = analytics_events_collection.count_documents(
+        {
+            "event_type": {"$in": ["open_to_talk_click", "github_click", "portfolio_click", "resume_click"]},
+            "created_at": {"$gte": month_ago},
+        }
+    )
+
+    cohort_users = {
+        str(user["_id"])
+        for user in users_collection.find(
+            {"created_at": {"$gte": sixty_days_ago.isoformat(), "$lt": month_ago.isoformat()}},
+            {"_id": 1},
+        )
+    }
+    retained_cohort = cohort_users & active_30d
+
+    packet_types = Counter()
+    for item in packet_export_audit_collection.find(
+        {"generated_at": {"$gte": month_ago}}, {"packet_kind": 1}
+    ).limit(5000):
+        packet_types[str(item.get("packet_kind") or "unknown")] += 1
+
+    pro_subscribers = users_collection.count_documents({"plan": "pro"})
+    cancellation_pending = users_collection.count_documents(
+        {"plan": "pro", "billing_cancel_at_period_end": True}
+    )
+    former_subscribers = users_collection.count_documents(
+        {"stripe_subscription_id": {"$exists": True, "$ne": ""}, "plan": {"$ne": "pro"}}
+    )
+
+    request_events = list(
+        ops_events_collection.find({}, {"_id": 0, "method": 1, "path": 1, "status_code": 1, "duration_ms": 1})
+        .sort("created_at", -1)
+        .limit(5000)
+    )
+    request_durations = [float(event.get("duration_ms") or 0) for event in request_events]
+    failed_requests = sum(1 for event in request_events if int(event.get("status_code") or 0) >= 400)
+    server_errors = sum(1 for event in request_events if int(event.get("status_code") or 0) >= 500)
+    endpoint_counts = Counter(
+        f"{event.get('method') or 'REQUEST'} {event.get('path') or 'unknown'}" for event in request_events
+    )
+    endpoint_durations: dict[str, list[float]] = {}
+    for event in request_events:
+        key = f"{event.get('method') or 'REQUEST'} {event.get('path') or 'unknown'}"
+        endpoint_durations.setdefault(key, []).append(float(event.get("duration_ms") or 0))
+    slowest_endpoints = sorted(
+        (
+            {
+                "endpoint": endpoint,
+                "requests": len(durations),
+                "p95_ms": _percentile(durations, 0.95),
+                "average_ms": round(sum(durations) / len(durations), 1),
+            }
+            for endpoint, durations in endpoint_durations.items()
+            if durations
+        ),
+        key=lambda item: item["p95_ms"],
+        reverse=True,
+    )[:8]
+
+    return {
+        "users": {
+            "total": total_users,
+            "new_today": new_users_today,
+            "new_7d": new_users_7d,
+            "active_creators_1d": len(active_1d),
+            "active_creators_7d": len(active_7d),
+            "active_creators_30d": len(active_30d),
+            "stickiness_dau_mau": _percentage(len(active_1d), len(active_30d)),
+            "activation_rate": _percentage(len(entry_users), total_users),
+            "receipt_adoption_rate": _percentage(len(receipt_users), len(entry_users)),
+            "packet_adoption_rate": _percentage(len(packet_users), len(entry_users)),
+            "public_profile_rate": _percentage(published_profiles, total_users),
+            "retention_30d_cohort_rate": _percentage(len(retained_cohort), len(cohort_users)) if cohort_users else None,
+            "retention_30d_cohort_size": len(cohort_users),
+        },
+        "funnel": {
+            "signed_up": total_users,
+            "first_accomplishment": len(entry_users),
+            "first_impact_receipt": len(receipt_users),
+            "packet_generated": len(packet_users),
+            "public_profile_published": published_profiles,
+        },
+        "engagement": {
+            "average_accomplishments_per_user": round(total_entries / total_users, 2) if total_users else 0.0,
+            "average_receipts_per_activated_user": round(total_receipts / len(entry_users), 2) if entry_users else 0.0,
+            "evidence_attachment_rate": _percentage(evidence_receipts, total_receipts),
+            "confirmation_rate": _percentage(confirmed_receipts, total_receipts),
+        },
+        "profiles": {
+            "views_30d": profile_views_30d,
+            "unique_visitors_30d": unique_profile_visitors_30d,
+            "open_to_talk_clicks_30d": booking_clicks_30d,
+            "outbound_cta_clicks_30d": outbound_clicks_30d,
+            "open_to_talk_conversion_rate": _percentage(booking_clicks_30d, profile_views_30d),
+        },
+        "packets": {
+            "generated_all_time": total_packet_exports,
+            "generated_30d": packet_exports_30d,
+            "popular_types_30d": [
+                {"packet_kind": kind, "count": count}
+                for kind, count in packet_types.most_common(6)
+            ],
+        },
+        "business": {
+            "pro_subscribers": pro_subscribers,
+            "cancellation_pending": cancellation_pending,
+            "former_subscribers": former_subscribers,
+        },
+        "api": {
+            "sample_size": len(request_events),
+            "error_rate": _percentage(failed_requests, len(request_events)),
+            "server_error_rate": _percentage(server_errors, len(request_events)),
+            "p50_ms": _percentile(request_durations, 0.50),
+            "p95_ms": _percentile(request_durations, 0.95),
+            "p99_ms": _percentile(request_durations, 0.99),
+            "top_endpoints": [
+                {"endpoint": endpoint, "requests": count}
+                for endpoint, count in endpoint_counts.most_common(8)
+            ],
+            "slowest_endpoints": slowest_endpoints,
+        },
+        "generated_at": now.isoformat(),
+    }
+
+
 @router.get("/access")
 def access(current_user: dict = Depends(require_internal_role(*INTERNAL_ROLES))):
-    """Handle access.
-
-    Args:
-        current_user: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle access."""
     return {
         "authorized": True,
         "roles": current_user.get("_effective_internal_roles", []),
@@ -248,14 +376,7 @@ def access(current_user: dict = Depends(require_internal_role(*INTERNAL_ROLES)))
 
 @router.get("/overview")
 def overview(current_user: dict = Depends(require_internal_role("ops", "security", "admin"))):
-    """Handle overview.
-
-    Args:
-        current_user: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle overview."""
     del current_user
     mongo_status = "ok"
     try:
@@ -288,6 +409,7 @@ def overview(current_user: dict = Depends(require_internal_role("ops", "security
             "failures": failures,
             "recent": requests[:50],
         },
+        "analytics": _founder_analytics(),
     }
 
 
@@ -295,14 +417,7 @@ def overview(current_user: dict = Depends(require_internal_role("ops", "security
 def persistent_observability(
     current_user: dict = Depends(require_internal_role("ops", "security", "admin")),
 ):
-    """Handle persistent observability.
-
-    Args:
-        current_user: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle persistent observability."""
     del current_user
     raw_events = list(ops_events_collection.find({}, {"_id": 0}).sort("created_at", -1).limit(500))
     events = [_serialize_event(event) for event in raw_events]
@@ -344,15 +459,7 @@ def user_diagnostics(
     email: str = Query(min_length=3, max_length=254),
     current_user: dict = Depends(require_internal_role("support", "ops", "security", "admin")),
 ):
-    """Handle user diagnostics.
-
-    Args:
-        email: Function argument.
-        current_user: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle user diagnostics."""
     del current_user
     normalized = email.strip().lower()
     user = users_collection.find_one({"email": normalized})
@@ -363,14 +470,7 @@ def user_diagnostics(
 
 @router.get("/team")
 def list_internal_team(current_user: dict = Depends(require_internal_role("admin"))):
-    """Handle list internal team.
-
-    Args:
-        current_user: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle list internal team."""
     del current_user
     domain_pattern = re.compile(rf"@{re.escape(COMPANY_DOMAIN)}$", re.IGNORECASE)
     members = users_collection.find(
@@ -386,16 +486,7 @@ def update_internal_roles(
     payload: InternalRoleUpdate,
     current_user: dict = Depends(require_internal_role("admin")),
 ):
-    """Handle update internal roles.
-
-    Args:
-        user_id: Function argument.
-        payload: Function argument.
-        current_user: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle update internal roles."""
     if not ObjectId.is_valid(user_id):
         raise HTTPException(status_code=404, detail="Internal team member not found")
 
@@ -419,14 +510,7 @@ def update_internal_roles(
 
 @router.get("/audit")
 def list_ops_audit(current_user: dict = Depends(require_internal_role("admin"))):
-    """Handle list ops audit.
-
-    Args:
-        current_user: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle list ops audit."""
     del current_user
     events = []
     for event in ops_audit_collection.find({}, {"_id": 0}).sort("created_at", -1).limit(50):
