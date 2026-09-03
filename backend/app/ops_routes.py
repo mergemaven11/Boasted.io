@@ -25,7 +25,7 @@ from app.database import (
     users_collection,
 )
 from app.ops_debug import recent_requests
-from app.plans import get_entitlements_for_user, get_plan_for_user
+from app.plans import PLAN_PRICING, get_entitlements_for_user, get_plan_for_user
 
 router = APIRouter(prefix="/ops", tags=["ops"])
 
@@ -267,6 +267,7 @@ def _founder_analytics() -> dict:
                 skill_counts[normalized] += 1
 
     pro_subscribers = users_collection.count_documents({"plan": "pro"})
+    pro_monthly_price = float(PLAN_PRICING.get("pro", {}).get("monthly") or 0)
     cancellation_pending = users_collection.count_documents({"plan": "pro", "billing_cancel_at_period_end": True})
     former_subscribers = users_collection.count_documents(
         {"stripe_subscription_id": {"$exists": True, "$ne": ""}, "plan": {"$ne": "pro"}}
@@ -347,7 +348,10 @@ def _founder_analytics() -> dict:
         },
         "business": {
             "pro_subscribers": pro_subscribers,
+            "pro_monthly_price": pro_monthly_price,
+            "mrr": round(pro_subscribers * pro_monthly_price, 2),
             "cancellation_pending": cancellation_pending,
+            "cancellation_pending_rate": _percentage(cancellation_pending, pro_subscribers),
             "former_subscribers": former_subscribers,
         },
         "api": {
