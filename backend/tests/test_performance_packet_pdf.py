@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timezone
 
 import mongomock
@@ -14,6 +15,14 @@ client = TestClient(app)
 
 @pytest.fixture
 def pdf_context(monkeypatch):
+    """Handle pdf context.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Yields:
+        Values produced by the function.
+    """
     mock_client = mongomock.MongoClient()
     mock_db = mock_client["bragstack_packet_pdf_test"]
     entries = mock_db["entries"]
@@ -28,6 +37,13 @@ def pdf_context(monkeypatch):
 
 
 def _seed_packet(entries, receipts, user):
+    """Handle seed packet.
+
+    Args:
+        entries: Function argument.
+        receipts: Function argument.
+        user: Function argument.
+    """
     entry = entries.insert_one(
         {
             "user_id": str(user["_id"]),
@@ -76,6 +92,11 @@ def _seed_packet(entries, receipts, user):
 
 
 def test_free_user_cannot_export_pdf(pdf_context):
+    """Verify free user cannot export pdf.
+
+    Args:
+        pdf_context: Function argument.
+    """
     user = {
         "_id": ObjectId(),
         "name": "Free Member",
@@ -92,6 +113,11 @@ def test_free_user_cannot_export_pdf(pdf_context):
 
 
 def test_pro_user_downloads_real_pdf_with_expected_filename(pdf_context):
+    """Verify pro user downloads real pdf with expected filename.
+
+    Args:
+        pdf_context: Function argument.
+    """
     entries, receipts = pdf_context
     user = {
         "_id": ObjectId(),
@@ -125,6 +151,11 @@ def test_pro_user_downloads_real_pdf_with_expected_filename(pdf_context):
 
 
 def test_pdf_export_handles_long_evidence_index(pdf_context):
+    """Verify pdf export handles long evidence index.
+
+    Args:
+        pdf_context: Function argument.
+    """
     entries, receipts = pdf_context
     user = {
         "_id": ObjectId(),

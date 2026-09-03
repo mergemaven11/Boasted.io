@@ -1,21 +1,46 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timezone
 
 import app.observability as observability
 
 
 class _InsertRecorder:
+    """Represent InsertRecorder."""
     def __init__(self):
+        """Initialize the instance."""
         self.documents = []
 
     def create_index(self, *args, **kwargs):
+        """Handle create index.
+
+        Args:
+            args: Function argument.
+            kwargs: Function argument.
+
+        Returns:
+            Function result.
+        """
         return "idx"
 
     def insert_one(self, document):
+        """Handle insert one.
+
+        Args:
+            document: Function argument.
+
+        Returns:
+            Function result.
+        """
         self.documents.append(document)
         return None
 
 
 def test_persistent_request_event_is_sanitized(monkeypatch):
+    """Verify persistent request event is sanitized.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     recorder = _InsertRecorder()
     monkeypatch.setattr(observability, "ops_events_collection", recorder)
     monkeypatch.setattr(observability, "_indexes_ready", False)

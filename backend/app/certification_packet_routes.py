@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 from collections import Counter
@@ -22,10 +23,23 @@ CREDENTIAL_EVIDENCE_TYPES = {
 
 
 def _normalize_evidence_type(value: Any) -> str:
+    """Handle normalize evidence type.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return _clean_string(value, "other").strip().lower().replace("_", " ")
 
 
 def _attach_recognition(packet: dict[str, Any]) -> None:
+    """Handle attach recognition.
+
+    Args:
+        packet: Function argument.
+    """
     by_reference = {}
     for receipt in packet.get("receipt_records", []) or []:
         recognition = normalize_recognition(receipt.get("confirmations"), receipt.get("trust_signals"))
@@ -38,6 +52,14 @@ def _attach_recognition(packet: dict[str, Any]) -> None:
 
 
 def _evidence_status(receipt: dict[str, Any]) -> str:
+    """Handle evidence status.
+
+    Args:
+        receipt: Function argument.
+
+    Returns:
+        Function result.
+    """
     signals = {
         _clean_string(signal).strip().lower().replace("_", "-")
         for signal in receipt.get("trust_signals", [])
@@ -64,6 +86,24 @@ def _build_certification_packet(
     review_type: str | None,
     requirement_notes: str | None,
 ) -> dict:
+    """Handle build certification packet.
+
+    Args:
+        current_user: Function argument.
+        start_date: Function argument.
+        end_date: Function argument.
+        career_area: Function argument.
+        role_title: Function argument.
+        organization: Function argument.
+        confidential: Function argument.
+        credential_name: Function argument.
+        issuing_body: Function argument.
+        review_type: Function argument.
+        requirement_notes: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(current_user, "certification_packet")
 
     packet = _build_packet(

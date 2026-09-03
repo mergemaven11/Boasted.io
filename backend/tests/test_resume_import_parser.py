@@ -1,7 +1,9 @@
+"""Document this first-party Python module."""
 from app.resume_import_parser import parse_existing_resume_text
 
 
 def test_fragmented_resume_keeps_sections_and_dates_together():
+    """Verify fragmented resume keeps sections and dates together."""
     raw = """Tobias Scott
 Software Engineer / Technical Support Engineer
 Atlanta, GA | person@example.com | 470-000-0000
@@ -62,6 +64,7 @@ Georgia State University | Computer Science
 
 
 def test_contact_header_does_not_become_resume_section_content():
+    """Verify contact header does not become resume section content."""
     raw = """Tobias Scott
 Software Engineer / Technical Support Engineer
 Atlanta, GA | person@example.com | 470-000-0000 | linkedin.com/in/tobias-scott
@@ -85,6 +88,7 @@ August 2021 - August 2022
 
 
 def test_title_then_company_pair_is_reconstructed():
+    """Verify title then company pair is reconstructed."""
     raw = """Jane Doe
 jane@example.com
 EXPERIENCE
@@ -108,6 +112,7 @@ State University
 
 
 def test_missing_company_is_flagged_for_confirmation():
+    """Verify missing company is flagged for confirmation."""
     raw = """Jane Doe
 EXPERIENCE
 Senior Software Engineer
@@ -121,6 +126,7 @@ Senior Software Engineer
 
 
 def test_combined_company_title_location_and_dates_are_reconstructed():
+    """Verify combined company title location and dates are reconstructed."""
     raw = """Jane Doe
 jane@example.com
 WORK HISTORY
@@ -138,6 +144,7 @@ Acme Cloud | Platform Support Engineer | Atlanta, GA | Jan 2022 - Present
 
 
 def test_title_then_company_on_separate_lines_is_reconstructed():
+    """Verify title then company on separate lines is reconstructed."""
     raw = """Jane Doe
 PROFESSIONAL EXPERIENCE
 Platform Support Engineer
@@ -155,6 +162,7 @@ Remote
 
 
 def test_work_history_can_be_inferred_without_standard_heading():
+    """Verify work history can be inferred without standard heading."""
     raw = """Jane Doe
 Atlanta, GA | jane@example.com
 Platform Support Engineer | Acme Cloud
@@ -169,3 +177,52 @@ State University
     assert parsed["experience"][0]["company"] == "Acme Cloud"
     assert "experience" in parsed["sections_found"]
     assert any("inferred" in warning.lower() for warning in parsed["parse_warnings"])
+
+
+def test_skill_only_technical_projects_is_reclassified_as_skills():
+    """Verify skill-only technical projects are reclassified as skills."""
+    raw = """Jane Doe
+jane@example.com
+TECHNICAL PROJECTS
+Languages
+Python, JavaScript
+Frameworks
+React
+Tools
+Jira, Git
+EXPERIENCE
+Acme Cloud | Support Engineer
+Jan 2024 - Present
+• Supported production services for enterprise customers.
+"""
+    parsed = parse_existing_resume_text(raw)
+
+    assert "skills" in parsed["sections_found"]
+    assert "projects" not in parsed["sections_found"]
+    assert parsed["sections"]["skills"] == [
+        "Languages | Python, JavaScript",
+        "Frameworks | React",
+        "Tools | Jira, Git",
+    ]
+    assert {"Python", "JavaScript", "React", "Jira", "Git"}.issubset(set(parsed["skills"]))
+    assert not {"Languages", "Frameworks", "Tools"}.intersection(parsed["skills"])
+
+
+def test_legitimate_technical_projects_remains_projects():
+    """Verify legitimate technical projects remain projects."""
+    raw = """Jane Doe
+jane@example.com
+TECHNICAL PROJECTS
+Incident Tracker
+React, FastAPI, PostgreSQL
+• Built a dashboard and API that tracks production incidents and ownership.
+EXPERIENCE
+Acme Cloud | Support Engineer
+Jan 2024 - Present
+• Supported production services for enterprise customers.
+"""
+    parsed = parse_existing_resume_text(raw)
+
+    assert "projects" in parsed["sections_found"]
+    assert "Incident Tracker" in parsed["sections"]["projects"]
+    assert any(line.startswith("• Built a dashboard") for line in parsed["sections"]["projects"])

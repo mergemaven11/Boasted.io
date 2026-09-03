@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from html import escape
 
 
@@ -6,10 +7,33 @@ BRAND_URL = "https://usebragstack.com"
 
 
 def _safe(value: str | None) -> str:
+    """Handle safe.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return escape(str(value or ""), quote=True)
 
 
 def _shell(*, preheader: str, eyebrow: str, title: str, intro: str, content_html: str, cta_label: str, cta_url: str, footnote: str) -> str:
+    """Handle shell.
+
+    Args:
+        preheader: Function argument.
+        eyebrow: Function argument.
+        title: Function argument.
+        intro: Function argument.
+        content_html: Function argument.
+        cta_label: Function argument.
+        cta_url: Function argument.
+        footnote: Function argument.
+
+    Returns:
+        Function result.
+    """
     safe_preheader = _safe(preheader)
     safe_eyebrow = _safe(eyebrow)
     safe_title = _safe(title)
@@ -70,6 +94,14 @@ def _shell(*, preheader: str, eyebrow: str, title: str, intro: str, content_html
 
 
 def build_email_verification_html(url: str) -> str:
+    """Handle build email verification html.
+
+    Args:
+        url: Function argument.
+
+    Returns:
+        Function result.
+    """
     content = """
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 4px;width:100%;">
         <tr>
@@ -92,6 +124,14 @@ def build_email_verification_html(url: str) -> str:
 
 
 def build_password_reset_html(url: str) -> str:
+    """Handle build password reset html.
+
+    Args:
+        url: Function argument.
+
+    Returns:
+        Function result.
+    """
     content = """
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 4px;width:100%;">
         <tr>
@@ -114,10 +154,23 @@ def build_password_reset_html(url: str) -> str:
 
 
 def build_receipt_verification_html(*, owner_name: str, verifier_name: str, accomplishment: str, message: str, url: str) -> str:
+    """Handle build receipt verification html.
+
+    Args:
+        owner_name: Function argument.
+        verifier_name: Function argument.
+        accomplishment: Function argument.
+        message: Function argument.
+        url: Function argument.
+
+    Returns:
+        Function result.
+    """
     safe_owner = _safe(owner_name)
     safe_verifier = _safe(verifier_name)
     safe_accomplishment = _safe(accomplishment)
     safe_message = _safe(message)
+    privacy_url = f"{BRAND_URL}/privacy"
     message_block = ""
     if safe_message:
         message_block = f"""
@@ -139,6 +192,7 @@ def build_receipt_verification_html(*, owner_name: str, verifier_name: str, acco
       </table>
       {message_block}
       <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#94a3b8;">Your response records your attestation. BragStack does not independently verify the underlying claim. No BragStack account is required to respond.</p>
+      <p style="margin:12px 0 0;font-size:12px;line-height:1.6;color:#64748b;">{safe_owner} provided your contact details so BragStack could deliver and manage this verification request. Pending request contact data is scheduled for automatic deletion after the request expires; completed responses retain only the minimum attestation details needed for the receipt. See the <a href="{privacy_url}" style="color:#93c5fd;">BragStack Privacy Policy</a>.</p>
     """
     return _shell(
         preheader=f"{owner_name} asked you to review an Impact Receipt on BragStack.",

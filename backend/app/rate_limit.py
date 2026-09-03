@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -19,6 +20,15 @@ logger = logging.getLogger(__name__)
 
 
 def _env_int(name: str, default: int) -> int:
+    """Handle env int.
+
+    Args:
+        name: Function argument.
+        default: Function argument.
+
+    Returns:
+        Function result.
+    """
     try:
         return max(1, int(os.getenv(name, str(default))))
     except (TypeError, ValueError):
@@ -26,6 +36,15 @@ def _env_int(name: str, default: int) -> int:
 
 
 def _env_bool(name: str, default: bool) -> bool:
+    """Handle env bool.
+
+    Args:
+        name: Function argument.
+        default: Function argument.
+
+    Returns:
+        Function result.
+    """
     value = os.getenv(name)
     if value is None:
         return default
@@ -40,6 +59,7 @@ RATE_LIMIT_HASH_KEY = os.getenv("RATE_LIMIT_HASH_KEY") or os.getenv("JWT_SECRET"
 
 @dataclass(frozen=True)
 class RateLimitPolicy:
+    """Represent RateLimitPolicy."""
     name: str
     limit: int
     window_seconds: int
@@ -47,6 +67,7 @@ class RateLimitPolicy:
 
 @dataclass(frozen=True)
 class RateLimitDecision:
+    """Represent RateLimitDecision."""
     policy: str
     retry_after: int
     limit: int
@@ -82,6 +103,14 @@ _PACKET_SHARE_ACCESS_RE = re.compile(r"^/shared/packets/[^/]+/access/?$")
 
 
 def policy_for_request(request: Request) -> RateLimitPolicy | None:
+    """Handle policy for request.
+
+    Args:
+        request: Function argument.
+
+    Returns:
+        Function result.
+    """
     if not RATE_LIMIT_ENABLED:
         return None
 
@@ -123,6 +152,14 @@ def policy_for_request(request: Request) -> RateLimitPolicy | None:
 
 
 def _client_address(request: Request) -> str:
+    """Handle client address.
+
+    Args:
+        request: Function argument.
+
+    Returns:
+        Function result.
+    """
     if TRUST_PROXY_HEADERS:
         forwarded = request.headers.get("x-forwarded-for", "")
         if forwarded:
@@ -135,11 +172,29 @@ def _client_address(request: Request) -> str:
 
 
 def _identity_digest(request: Request) -> str:
+    """Handle identity digest.
+
+    Args:
+        request: Function argument.
+
+    Returns:
+        Function result.
+    """
     value = _client_address(request).encode("utf-8")
     return hmac.new(RATE_LIMIT_HASH_KEY.encode("utf-8"), value, hashlib.sha256).hexdigest()
 
 
 def _increment_bucket(policy: RateLimitPolicy, identity: str, now_epoch: int) -> dict:
+    """Handle increment bucket.
+
+    Args:
+        policy: Function argument.
+        identity: Function argument.
+        now_epoch: Function argument.
+
+    Returns:
+        Function result.
+    """
     window_start = (now_epoch // policy.window_seconds) * policy.window_seconds
     window_end = window_start + policy.window_seconds
     bucket_id = f"{policy.name}:{identity}:{window_start}"
@@ -169,6 +224,15 @@ def _increment_bucket(policy: RateLimitPolicy, identity: str, now_epoch: int) ->
 
 
 def check_rate_limit(request: Request, *, now_epoch: int | None = None) -> RateLimitDecision | None:
+    """Handle check rate limit.
+
+    Args:
+        request: Function argument.
+        now_epoch: Function argument.
+
+    Returns:
+        Function result.
+    """
     policy = policy_for_request(request)
     if policy is None:
         return None

@@ -1,8 +1,10 @@
+"""Document this first-party Python module."""
 from app.resume_builder import analyze_resume
 from app.resume_import_parser import parse_existing_resume_text
 
 
 def test_ats_scan_returns_score_breakdown_and_actionable_feedback():
+    """Verify ats scan returns score breakdown and actionable feedback."""
     resume = """Tee Example
 Atlanta, GA | tee@example.com
 PROFESSIONAL SUMMARY
@@ -35,6 +37,7 @@ Example University | Computer Science
 
 
 def test_visible_skills_and_work_bullets_are_never_reported_as_absent_signals():
+    """Verify visible skills and work bullets are never reported as absent signals."""
     resume = """Tee Example
 SKILLS
 Python, Docker, Kubernetes, AWS
@@ -58,6 +61,7 @@ Acme | Support Engineer
 
 
 def test_wrapped_bullet_with_role_word_stays_one_bullet():
+    """Verify wrapped bullet with role word stays one bullet."""
     resume = """Tee Example
 PROFESSIONAL EXPERIENCE
 Acme Cloud | Platform Support Engineer
@@ -78,6 +82,7 @@ Python, Docker
 
 
 def test_header_does_not_become_inferred_employment_entry():
+    """Verify header does not become inferred employment entry."""
     resume = """Tee Example
 Platform Support Engineer
 Atlanta, GA | tee@example.com | linkedin.com/in/tee
@@ -94,6 +99,7 @@ Example University | Computer Science
 
 
 def test_source_section_uncertainty_becomes_warning_not_missing_fact():
+    """Verify source section uncertainty becomes warning not missing fact."""
     resume = """Tee Example
 PROFESSIONAL EXPERIENCE
 A role layout the parser cannot safely bind

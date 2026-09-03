@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timezone
 from uuid import uuid4
 

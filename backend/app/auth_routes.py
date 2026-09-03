@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timedelta, timezone
 import hashlib
 import os
@@ -23,29 +24,35 @@ HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 
 
 class RegisterRequest(BaseModel):
+    """Represent RegisterRequest."""
     name: str = Field(..., min_length=1, max_length=80)
     email: EmailStr
     password: str = Field(..., min_length=8)
 
 
 class EmailVerificationRequest(BaseModel):
+    """Represent EmailVerificationRequest."""
     email: EmailStr
 
 
 class EmailVerificationConfirm(BaseModel):
+    """Represent EmailVerificationConfirm."""
     token: str = Field(..., min_length=20, max_length=300)
 
 
 class PasswordResetRequest(BaseModel):
+    """Represent PasswordResetRequest."""
     email: EmailStr
 
 
 class PasswordResetConfirm(BaseModel):
+    """Represent PasswordResetConfirm."""
     token: str = Field(..., min_length=20, max_length=300)
     password: str = Field(..., min_length=8, max_length=256)
 
 
 class ProfileUpdateRequest(BaseModel):
+    """Represent ProfileUpdateRequest."""
     name: str = Field(..., min_length=1, max_length=80)
     headline: str = Field(default="", max_length=120)
     bio: str = Field(default="", max_length=500)
@@ -61,6 +68,14 @@ class ProfileUpdateRequest(BaseModel):
     @field_validator("profile_theme")
     @classmethod
     def valid_theme(cls, value):
+        """Handle valid theme.
+
+        Args:
+            value: Function argument.
+
+        Returns:
+            Function result.
+        """
         if value not in PROFILE_THEMES:
             raise ValueError("Unknown profile theme")
         return value
@@ -68,16 +83,40 @@ class ProfileUpdateRequest(BaseModel):
     @field_validator("profile_primary_color", "profile_secondary_color", "profile_background_color")
     @classmethod
     def valid_color(cls, value):
+        """Handle valid color.
+
+        Args:
+            value: Function argument.
+
+        Returns:
+            Function result.
+        """
         if value and not HEX_COLOR_RE.fullmatch(value):
             raise ValueError("Color must be a six-digit hex value")
         return value.lower()
 
 
 def slugify(value: str) -> str:
+    """Handle slugify.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-") or "user"
 
 
 def generate_unique_public_slug(name: str) -> str:
+    """Handle generate unique public slug.
+
+    Args:
+        name: Function argument.
+
+    Returns:
+        Function result.
+    """
     base_slug = slugify(name)
     while True:
         slug = f"{base_slug}-{secrets.token_hex(3)}"
@@ -86,10 +125,26 @@ def generate_unique_public_slug(name: str) -> str:
 
 
 def _hash_token(token: str) -> str:
+    """Handle hash token.
+
+    Args:
+        token: Function argument.
+
+    Returns:
+        Function result.
+    """
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 async def _send_email(to_email, subject, html, from_value):
+    """Handle send email.
+
+    Args:
+        to_email: Function argument.
+        subject: Function argument.
+        html: Function argument.
+        from_value: Function argument.
+    """
     if not RESEND_API_KEY:
         raise HTTPException(status_code=503, detail="Email delivery is not configured yet.")
     async with httpx.AsyncClient(timeout=15.0) as client:
@@ -103,6 +158,12 @@ async def _send_email(to_email, subject, html, from_value):
 
 
 async def _send_verification_email(email, url):
+    """Handle send verification email.
+
+    Args:
+        email: Function argument.
+        url: Function argument.
+    """
     await _send_email(
         email,
         "Verify your BragStack email",
@@ -112,6 +173,12 @@ async def _send_verification_email(email, url):
 
 
 async def _send_password_reset_email(email, url):
+    """Handle send password reset email.
+
+    Args:
+        email: Function argument.
+        url: Function argument.
+    """
     await _send_email(
         email,
         "Reset your BragStack password",
@@ -121,6 +188,14 @@ async def _send_password_reset_email(email, url):
 
 
 def _issue_verification_token(user):
+    """Handle issue verification token.
+
+    Args:
+        user: Function argument.
+
+    Returns:
+        Function result.
+    """
     raw = secrets.token_urlsafe(48)
     expires = datetime.now(timezone.utc) + timedelta(hours=24)
     users_collection.update_one(
@@ -138,6 +213,14 @@ def _issue_verification_token(user):
 
 @router.post("/register")
 async def register_user(payload: RegisterRequest):
+    """Handle register user.
+
+    Args:
+        payload: Function argument.
+
+    Returns:
+        Function result.
+    """
     email = payload.email.lower().strip()
     if users_collection.find_one({"email": email}):
         raise HTTPException(status_code=409, detail="An account with this email already exists")
@@ -166,6 +249,14 @@ async def register_user(payload: RegisterRequest):
 
 @router.post("/email-verification/resend")
 async def resend_email_verification(payload: EmailVerificationRequest):
+    """Handle resend email verification.
+
+    Args:
+        payload: Function argument.
+
+    Returns:
+        Function result.
+    """
     message = {"message": "If that account needs verification, a new email has been sent."}
     email = payload.email.lower().strip()
     user = users_collection.find_one({"email": email})
@@ -181,6 +272,14 @@ async def resend_email_verification(payload: EmailVerificationRequest):
 
 @router.post("/email-verification/confirm")
 def confirm_email_verification(payload: EmailVerificationConfirm):
+    """Handle confirm email verification.
+
+    Args:
+        payload: Function argument.
+
+    Returns:
+        Function result.
+    """
     user = users_collection.find_one({"email_verification_token_hash": _hash_token(payload.token)})
     if not user:
         raise HTTPException(status_code=400, detail="This verification link is invalid or expired.")
@@ -213,6 +312,14 @@ def confirm_email_verification(payload: EmailVerificationConfirm):
 
 @router.post("/login")
 def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
+    """Handle login user.
+
+    Args:
+        form_data: Function argument.
+
+    Returns:
+        Function result.
+    """
     user = users_collection.find_one({"email": form_data.username.lower().strip()})
     hashed = user.get("hashed_password") if user else None
     if not user or not hashed or not verify_password(form_data.password, hashed):
@@ -228,6 +335,14 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
 
 @router.post("/password-reset/request")
 async def request_password_reset(payload: PasswordResetRequest):
+    """Handle request password reset.
+
+    Args:
+        payload: Function argument.
+
+    Returns:
+        Function result.
+    """
     message = {"message": "If that email belongs to an account, a reset link has been sent."}
     email = payload.email.lower().strip()
     user = users_collection.find_one({"email": email})
@@ -253,6 +368,14 @@ async def request_password_reset(payload: PasswordResetRequest):
 
 @router.post("/password-reset/confirm")
 def confirm_password_reset(payload: PasswordResetConfirm):
+    """Handle confirm password reset.
+
+    Args:
+        payload: Function argument.
+
+    Returns:
+        Function result.
+    """
     user = users_collection.find_one({"password_reset_token_hash": _hash_token(payload.token)})
     if not user:
         raise HTTPException(status_code=400, detail="This reset link is invalid or expired.")
@@ -274,6 +397,14 @@ def confirm_password_reset(payload: PasswordResetConfirm):
 
 @router.get("/me")
 def get_me(current_user: dict = Depends(get_current_user)):
+    """Handle get me.
+
+    Args:
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     current_slug = current_user.get("public_slug", "")
     basic = slugify(current_user.get("name", "user"))
     if not current_slug or current_slug == basic:
@@ -285,6 +416,15 @@ def get_me(current_user: dict = Depends(get_current_user)):
 
 @router.patch("/me/profile")
 def update_profile(payload: ProfileUpdateRequest, current_user: dict = Depends(get_current_user)):
+    """Handle update profile.
+
+    Args:
+        payload: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     updates = {
         "name": payload.name.strip(),
         "headline": payload.headline.strip(),

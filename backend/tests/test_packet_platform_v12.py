@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -22,6 +23,14 @@ client = TestClient(app, base_url="https://testserver")
 
 @pytest.fixture
 def platform_context(monkeypatch):
+    """Handle platform context.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Yields:
+        Values produced by the function.
+    """
     mock_client = mongomock.MongoClient()
     db = mock_client["bragstack_packet_platform_test"]
     entries = db["entries"]
@@ -57,6 +66,14 @@ def platform_context(monkeypatch):
 
 
 def _seed_three_careers(context):
+    """Handle seed three careers.
+
+    Args:
+        context: Function argument.
+
+    Returns:
+        Function result.
+    """
     entries = context["entries"]
     receipts = context["receipts"]
     user = context["user"]
@@ -76,6 +93,11 @@ def _seed_three_careers(context):
 
 
 def test_v12_pinning_sections_notes_branding_and_recognition(platform_context):
+    """Verify v12 pinning sections notes branding and recognition.
+
+    Args:
+        platform_context: Function argument.
+    """
     ids = _seed_three_careers(platform_context)
     response = client.post(
         "/packets/performance-review-v12",
@@ -111,6 +133,11 @@ def test_v12_pinning_sections_notes_branding_and_recognition(platform_context):
 
 
 def test_explicit_empty_sections_make_two_page_packet_and_audit_metadata(platform_context):
+    """Verify explicit empty sections make two page packet and audit metadata.
+
+    Args:
+        platform_context: Function argument.
+    """
     _seed_three_careers(platform_context)
     for theme in ["classic-dossier", "modern-minimal", "executive-report"]:
         response = client.post("/packets/performance-review-v12.pdf", json={"sections": [], "theme": theme})
@@ -132,6 +159,11 @@ def test_explicit_empty_sections_make_two_page_packet_and_audit_metadata(platfor
 
 
 def test_private_share_access_code_evidence_controls_revocation_and_expiry(platform_context):
+    """Verify private share access code evidence controls revocation and expiry.
+
+    Args:
+        platform_context: Function argument.
+    """
     ids = _seed_three_careers(platform_context)
     future = (datetime.now(timezone.utc) + timedelta(days=2)).isoformat()
     created = client.post(
@@ -185,6 +217,11 @@ def test_private_share_access_code_evidence_controls_revocation_and_expiry(platf
 
 
 def test_private_share_can_explicitly_enable_pdf_and_audits_shared_export(platform_context):
+    """Verify private share can explicitly enable pdf and audits shared export.
+
+    Args:
+        platform_context: Function argument.
+    """
     ids = _seed_three_careers(platform_context)
     created = client.post("/packets/shares", json={"signature_entry_ids": [ids[0]], "sections": [], "allow_download": True, "include_evidence": False, "include_notes": False})
     assert created.status_code == 200
@@ -198,6 +235,11 @@ def test_private_share_can_explicitly_enable_pdf_and_audits_shared_export(platfo
 
 
 def test_verified_recognition_is_exposed_in_interview_and_certification_packets(platform_context):
+    """Verify verified recognition is exposed in interview and certification packets.
+
+    Args:
+        platform_context: Function argument.
+    """
     ids = _seed_three_careers(platform_context)
     user = platform_context["user"]
     app.dependency_overrides[interview_routes.get_current_user] = lambda: user

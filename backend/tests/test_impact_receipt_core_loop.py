@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timezone
 
 import mongomock
@@ -14,6 +15,14 @@ client = TestClient(app)
 
 @pytest.fixture
 def receipt_context(monkeypatch):
+    """Handle receipt context.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Yields:
+        Values produced by the function.
+    """
     mock_client = mongomock.MongoClient()
     mock_db = mock_client["bragstack_receipt_core_loop_test"]
     receipts = mock_db["impact_receipts"]
@@ -33,6 +42,11 @@ def receipt_context(monkeypatch):
 
 
 def valid_payload():
+    """Handle valid payload.
+
+    Returns:
+        Function result.
+    """
     return {
         "accomplishment": "Reduced repeat support incidents",
         "contribution": "Found the recurring Docker DNS failure and documented the fix.",
@@ -59,6 +73,11 @@ def valid_payload():
 
 
 def test_create_standalone_receipt_captures_complete_core_loop(receipt_context):
+    """Verify create standalone receipt captures complete core loop.
+
+    Args:
+        receipt_context: Function argument.
+    """
     user, receipts = receipt_context
 
     response = client.post("/impact-receipts", json=valid_payload())
@@ -80,6 +99,11 @@ def test_create_standalone_receipt_captures_complete_core_loop(receipt_context):
 
 
 def test_create_receipt_requires_evidence(receipt_context):
+    """Verify create receipt requires evidence.
+
+    Args:
+        receipt_context: Function argument.
+    """
     payload = valid_payload()
     payload["evidence"] = []
 
@@ -89,6 +113,11 @@ def test_create_receipt_requires_evidence(receipt_context):
 
 
 def test_create_receipt_rejects_blank_skills_after_normalization(receipt_context):
+    """Verify create receipt rejects blank skills after normalization.
+
+    Args:
+        receipt_context: Function argument.
+    """
     payload = valid_payload()
     payload["skills"] = ["   "]
 
@@ -99,6 +128,11 @@ def test_create_receipt_rejects_blank_skills_after_normalization(receipt_context
 
 
 def test_owner_can_update_evidence_metrics_and_visibility(receipt_context):
+    """Verify owner can update evidence metrics and visibility.
+
+    Args:
+        receipt_context: Function argument.
+    """
     user, receipts = receipt_context
     now = datetime.now(timezone.utc)
     receipt_id = receipts.insert_one(
@@ -145,6 +179,11 @@ def test_owner_can_update_evidence_metrics_and_visibility(receipt_context):
 
 
 def test_owner_can_delete_receipt(receipt_context):
+    """Verify owner can delete receipt.
+
+    Args:
+        receipt_context: Function argument.
+    """
     user, receipts = receipt_context
     now = datetime.now(timezone.utc)
     receipt_id = receipts.insert_one(
@@ -174,6 +213,11 @@ def test_owner_can_delete_receipt(receipt_context):
 
 
 def test_user_cannot_delete_someone_elses_receipt(receipt_context):
+    """Verify user cannot delete someone elses receipt.
+
+    Args:
+        receipt_context: Function argument.
+    """
     _, receipts = receipt_context
     now = datetime.now(timezone.utc)
     receipt_id = receipts.insert_one(

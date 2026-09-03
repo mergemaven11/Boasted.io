@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 from datetime import datetime,timezone
 from re import sub
@@ -14,10 +15,50 @@ CAREER_FAMILIES=dict(BASE)
 for expansion in (PHASE2_CAREER_FAMILIES,PHASE2_MORE_CAREER_FAMILIES,PHASE2_FINAL_CAREER_FAMILIES,PHASE2_TAIL_CAREER_FAMILIES,PHASE2_EXTRA_CAREER_FAMILIES,PHASE2_LAST_CAREER_FAMILIES):CAREER_FAMILIES.update(expansion)
 SPECIAL={"software-platform":["debugged a difficult production problem","improved reliability or performance","made a technical tradeoff","reduced repeated operational work","worked across teams on a technical dependency","handled an incident under pressure","improved developer or user experience","introduced automation safely"],"data-ai":["turned unclear data into a decision","found and corrected a data-quality issue","explained a complex finding to a nontechnical audience","validated a model or analysis","designed a reliable data pipeline","balanced speed with analytical rigor","worked with incomplete information","improved trust in reporting or metrics"],"it-support":["resolved a difficult customer or user issue","diagnosed a problem with incomplete information","prevented a repeat incident","handled a high-priority escalation","explained a technical issue clearly","balanced multiple urgent requests","documented a reusable troubleshooting path","worked with engineering or vendors to solve a problem"],"healthcare":["made a careful decision under pressure","handled a difficult patient or family interaction","noticed and escalated a safety concern","coordinated care across a team","protected accuracy while moving quickly","educated someone about a care plan","handled competing priorities","improved a process that affected patient experience"],"business-finance":["found a meaningful discrepancy","improved the accuracy of a process","explained financial information to a stakeholder","made a decision with incomplete information","managed a deadline with high accuracy requirements","reduced risk or strengthened controls","improved a recurring workflow","challenged an assumption using evidence"]}
 DEFAULT=["solved a difficult problem","handled a high-pressure situation","worked with a difficult customer, client, patient, student, or stakeholder","improved a process or workflow","caught or prevented an important mistake","balanced competing priorities","worked effectively with a team","took ownership of an outcome"]
-def slugify(v):return sub(r"[^a-z0-9]+","-",v.lower()).strip("-")
-def article(role):return "an" if role[:1].lower() in "aeiou" else "a"
-def q(i,text,cat,comp,d="standard"):return {"question_id":i,"text":text,"category":cat,"competencies":comp,"difficulty":d,"active":True}
+def slugify(v):
+    """Handle slugify.
+
+    Args:
+        v: Function argument.
+
+    Returns:
+        Function result.
+    """
+    return sub(r"[^a-z0-9]+","-",v.lower()).strip("-")
+def article(role):
+    """Handle article.
+
+    Args:
+        role: Function argument.
+
+    Returns:
+        Function result.
+    """
+    return "an" if role[:1].lower() in "aeiou" else "a"
+def q(i,text,cat,comp,d="standard"):
+    """Handle q.
+
+    Args:
+        i: Function argument.
+        text: Function argument.
+        cat: Function argument.
+        comp: Function argument.
+        d: Function argument.
+
+    Returns:
+        Function result.
+    """
+    return {"question_id":i,"text":text,"category":cat,"competencies":comp,"difficulty":d,"active":True}
 def build_career_document(role,family):
+ """Handle build career document.
+
+ Args:
+     role: Function argument.
+     family: Function argument.
+
+ Returns:
+     Function result.
+ """
  questions=[]
  for i,s in enumerate(SPECIAL.get(family,DEFAULT),1):questions.append(q(f"behavioral-{i:02d}",f"Tell me about a time you {s}. What was the situation, what did you personally do, and what changed as a result?","behavioral",["ownership","specificity","impact","communication"],"standard" if i<=5 else "stretch"))
  a=article(role);templates=[("motivation",f"Why are you interested in working as {a} {role}, and what makes this role a strong next step for you?",["role-alignment","communication","self-awareness"]),("strength",f"What is one strength you would bring to {a} {role} position, and what evidence best demonstrates it?",["role-alignment","self-awareness","communication"]),("growth","Tell me about a skill you had to develop to become more effective in your work.",["learning","self-awareness","communication"]),("reflection","Tell me about a mistake or setback. What did you learn, and what did you change afterward?",["learning","self-awareness","communication"])]
@@ -25,6 +66,11 @@ def build_career_document(role,family):
  for question_id,text,category,competencies,difficulty in expanded_question_specs(role,family):questions.append(q(question_id,text,category,competencies,difficulty))
  return {"schema_version":1,"catalog_version":2,"slug":slugify(role),"title":role,"family":family,"aliases":[],"active":True,"questions":questions,"question_count":len(questions),"updated_at":datetime.now(timezone.utc)}
 def build_catalog():
+ """Handle build catalog.
+
+ Returns:
+     Function result.
+ """
  out=[];seen=set()
  for family,roles in CAREER_FAMILIES.items():
   for role in roles:

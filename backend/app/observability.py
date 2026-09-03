@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import hashlib
@@ -15,6 +16,7 @@ _indexes_ready = False
 
 
 def _ensure_indexes() -> None:
+    """Handle ensure indexes."""
     global _indexes_ready
     if _indexes_ready:
         return
@@ -31,6 +33,16 @@ def _ensure_indexes() -> None:
 
 
 def _fingerprint(*, method: str, path: str, error_type: str | None) -> str | None:
+    """Handle fingerprint.
+
+    Args:
+        method: Function argument.
+        path: Function argument.
+        error_type: Function argument.
+
+    Returns:
+        Function result.
+    """
     if not error_type:
         return None
     material = f"{method.upper()}:{path}:{error_type}".encode("utf-8")

@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import io
@@ -39,6 +40,11 @@ CONTENT_WIDTH = PAGE_WIDTH - (MARGIN_X * 2)
 
 
 def _styles() -> dict[str, ParagraphStyle]:
+    """Handle styles.
+
+    Returns:
+        Function result.
+    """
     base = getSampleStyleSheet()
     return {
         "cover_kicker": ParagraphStyle(
@@ -163,29 +169,78 @@ def _styles() -> dict[str, ParagraphStyle]:
 
 
 def _clean(value: Any) -> str:
+    """Handle clean.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return str(value or "").strip()
 
 
 def _safe(value: Any) -> str:
+    """Handle safe.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return escape(_clean(value))
 
 
 def _humanize(value: str) -> str:
+    """Handle humanize.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return _clean(value).replace("-", " ").replace("_", " ").title()
 
 
 def _period_display(period: dict[str, Any]) -> str:
+    """Handle period display.
+
+    Args:
+        period: Function argument.
+
+    Returns:
+        Function result.
+    """
     if period.get("start_date") and period.get("end_date"):
         return f"{period['start_date']} — {period['end_date']}"
     return period.get("label") or "All recorded work"
 
 
 def _safe_filename_part(value: str, fallback: str) -> str:
+    """Handle safe filename part.
+
+    Args:
+        value: Function argument.
+        fallback: Function argument.
+
+    Returns:
+        Function result.
+    """
     cleaned = re.sub(r"[^A-Za-z0-9]+", "-", value or "").strip("-")
     return cleaned or fallback
 
 
 def make_packet_filename(packet: dict[str, Any]) -> str:
+    """Handle make packet filename.
+
+    Args:
+        packet: Function argument.
+
+    Returns:
+        Function result.
+    """
     subject = packet.get("subject", {})
     period = packet.get("period", {})
     subject_part = _safe_filename_part(_clean(subject.get("name")), "bragstack-member")
@@ -197,12 +252,29 @@ def make_packet_filename(packet: dict[str, Any]) -> str:
 
 
 def _section_header(story: list, styles: dict[str, ParagraphStyle], index: str, title: str) -> None:
+    """Handle section header.
+
+    Args:
+        story: Function argument.
+        styles: Function argument.
+        index: Function argument.
+        title: Function argument.
+    """
     story.append(Paragraph(escape(index), styles["section_kicker"]))
     story.append(Paragraph(escape(title), styles["section_title"]))
     story.append(HRFlowable(width="100%", thickness=1.7, color=TEAL, spaceAfter=12))
 
 
 def _stat_table(scorecard: dict[str, Any], styles: dict[str, ParagraphStyle]) -> Table:
+    """Handle stat table.
+
+    Args:
+        scorecard: Function argument.
+        styles: Function argument.
+
+    Returns:
+        Function result.
+    """
     values = [
         (scorecard.get("accomplishments", 0), "Accomplishments"),
         (scorecard.get("impact_receipts", 0), "Impact Receipts"),
@@ -234,6 +306,15 @@ def _stat_table(scorecard: dict[str, Any], styles: dict[str, ParagraphStyle]) ->
 
 
 def _coverage_table(scorecard: dict[str, Any], styles: dict[str, ParagraphStyle]) -> Table:
+    """Handle coverage table.
+
+    Args:
+        scorecard: Function argument.
+        styles: Function argument.
+
+    Returns:
+        Function result.
+    """
     rows = [
         ("Impact Receipt coverage", scorecard.get("receipt_coverage_percent", 0), "Accomplishments converted to structured proof"),
         ("Quantified result coverage", scorecard.get("quantified_result_coverage_percent", 0), "Receipts containing a measurable result"),
@@ -264,6 +345,16 @@ def _coverage_table(scorecard: dict[str, Any], styles: dict[str, ParagraphStyle]
 
 
 def _bars(items: Iterable[tuple[str, int]], *, width: float = CONTENT_WIDTH, max_items: int = 8) -> Drawing:
+    """Handle bars.
+
+    Args:
+        items: Function argument.
+        width: Function argument.
+        max_items: Function argument.
+
+    Returns:
+        Function result.
+    """
     items = list(items)[:max_items]
     row_h = 20
     height = max(28, len(items) * row_h + 6)
@@ -288,6 +379,15 @@ def _bars(items: Iterable[tuple[str, int]], *, width: float = CONTENT_WIDTH, max
 
 
 def _link_or_text(reference: str, styles: dict[str, ParagraphStyle]) -> Paragraph:
+    """Handle link or text.
+
+    Args:
+        reference: Function argument.
+        styles: Function argument.
+
+    Returns:
+        Function result.
+    """
     reference = _clean(reference)
     if reference.startswith("https://") or reference.startswith("http://"):
         safe = escape(reference)
@@ -296,6 +396,13 @@ def _link_or_text(reference: str, styles: dict[str, ParagraphStyle]) -> Paragrap
 
 
 def _draw_page_footer(canvas, doc, packet: dict[str, Any]) -> None:
+    """Handle draw page footer.
+
+    Args:
+        canvas: Function argument.
+        doc: Function argument.
+        packet: Function argument.
+    """
     canvas.saveState()
     period = _period_display(packet.get("period", {}))
     canvas.setStrokeColor(LINE)
@@ -314,6 +421,14 @@ def _draw_page_footer(canvas, doc, packet: dict[str, Any]) -> None:
 
 
 def _receipt_page(story: list, styles: dict[str, ParagraphStyle], record: dict[str, Any], page_index: int) -> None:
+    """Handle receipt page.
+
+    Args:
+        story: Function argument.
+        styles: Function argument.
+        record: Function argument.
+        page_index: Function argument.
+    """
     story.append(PageBreak())
     _section_header(story, styles, f"07.{page_index:02d} · IMPACT RECEIPT", record.get("reference") or "Impact Receipt")
     story.append(Paragraph(_safe(record.get("accomplishment")), styles["receipt_title"]))
@@ -375,6 +490,14 @@ def _receipt_page(story: list, styles: dict[str, ParagraphStyle], record: dict[s
 
 
 def build_performance_packet_pdf(packet: dict[str, Any]) -> bytes:
+    """Handle build performance packet pdf.
+
+    Args:
+        packet: Function argument.
+
+    Returns:
+        Function result.
+    """
     styles = _styles()
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(

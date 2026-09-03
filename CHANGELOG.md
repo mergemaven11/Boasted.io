@@ -6,7 +6,11 @@ This changelog tracks **merged, shipped repository changes only**. Open or draft
 
 ## [Unreleased]
 
-No merged changes have been recorded here yet.
+### Changed
+- Reduced avoidable API startup work by lazy-loading PyMuPDF, pypdf, and python-docx only when matching resume uploads are processed, while preserving PDF/DOCX/TXT import behavior and guarding the lazy-loading boundary with regression tests. (#250)
+
+### Fixed
+- Kept the mobile Practice Interview camera and replay controls inside equal-width buttons, moved the self-view clear of the controls, and added honest progress feedback while the low-cost Render API wakes for OAuth sign-in. (#219)
 
 ## 2026-08-27
 

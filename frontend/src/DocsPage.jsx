@@ -368,6 +368,19 @@ export default function DocsPage() {
             <div className="docs-flow">{journey.map((step, index) => <div className={`docs-flow-step step-${index + 1}`} key={step.title}><span>{index + 1}</span><div><strong>{step.title}</strong><small>{step.detail}</small></div>{index < journey.length - 1 && <ArrowRight className="docs-flow-arrow" size={18}/>}</div>)}</div>
           </section>
           <CallCenterExample/>
+          <section id="executive-impact" className="docs-section">
+            <span className="plan-badge">Enterprise</span>
+            <h2>Executive Impact Command Center</h2>
+            <p>For Enterprise workspace owners, admins, and executives. Open <strong>Enterprise → Executive Impact</strong> to review authorized strategic goals and evidence-backed outcome metrics.</p>
+            <ol>
+              <li>Confirm you are in the intended Enterprise workspace and have an owner, admin, or executive role.</li>
+              <li>Select an outcome lens, then review each metric’s definition, owner, period, source, freshness, and limitations.</li>
+              <li>Use only authorized source links. Small cohorts and restricted projects remain suppressed.</li>
+              <li>Queue a bounded board export; every export is watermarked and written to the audit record.</li>
+            </ol>
+            <p><strong>Expected result:</strong> observed organizational outcomes are connected to strategic goals without employee rankings or unsupported causal claims. Missing measurements stay visibly missing.</p>
+            <p><strong>Troubleshooting:</strong> if access is denied, verify plan, workspace, and role with a workspace owner. If a value is stale or missing, correct its source record or metric definition; do not estimate it in the narrative. Workspace retention, correction, export, and deletion controls apply to these records.</p>
+          </section>
           <DocsFeatureWalkthroughs/>
           <section className="docs-card-grid" aria-label="Popular documentation">{quickLinks.map(({ id, icon: Icon, title, blurb }) => <a className="docs-card" href={`#${id}`} key={id}><Icon size={20}/><div><strong>{title}</strong><span>{blurb}</span></div></a>)}</section>
         </>}

@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import hmac
@@ -30,6 +31,16 @@ router = APIRouter(tags=["packet-sharing"])
 
 
 def _env_int(name: str, default: int, minimum: int = 1) -> int:
+    """Handle env int.
+
+    Args:
+        name: Function argument.
+        default: Function argument.
+        minimum: Function argument.
+
+    Returns:
+        Function result.
+    """
     try:
         return max(minimum, int(os.getenv(name, str(default))))
     except (TypeError, ValueError):
@@ -42,6 +53,14 @@ SHARE_COOKIE_SECURE = os.getenv("PACKET_SHARE_COOKIE_SECURE", "true").strip().lo
 
 
 def _share_or_404(token: str) -> dict:
+    """Handle share or 404.
+
+    Args:
+        token: Function argument.
+
+    Returns:
+        Function result.
+    """
     item = packet_share_routes.packet_shares_collection.find_one({"token_hash": _token_hash(token)})
     if not item or item.get("revoked"):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shared packet not found")
@@ -52,20 +71,58 @@ def _share_or_404(token: str) -> dict:
 
 
 def _cookie_name(token: str) -> str:
+    """Handle cookie name.
+
+    Args:
+        token: Function argument.
+
+    Returns:
+        Function result.
+    """
     return f"bragstack_share_{_token_hash(token)[:16]}"
 
 
 def _grant_signature(token: str, item: dict, expires_epoch: int) -> str:
+    """Handle grant signature.
+
+    Args:
+        token: Function argument.
+        item: Function argument.
+        expires_epoch: Function argument.
+
+    Returns:
+        Function result.
+    """
     access_hash = str(item.get("access_code_hash") or "open")
     message = f"{_token_hash(token)}:{access_hash}:{expires_epoch}".encode("utf-8")
     return hmac.new(SHARE_GRANT_SECRET.encode("utf-8"), message, hashlib.sha256).hexdigest()
 
 
 def _grant_value(token: str, item: dict, expires_epoch: int) -> str:
+    """Handle grant value.
+
+    Args:
+        token: Function argument.
+        item: Function argument.
+        expires_epoch: Function argument.
+
+    Returns:
+        Function result.
+    """
     return f"{expires_epoch}.{_grant_signature(token, item, expires_epoch)}"
 
 
 def _has_access(request: Request, token: str, item: dict) -> bool:
+    """Handle has access.
+
+    Args:
+        request: Function argument.
+        token: Function argument.
+        item: Function argument.
+
+    Returns:
+        Function result.
+    """
     if not item.get("access_code_hash"):
         return True
     supplied = request.cookies.get(_cookie_name(token), "")
@@ -83,6 +140,15 @@ def _has_access(request: Request, token: str, item: dict) -> bool:
 
 
 def _access_form(token: str, *, error: str = "") -> HTMLResponse:
+    """Handle access form.
+
+    Args:
+        token: Function argument.
+        error: Function argument.
+
+    Returns:
+        Function result.
+    """
     error_html = f"<p role='alert'>{escape(error)}</p>" if error else ""
     return HTMLResponse(
         f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><meta name='robots' content='noindex,nofollow'><meta name='referrer' content='no-referrer'><title>Protected BragStack packet</title><style>body{{font-family:Inter,system-ui,sans-serif;background:#eef0f1;color:#172126;margin:0}}main{{max-width:480px;margin:10vh auto;background:white;padding:36px;box-shadow:0 18px 60px #0001}}label{{display:block;font-weight:700;margin:18px 0 8px}}input{{box-sizing:border-box;width:100%;padding:12px;border:1px solid #b8c0c2;border-radius:8px}}button{{margin-top:16px;padding:12px 16px;border:0;border-radius:8px;background:#173f43;color:white;font-weight:700}}p{{line-height:1.5;color:#5d686e}}</style></head><body><main><h1>Protected packet</h1><p>Enter the access code shared with you. The code is submitted securely and is not placed in the page URL.</p>{error_html}<form method='post' action='/shared/packets/{escape(token)}/access'><label for='access_code'>Access code</label><input id='access_code' name='access_code' type='password' minlength='4' maxlength='64' required autocomplete='one-time-code'><button type='submit'>Open packet</button></form></main></body></html>""",
@@ -98,21 +164,56 @@ def _access_form(token: str, *, error: str = "") -> HTMLResponse:
 
 @router.post("/packets/shares")
 def create_packet_share(payload: PacketShareCreate, current_user: dict = Depends(get_current_user)):
+    """Handle create packet share.
+
+    Args:
+        payload: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     return _create_packet_share(payload, current_user)
 
 
 @router.get("/packets/shares")
 def list_packet_shares(current_user: dict = Depends(get_current_user)):
+    """Handle list packet shares.
+
+    Args:
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     return _list_packet_shares(current_user)
 
 
 @router.delete("/packets/shares/{share_id}")
 def revoke_packet_share(share_id: str, current_user: dict = Depends(get_current_user)):
+    """Handle revoke packet share.
+
+    Args:
+        share_id: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     return _revoke_packet_share(share_id, current_user)
 
 
 @router.get("/shared/packets/{token}", response_class=HTMLResponse)
 def view_shared_packet(token: str, request: Request):
+    """Handle view shared packet.
+
+    Args:
+        token: Function argument.
+        request: Function argument.
+
+    Returns:
+        Function result.
+    """
     item = _share_or_404(token)
     if not _has_access(request, token, item):
         return _access_form(token)
@@ -130,6 +231,15 @@ def view_shared_packet(token: str, request: Request):
 
 @router.post("/shared/packets/{token}/access")
 def grant_shared_packet_access(token: str, access_code: str = Form(..., min_length=4, max_length=64)):
+    """Handle grant shared packet access.
+
+    Args:
+        token: Function argument.
+        access_code: Function argument.
+
+    Returns:
+        Function result.
+    """
     item = _share_or_404(token)
     code_hash = item.get("access_code_hash")
     if not code_hash:
@@ -162,6 +272,15 @@ def grant_shared_packet_access(token: str, access_code: str = Form(..., min_leng
 
 @router.get("/shared/packets/{token}/download.pdf")
 def download_shared_packet(token: str, request: Request):
+    """Handle download shared packet.
+
+    Args:
+        token: Function argument.
+        request: Function argument.
+
+    Returns:
+        Function result.
+    """
     item = _share_or_404(token)
     if not _has_access(request, token, item):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Access code required")

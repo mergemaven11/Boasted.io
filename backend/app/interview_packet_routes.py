@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 from collections import Counter
@@ -27,6 +28,14 @@ DEFAULT_INTERVIEW_STORIES = 5
 
 
 def _parse_selected_ids(value: str | None) -> list[str]:
+    """Handle parse selected ids.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     if not value:
         return []
     selected: list[str] = []
@@ -43,6 +52,14 @@ def _parse_selected_ids(value: str | None) -> list[str]:
 
 
 def _story_prompt(story: dict[str, Any]) -> list[str]:
+    """Handle story prompt.
+
+    Args:
+        story: Function argument.
+
+    Returns:
+        Function result.
+    """
     prompts = [f"Walk me through {story['title']}."]
     if not story.get("contribution"):
         prompts.append("What was your specific contribution or responsibility?")
@@ -69,6 +86,24 @@ def _build_interview_packet(
     target_organization: str | None,
     include_evidence_references: bool,
 ) -> dict:
+    """Handle build interview packet.
+
+    Args:
+        current_user: Function argument.
+        start_date: Function argument.
+        end_date: Function argument.
+        career_area: Function argument.
+        role_title: Function argument.
+        organization: Function argument.
+        confidential: Function argument.
+        selected_entry_ids: Function argument.
+        target_role: Function argument.
+        target_organization: Function argument.
+        include_evidence_references: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(current_user, "interview_packet")
 
     base = _build_packet(

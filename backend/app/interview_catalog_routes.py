@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.auth import get_current_user
@@ -9,6 +10,14 @@ router = APIRouter(prefix="/interview-catalog", tags=["interview-catalog"])
 
 
 def _serialize(document: dict) -> dict:
+    """Handle serialize.
+
+    Args:
+        document: Function argument.
+
+    Returns:
+        Function result.
+    """
     return {
         "slug": document["slug"],
         "title": document["title"],
@@ -25,6 +34,15 @@ def list_interview_careers(
     family: str | None = Query(default=None),
     current_user: dict = Depends(get_current_user),
 ):
+    """Handle list interview careers.
+
+    Args:
+        family: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(current_user, "interview_practice")
     query = {"active": True}
     if family:
@@ -45,6 +63,15 @@ def list_interview_careers(
 
 @router.get("/careers/{slug}")
 def get_interview_career(slug: str, current_user: dict = Depends(get_current_user)):
+    """Handle get interview career.
+
+    Args:
+        slug: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(current_user, "interview_practice")
     document = interview_careers_collection.find_one({"slug": slug, "active": True})
     if not document:
@@ -60,6 +87,18 @@ def get_interview_questions(
     seed: str | None = Query(default=None),
     current_user: dict = Depends(get_current_user),
 ):
+    """Handle get interview questions.
+
+    Args:
+        slug: Function argument.
+        count: Function argument.
+        exclude: Function argument.
+        seed: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(current_user, "interview_practice")
     document = interview_careers_collection.find_one({"slug": slug, "active": True})
     if not document:

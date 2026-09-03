@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 import hashlib
 import hmac
 import json
@@ -25,6 +26,7 @@ STRIPE_EVENT_LEASE_SECONDS = 300
 
 
 def _require_stripe_checkout_config() -> None:
+    """Handle require stripe checkout config."""
     if not STRIPE_SECRET_KEY or not STRIPE_PRO_PRICE_ID:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -33,6 +35,7 @@ def _require_stripe_checkout_config() -> None:
 
 
 def _require_stripe_subscription_config() -> None:
+    """Handle require stripe subscription config."""
     if not STRIPE_SECRET_KEY:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -41,6 +44,11 @@ def _require_stripe_subscription_config() -> None:
 
 
 def _stripe_headers() -> dict[str, str]:
+    """Handle stripe headers.
+
+    Returns:
+        Function result.
+    """
     return {
         "Authorization": f"Bearer {STRIPE_SECRET_KEY}",
         "Content-Type": "application/x-www-form-urlencoded",
@@ -48,6 +56,12 @@ def _stripe_headers() -> dict[str, str]:
 
 
 def _verify_stripe_signature(payload: bytes, signature_header: str) -> None:
+    """Handle verify stripe signature.
+
+    Args:
+        payload: Function argument.
+        signature_header: Function argument.
+    """
     if not STRIPE_WEBHOOK_SECRET:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -124,6 +138,11 @@ def _claim_stripe_event(event_id: str, event_type: str) -> str:
 
 
 def _mark_stripe_event_processed(event_id: str) -> None:
+    """Handle mark stripe event processed.
+
+    Args:
+        event_id: Function argument.
+    """
     stripe_webhook_events_collection.update_one(
         {"_id": event_id},
         {
@@ -152,6 +171,18 @@ def _set_subscription_state(
     current_period_end: int | None = None,
     stripe_event_created: int | None = None,
 ) -> None:
+    """Handle set subscription state.
+
+    Args:
+        user_id: Function argument.
+        plan: Function argument.
+        billing_status: Function argument.
+        customer_id: Function argument.
+        subscription_id: Function argument.
+        cancel_at_period_end: Function argument.
+        current_period_end: Function argument.
+        stripe_event_created: Function argument.
+    """
     if not ObjectId.is_valid(user_id):
         return
 
@@ -181,6 +212,14 @@ def _set_subscription_state(
 
 
 def _user_id_from_subscription(subscription: dict) -> str | None:
+    """Handle user id from subscription.
+
+    Args:
+        subscription: Function argument.
+
+    Returns:
+        Function result.
+    """
     metadata = subscription.get("metadata") or {}
     user_id = metadata.get("user_id")
     if user_id:
@@ -201,6 +240,14 @@ def _user_id_from_subscription(subscription: dict) -> str | None:
 
 
 def _find_user_for_invoice(invoice: dict) -> dict | None:
+    """Handle find user for invoice.
+
+    Args:
+        invoice: Function argument.
+
+    Returns:
+        Function result.
+    """
     subscription_id = invoice.get("subscription")
     customer_id = invoice.get("customer")
     user = None
@@ -212,6 +259,14 @@ def _find_user_for_invoice(invoice: dict) -> dict | None:
 
 
 def _subscription_status_payload(user: dict) -> dict:
+    """Handle subscription status payload.
+
+    Args:
+        user: Function argument.
+
+    Returns:
+        Function result.
+    """
     return {
         "plan": get_plan_for_user(user),
         "billing_status": user.get("billing_status", "free"),
@@ -222,6 +277,15 @@ def _subscription_status_payload(user: dict) -> dict:
 
 
 async def _update_stripe_subscription(subscription_id: str, *, cancel_at_period_end: bool) -> dict:
+    """Handle update stripe subscription.
+
+    Args:
+        subscription_id: Function argument.
+        cancel_at_period_end: Function argument.
+
+    Returns:
+        Function result.
+    """
     _require_stripe_subscription_config()
     async with httpx.AsyncClient(timeout=20.0) as client:
         response = await client.post(
@@ -289,11 +353,27 @@ async def create_checkout_session(current_user: dict = Depends(get_current_user)
 
 @router.get("/status")
 def billing_status(current_user: dict = Depends(get_current_user)):
+    """Handle billing status.
+
+    Args:
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     return _subscription_status_payload(current_user)
 
 
 @router.post("/cancel")
 async def cancel_subscription(current_user: dict = Depends(get_current_user)):
+    """Handle cancel subscription.
+
+    Args:
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     subscription_id = current_user.get("stripe_subscription_id")
     if not subscription_id or get_plan_for_user(current_user) != "pro":
         raise HTTPException(status_code=409, detail="There is no active Pro subscription to cancel.")
@@ -316,6 +396,14 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
 
 @router.post("/resume")
 async def resume_subscription(current_user: dict = Depends(get_current_user)):
+    """Handle resume subscription.
+
+    Args:
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     subscription_id = current_user.get("stripe_subscription_id")
     if not subscription_id or get_plan_for_user(current_user) != "pro":
         raise HTTPException(status_code=409, detail="There is no Pro subscription to resume.")

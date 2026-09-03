@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timezone
 
 import mongomock
@@ -14,6 +15,14 @@ client = TestClient(app)
 
 @pytest.fixture
 def packet_context(monkeypatch):
+    """Handle packet context.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Yields:
+        Values produced by the function.
+    """
     mock_client = mongomock.MongoClient()
     mock_db = mock_client["bragstack_packet_test"]
     entries = mock_db["entries"]
@@ -28,6 +37,11 @@ def packet_context(monkeypatch):
 
 
 def test_free_user_cannot_generate_performance_packet(packet_context):
+    """Verify free user cannot generate performance packet.
+
+    Args:
+        packet_context: Function argument.
+    """
     user = {
         "_id": ObjectId(),
         "name": "Free Member",
@@ -44,6 +58,11 @@ def test_free_user_cannot_generate_performance_packet(packet_context):
 
 
 def test_pro_packet_is_career_neutral_and_contains_full_dossier_data(packet_context):
+    """Verify pro packet is career neutral and contains full dossier data.
+
+    Args:
+        packet_context: Function argument.
+    """
     entries, receipts = packet_context
     user = {
         "_id": ObjectId(),
@@ -196,6 +215,11 @@ def test_pro_packet_is_career_neutral_and_contains_full_dossier_data(packet_cont
 
 
 def test_packet_period_validation_and_filtering(packet_context):
+    """Verify packet period validation and filtering.
+
+    Args:
+        packet_context: Function argument.
+    """
     entries, _ = packet_context
     user = {
         "_id": ObjectId(),

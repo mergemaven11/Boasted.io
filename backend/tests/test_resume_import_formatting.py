@@ -1,7 +1,9 @@
+"""Document this first-party Python module."""
 from app.resume_builder import parse_existing_resume_text
 
 
 def test_fragmented_pdf_resume_lines_are_reconstructed():
+    """Verify fragmented pdf resume lines are reconstructed."""
     raw = """EXPERIENCE
 Zingtree | Technical Support Engineer
 August
@@ -52,6 +54,7 @@ quality.
 
 
 def test_embedded_bullets_are_split_and_preserved():
+    """Verify embedded bullets are split and preserved."""
     parsed = parse_existing_resume_text("""EXPERIENCE
 Example Co | Support Engineer
 January 2022 - Present

@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 import pytest
 
 from app.packet_platform import normalize_recognition, recognition_label
@@ -29,6 +30,13 @@ from app.packet_platform import normalize_recognition, recognition_label
     ],
 )
 def test_verified_recognition_labels_are_career_neutral(career_context, confirmation, expected):
+    """Verify verified recognition labels are career neutral.
+
+    Args:
+        career_context: Function argument.
+        confirmation: Function argument.
+        expected: Function argument.
+    """
     recognition = normalize_recognition([confirmation], [])
     assert career_context
     assert recognition[0]["label"] == expected
@@ -36,11 +44,13 @@ def test_verified_recognition_labels_are_career_neutral(career_context, confirma
 
 
 def test_legacy_manager_and_stakeholder_types_remain_backward_compatible():
+    """Verify legacy manager and stakeholder types remain backward compatible."""
     assert recognition_label("manager", "Manager") == "Supervisor confirmed"
     assert recognition_label("stakeholder", "Program Director") == "Stakeholder confirmed"
 
 
 def test_pending_confirmation_never_becomes_verified_recognition():
+    """Verify pending confirmation never becomes verified recognition."""
     recognition = normalize_recognition(
         [{"name": "Peer", "role": "Colleague", "confirmation_type": "peer", "status": "pending"}],
         [],
@@ -49,6 +59,7 @@ def test_pending_confirmation_never_becomes_verified_recognition():
 
 
 def test_organization_issued_trust_signal_is_recognition_without_inventing_a_person():
+    """Verify organization issued trust signal is recognition without inventing a person."""
     recognition = normalize_recognition([], ["organization-issued"])
     assert recognition == [
         {

@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import io
@@ -33,6 +34,11 @@ CONTENT_WIDTH = PAGE_WIDTH - (MARGIN_X * 2)
 
 
 def _styles() -> dict[str, ParagraphStyle]:
+    """Handle styles.
+
+    Returns:
+        Function result.
+    """
     base = getSampleStyleSheet()
     return {
         "kicker": ParagraphStyle(
@@ -67,25 +73,66 @@ def _styles() -> dict[str, ParagraphStyle]:
 
 
 def _clean(value: Any) -> str:
+    """Handle clean.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return str(value or "").strip()
 
 
 def _safe(value: Any) -> str:
+    """Handle safe.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return escape(_clean(value))
 
 
 def _period_display(period: dict[str, Any]) -> str:
+    """Handle period display.
+
+    Args:
+        period: Function argument.
+
+    Returns:
+        Function result.
+    """
     if period.get("start_date") and period.get("end_date"):
         return f"{period['start_date']} — {period['end_date']}"
     return period.get("label") or "All recorded work"
 
 
 def _safe_filename_part(value: str, fallback: str) -> str:
+    """Handle safe filename part.
+
+    Args:
+        value: Function argument.
+        fallback: Function argument.
+
+    Returns:
+        Function result.
+    """
     cleaned = re.sub(r"[^A-Za-z0-9]+", "-", value or "").strip("-")
     return cleaned or fallback
 
 
 def make_interview_packet_filename(packet: dict[str, Any]) -> str:
+    """Handle make interview packet filename.
+
+    Args:
+        packet: Function argument.
+
+    Returns:
+        Function result.
+    """
     subject = packet.get("subject", {})
     period = packet.get("period", {})
     subject_part = _safe_filename_part(_clean(subject.get("name")), "bragstack-member")
@@ -97,6 +144,13 @@ def make_interview_packet_filename(packet: dict[str, Any]) -> str:
 
 
 def _draw_footer(canvas, doc, packet: dict[str, Any]) -> None:
+    """Handle draw footer.
+
+    Args:
+        canvas: Function argument.
+        doc: Function argument.
+        packet: Function argument.
+    """
     canvas.saveState()
     canvas.setStrokeColor(LINE)
     canvas.setLineWidth(0.5)
@@ -114,12 +168,30 @@ def _draw_footer(canvas, doc, packet: dict[str, Any]) -> None:
 
 
 def _section(story: list, styles: dict[str, ParagraphStyle], kicker: str, title: str) -> None:
+    """Handle section.
+
+    Args:
+        story: Function argument.
+        styles: Function argument.
+        kicker: Function argument.
+        title: Function argument.
+    """
     story.append(Paragraph(escape(kicker.upper()), styles["kicker"]))
     story.append(Paragraph(escape(title), styles["title"]))
     story.append(HRFlowable(width="100%", thickness=1.6, color=TEAL, spaceAfter=12))
 
 
 def _story_block(item: dict[str, Any], styles: dict[str, ParagraphStyle], number: int) -> Table:
+    """Handle story block.
+
+    Args:
+        item: Function argument.
+        styles: Function argument.
+        number: Function argument.
+
+    Returns:
+        Function result.
+    """
     rows = [
         [Paragraph(f"STORY {number:02d}", styles["label"]), Paragraph(_safe(item.get("category") or "Accomplishment"), styles["small"])],
         [Paragraph(_safe(item.get("title")), styles["subhead"]), ""],
@@ -188,6 +260,14 @@ def _story_block(item: dict[str, Any], styles: dict[str, ParagraphStyle], number
 
 
 def build_interview_packet_pdf(packet: dict[str, Any]) -> bytes:
+    """Handle build interview packet pdf.
+
+    Args:
+        packet: Function argument.
+
+    Returns:
+        Function result.
+    """
     styles = _styles()
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(

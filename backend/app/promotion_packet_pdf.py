@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import io
@@ -33,25 +34,66 @@ CONTENT_WIDTH = PAGE_WIDTH - (MARGIN_X * 2)
 
 
 def _clean(value: Any) -> str:
+    """Handle clean.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return str(value or "").strip()
 
 
 def _safe(value: Any) -> str:
+    """Handle safe.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return escape(_clean(value))
 
 
 def _period_display(period: dict[str, Any]) -> str:
+    """Handle period display.
+
+    Args:
+        period: Function argument.
+
+    Returns:
+        Function result.
+    """
     if period.get("start_date") and period.get("end_date"):
         return f"{period['start_date']} — {period['end_date']}"
     return period.get("label") or "All recorded work"
 
 
 def _safe_filename_part(value: str, fallback: str) -> str:
+    """Handle safe filename part.
+
+    Args:
+        value: Function argument.
+        fallback: Function argument.
+
+    Returns:
+        Function result.
+    """
     cleaned = re.sub(r"[^A-Za-z0-9]+", "-", value or "").strip("-")
     return cleaned or fallback
 
 
 def make_promotion_packet_filename(packet: dict[str, Any]) -> str:
+    """Handle make promotion packet filename.
+
+    Args:
+        packet: Function argument.
+
+    Returns:
+        Function result.
+    """
     subject = packet.get("subject", {})
     period = packet.get("period", {})
     subject_part = _safe_filename_part(_clean(subject.get("name")), "bragstack-member")
@@ -63,6 +105,11 @@ def make_promotion_packet_filename(packet: dict[str, Any]) -> str:
 
 
 def _styles() -> dict[str, ParagraphStyle]:
+    """Handle styles.
+
+    Returns:
+        Function result.
+    """
     base = getSampleStyleSheet()
     return {
         "kicker": ParagraphStyle(
@@ -151,12 +198,27 @@ def _styles() -> dict[str, ParagraphStyle]:
 
 
 def _section_header(story: list, styles: dict[str, ParagraphStyle], index: str, title: str) -> None:
+    """Handle section header.
+
+    Args:
+        story: Function argument.
+        styles: Function argument.
+        index: Function argument.
+        title: Function argument.
+    """
     story.append(Paragraph(_safe(index), styles["kicker"]))
     story.append(Paragraph(_safe(title), styles["title"]))
     story.append(HRFlowable(width="100%", thickness=1.7, color=TEAL, spaceAfter=12))
 
 
 def _footer(canvas, doc, packet: dict[str, Any]) -> None:
+    """Handle footer.
+
+    Args:
+        canvas: Function argument.
+        doc: Function argument.
+        packet: Function argument.
+    """
     canvas.saveState()
     canvas.setStrokeColor(LINE)
     canvas.setLineWidth(0.5)
@@ -174,6 +236,15 @@ def _footer(canvas, doc, packet: dict[str, Any]) -> None:
 
 
 def _metrics_table(scorecard: dict[str, Any], styles: dict[str, ParagraphStyle]) -> Table:
+    """Handle metrics table.
+
+    Args:
+        scorecard: Function argument.
+        styles: Function argument.
+
+    Returns:
+        Function result.
+    """
     values = [
         (scorecard.get("accomplishments", 0), "Accomplishments"),
         (scorecard.get("impact_receipts", 0), "Impact Receipts"),
@@ -202,6 +273,16 @@ def _metrics_table(scorecard: dict[str, Any], styles: dict[str, ParagraphStyle])
 
 
 def _bars(items: dict[str, int], styles: dict[str, ParagraphStyle], limit: int = 8) -> Drawing:
+    """Handle bars.
+
+    Args:
+        items: Function argument.
+        styles: Function argument.
+        limit: Function argument.
+
+    Returns:
+        Function result.
+    """
     entries = list(items.items())[:limit]
     row_h = 19
     height = max(28, len(entries) * row_h + 6)
@@ -222,6 +303,15 @@ def _bars(items: dict[str, int], styles: dict[str, ParagraphStyle], limit: int =
 
 
 def _link_or_text(reference: str, styles: dict[str, ParagraphStyle]) -> Paragraph:
+    """Handle link or text.
+
+    Args:
+        reference: Function argument.
+        styles: Function argument.
+
+    Returns:
+        Function result.
+    """
     reference = _clean(reference)
     if reference.startswith("https://") or reference.startswith("http://"):
         value = escape(reference)
@@ -230,6 +320,14 @@ def _link_or_text(reference: str, styles: dict[str, ParagraphStyle]) -> Paragrap
 
 
 def build_promotion_packet_pdf(packet: dict[str, Any]) -> bytes:
+    """Handle build promotion packet pdf.
+
+    Args:
+        packet: Function argument.
+
+    Returns:
+        Function result.
+    """
     styles = _styles()
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(

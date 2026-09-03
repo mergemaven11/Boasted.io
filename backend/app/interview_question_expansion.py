@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 # Extra domain prompts layered on top of the 12-question base bank.

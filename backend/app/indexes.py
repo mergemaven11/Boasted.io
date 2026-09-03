@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 from pymongo import ASCENDING, DESCENDING
@@ -29,6 +30,25 @@ def ensure_core_indexes(db) -> dict[str, list[str]]:
         receipts.create_index([("user_id", ASCENDING), ("created_at", DESCENDING)], name="receipts_user_created"),
         receipts.create_index([("user_id", ASCENDING), ("is_public", ASCENDING), ("created_at", DESCENDING)], name="receipts_user_public_created"),
         receipts.create_index([("source_entry_id", ASCENDING)], name="receipts_source_entry"),
+    ]
+
+    verification_requests = db["receipt_verification_requests"]
+    created["receipt_verification_requests"] = [
+        verification_requests.create_index(
+            [("token_hash", ASCENDING)],
+            name="uniq_receipt_verification_token",
+            unique=True,
+        ),
+        verification_requests.create_index(
+            [("receipt_id", ASCENDING), ("email", ASCENDING)],
+            name="uniq_receipt_verification_pending_email",
+            unique=True,
+        ),
+        verification_requests.create_index(
+            [("expires_at", ASCENDING)],
+            name="receipt_verification_ttl",
+            expireAfterSeconds=0,
+        ),
     ]
 
     resumes = db["resume_documents"]
