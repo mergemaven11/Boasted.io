@@ -177,3 +177,52 @@ State University
     assert parsed["experience"][0]["company"] == "Acme Cloud"
     assert "experience" in parsed["sections_found"]
     assert any("inferred" in warning.lower() for warning in parsed["parse_warnings"])
+
+
+def test_skill_only_technical_projects_is_reclassified_as_skills():
+    """Verify skill-only technical projects are reclassified as skills."""
+    raw = """Jane Doe
+jane@example.com
+TECHNICAL PROJECTS
+Languages
+Python, JavaScript
+Frameworks
+React
+Tools
+Jira, Git
+EXPERIENCE
+Acme Cloud | Support Engineer
+Jan 2024 - Present
+• Supported production services for enterprise customers.
+"""
+    parsed = parse_existing_resume_text(raw)
+
+    assert "skills" in parsed["sections_found"]
+    assert "projects" not in parsed["sections_found"]
+    assert parsed["sections"]["skills"] == [
+        "Languages | Python, JavaScript",
+        "Frameworks | React",
+        "Tools | Jira, Git",
+    ]
+    assert {"Python", "JavaScript", "React", "Jira", "Git"}.issubset(set(parsed["skills"]))
+    assert not {"Languages", "Frameworks", "Tools"}.intersection(parsed["skills"])
+
+
+def test_legitimate_technical_projects_remains_projects():
+    """Verify legitimate technical projects remain projects."""
+    raw = """Jane Doe
+jane@example.com
+TECHNICAL PROJECTS
+Incident Tracker
+React, FastAPI, PostgreSQL
+• Built a dashboard and API that tracks production incidents and ownership.
+EXPERIENCE
+Acme Cloud | Support Engineer
+Jan 2024 - Present
+• Supported production services for enterprise customers.
+"""
+    parsed = parse_existing_resume_text(raw)
+
+    assert "projects" in parsed["sections_found"]
+    assert "Incident Tracker" in parsed["sections"]["projects"]
+    assert any(line.startswith("• Built a dashboard") for line in parsed["sections"]["projects"])
