@@ -291,3 +291,26 @@ The sprint is complete when a new visitor can answer these questions without exp
 ## After this sprint
 
 Next bets should be selected from observed activation and sharing behavior rather than feature count. The first metrics to watch are: first accomplishment captured, first Impact Receipt created, first packet generated, Proof Profile published, profile/packet shared, and qualified conversation intent generated.
+
+---
+
+## Completed / implementation ledger
+
+This table is a factual execution log based on merged `main` commits and active sprint PRs. **Merged** means the work is on `main`; **Implemented** means code is complete on an open PR but has not landed on `main` yet.
+
+| Status | Area | Completed work | Evidence |
+| --- | --- | --- | --- |
+| ✅ Merged | Sprint roadmap | Added the September 3–11 brand-reshape roadmap, evidence-layer positioning, Proof Profile 2.0 plan, Open to Talk plan, AI/ML guardrails, licensing strategy, evaluation requirements, entitlements, and release definition of done. | PR #259 / `9398797` |
+| ✅ Merged | AI foundation | Added provider-neutral provenance contracts, deterministic evidence-grounding guards, fail-closed production model licensing gate, default-off experimental AI kill switch, safety tests, commercially usable model-candidate documentation, licensing docs, grounding docs, feature-flag docs, and Google-style contract/test docstrings. | PR #262 / merge `c5796fe` |
+| ✅ Merged | AI evaluation | Added a versioned evaluation harness, cross-profession adversarial fixtures, evaluation contracts, regression tests, documented evaluation policy/release gates, and zero-dollar commercial-use software requirement. | PR #264 / merge `e44ee10` |
+| ✅ Merged | Repository protection | Added the proprietary no-copy notice to clarify repository usage rights. | PR #258 / merge `143ac5b` |
+| 🛠 Implemented | Evidence-layer landing | Reframed BragStack as the evidence layer for professional growth; made Impact Receipts the signature product concept; surfaced Capture → Prove → Package → Share → Connect; strengthened private-by-default/anti-surveillance language; removed fake-looking proof metrics; preserved existing auth/pricing routes. | PR #261 / head `373c8ba` |
+| 🛠 Implemented | Proof Profile 2.0 foundation | Added public-evidence framing, profile-positioning polish, stronger public-proof language, authenticated/public connection settings, and privacy-safe Open to Talk controls. | PR #263 |
+| 🛠 Implemented | Open to Talk | Added opt-in connection state, allow-listed conversation types, user-controlled HTTP(S) contact/booking URL, public API zeroing when disabled, validation, and privacy regression tests. | PR #263 |
+| 🛠 Implemented | Calendar integrations UI | Added Settings → Integrations with Google Calendar and Microsoft Outlook provider cards, a modern month calendar, month/agenda modes, overview cards, provider legend, upcoming-meetings agenda surface, responsive states, and explicit private-workspace boundaries. No fake calendar connection or meetings are shown before OAuth/sync exists. | PR #263 |
+| 🛠 Implemented | Profile themes | Expanded the Proof Profile appearance gallery from 12 to 24 themes, including career-specific and visual styles such as Midnight, Aurora, Ember, Monochrome, Ocean, Orchid, Forest, Copper, Rose Gold, Blueprint, Studio, and Research, while retaining custom color controls and public-profile preview. | PR #263 |
+| 🛠 Implemented | Connection/privacy tests | Added tests proving disabled public connection settings hide stored contact data, enabled settings expose only bounded connection data, unknown conversation types are rejected, and non-web URLs are rejected. | PR #263 |
+
+### Ledger rule
+
+Update this table whenever a sprint PR lands or a material implementation slice is completed. Move rows from **🛠 Implemented** to **✅ Merged** only after the exact work is on `main`; do not use this ledger to claim CI or production readiness that has not been verified.
