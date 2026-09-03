@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 import os
 import time
 from datetime import datetime, timedelta, timezone
@@ -86,6 +87,15 @@ def _defer_persistent_request(
 
 @app.middleware("http")
 async def add_security_headers_and_telemetry(request: Request, call_next):
+    """Handle add security headers and telemetry.
+
+    Args:
+        request: Function argument.
+        call_next: Function argument.
+
+    Returns:
+        Function result.
+    """
     request_id = request.headers.get("x-request-id") or new_request_id()
     started = time.perf_counter()
     status_code = 500
@@ -168,12 +178,26 @@ app.add_middleware(
 
 
 def _as_utc(value: datetime) -> datetime:
+    """Handle as utc.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     if value.tzinfo is None:
         return value.replace(tzinfo=timezone.utc)
     return value.astimezone(timezone.utc)
 
 
 def enforce_entry_usage(request: Request, current_user: dict = Depends(get_current_user)):
+    """Handle enforce entry usage.
+
+    Args:
+        request: Function argument.
+        current_user: Function argument.
+    """
     path = request.url.path.rstrip("/")
     user_id = str(current_user["_id"])
     if request.method == "POST" and path == "/entries":
@@ -203,6 +227,12 @@ def enforce_entry_usage(request: Request, current_user: dict = Depends(get_curre
 
 
 def enforce_receipt_usage(request: Request, current_user: dict = Depends(get_current_user)):
+    """Handle enforce receipt usage.
+
+    Args:
+        request: Function argument.
+        current_user: Function argument.
+    """
     path = request.url.path.rstrip("/")
     is_create = request.method == "POST" and (
         path == "/impact-receipts" or path.startswith("/impact-receipts/from-entry/")
@@ -242,21 +272,41 @@ app.include_router(ops_user_router)
 
 @app.get("/")
 def root():
+    """Handle root.
+
+    Returns:
+        Function result.
+    """
     return {"message": "BragStack API is running"}
 
 
 @app.head("/", include_in_schema=False)
 def root_head():
+    """Handle root head.
+
+    Returns:
+        Function result.
+    """
     return None
 
 
 @app.get("/health")
 def health():
+    """Handle health.
+
+    Returns:
+        Function result.
+    """
     return {"status": "ok"}
 
 
 @app.get("/ready")
 def ready():
+    """Handle ready.
+
+    Returns:
+        Function result.
+    """
     try:
         mongo_admin.command("ping")
     except PyMongoError as exc:

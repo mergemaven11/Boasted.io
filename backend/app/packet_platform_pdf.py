@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import io
@@ -59,18 +60,51 @@ THEMES = {
 
 
 def _clean(value: Any) -> str:
+    """Handle clean.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return str(value or "").strip()
 
 
 def _safe(value: Any) -> str:
+    """Handle safe.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return escape(_clean(value))
 
 
 def _filename_part(value: str, fallback: str) -> str:
+    """Handle filename part.
+
+    Args:
+        value: Function argument.
+        fallback: Function argument.
+
+    Returns:
+        Function result.
+    """
     return re.sub(r"[^A-Za-z0-9]+", "-", value or "").strip("-") or fallback
 
 
 def make_platform_packet_filename(packet: dict[str, Any]) -> str:
+    """Handle make platform packet filename.
+
+    Args:
+        packet: Function argument.
+
+    Returns:
+        Function result.
+    """
     name = _filename_part(_clean(packet.get("subject", {}).get("name")), "bragstack-member")
     period = packet.get("period", {})
     if period.get("start_date") and period.get("end_date"):
@@ -81,6 +115,14 @@ def make_platform_packet_filename(packet: dict[str, Any]) -> str:
 
 
 def _styles(theme: dict[str, Any]) -> dict[str, ParagraphStyle]:
+    """Handle styles.
+
+    Args:
+        theme: Function argument.
+
+    Returns:
+        Function result.
+    """
     base = getSampleStyleSheet()
     return {
         "kicker": ParagraphStyle("V12Kicker", parent=base["Normal"], fontName="Helvetica-Bold", fontSize=7.4, leading=9, textColor=theme["accent"], spaceAfter=5),
@@ -97,6 +139,14 @@ def _styles(theme: dict[str, Any]) -> dict[str, ParagraphStyle]:
 
 
 def _period(packet: dict[str, Any]) -> str:
+    """Handle period.
+
+    Args:
+        packet: Function argument.
+
+    Returns:
+        Function result.
+    """
     period = packet.get("period", {})
     if period.get("start_date") and period.get("end_date"):
         return f"{period['start_date']} — {period['end_date']}"
@@ -104,12 +154,31 @@ def _period(packet: dict[str, Any]) -> str:
 
 
 def _page_header(story: list, styles: dict, theme: dict, kicker: str, title: str) -> None:
+    """Handle page header.
+
+    Args:
+        story: Function argument.
+        styles: Function argument.
+        theme: Function argument.
+        kicker: Function argument.
+        title: Function argument.
+    """
     story.append(Paragraph(_safe(kicker.upper()), styles["kicker"]))
     story.append(Paragraph(_safe(title), styles["title"]))
     story.append(HRFlowable(width="100%", thickness=1.5, color=theme["accent"], spaceAfter=11))
 
 
 def _stat_table(packet: dict[str, Any], styles: dict, theme: dict) -> Table:
+    """Handle stat table.
+
+    Args:
+        packet: Function argument.
+        styles: Function argument.
+        theme: Function argument.
+
+    Returns:
+        Function result.
+    """
     score = packet.get("scorecard", {})
     metrics = [
         (score.get("accomplishments", 0), "Accomplishments"),
@@ -130,6 +199,17 @@ def _stat_table(packet: dict[str, Any], styles: dict, theme: dict) -> Table:
 
 
 def _simple_table(rows: list[list[Any]], widths: list[float], styles: dict, theme: dict) -> Table:
+    """Handle simple table.
+
+    Args:
+        rows: Function argument.
+        widths: Function argument.
+        styles: Function argument.
+        theme: Function argument.
+
+    Returns:
+        Function result.
+    """
     table = Table(rows, colWidths=widths, repeatRows=1)
     table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), theme["light"]),
@@ -142,6 +222,14 @@ def _simple_table(rows: list[list[Any]], widths: list[float], styles: dict, them
 
 
 def _annotation(story: list, packet: dict[str, Any], key: str, styles: dict) -> None:
+    """Handle annotation.
+
+    Args:
+        story: Function argument.
+        packet: Function argument.
+        key: Function argument.
+        styles: Function argument.
+    """
     annotations = packet.get("annotations", {})
     if not annotations.get("include_in_export"):
         return
@@ -151,6 +239,14 @@ def _annotation(story: list, packet: dict[str, Any], key: str, styles: dict) -> 
 
 
 def _draw_footer(canvas, doc, packet: dict[str, Any], theme: dict) -> None:
+    """Handle draw footer.
+
+    Args:
+        canvas: Function argument.
+        doc: Function argument.
+        packet: Function argument.
+        theme: Function argument.
+    """
     canvas.saveState()
     canvas.setStrokeColor(theme["line"])
     canvas.line(MARGIN_X, 0.42 * inch, PAGE_WIDTH - MARGIN_X, 0.42 * inch)
@@ -168,6 +264,14 @@ def _draw_footer(canvas, doc, packet: dict[str, Any], theme: dict) -> None:
 
 
 def build_platform_packet_pdf(packet: dict[str, Any]) -> bytes:
+    """Handle build platform packet pdf.
+
+    Args:
+        packet: Function argument.
+
+    Returns:
+        Function result.
+    """
     theme_name = packet.get("render_config", {}).get("theme") or "classic-dossier"
     theme = THEMES.get(theme_name, THEMES["classic-dossier"])
     styles = _styles(theme)

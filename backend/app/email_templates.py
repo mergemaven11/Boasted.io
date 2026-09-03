@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from html import escape
 
 
@@ -6,10 +7,33 @@ BRAND_URL = "https://usebragstack.com"
 
 
 def _safe(value: str | None) -> str:
+    """Handle safe.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return escape(str(value or ""), quote=True)
 
 
 def _shell(*, preheader: str, eyebrow: str, title: str, intro: str, content_html: str, cta_label: str, cta_url: str, footnote: str) -> str:
+    """Handle shell.
+
+    Args:
+        preheader: Function argument.
+        eyebrow: Function argument.
+        title: Function argument.
+        intro: Function argument.
+        content_html: Function argument.
+        cta_label: Function argument.
+        cta_url: Function argument.
+        footnote: Function argument.
+
+    Returns:
+        Function result.
+    """
     safe_preheader = _safe(preheader)
     safe_eyebrow = _safe(eyebrow)
     safe_title = _safe(title)
@@ -70,6 +94,14 @@ def _shell(*, preheader: str, eyebrow: str, title: str, intro: str, content_html
 
 
 def build_email_verification_html(url: str) -> str:
+    """Handle build email verification html.
+
+    Args:
+        url: Function argument.
+
+    Returns:
+        Function result.
+    """
     content = """
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 4px;width:100%;">
         <tr>
@@ -92,6 +124,14 @@ def build_email_verification_html(url: str) -> str:
 
 
 def build_password_reset_html(url: str) -> str:
+    """Handle build password reset html.
+
+    Args:
+        url: Function argument.
+
+    Returns:
+        Function result.
+    """
     content = """
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 4px;width:100%;">
         <tr>
@@ -114,6 +154,18 @@ def build_password_reset_html(url: str) -> str:
 
 
 def build_receipt_verification_html(*, owner_name: str, verifier_name: str, accomplishment: str, message: str, url: str) -> str:
+    """Handle build receipt verification html.
+
+    Args:
+        owner_name: Function argument.
+        verifier_name: Function argument.
+        accomplishment: Function argument.
+        message: Function argument.
+        url: Function argument.
+
+    Returns:
+        Function result.
+    """
     safe_owner = _safe(owner_name)
     safe_verifier = _safe(verifier_name)
     safe_accomplishment = _safe(accomplishment)

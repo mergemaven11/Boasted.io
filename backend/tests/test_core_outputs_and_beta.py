@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timedelta, timezone
 
 import mongomock
@@ -15,6 +16,14 @@ client = TestClient(app)
 
 @pytest.fixture
 def output_context(monkeypatch):
+    """Handle output context.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Yields:
+        Values produced by the function.
+    """
     mock_client = mongomock.MongoClient()
     mock_db = mock_client["bragstack_core_outputs_test"]
     receipts = mock_db["impact_receipts"]
@@ -39,6 +48,16 @@ def output_context(monkeypatch):
 
 
 def insert_receipt(receipts, user, **overrides):
+    """Handle insert receipt.
+
+    Args:
+        receipts: Function argument.
+        user: Function argument.
+        overrides: Function argument.
+
+    Returns:
+        Function result.
+    """
     now = overrides.pop("created_at", datetime.now(timezone.utc))
     document = {
         "user_id": str(user["_id"]),
@@ -72,6 +91,11 @@ def insert_receipt(receipts, user, **overrides):
 
 
 def test_performance_review_uses_only_receipts(output_context):
+    """Verify performance review uses only receipts.
+
+    Args:
+        output_context: Function argument.
+    """
     user, receipts, _ = output_context
     receipt_id = insert_receipt(receipts, user)
 
@@ -88,6 +112,11 @@ def test_performance_review_uses_only_receipts(output_context):
 
 
 def test_resume_target_can_rank_but_not_invent_claims(output_context):
+    """Verify resume target can rank but not invent claims.
+
+    Args:
+        output_context: Function argument.
+    """
     user, receipts, _ = output_context
     insert_receipt(receipts, user)
 
@@ -114,6 +143,11 @@ def test_resume_target_can_rank_but_not_invent_claims(output_context):
 
 
 def test_resume_output_does_not_use_other_users_receipts(output_context):
+    """Verify resume output does not use other users receipts.
+
+    Args:
+        output_context: Function argument.
+    """
     user, receipts, _ = output_context
     insert_receipt(receipts, user)
     other_user = {"_id": ObjectId()}
@@ -138,6 +172,11 @@ def test_resume_output_does_not_use_other_users_receipts(output_context):
 
 
 def test_beta_feedback_captures_activation_repeat_return_and_pull(output_context):
+    """Verify beta feedback captures activation repeat return and pull.
+
+    Args:
+        output_context: Function argument.
+    """
     user, receipts, feedback = output_context
     now = datetime.now(timezone.utc)
     insert_receipt(receipts, user, created_at=now - timedelta(days=2))

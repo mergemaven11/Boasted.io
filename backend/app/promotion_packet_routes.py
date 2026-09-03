@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
@@ -12,6 +13,16 @@ router = APIRouter(prefix="/packets", tags=["packets"])
 
 
 def _promotion_summary(packet: dict, target_role: str, target_level: str) -> str:
+    """Handle promotion summary.
+
+    Args:
+        packet: Function argument.
+        target_role: Function argument.
+        target_level: Function argument.
+
+    Returns:
+        Function result.
+    """
     subject = packet.get("subject", {})
     scorecard = packet.get("scorecard", {})
     name = subject.get("name") or "This professional"
@@ -44,6 +55,14 @@ def _promotion_summary(packet: dict, target_role: str, target_level: str) -> str
 
 
 def _strengthening_actions(scorecard: dict) -> list[dict]:
+    """Handle strengthening actions.
+
+    Args:
+        scorecard: Function argument.
+
+    Returns:
+        Function result.
+    """
     actions: list[dict] = []
     if scorecard.get("receipt_coverage_percent", 0) < 75:
         actions.append({"area": "Structured proof", "action": "Convert more high-value accomplishments into Impact Receipts.", "why": "Promotion cases are easier to review when contribution, result, skills, and evidence are structured consistently."})
@@ -59,6 +78,11 @@ def _strengthening_actions(scorecard: dict) -> list[dict]:
 
 
 def _add_recognition(packet: dict) -> None:
+    """Handle add recognition.
+
+    Args:
+        packet: Function argument.
+    """
     recognition_by_reference = {}
     for receipt in packet.get("receipt_records", []) or []:
         recognition = normalize_recognition(receipt.get("confirmations"), receipt.get("trust_signals"))
@@ -73,6 +97,22 @@ def _build_promotion_packet(
     role_title: str | None, organization: str | None, confidential: bool,
     target_role: str | None, target_level: str | None,
 ) -> dict:
+    """Handle build promotion packet.
+
+    Args:
+        current_user: Function argument.
+        start_date: Function argument.
+        end_date: Function argument.
+        career_area: Function argument.
+        role_title: Function argument.
+        organization: Function argument.
+        confidential: Function argument.
+        target_role: Function argument.
+        target_level: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(current_user, "promotion_packet")
     packet = _build_packet(
         current_user=current_user, start_date=start_date, end_date=end_date,

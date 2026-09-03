@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import re
@@ -16,6 +17,14 @@ router = APIRouter(prefix="/packets", tags=["packets"])
 
 
 def _parse_date_value(value: Any) -> date | None:
+    """Handle parse date value.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     if isinstance(value, datetime):
         if value.tzinfo is None:
             value = value.replace(tzinfo=timezone.utc)
@@ -43,18 +52,43 @@ def _parse_date_value(value: Any) -> date | None:
 
 
 def _entry_work_date(entry: dict) -> date | None:
+    """Handle entry work date.
+
+    Args:
+        entry: Function argument.
+
+    Returns:
+        Function result.
+    """
     return _parse_date_value(entry.get("entry_date")) or _parse_date_value(
         entry.get("created_at")
     )
 
 
 def _percentage(numerator: int, denominator: int) -> int:
+    """Handle percentage.
+
+    Args:
+        numerator: Function argument.
+        denominator: Function argument.
+
+    Returns:
+        Function result.
+    """
     if denominator <= 0:
         return 0
     return round((numerator / denominator) * 100)
 
 
 def _has_quantified_result(value: str) -> bool:
+    """Handle has quantified result.
+
+    Args:
+        value: Function argument.
+
+    Returns:
+        Function result.
+    """
     return bool(re.search(r"\d", value or ""))
 
 
@@ -83,6 +117,15 @@ def _extract_metric_display(value: str) -> str | None:
 
 
 def _clean_string(value: Any, fallback: str = "") -> str:
+    """Handle clean string.
+
+    Args:
+        value: Function argument.
+        fallback: Function argument.
+
+    Returns:
+        Function result.
+    """
     text = str(value or "").strip()
     return text or fallback
 
@@ -93,6 +136,16 @@ def _entries_for_period(
     start_date: date | None,
     end_date: date | None,
 ) -> list[dict]:
+    """Handle entries for period.
+
+    Args:
+        user_id: Function argument.
+        start_date: Function argument.
+        end_date: Function argument.
+
+    Returns:
+        Function result.
+    """
     entries = list(entries_collection.find({"user_id": user_id}))
     selected: list[dict] = []
 
@@ -108,6 +161,15 @@ def _entries_for_period(
 
 
 def _receipt_reference(receipt: dict, work_date: date | None) -> str:
+    """Handle receipt reference.
+
+    Args:
+        receipt: Function argument.
+        work_date: Function argument.
+
+    Returns:
+        Function result.
+    """
     year = work_date.year if work_date else datetime.now(timezone.utc).year
     token = str(receipt.get("_id") or "000000")[-6:].upper()
     return f"BS-{year}-{token}"
@@ -124,6 +186,21 @@ def _build_review_narrative(
     categories: Counter,
     skills: Counter,
 ) -> str:
+    """Handle build review narrative.
+
+    Args:
+        subject_name: Function argument.
+        entries_count: Function argument.
+        receipts_count: Function argument.
+        evidence_count: Function argument.
+        confirmed_receipts: Function argument.
+        quantified_results: Function argument.
+        categories: Function argument.
+        skills: Function argument.
+
+    Returns:
+        Function result.
+    """
     if entries_count == 0:
         return (
             f"{subject_name} has not yet documented accomplishments for this review "
@@ -196,6 +273,20 @@ def _build_packet(
     organization: str | None,
     confidential: bool,
 ) -> dict:
+    """Handle build packet.
+
+    Args:
+        current_user: Function argument.
+        start_date: Function argument.
+        end_date: Function argument.
+        career_area: Function argument.
+        role_title: Function argument.
+        organization: Function argument.
+        confidential: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(current_user, "performance_review_builder")
 
     user_id = str(current_user["_id"])
@@ -537,6 +628,15 @@ def _build_packet(
 
 
 def _parse_period(start_date: str | None, end_date: str | None) -> tuple[date | None, date | None]:
+    """Handle parse period.
+
+    Args:
+        start_date: Function argument.
+        end_date: Function argument.
+
+    Returns:
+        Function result.
+    """
     if bool(start_date) != bool(end_date):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

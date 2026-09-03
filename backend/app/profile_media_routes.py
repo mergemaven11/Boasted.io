@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
@@ -8,6 +9,7 @@ router = APIRouter(prefix="/auth/me", tags=["auth"])
 
 
 class AvatarUpdateRequest(BaseModel):
+    """Represent AvatarUpdateRequest."""
     avatar_url: str = Field(default="", max_length=1000)
 
 
@@ -16,6 +18,15 @@ def update_avatar(
     payload: AvatarUpdateRequest,
     current_user: dict = Depends(get_current_user),
 ):
+    """Handle update avatar.
+
+    Args:
+        payload: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     avatar_url = payload.avatar_url.strip()
     if avatar_url and not avatar_url.startswith(("http://", "https://")):
         raise HTTPException(

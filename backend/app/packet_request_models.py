@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 from pydantic import BaseModel, Field
@@ -6,6 +7,7 @@ from app.packet_platform import OPTIONAL_SECTIONS
 
 
 class BasePacketRequest(BaseModel):
+    """Represent BasePacketRequest."""
     start_date: str | None = None
     end_date: str | None = None
     career_area: str | None = Field(default=None, max_length=120)
@@ -15,11 +17,13 @@ class BasePacketRequest(BaseModel):
 
 
 class PromotionPacketRequest(BasePacketRequest):
+    """Represent PromotionPacketRequest."""
     target_role: str | None = Field(default=None, max_length=160)
     target_level: str | None = Field(default=None, max_length=120)
 
 
 class InterviewPacketRequest(BasePacketRequest):
+    """Represent InterviewPacketRequest."""
     selected_entry_ids: list[str] = Field(default_factory=list, max_length=8)
     target_role: str | None = Field(default=None, max_length=160)
     target_organization: str | None = Field(default=None, max_length=180)
@@ -27,6 +31,7 @@ class InterviewPacketRequest(BasePacketRequest):
 
 
 class CertificationPacketRequest(BasePacketRequest):
+    """Represent CertificationPacketRequest."""
     credential_name: str | None = Field(default=None, max_length=180)
     issuing_body: str | None = Field(default=None, max_length=180)
     review_type: str | None = Field(default=None, max_length=120)
@@ -34,6 +39,7 @@ class CertificationPacketRequest(BasePacketRequest):
 
 
 class PlatformPacketRequest(BasePacketRequest):
+    """Represent PlatformPacketRequest."""
     signature_entry_ids: list[str] = Field(default_factory=list, max_length=8)
     sections: list[str] | None = Field(default=None, max_length=len(OPTIONAL_SECTIONS))
     packet_note: str | None = Field(default=None, max_length=1500)
@@ -46,6 +52,11 @@ class PlatformPacketRequest(BasePacketRequest):
     review_cycle_label: str | None = Field(default=None, max_length=120)
 
     def normalized_sections(self) -> list[str] | None:
+        """Handle normalized sections.
+
+        Returns:
+            Function result.
+        """
         if self.sections is None:
             return None
         requested = set(self.sections)

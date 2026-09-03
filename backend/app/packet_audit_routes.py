@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
@@ -15,6 +16,15 @@ def get_packet_export_history(
     limit: int = Query(20, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
 ):
+    """Handle get packet export history.
+
+    Args:
+        limit: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     require_feature(current_user, "export_pdf")
     items = list(
         packet_export_audit_collection.find({"user_id": str(current_user["_id"])})

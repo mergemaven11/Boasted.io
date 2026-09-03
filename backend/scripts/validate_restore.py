@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import json
@@ -10,6 +11,11 @@ from app.restore_validation import validate_restored_database
 
 
 def main() -> int:
+    """Handle main.
+
+    Returns:
+        Function result.
+    """
     if os.getenv("RESTORE_DRILL_CONFIRM_ISOLATED", "").lower() != "true":
         print(
             "Refusing to run: set RESTORE_DRILL_CONFIRM_ISOLATED=true only for an isolated non-production restore target.",

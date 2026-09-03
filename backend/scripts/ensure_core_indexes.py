@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import os
@@ -9,6 +10,11 @@ from app.indexes import ensure_core_indexes
 
 
 def main() -> int:
+    """Handle main.
+
+    Returns:
+        Function result.
+    """
     mongo_url = os.getenv("MONGO_URL", "").strip()
     db_name = os.getenv("MONGO_DB_NAME", "bragstack").strip() or "bragstack"
     if not mongo_url:

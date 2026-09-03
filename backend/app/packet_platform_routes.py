@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 from datetime import date
@@ -25,6 +26,16 @@ router = APIRouter(prefix="/packets", tags=["packets"])
 
 
 def _signature_candidates(*, current_user: dict, start_date: date | None, end_date: date | None) -> list[dict[str, Any]]:
+    """Handle signature candidates.
+
+    Args:
+        current_user: Function argument.
+        start_date: Function argument.
+        end_date: Function argument.
+
+    Returns:
+        Function result.
+    """
     user_id = str(current_user["_id"])
     entries = _entries_for_period(user_id=user_id, start_date=start_date, end_date=end_date)
     receipts = list(impact_receipts_collection.find({"user_id": user_id}))
@@ -84,6 +95,30 @@ def build_platform_packet(
     reviewer_name: str | None = None,
     review_cycle_label: str | None = None,
 ) -> dict:
+    """Handle build platform packet.
+
+    Args:
+        current_user: Function argument.
+        start_date: Function argument.
+        end_date: Function argument.
+        career_area: Function argument.
+        role_title: Function argument.
+        organization: Function argument.
+        confidential: Function argument.
+        signature_entry_ids: Function argument.
+        sections: Function argument.
+        packet_note: Function argument.
+        item_notes: Function argument.
+        include_notes: Function argument.
+        theme: Function argument.
+        brand_name: Function argument.
+        department_label: Function argument.
+        reviewer_name: Function argument.
+        review_cycle_label: Function argument.
+
+    Returns:
+        Function result.
+    """
     packet = _build_packet(
         current_user=current_user,
         start_date=start_date,
@@ -134,6 +169,30 @@ def get_performance_review_packet_v12(
     review_cycle_label: str | None = Query(None, max_length=120),
     current_user: dict = Depends(get_current_user),
 ):
+    """Handle get performance review packet v12.
+
+    Args:
+        start_date: Function argument.
+        end_date: Function argument.
+        career_area: Function argument.
+        role_title: Function argument.
+        organization: Function argument.
+        confidential: Function argument.
+        signature_entry_ids: Function argument.
+        sections: Function argument.
+        packet_note: Function argument.
+        item_notes: Function argument.
+        include_notes: Function argument.
+        theme: Function argument.
+        brand_name: Function argument.
+        department_label: Function argument.
+        reviewer_name: Function argument.
+        review_cycle_label: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     parsed_start, parsed_end = _parse_period(start_date, end_date)
     return {
         "packet": build_platform_packet(

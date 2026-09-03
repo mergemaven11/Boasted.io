@@ -1,3 +1,5 @@
+"""Authentication, JWT, and current-user helpers for BragStack."""
+
 import os
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -24,10 +26,31 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 def _password_fits_bcrypt(password: str) -> bool:
+    """Check whether a password fits bcrypt's 72-byte input limit.
+
+    Args:
+        password: Plain-text password to measure after UTF-8 encoding.
+
+    Returns:
+        True when the encoded password is at most 72 bytes.
+    """
     return len(password.encode("utf-8")) <= MAX_BCRYPT_PASSWORD_BYTES
 
 
 def hash_password(password: str) -> str:
+    """Hash a BragStack password with the configured bcrypt context.
+
+    Args:
+        password: Plain-text password supplied during account creation or
+            password reset.
+
+    Returns:
+        Encoded bcrypt password hash suitable for persistence.
+
+    Raises:
+        HTTPException: If the UTF-8 encoded password exceeds bcrypt's
+            supported 72-byte limit.
+    """
     if not _password_fits_bcrypt(password):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -37,12 +60,32 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a candidate password against a stored bcrypt hash.
+
+    Args:
+        plain_password: Candidate plain-text password.
+        hashed_password: Persisted bcrypt password hash.
+
+    Returns:
+        True when the password matches; otherwise False. Passwords exceeding
+        bcrypt's byte limit are rejected without verification.
+    """
     if not _password_fits_bcrypt(plain_password):
         return False
     return password_context.verify(plain_password, hashed_password)
 
 
 def create_access_token(data: dict) -> str:
+    """Create a signed BragStack access token with standard timing claims.
+
+    Args:
+        data: Claims to include in the token, typically including the user's
+            identifier as ``sub``.
+
+    Returns:
+        An HS256-signed JWT containing expiration, issue time, not-before time,
+        and a unique token identifier.
+    """
     payload = data.copy()
     now = datetime.now(timezone.utc)
     expire = now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -58,6 +101,17 @@ def create_access_token(data: dict) -> str:
 
 
 def serialize_user(user: dict) -> dict:
+    """Convert a MongoDB user document into the public API response shape.
+
+    Args:
+        user: MongoDB user document containing an ``_id`` and optional profile,
+            plan, entitlement, and internal-role fields.
+
+    Returns:
+        A JSON-friendly dictionary containing profile data, plan information,
+        effective entitlements, and allow-listed internal roles. Password hashes
+        and other authentication secrets are intentionally excluded.
+    """
     return {
         "id": str(user["_id"]),
         "name": user.get("name", ""),
@@ -87,6 +141,19 @@ def serialize_user(user: dict) -> dict:
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
+    """Resolve and return the authenticated user for a bearer token.
+
+    Args:
+        token: OAuth2 bearer token injected by FastAPI.
+
+    Returns:
+        The matching MongoDB user document.
+
+    Raises:
+        HTTPException: If the token is missing required claims, cannot be
+            decoded, contains an invalid MongoDB identifier, or references a
+            user that no longer exists.
+    """
     credentials_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

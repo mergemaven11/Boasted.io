@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 import re
 from datetime import datetime, timedelta, timezone
 

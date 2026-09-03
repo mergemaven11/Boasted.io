@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import io
@@ -29,6 +30,14 @@ from app.performance_packet_pdf import (
 
 
 def make_certification_packet_filename(packet: dict[str, Any]) -> str:
+    """Handle make certification packet filename.
+
+    Args:
+        packet: Function argument.
+
+    Returns:
+        Function result.
+    """
     subject = packet.get("subject", {})
     review = packet.get("credential_review", {})
     period = packet.get("period", {})
@@ -42,6 +51,15 @@ def make_certification_packet_filename(packet: dict[str, Any]) -> str:
 
 
 def _status_table(summary: dict[str, Any], styles) -> Table:
+    """Handle status table.
+
+    Args:
+        summary: Function argument.
+        styles: Function argument.
+
+    Returns:
+        Function result.
+    """
     data = [[
         Paragraph("<b>Self-added</b>", styles["body_small"]),
         Paragraph("<b>Confirmed</b>", styles["body_small"]),
@@ -66,6 +84,14 @@ def _status_table(summary: dict[str, Any], styles) -> Table:
 
 
 def build_certification_packet_pdf(packet: dict[str, Any]) -> bytes:
+    """Handle build certification packet pdf.
+
+    Args:
+        packet: Function argument.
+
+    Returns:
+        Function result.
+    """
     styles = _styles()
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -189,6 +215,12 @@ def build_certification_packet_pdf(packet: dict[str, Any]) -> bytes:
         story.append(Paragraph("No supporting evidence is attached for this review period yet.", styles["body"]))
 
     def footer(canvas, document):
+        """Handle footer.
+
+        Args:
+            canvas: Function argument.
+            document: Function argument.
+        """
         _draw_page_footer(canvas, document, packet)
 
     doc.build(story, onFirstPage=footer, onLaterPages=footer)

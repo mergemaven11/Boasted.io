@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -23,6 +24,7 @@ OPTIONAL_COLLECTIONS = {
 
 @dataclass
 class RestoreValidationResult:
+    """Represent RestoreValidationResult."""
     passed: bool
     checks: dict[str, bool] = field(default_factory=dict)
     errors: list[str] = field(default_factory=list)
@@ -30,6 +32,13 @@ class RestoreValidationResult:
 
 
 def _fail(result: RestoreValidationResult, check: str, message: str) -> None:
+    """Handle fail.
+
+    Args:
+        result: Function argument.
+        check: Function argument.
+        message: Function argument.
+    """
     result.checks[check] = False
     result.errors.append(message)
     result.passed = False

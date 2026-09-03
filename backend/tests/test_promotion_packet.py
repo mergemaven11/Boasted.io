@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from datetime import datetime, timezone
 
 import mongomock
@@ -14,6 +15,14 @@ client = TestClient(app)
 
 @pytest.fixture
 def promotion_context(monkeypatch):
+    """Handle promotion context.
+
+    Args:
+        monkeypatch: Function argument.
+
+    Yields:
+        Values produced by the function.
+    """
     mock_client = mongomock.MongoClient()
     mock_db = mock_client["bragstack_promotion_packet_test"]
     entries = mock_db["entries"]
@@ -27,6 +36,13 @@ def promotion_context(monkeypatch):
 
 
 def _seed_operations_case(entries, receipts, user):
+    """Handle seed operations case.
+
+    Args:
+        entries: Function argument.
+        receipts: Function argument.
+        user: Function argument.
+    """
     first = entries.insert_one(
         {
             "user_id": str(user["_id"]),
@@ -105,6 +121,11 @@ def _seed_operations_case(entries, receipts, user):
 
 
 def test_free_user_cannot_build_promotion_packet(promotion_context):
+    """Verify free user cannot build promotion packet.
+
+    Args:
+        promotion_context: Function argument.
+    """
     user = {
         "_id": ObjectId(),
         "name": "Free Member",
@@ -120,6 +141,11 @@ def test_free_user_cannot_build_promotion_packet(promotion_context):
 
 
 def test_pro_promotion_packet_is_evidence_backed_and_career_neutral(promotion_context):
+    """Verify pro promotion packet is evidence backed and career neutral.
+
+    Args:
+        promotion_context: Function argument.
+    """
     entries, receipts = promotion_context
     user = {
         "_id": ObjectId(),
@@ -160,6 +186,11 @@ def test_pro_promotion_packet_is_evidence_backed_and_career_neutral(promotion_co
 
 
 def test_pro_user_downloads_dedicated_promotion_pdf(promotion_context):
+    """Verify pro user downloads dedicated promotion pdf.
+
+    Args:
+        promotion_context: Function argument.
+    """
     entries, receipts = promotion_context
     user = {
         "_id": ObjectId(),

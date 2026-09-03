@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from bson import ObjectId
 from fastapi.testclient import TestClient
 
@@ -11,6 +12,15 @@ client = TestClient(main.app)
 
 
 def _user(email="engineer@usebragstack.com", roles=None):
+    """Handle user.
+
+    Args:
+        email: Function argument.
+        roles: Function argument.
+
+    Returns:
+        Function result.
+    """
     return {
         "_id": ObjectId(),
         "email": email,
@@ -22,29 +32,46 @@ def _user(email="engineer@usebragstack.com", roles=None):
 
 
 def _override_user(user):
+    """Handle override user.
+
+    Args:
+        user: Function argument.
+
+    Returns:
+        Function result.
+    """
     async def dependency():
+        """Handle dependency.
+
+        Returns:
+            Function result.
+        """
         return user
     main.app.dependency_overrides[get_current_user] = dependency
 
 
 def teardown_function():
+    """Handle teardown function."""
     main.app.dependency_overrides.clear()
     clear_for_tests()
 
 
 def test_company_domain_alone_does_not_grant_ops_access():
+    """Verify company domain alone does not grant ops access."""
     _override_user(_user(roles=[]))
     response = client.get("/ops/access")
     assert response.status_code == 403
 
 
 def test_internal_role_outside_company_domain_does_not_grant_access():
+    """Verify internal role outside company domain does not grant access."""
     _override_user(_user(email="attacker@example.com", roles=["admin"]))
     response = client.get("/ops/access")
     assert response.status_code == 403
 
 
 def test_explicit_internal_role_grants_access():
+    """Verify explicit internal role grants access."""
     _override_user(_user(roles=["ops"]))
     response = client.get("/ops/access")
     assert response.status_code == 200
@@ -53,6 +80,11 @@ def test_explicit_internal_role_grants_access():
 
 
 def test_overview_exposes_sanitized_live_request_telemetry(monkeypatch):
+    """Verify overview exposes sanitized live request telemetry.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     _override_user(_user(roles=["admin"]))
     monkeypatch.setattr(main.mongo_admin, "command", lambda command: {"ok": 1.0})
     monkeypatch.setattr(ops_routes.mongo_client.admin, "command", lambda command: {"ok": 1.0})
@@ -78,6 +110,11 @@ def test_overview_exposes_sanitized_live_request_telemetry(monkeypatch):
 
 
 def test_user_diagnostics_are_redacted(monkeypatch):
+    """Verify user diagnostics are redacted.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     _override_user(_user(roles=["support"]))
     target = _user(email="member@example.com", roles=[])
     target.update({"password_hash": "secret", "reset_token": "secret", "oauth_token": "secret"})
@@ -97,12 +134,18 @@ def test_user_diagnostics_are_redacted(monkeypatch):
 
 
 def test_non_admin_cannot_manage_team():
+    """Verify non admin cannot manage team."""
     _override_user(_user(roles=["ops"]))
     response = client.get("/ops/team")
     assert response.status_code == 403
 
 
 def test_admin_can_update_company_user_roles_and_audit(monkeypatch):
+    """Verify admin can update company user roles and audit.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     actor = _user(email="admin@usebragstack.com", roles=["admin"])
     target = _user(email="support@usebragstack.com", roles=["support"])
     _override_user(actor)
@@ -122,6 +165,11 @@ def test_admin_can_update_company_user_roles_and_audit(monkeypatch):
 
 
 def test_role_management_rejects_outside_domain_target(monkeypatch):
+    """Verify role management rejects outside domain target.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     _override_user(_user(roles=["admin"]))
     target = _user(email="member@example.com", roles=[])
     monkeypatch.setattr(ops_routes.users_collection, "find_one", lambda query: target)
@@ -131,6 +179,11 @@ def test_role_management_rejects_outside_domain_target(monkeypatch):
 
 
 def test_last_database_admin_cannot_be_removed_without_bootstrap(monkeypatch):
+    """Verify last database admin cannot be removed without bootstrap.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     _override_user(_user(roles=["admin"]))
     target = _user(email="lastadmin@usebragstack.com", roles=["admin"])
     monkeypatch.setattr(ops_routes, "BOOTSTRAP_ADMINS", set())
@@ -143,6 +196,11 @@ def test_last_database_admin_cannot_be_removed_without_bootstrap(monkeypatch):
 
 
 def test_bootstrap_admin_role_cannot_be_effectively_removed(monkeypatch):
+    """Verify bootstrap admin role cannot be effectively removed.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     actor = _user(email="bootstrap@usebragstack.com", roles=[])
     target = _user(email="bootstrap@usebragstack.com", roles=["admin"])
     monkeypatch.setattr(ops_routes, "BOOTSTRAP_ADMINS", {"bootstrap@usebragstack.com"})
@@ -158,6 +216,11 @@ def test_bootstrap_admin_role_cannot_be_effectively_removed(monkeypatch):
 
 
 def test_support_can_resend_verification_email_and_action_is_audited(monkeypatch):
+    """Verify support can resend verification email and action is audited.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     actor = _user(email="support@usebragstack.com", roles=["support"])
     target = _user(email="member@example.com", roles=[])
     target["email_verification_required"] = True
@@ -168,6 +231,12 @@ def test_support_can_resend_verification_email_and_action_is_audited(monkeypatch
     sent = []
 
     async def fake_send(email, url):
+        """Handle fake send.
+
+        Args:
+            email: Function argument.
+            url: Function argument.
+        """
         sent.append((email, url))
 
     monkeypatch.setattr(ops_user_routes, "_send_verification_email", fake_send)
@@ -184,6 +253,11 @@ def test_support_can_resend_verification_email_and_action_is_audited(monkeypatch
 
 
 def test_verification_resend_rejects_already_verified_account(monkeypatch):
+    """Verify verification resend rejects already verified account.
+
+    Args:
+        monkeypatch: Function argument.
+    """
     actor = _user(email="support@usebragstack.com", roles=["support"])
     target = _user(email="member@example.com", roles=[])
     target["email_verified_at"] = "2026-08-26T20:00:00+00:00"

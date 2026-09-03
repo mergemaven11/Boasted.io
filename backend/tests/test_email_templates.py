@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from app.email_templates import (
     build_email_verification_html,
     build_password_reset_html,
@@ -6,6 +7,7 @@ from app.email_templates import (
 
 
 def test_account_verification_email_is_branded_and_has_secure_cta():
+    """Verify account verification email is branded and has secure cta."""
     html = build_email_verification_html("https://usebragstack.com/login#verify_token=abc123")
 
     assert "BragStack" in html
@@ -17,6 +19,7 @@ def test_account_verification_email_is_branded_and_has_secure_cta():
 
 
 def test_password_reset_email_is_branded_and_has_expiry_guidance():
+    """Verify password reset email is branded and has expiry guidance."""
     html = build_password_reset_html("https://usebragstack.com/login#reset_token=abc123")
 
     assert "BragStack" in html
@@ -26,6 +29,7 @@ def test_password_reset_email_is_branded_and_has_expiry_guidance():
 
 
 def test_receipt_verification_email_is_branded_escapes_content_and_discloses_privacy_lifecycle():
+    """Verify receipt verification email is branded escapes content and discloses privacy lifecycle."""
     html = build_receipt_verification_html(
         owner_name='Tee <script>alert("owner")</script>',
         verifier_name="Manager <b>Jane</b>",

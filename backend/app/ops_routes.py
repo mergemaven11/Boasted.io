@@ -1,3 +1,4 @@
+"""Document this first-party Python module."""
 from __future__ import annotations
 
 import os
@@ -36,15 +37,32 @@ BOOTSTRAP_ADMINS = {
 
 
 class InternalRoleUpdate(BaseModel):
+    """Represent InternalRoleUpdate."""
     roles: list[str] = Field(default_factory=list, max_length=4)
 
 
 def _email_is_company(email: str) -> bool:
+    """Handle email is company.
+
+    Args:
+        email: Function argument.
+
+    Returns:
+        Function result.
+    """
     normalized = (email or "").strip().lower()
     return bool(normalized) and normalized.endswith(f"@{COMPANY_DOMAIN}")
 
 
 def _roles_for_user(user: dict) -> set[str]:
+    """Handle roles for user.
+
+    Args:
+        user: Function argument.
+
+    Returns:
+        Function result.
+    """
     email = (user.get("email") or "").strip().lower()
     roles = {str(role).strip().lower() for role in user.get("internal_roles", [])}
     roles &= INTERNAL_ROLES
@@ -54,9 +72,25 @@ def _roles_for_user(user: dict) -> set[str]:
 
 
 def require_internal_role(*allowed_roles: str) -> Callable:
+    """Handle require internal role.
+
+    Args:
+        allowed_roles: Function argument.
+
+    Returns:
+        Function result.
+    """
     allowed = {role.lower() for role in allowed_roles}
 
     async def dependency(current_user: dict = Depends(get_current_user)) -> dict:
+        """Handle dependency.
+
+        Args:
+            current_user: Function argument.
+
+        Returns:
+            Function result.
+        """
         email = (current_user.get("email") or "").strip().lower()
         roles = _roles_for_user(current_user)
         if not _email_is_company(email) or not roles.intersection(allowed):
@@ -72,6 +106,14 @@ def require_internal_role(*allowed_roles: str) -> Callable:
 
 
 def _safe_user(user: dict) -> dict:
+    """Handle safe user.
+
+    Args:
+        user: Function argument.
+
+    Returns:
+        Function result.
+    """
     user_id = str(user.get("_id", ""))
     return {
         "id": user_id,
@@ -91,6 +133,14 @@ def _safe_user(user: dict) -> dict:
 
 
 def _safe_team_member(user: dict) -> dict:
+    """Handle safe team member.
+
+    Args:
+        user: Function argument.
+
+    Returns:
+        Function result.
+    """
     email = (user.get("email") or "").strip().lower()
     stored_roles = sorted({str(role).strip().lower() for role in user.get("internal_roles", [])} & INTERNAL_ROLES)
     effective_roles = sorted(_roles_for_user(user))
@@ -105,6 +155,14 @@ def _safe_team_member(user: dict) -> dict:
 
 
 def _normalize_roles(roles: list[str]) -> list[str]:
+    """Handle normalize roles.
+
+    Args:
+        roles: Function argument.
+
+    Returns:
+        Function result.
+    """
     normalized = {str(role).strip().lower() for role in roles}
     invalid = sorted(normalized - INTERNAL_ROLES)
     if invalid:
@@ -113,6 +171,15 @@ def _normalize_roles(roles: list[str]) -> list[str]:
 
 
 def _would_remove_last_admin(target: dict, next_roles: list[str]) -> bool:
+    """Handle would remove last admin.
+
+    Args:
+        target: Function argument.
+        next_roles: Function argument.
+
+    Returns:
+        Function result.
+    """
     email = (target.get("email") or "").strip().lower()
     if email in BOOTSTRAP_ADMINS or "admin" in next_roles:
         return False
@@ -125,6 +192,14 @@ def _would_remove_last_admin(target: dict, next_roles: list[str]) -> bool:
 
 
 def _audit_role_change(*, actor: dict, target: dict, previous_roles: list[str], next_roles: list[str]) -> None:
+    """Handle audit role change.
+
+    Args:
+        actor: Function argument.
+        target: Function argument.
+        previous_roles: Function argument.
+        next_roles: Function argument.
+    """
     ops_audit_collection.insert_one(
         {
             "event": "internal_roles_updated",
@@ -140,6 +215,14 @@ def _audit_role_change(*, actor: dict, target: dict, previous_roles: list[str], 
 
 
 def _serialize_event(event: dict) -> dict:
+    """Handle serialize event.
+
+    Args:
+        event: Function argument.
+
+    Returns:
+        Function result.
+    """
     result = {key: value for key, value in event.items() if key != "_id"}
     if isinstance(result.get("created_at"), datetime):
         result["created_at"] = result["created_at"].isoformat()
@@ -148,6 +231,14 @@ def _serialize_event(event: dict) -> dict:
 
 @router.get("/access")
 def access(current_user: dict = Depends(require_internal_role(*INTERNAL_ROLES))):
+    """Handle access.
+
+    Args:
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     return {
         "authorized": True,
         "roles": current_user.get("_effective_internal_roles", []),
@@ -157,6 +248,14 @@ def access(current_user: dict = Depends(require_internal_role(*INTERNAL_ROLES)))
 
 @router.get("/overview")
 def overview(current_user: dict = Depends(require_internal_role("ops", "security", "admin"))):
+    """Handle overview.
+
+    Args:
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     del current_user
     mongo_status = "ok"
     try:
@@ -196,6 +295,14 @@ def overview(current_user: dict = Depends(require_internal_role("ops", "security
 def persistent_observability(
     current_user: dict = Depends(require_internal_role("ops", "security", "admin")),
 ):
+    """Handle persistent observability.
+
+    Args:
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     del current_user
     raw_events = list(ops_events_collection.find({}, {"_id": 0}).sort("created_at", -1).limit(500))
     events = [_serialize_event(event) for event in raw_events]
@@ -237,6 +344,15 @@ def user_diagnostics(
     email: str = Query(min_length=3, max_length=254),
     current_user: dict = Depends(require_internal_role("support", "ops", "security", "admin")),
 ):
+    """Handle user diagnostics.
+
+    Args:
+        email: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     del current_user
     normalized = email.strip().lower()
     user = users_collection.find_one({"email": normalized})
@@ -247,6 +363,14 @@ def user_diagnostics(
 
 @router.get("/team")
 def list_internal_team(current_user: dict = Depends(require_internal_role("admin"))):
+    """Handle list internal team.
+
+    Args:
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     del current_user
     domain_pattern = re.compile(rf"@{re.escape(COMPANY_DOMAIN)}$", re.IGNORECASE)
     members = users_collection.find(
@@ -262,6 +386,16 @@ def update_internal_roles(
     payload: InternalRoleUpdate,
     current_user: dict = Depends(require_internal_role("admin")),
 ):
+    """Handle update internal roles.
+
+    Args:
+        user_id: Function argument.
+        payload: Function argument.
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     if not ObjectId.is_valid(user_id):
         raise HTTPException(status_code=404, detail="Internal team member not found")
 
@@ -285,6 +419,14 @@ def update_internal_roles(
 
 @router.get("/audit")
 def list_ops_audit(current_user: dict = Depends(require_internal_role("admin"))):
+    """Handle list ops audit.
+
+    Args:
+        current_user: Function argument.
+
+    Returns:
+        Function result.
+    """
     del current_user
     events = []
     for event in ops_audit_collection.find({}, {"_id": 0}).sort("created_at", -1).limit(50):
