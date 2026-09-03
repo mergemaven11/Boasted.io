@@ -2,16 +2,19 @@ const GA_MEASUREMENT_ID = "G-MKGEER9N5C";
 
 const GA_NAME_PATTERN = /^[a-z][a-z0-9_]{0,39}$/;
 const UTM_FIELDS = [
+  "utm_id",
   "utm_source",
   "utm_medium",
   "utm_campaign",
-  "utm_id",
+  "utm_source_platform",
   "utm_term",
   "utm_content",
+  "utm_creative_format",
+  "utm_marketing_tactic",
 ];
 const FIRST_TOUCH_UTM_KEY = "bragstack_first_touch_utm";
 const SESSION_UTM_KEY = "bragstack_session_utm";
-const MAX_ATTRIBUTION_VALUE_LENGTH = 120;
+const MAX_ATTRIBUTION_VALUE_LENGTH = 100;
 
 export const ANALYTICS_EVENTS = Object.freeze({
   SIGN_UP: "sign_up",
