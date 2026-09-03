@@ -11,5 +11,9 @@ def experimental_ai_enabled() -> bool:
 
     The default is intentionally off so deployment of this foundation cannot
     accidentally make model-backed behavior customer-facing.
+
+    Returns:
+        True only when ``BRAGSTACK_EXPERIMENTAL_AI`` contains an explicit
+        truthy value recognized by the application.
     """
     return os.getenv("BRAGSTACK_EXPERIMENTAL_AI", "false").strip().casefold() in _TRUE_VALUES
