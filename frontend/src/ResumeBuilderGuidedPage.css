@@ -1,0 +1,151 @@
+.resume-guided-host {
+  min-width: 0;
+}
+
+.resume-guided-progress {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 10px clamp(14px, 2.2vw, 28px) 0;
+  background: linear-gradient(180deg, rgba(12, 20, 19, 0.98) 78%, rgba(12, 20, 19, 0));
+  backdrop-filter: blur(14px);
+}
+
+.resume-guided-progress-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(125, 216, 125, 0.16);
+  border-radius: 18px;
+  background: rgba(18, 31, 28, 0.94);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+}
+
+.resume-guided-progress button {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: rgba(236, 247, 242, 0.68);
+  font: inherit;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.resume-guided-progress button:hover,
+.resume-guided-progress button:focus-visible {
+  color: #fff;
+  border-color: rgba(125, 216, 125, 0.3);
+  outline: none;
+}
+
+.resume-guided-progress button.active {
+  color: #fff;
+  border-color: rgba(125, 216, 125, 0.45);
+  background: rgba(76, 145, 115, 0.24);
+}
+
+.resume-guided-progress button.done {
+  color: #bff1c2;
+}
+
+.resume-guided-progress button strong {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.78rem;
+}
+
+.resume-guided-progress button.active strong,
+.resume-guided-progress button.done strong {
+  background: #7dd87d;
+  color: #102018;
+}
+
+.resume-guided-progress button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.resume-guided-mobile-label {
+  display: none;
+}
+
+/* The guided stepper replaces the older passive duplicate step row. */
+.resume-guided-host .resume-v2-steps {
+  display: none;
+}
+
+/* Give automatic step jumps breathing room below the sticky progress bar. */
+.resume-guided-host .resume-v2-upload,
+.resume-guided-host .resume-confirm-shell,
+.resume-guided-host .resume-v2-form,
+.resume-guided-host .ats-scan-score-card,
+.resume-guided-host .resume-v2-right {
+  scroll-margin-top: 92px;
+}
+
+@media (max-width: 760px) {
+  .resume-guided-progress {
+    padding: 8px 12px 0;
+  }
+
+  .resume-guided-progress-row {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    padding: 6px;
+    border-radius: 14px;
+  }
+
+  .resume-guided-progress button {
+    padding: 8px 5px;
+  }
+
+  .resume-guided-progress button span {
+    display: none;
+  }
+
+  .resume-guided-progress button strong {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+  }
+
+  .resume-guided-mobile-label {
+    display: block;
+    padding: 0 4px 7px;
+    color: rgba(236, 247, 242, 0.84);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+  }
+
+  .resume-guided-host .resume-v2-upload,
+  .resume-guided-host .resume-confirm-shell,
+  .resume-guided-host .resume-v2-form,
+  .resume-guided-host .ats-scan-score-card,
+  .resume-guided-host .resume-v2-right {
+    scroll-margin-top: 104px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resume-guided-progress button {
+    transition: none;
+  }
+}
