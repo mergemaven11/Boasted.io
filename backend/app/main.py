@@ -30,6 +30,7 @@ from app.packet_audit_routes import router as packet_audit_router
 from app.plans import enforce_usage_limit
 from app.private_packet_routes import router as private_packet_router
 from app.private_packet_share_routes import router as private_packet_share_router
+from app.profile_connection_routes import router as profile_connection_router
 from app.profile_media_routes import router as profile_media_router
 from app.public_slug_routes import router as public_slug_router
 from app.rate_limit import check_rate_limit
@@ -251,6 +252,7 @@ def enforce_receipt_usage(request: Request, current_user: dict = Depends(get_cur
 app.include_router(auth_router)
 app.include_router(oauth_router)
 app.include_router(profile_media_router)
+app.include_router(profile_connection_router)
 app.include_router(billing_router)
 app.include_router(entries_router, dependencies=[Depends(enforce_entry_usage)])
 app.include_router(public_slug_router)
