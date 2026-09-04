@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   width: min(100%, 8.5in);
+  max-width: 100%;
   min-height: 11in;
   margin: 0 auto;
   padding: .55in .62in .62in;
@@ -14,6 +15,7 @@
   box-shadow: 0 12px 38px rgba(15,23,42,.13) !important;
   font-family: Arial, Helvetica, sans-serif !important;
   line-height: 1.35;
+  overflow: hidden;
 }
 
 .resume-v2-paper-banner {
@@ -51,13 +53,73 @@
 .resume-v2-job li.proof-backed { color:#202327 !important; background:transparent !important; border:0 !important; }
 .resume-v2-support-lines { display:grid !important; gap:4px !important; color:#202327 !important; font-size:11px !important; }
 
+/* Tablet: never squeeze a letter-size resume beside the source/target panel.
+   1024px iPads were falling into the desktop two-column breakpoint, which
+   clipped the resume canvas and action row. */
+@media (max-width: 1180px) {
+  .resume-v2-page {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding-inline: 18px !important;
+    overflow-x: hidden;
+  }
+
+  .resume-v2-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 16px !important;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .resume-v2-left,
+  .resume-v2-center,
+  .resume-v2-right {
+    position: static !important;
+    grid-column: 1 !important;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .resume-v2-center {
+    min-height: auto !important;
+    padding: 16px !important;
+    overflow: hidden;
+  }
+
+  .resume-v2-paper {
+    width: 100%;
+    max-width: 8.5in;
+  }
+
+  .resume-v2-right > .resume-v2-gates {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .resume-v2-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .resume-v2-actions .primary {
+    grid-column: 1 / -1 !important;
+  }
+}
+
 @media (max-width: 760px) {
+  .resume-v2-page { padding-inline: 12px !important; }
+  .resume-v2-center { padding: 10px !important; }
   .resume-v2-paper { min-height:auto; padding:30px 26px 34px; }
   .resume-v2-paper > header h1 { font-size:24px !important; }
   .resume-v2-job-head { align-items:flex-start !important; flex-direction:column !important; gap:2px !important; }
+  .resume-v2-right > .resume-v2-gates { grid-template-columns:1fr !important; }
+  .resume-v2-actions { grid-template-columns:1fr !important; }
+  .resume-v2-actions .primary { grid-column:auto !important; }
 }
 
 @media print {
-  .resume-v2-paper { width:8.5in; min-height:11in; margin:0; border:0 !important; box-shadow:none !important; }
+  .resume-v2-paper { width:8.5in; min-height:11in; margin:0; border:0 !important; box-shadow:none !important; overflow:visible; }
   .resume-v2-paper-banner { display:none !important; }
 }
