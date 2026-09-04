@@ -8,6 +8,7 @@ import "./ResponsiveLayoutGuard.css";
 import "./ImpactReceiptsResponsive.css";
 import "./VerifiedImpact.css";
 import "./ProfileUploadPolish.css";
+import "./OpenAccessMode.css";
 import PublicAuthHeader from "./PublicAuthHeader.jsx";
 import RootContent from "./RootContent.jsx";
 import { installInterviewBrowserPreflight } from "./interviewBrowserPreflight.js";
