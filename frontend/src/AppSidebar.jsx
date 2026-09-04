@@ -1,30 +1,32 @@
 import { useEffect, useState } from "react";
-import { BarChart3, BrainCircuit, Building2, FileCheck2, FileText, GraduationCap, Home, ListChecks, LogOut, Menu, ReceiptText, Settings, ShieldCheck, Sparkles, Target, TrendingUp, UserRound, Users, Video, X } from "lucide-react";
+import { BarChart3, BrainCircuit, Building2, ChevronDown, FileCheck2, FileText, GraduationCap, Home, ListChecks, LogOut, Menu, ReceiptText, Settings, ShieldCheck, Sparkles, UserRound, Users, Video, X } from "lucide-react";
 import { getCurrentUser } from "./api";
 import "./AppShell.css";
+import "./SidebarCollapsible.css";
 
 const WORKSPACE_ITEMS = [
   { href: "/app", label: "Dashboard", icon: Home },
   { href: "/app/accomplishments", label: "Accomplishments", icon: ListChecks },
   { href: "/app/impact-receipts", label: "Impact Receipts", icon: ReceiptText },
+  { href: "/app/applications", label: "Applications", icon: GraduationCap },
   { href: "/app/intelligence", label: "Career Intelligence", icon: BrainCircuit },
 ];
-const PRO_TOOLS = [
+const CAREER_TOOLS = [
   { href: "/app/resume-builder", label: "Resume Builder", icon: FileText },
   { href: "/app/interview-practice", label: "Practice interview", icon: Video },
   { href: "/app/reports", label: "Career analytics", icon: BarChart3 },
-  { href: "/app/reports?packet=performance-review#packet-builder", label: "Performance review", icon: FileCheck2 },
-  { href: "/app/reports?packet=promotion#packet-builder", label: "Promotion packet", icon: TrendingUp },
-  { href: "/app/reports?packet=interview#packet-builder", label: "Interview packet", icon: Target },
-  { href: "/app/reports?packet=certification#packet-builder", label: "Certification packet", icon: GraduationCap },
+  { href: "/app/reports#packet-builder", label: "Career packets", icon: FileCheck2 },
 ];
 
 function AppSidebar() {
   const [user, setUser] = useState(null); const [mobileOpen, setMobileOpen] = useState(false);
   const path = window.location.pathname; const search = window.location.search;
+  const careerToolsActive = path === "/app/resume-builder" || path === "/app/interview-practice" || path === "/app/reports";
+  const [careerToolsOpen, setCareerToolsOpen] = useState(() => careerToolsActive || localStorage.getItem("bragstack_career_tools_nav") !== "closed");
   useEffect(() => { let mounted = true; (async () => { try { const data = await getCurrentUser(); if (mounted) setUser(data); } catch (error) { if (error.response?.status === 401) { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); } } })(); return () => { mounted = false; }; }, []);
   function logout() { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); }
-  function proToolIsActive(href) { const target = new URL(href, window.location.origin); return path === target.pathname && search === target.search; }
+  function toolIsActive(href) { const target = new URL(href, window.location.origin); return path === target.pathname && (!target.search || search === target.search); }
+  function toggleCareerTools(event) { const open = event.currentTarget.open; setCareerToolsOpen(open); localStorage.setItem("bragstack_career_tools_nav", open ? "open" : "closed"); }
   const isPro = Boolean(user?.entitlements?.advanced_reports);
   const isCompanyUser = user?.email?.trim().toLowerCase().endsWith("@usebragstack.com") === true;
   const hasExecutiveImpact = Boolean(user?.entitlements?.executive_command_center) && ["owner", "admin", "executive"].includes(user?.workspace_role);
@@ -38,7 +40,7 @@ function AppSidebar() {
       <nav className="sidebar-nav" aria-label="BragStack navigation">
         <p className="sidebar-section-label">Workspace</p>
         {WORKSPACE_ITEMS.map(({ href, label, icon: Icon }, index) => <div className="sidebar-workspace-item" key={href}><a className={path === href ? "active" : ""} href={href}><Icon size={18} /><span>{label}</span></a>{index === 0 && user?.public_slug && <a className="sidebar-proof-profile" href={`/brag/${user.public_slug}`} target="_blank" rel="noreferrer"><UserRound size={18} /><span>Public Proof Profile</span><small>Live</small></a>}</div>)}
-        {isPro && <><p className="sidebar-section-label">Pro career tools</p>{PRO_TOOLS.map(({ href, label, icon: Icon }) => <a className={proToolIsActive(href) ? "active" : ""} href={href} key={`${href}-${label}`}><Icon size={18} /><span>{label}</span></a>)}</>}
+        {isPro && <details className={`sidebar-collapsible ${careerToolsActive ? "contains-active" : ""}`} open={careerToolsOpen} onToggle={toggleCareerTools}><summary><span>Career tools</span><ChevronDown size={15} /></summary><div className="sidebar-collapsible-items">{CAREER_TOOLS.map(({ href, label, icon: Icon }) => <a className={toolIsActive(href) ? "active" : ""} href={href} key={`${href}-${label}`}><Icon size={18} /><span>{label}</span></a>)}</div></details>}
         {hasExecutiveImpact && <><p className="sidebar-section-label">Enterprise</p><a className={path === "/app/executive-impact" ? "active" : ""} href="/app/executive-impact"><Building2 size={18}/><span>Executive Impact</span></a></>}
         <p className="sidebar-section-label">Account & tools</p>
         <a className={path.startsWith("/app/settings") || path === "/app/profile" ? "active" : ""} href="/app/settings"><Settings size={18} /><span>Settings</span></a>

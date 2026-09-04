@@ -8,6 +8,7 @@ const App = lazyPage(() => import("./App.jsx"));
 const AccomplishmentsPage = lazyPage(() => import("./AccomplishmentsPage.jsx"));
 const AIVerificationPage = lazyPage(() => import("./AIVerificationPage.jsx"));
 const AppSidebar = lazyPage(() => import("./AppSidebar.jsx"));
+const ApplicationsHubPage = lazyPage(() => import("./ApplicationsHubPage.jsx"));
 const AppearanceSettingsPage = lazyPage(() => import("./AppearanceSettingsPage.jsx"));
 const BillingSettingsPage = lazyPage(() => import("./BillingSettingsPage.jsx"));
 const CareerIntelligencePage = lazyPage(() => import("./CareerIntelligencePage.jsx"));
@@ -157,6 +158,7 @@ function RootContent() {
     else if (path === "/app/settings/billing") Content = BillingSettingsPage;
     else if (path === "/app/accomplishments") Content = AccomplishmentsPage;
     else if (path === "/app/impact-receipts") Content = ImpactReceiptsWithVerification;
+    else if (path === "/app/applications") Content = ApplicationsHubPage;
     else if (path === "/app/intelligence") Content = CareerIntelligencePage;
     else if (path === "/app/executive-impact" && planLoaded) { Content = user?.entitlements?.executive_command_center ? ExecutiveImpactPage : ProRequired; contentProps = user?.entitlements?.executive_command_center ? {} : { feature: "Executive Impact Command Center (Enterprise)" }; }
     else if (path === "/app/resume-builder" && planLoaded) { Content = user?.entitlements?.resume_builder ? ResumeBuilderPage : ProRequired; contentProps = user?.entitlements?.resume_builder ? {} : { feature: "Resume Builder and ATS Guardian" }; }
