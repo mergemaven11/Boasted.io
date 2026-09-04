@@ -1,7 +1,7 @@
 import { ExternalLink } from "lucide-react";
 import "./CalendlyEmbed.css";
 
-export function isCalendlyBookingUrl(value = "") {
+function isCalendlyBookingUrl(value = "") {
   try {
     const url = new URL(value);
     return url.protocol === "https:" && (url.hostname === "calendly.com" || url.hostname.endsWith(".calendly.com"));
