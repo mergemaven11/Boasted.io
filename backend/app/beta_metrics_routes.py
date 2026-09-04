@@ -91,14 +91,13 @@ def _user_product_metrics(user_id: str) -> dict:
 
 
 def _github_issue_body(ticket: dict) -> str:
-    """Create a bounded support issue body without secrets or auth data."""
+    """Create a privacy-minimized support issue body without credentials or account identity."""
     return "\n".join(
         [
             "## Customer support intake",
             "",
             f"**Category:** {SUPPORT_CATEGORIES.get(ticket['category'], ticket['category'])}",
             f"**Ticket ID:** `{ticket['ticket_id']}`",
-            f"**Reporter:** {ticket.get('reporter_email') or 'authenticated user'}",
             f"**Page:** {ticket.get('page_url') or 'Not provided'}",
             "",
             "## Description",
@@ -108,7 +107,7 @@ def _github_issue_body(ticket: dict) -> str:
             ticket.get("browser") or "Not provided",
             "",
             "---",
-            "Submitted through the authenticated BragStack Support Center. Do not post passwords, tokens, API keys, confidential employer material, medical information, student records, or other sensitive data into this issue.",
+            "Submitted through the authenticated BragStack Support Center. Reporter identity remains in BragStack's private support record rather than being copied into GitHub. Do not post passwords, tokens, API keys, confidential employer material, medical information, student records, or other sensitive data into this issue.",
         ]
     )
 
