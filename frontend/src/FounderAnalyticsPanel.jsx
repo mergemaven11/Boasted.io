@@ -1,4 +1,5 @@
 import { Activity, ArrowRight, BriefcaseBusiness, Gauge, ReceiptText, Tags, UsersRound } from "lucide-react";
+import OpsInviteCard from "./OpsInviteCard.jsx";
 import "./FounderAnalyticsPanel.css";
 
 function percent(value) {
@@ -70,6 +71,8 @@ export default function FounderAnalyticsPanel({ analytics = {} }) {
       <div><p className="ops-kicker">FOUNDER · PRODUCT SIGNALS</p><h2>How BragStack is being used</h2><p>Growth, activation, evidence depth, Proof Profile engagement, packet adoption, content signals, subscriptions, and API health from first-party metadata.</p></div>
       <a href="/ops/users"><UsersRound size={16} /> User-level analysis</a>
     </div>
+
+    <OpsInviteCard compact />
 
     <div className="founder-kpi-grid">
       <Metric label="Total users" value={number(users.total)} detail={`+${number(users.new_today)} today · +${number(users.new_7d)} last 7d`} />
