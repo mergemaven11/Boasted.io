@@ -12,13 +12,24 @@ test("accomplishments support school and university contexts", () => {
   assert.match(source, /"Middle School"/);
   assert.match(source, /"High School"/);
   assert.match(source, /"College \/ University"/);
-  assert.match(source, /projects, awards, clubs, research, competitions, leadership, volunteering, and major coursework/i);
-  assert.match(source, /Career & Education Evidence Library/);
+  assert.match(source, /Career & Student Evidence Library/);
 });
 
-test("education guidance stays evidence-focused", () => {
+test("student accomplishment capture is designed for future applications", () => {
   const source = read("./AccomplishmentsPage.jsx");
-  assert.match(source, /What did you specifically do, build, lead, research, solve, or contribute\?/);
-  assert.match(source, /Add numbers, awards, recognition, results, or measurable outcomes/);
+  assert.match(source, /grade\/year, school or program, your role, time commitment, scope, recognition, measurable results, and evidence/i);
+  assert.match(source, /college, scholarship, internship, honors, summer-program, and other selective applications/i);
+  assert.match(source, /Academic Achievement/);
+  assert.match(source, /Award \/ Honor/);
+  assert.match(source, /Extracurricular Activity/);
+  assert.match(source, /Community Service/);
+  assert.match(source, /Special Program/);
+});
+
+test("student guidance keeps records private by default and evidence-focused", () => {
+  const source = read("./AccomplishmentsPage.jsx");
+  assert.match(source, /What did you personally do, create, lead, research, organize, solve, perform, or contribute\?/);
+  assert.match(source, /placement, award level, people served, money raised, growth, time commitment/i);
+  assert.match(source, /Student records stay private unless you explicitly choose to make an accomplishment public/);
   assert.match(source, /Make this accomplishment public/);
 });
