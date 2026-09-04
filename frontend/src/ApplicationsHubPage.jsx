@@ -20,30 +20,30 @@ import "./ApplicationsHubPage.css";
 const WORKFLOWS = [
   {
     id: "scholarship",
-    title: "Scholarship",
+    title: "Scholarships",
     icon: Award,
-    blurb: "Find service, leadership, academic, initiative, and persistence evidence.",
+    blurb: "Find the wins that show leadership, service, academics, initiative, and follow-through.",
     accent: "gold",
   },
   {
     id: "special-program",
-    title: "Special Program",
+    title: "Programs",
     icon: GraduationCap,
-    blurb: "Match real experiences to selective summer, honors, research, and enrichment programs.",
+    blurb: "Use real projects, interests, competitions, research, and growth for programs you want to pursue.",
     accent: "violet",
   },
   {
     id: "internship",
-    title: "Internship",
+    title: "Internships",
     icon: BriefcaseBusiness,
-    blurb: "Turn school, project, service, and work evidence into stronger internship material.",
+    blurb: "Turn school, projects, service, clubs, and work into examples that show what you can do.",
     accent: "blue",
   },
   {
     id: "essay-prep",
-    title: "Essay Prep",
+    title: "Essay Stories",
     icon: FilePenLine,
-    blurb: "Surface real stories about growth, curiosity, challenge, values, and contribution.",
+    blurb: "Rediscover real moments about growth, curiosity, challenges, values, and what matters to you.",
     accent: "green",
   },
 ];
@@ -73,9 +73,9 @@ function workflowFromUrl() {
 }
 
 function fitLabel(value) {
-  if (value === "strong") return "Strong evidence fit";
-  if (value === "relevant") return "Relevant evidence";
-  return "Worth reviewing";
+  if (value === "strong") return "Strong for this goal";
+  if (value === "relevant") return "Useful for this goal";
+  return "Keep building this story";
 }
 
 function ApplicationsHubPage() {
@@ -107,7 +107,7 @@ function ApplicationsHubPage() {
           window.location.assign("/login");
           return;
         }
-        setError(requestError.message || "Application guidance could not be loaded.");
+        setError(requestError.message || "Your Education workspace could not be loaded.");
         setData(null);
         setLoading(false);
       });
@@ -145,19 +145,19 @@ function ApplicationsHubPage() {
 
   async function copyShortlist() {
     if (!selectedEvidence.length) return;
-    const heading = `${activeWorkflow.title} evidence shortlist`;
+    const heading = `${activeWorkflow.title} — my BragStack wins`;
     const lines = selectedEvidence.flatMap((item, index) => [
       `${index + 1}. ${item.title} — ${item.category} · ${item.entry_type}`,
       `   ${item.fit_reasons.join("; ")}`,
     ]);
     const footer = applicationType === "essay-prep"
-      ? "\nUse these as story candidates only. Draft the essay in your own voice and keep every claim accurate."
-      : "\nReview the actual application requirements before submitting. BragStack does not predict selection outcomes.";
+      ? "\nUse these as story ideas only. Write the essay in your own voice and keep every claim accurate."
+      : "\nCheck the real requirements before submitting anything. BragStack helps you organize your story; it does not predict who gets selected.";
     try {
       await navigator.clipboard.writeText([heading, ...lines, footer].join("\n"));
-      setNotice(applicationType === "essay-prep" ? "Story candidates copied" : "Evidence shortlist copied");
+      setNotice(applicationType === "essay-prep" ? "Story ideas copied" : "Your wins were copied");
     } catch {
-      setNotice("Shortlist ready — copy from your browser if clipboard access is blocked");
+      setNotice("Your shortlist is ready — copy it from your browser if clipboard access is blocked");
     }
     window.setTimeout(() => setNotice(""), 2500);
   }
@@ -165,14 +165,23 @@ function ApplicationsHubPage() {
   return <main className="applications-hub">
     <header className="applications-hero">
       <div>
-        <p className="applications-kicker"><Sparkles size={15} /> Application Workbench</p>
-        <h1>Build applications from accomplishments you already earned.</h1>
-        <p>BragStack finds the strongest evidence in your private record for scholarships, selective programs, internships, and essay planning. It never invents achievements or predicts whether you will be selected.</p>
+        <p className="applications-kicker"><Sparkles size={15} /> Education Workspace · 18+ for now</p>
+        <h1>Keep track of the wins that are shaping your future.</h1>
+        <p>BragStack currently supports adults age 18+ who want to preserve real education, project, service, work, and learning accomplishments. Middle-school student accounts remain part of the long-term Education vision, but they are coming soon after youth privacy, consent, safety, and legal review.</p>
       </div>
-      <div className="applications-trust"><ShieldCheck size={20} /><span><strong>Your evidence stays yours.</strong><small>Private by default · deterministic ranking · no admissions score</small></span></div>
+      <div className="applications-trust"><ShieldCheck size={20} /><span><strong>Your education story stays yours.</strong><small>Private by default · built from your real wins · no admissions score</small></span></div>
     </header>
 
-    <section className="application-workflow-grid" aria-label="Application workflows">
+    <section className="application-overview">
+      <div><p className="applications-kicker"><GraduationCap size={15} /> The long-term journey</p><h2><s>Middle school student accounts</s> — Coming soon · High school history → College / University → Career</h2><p>Adults can capture useful education and career evidence now. Younger-student account access stays disabled until BragStack completes the additional legal and privacy work for that release.</p></div>
+      <div className="application-stats">
+        <div><strong>Learn</strong><span>what you are getting better at</span></div>
+        <div><strong>Grow</strong><span>see how your story changes over time</span></div>
+        <div><strong>Use it</strong><span>when the right opportunity appears</span></div>
+      </div>
+    </section>
+
+    <section className="application-workflow-grid" aria-label="Ways to use your education record">
       {WORKFLOWS.map(({ id, title, icon: Icon, blurb, accent }) => <button type="button" key={id} className={`application-workflow-card ${accent} ${applicationType === id ? "active" : ""}`} onClick={() => chooseWorkflow(id)}>
         <span className="application-workflow-icon"><Icon size={22} /></span>
         <span><strong>{title}</strong><small>{blurb}</small></span>
@@ -180,32 +189,32 @@ function ApplicationsHubPage() {
       </button>)}
     </section>
 
-    {loading && <BragStackLoader compact message={`Finding your best ${activeWorkflow.title.toLowerCase()} evidence…`} detail="Reviewing your saved accomplishments and proof without inventing new claims." />}
+    {loading && <BragStackLoader compact message={`Looking through your wins for ${activeWorkflow.title.toLowerCase()}…`} detail="Reviewing what you actually saved without making up achievements or experiences." />}
 
-    {!loading && error && <section className="application-error"><strong>Could not load application guidance.</strong><span>{error}</span><button type="button" onClick={retryLoad}><RefreshCw size={16} /> Try again</button></section>}
+    {!loading && error && <section className="application-error"><strong>Could not load your Education workspace.</strong><span>{error}</span><button type="button" onClick={retryLoad}><RefreshCw size={16} /> Try again</button></section>}
 
     {!loading && data && <>
       <section className="application-overview">
-        <div><p className="applications-kicker"><Target size={15} /> {data.profile?.title}</p><h2>{data.profile?.description}</h2></div>
+        <div><p className="applications-kicker"><Target size={15} /> {activeWorkflow.title}</p><h2>Here&apos;s what your saved wins can already help you talk about.</h2><p>{activeWorkflow.blurb}</p></div>
         <div className="application-stats">
-          <div><strong>{data.summary?.education_accomplishments ?? 0}</strong><span>education accomplishments</span></div>
-          <div><strong>{data.summary?.accomplishments_analyzed ?? 0}</strong><span>total accomplishments reviewed</span></div>
-          <div><strong>{data.summary?.recommended_evidence_count ?? 0}</strong><span>evidence candidates</span></div>
+          <div><strong>{data.summary?.education_accomplishments ?? 0}</strong><span>education & learning wins</span></div>
+          <div><strong>{data.summary?.accomplishments_analyzed ?? 0}</strong><span>total wins reviewed</span></div>
+          <div><strong>{data.summary?.recommended_evidence_count ?? 0}</strong><span>good examples to start with</span></div>
         </div>
       </section>
 
       <div className="application-main-grid">
         <section className="application-evidence-panel">
-          <div className="application-section-heading"><div><p className="applications-kicker">Evidence shortlist</p><h2>{applicationType === "essay-prep" ? "Real stories worth revisiting" : "Strong material to review first"}</h2></div><span>{selectedIds.length} selected</span></div>
-          {(data.recommended_evidence || []).length === 0 ? <div className="application-empty"><BookOpenCheck size={28} /><h3>No accomplishments yet.</h3><p>Capture real school, project, service, work, leadership, or learning experiences first. BragStack cannot build an application from evidence that does not exist.</p><a href="/app/accomplishments?create=1">Add an accomplishment</a></div> : <div className="application-evidence-list">
+          <div className="application-section-heading"><div><p className="applications-kicker">Your wins</p><h2>{applicationType === "essay-prep" ? "Real moments worth remembering" : "Wins worth using for this goal"}</h2></div><span>{selectedIds.length} picked</span></div>
+          {(data.recommended_evidence || []).length === 0 ? <div className="application-empty"><BookOpenCheck size={28} /><h3>Your story starts with one win.</h3><p>Add something you are proud of: a project, class achievement, club, competition, volunteer experience, job, leadership moment, performance, award, or skill you worked hard to build.</p><a href="/app/accomplishments?create=1">Add my first win</a></div> : <div className="application-evidence-list">
             {(data.recommended_evidence || []).map((item) => {
               const selected = selectedIds.includes(item.entry_id);
               return <article className={`application-evidence-card ${selected ? "selected" : ""}`} key={item.entry_id}>
-                <button type="button" className="application-select" aria-pressed={selected} onClick={() => toggleEntry(item.entry_id)}><span>{selected && <Check size={14} />}</span>{selected ? "Selected" : "Select"}</button>
+                <button type="button" className="application-select" aria-pressed={selected} onClick={() => toggleEntry(item.entry_id)}><span>{selected && <Check size={14} />}</span>{selected ? "Picked" : "Pick this win"}</button>
                 <div className="application-evidence-heading"><div><span className={`application-fit ${item.fit_strength}`}>{fitLabel(item.fit_strength)}</span><h3>{item.title}</h3><p>{item.category} · {item.entry_type}</p></div></div>
                 <div className="application-dimensions">{(item.matched_dimensions || []).map((dimension) => <span key={dimension}>{LABELS[dimension] || dimension.replaceAll("_", " ")}</span>)}</div>
                 <ul>{(item.fit_reasons || []).map((reason) => <li key={reason}>{reason}</li>)}</ul>
-                <div className="application-proof-flags">{item.has_measurable_detail && <span>Measurable detail</span>}{item.has_evidence && <span>Evidence attached</span>}{item.has_confirmation && <span>Confirmed</span>}</div>
+                <div className="application-proof-flags">{item.has_measurable_detail && <span>Has details</span>}{item.has_evidence && <span>Proof attached</span>}{item.has_confirmation && <span>Confirmed</span>}</div>
               </article>;
             })}
           </div>}
@@ -213,23 +222,24 @@ function ApplicationsHubPage() {
 
         <aside className="application-side-panel">
           <section className="application-shortlist-card">
-            <p className="applications-kicker">Your shortlist</p>
-            <h3>{selectedEvidence.length ? `${selectedEvidence.length} pieces of evidence selected` : "Choose evidence to use"}</h3>
+            <p className="applications-kicker">Use these for this goal</p>
+            <h3>{selectedEvidence.length ? `${selectedEvidence.length} win${selectedEvidence.length === 1 ? "" : "s"} picked` : "Pick the wins you want to use"}</h3>
             {selectedEvidence.length > 0 && <ol>{selectedEvidence.map((item) => <li key={item.entry_id}>{item.title}</li>)}</ol>}
-            <button type="button" disabled={!selectedEvidence.length} onClick={() => void copyShortlist()}>{applicationType === "essay-prep" ? "Copy story candidates" : "Copy evidence shortlist"}</button>
-            {applicationType === "internship" && <a className="application-secondary-action" href="/app/resume-builder">Continue to Resume Builder <ChevronRight size={15} /></a>}
-            <small>{notice || (applicationType === "essay-prep" ? "BragStack surfaces stories; you write the essay in your own voice." : "Use this shortlist as prep material, not as a prediction of selection.")}</small>
+            <button type="button" disabled={!selectedEvidence.length} onClick={() => void copyShortlist()}>{applicationType === "essay-prep" ? "Copy my story ideas" : "Copy my wins"}</button>
+            {applicationType === "internship" && <a className="application-secondary-action" href="/app/resume-builder">Turn these into a resume <ChevronRight size={15} /></a>}
+            <small>{notice || (applicationType === "essay-prep" ? "BragStack helps you remember the story. You stay the writer." : "These are starting points from your own record—not a prediction of who will choose you.")}</small>
           </section>
 
           <section className="application-gaps-card">
-            <p className="applications-kicker"><Lightbulb size={14} /> Evidence gaps</p>
-            <h3>What your record could show more clearly</h3>
-            {(data.gaps || []).length ? <div className="application-gap-list">{data.gaps.map((gap) => <div key={gap.dimension}><strong>{gap.label}</strong><p>{gap.detail}</p><span>{gap.action}</span></div>)}</div> : <p className="application-no-gaps">Your saved evidence touches every core dimension in this workflow. Keep the strongest examples current and accurate.</p>}
+            <p className="applications-kicker"><Lightbulb size={14} /> Next steps</p>
+            <h3>What could make your story stronger</h3>
+            {(data.gaps || []).length ? <div className="application-gap-list">{data.gaps.map((gap) => <div key={gap.dimension}><strong>{gap.label}</strong><p>{gap.detail}</p><span>{gap.action}</span></div>)}</div> : <p className="application-no-gaps">You already have wins touching every major area for this goal. Keep adding the moments you are proud of as they happen.</p>}
+            <a className="application-secondary-action" href="/app/accomplishments?create=1">Capture another win <ChevronRight size={15} /></a>
           </section>
         </aside>
       </div>
 
-      <section className="application-methodology"><ShieldCheck size={17} /><p><strong>Education Intelligence v1</strong> ranks your own saved accomplishments for relevance. It does not generate admissions odds, scholarship odds, or invented activities. Program requirements vary, so always compare this shortlist against the actual application.</p></section>
+      <section className="application-methodology"><ShieldCheck size={17} /><p><strong>Education Intelligence v1</strong> organizes the accomplishments you really saved. It does not make up activities, give you an admissions score, or promise scholarships, internships, or acceptance. You stay in control of your story.</p></section>
     </>}
   </main>;
 }
