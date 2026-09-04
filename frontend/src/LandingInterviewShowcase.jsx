@@ -18,7 +18,7 @@ export default function LandingInterviewShowcase() {
   return createPortal(
     <section className="landing-interview-showcase" aria-label="BragStack Pro Practice Interviewer preview">
       <div className="interview-showcase-copy">
-        <span className="showcase-pro-label"><Sparkles size={14} /> NEW · BRAGSTACK PRO</span>
+        <span className="showcase-pro-label"><Sparkles size={14} /> OPEN ACCESS · BRAGSTACK PRO</span>
         <h2>Practice the interview before it counts.</h2>
         <p>Choose virtually any career and target role. BragStack asks realistic questions, coaches weak answers with follow-ups, and shows where your stories are strong—or missing the result.</p>
         <div className="showcase-benefits">
@@ -27,8 +27,8 @@ export default function LandingInterviewShowcase() {
           <span><CheckCircle2 size={17} /> Camera and voice practice where your browser supports it</span>
           <span><CheckCircle2 size={17} /> Final strengths, improvement areas, pacing, and answer patterns</span>
         </div>
-        <a className="landing-btn" href="/upgrade">Unlock Practice Interviewer</a>
-        <small>Built on BragStack's own interview intelligence engine. No paid cloud-AI call is required for the core interview.</small>
+        <a className="landing-btn" href="/register">Try Practice Interview free</a>
+        <small>Pro is temporarily open to everyone at no charge. No new paid subscription is required during the open-access period.</small>
       </div>
 
       <div className="showcase-product-shot" aria-label="Illustrative BragStack interview room">
