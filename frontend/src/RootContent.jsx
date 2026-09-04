@@ -14,6 +14,8 @@ const BillingSettingsPage = lazyPage(() => import("./BillingSettingsPage.jsx"));
 const CareerIntelligencePage = lazyPage(() => import("./CareerIntelligencePage.jsx"));
 const DashboardPage = lazyPage(() => import("./DashboardPage.jsx"));
 const DocsPage = lazyPage(() => import("./DocsPage.jsx"));
+const EducationGuidePage = lazyPage(() => import("./EducationGuidePage.jsx"));
+const EducationMarketingPage = lazyPage(() => import("./EducationMarketingPage.jsx"));
 const ExecutiveImpactPage = lazyPage(() => import("./ExecutiveImpactPage.jsx"));
 const ImpactReceiptsPage = lazyPage(() => import("./ImpactReceiptsPage.jsx"));
 const InterviewPracticeExperience = lazyPage(() => import("./InterviewPracticeExperience.jsx"));
@@ -130,6 +132,14 @@ function RootContent() {
     const timeout = window.setTimeout(() => {
       document.querySelectorAll('a[href="/#security"]').forEach((link) => link.setAttribute("href", "/security"));
       if (path !== "/") return;
+      const landingNav = document.querySelector(".landing-nav-links");
+      if (landingNav && !landingNav.querySelector('a[href="/education"]')) {
+        const educationLink = document.createElement("a");
+        educationLink.href = "/education";
+        educationLink.textContent = "Education";
+        const pricingLink = landingNav.querySelector('a[href="#pricing"]');
+        landingNav.insertBefore(educationLink, pricingLink || null);
+      }
       document.querySelectorAll('a[href*="@bragstack.app"]').forEach((link) => { const href = link.getAttribute("href") || ""; const subject = href.includes("?subject=") ? `?${href.split("?")[1]}` : ""; link.setAttribute("href", `mailto:Tobias.scott@usebragstack.com${subject}`); });
       document.querySelectorAll(".mega-footer-columns span").forEach((node) => { if (node.textContent?.trim() !== "Docs · coming soon") return; const link = document.createElement("a"); link.href = "/docs"; link.textContent = "Docs"; node.replaceWith(link); });
     }, 0);
@@ -141,6 +151,8 @@ function RootContent() {
   else if (path === "/privacy" || path === "/terms") content = <LegalPages page={path === "/privacy" ? "privacy" : "terms"} />;
   else if (path === "/verify-receipt") content = <ReceiptVerificationPage />;
   else if (path === "/upgrade") content = <UpgradePage />;
+  else if (path === "/education") content = <EducationMarketingPage />;
+  else if (path === "/docs/education") content = <EducationGuidePage />;
   else if (path === "/docs") content = <DocsPage />;
   else if (path === "/nda-safety") content = <NDAGuidancePage />;
   else if (path === "/security") content = <SecurityPage />;
