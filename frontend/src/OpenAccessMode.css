@@ -1,0 +1,27 @@
+/* Temporary launch-safety mode: paid upgrades are paused. Keep stale paid pricing
+   and upgrade CTAs out of the public landing experience until billing is restored. */
+.landing-page::before {
+  content: "OPEN ACCESS · BragStack Pro is temporarily available at no charge. Paid upgrades are paused.";
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 20px;
+  text-align: center;
+  font-size: .82rem;
+  font-weight: 850;
+  line-height: 1.45;
+  letter-spacing: .02em;
+  color: #dbeafe;
+  background: rgba(30, 64, 175, .28);
+  border-bottom: 1px solid rgba(147, 197, 253, .2);
+}
+
+.landing-page .landing-pricing,
+.landing-page .landing-nav-links a[href="#pricing"],
+.landing-page a[href="/upgrade"] {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  .landing-page::before { padding-inline: 14px; font-size: .76rem; }
+}
