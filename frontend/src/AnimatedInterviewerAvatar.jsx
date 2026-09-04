@@ -8,7 +8,7 @@ const STATE_COPY = {
   encouraging: "Preparing next step",
 };
 
-export default function AnimatedInterviewerAvatar({ state = "idle", name = "AJ" }) {
+export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aisha Jordan" }) {
   const safeState = STATE_COPY[state] ? state : "idle";
 
   return (
@@ -21,7 +21,7 @@ export default function AnimatedInterviewerAvatar({ state = "idle", name = "AJ" 
       <div className="aj-avatar-content">
         <div className="aj-avatar-monogram" aria-hidden="true">AJ</div>
         <div className="aj-avatar-identity">
-          <span>BragStack Interviewer</span>
+          <span>Aisha Jordan · BragStack Interviewer</span>
         </div>
         <div className={`aj-avatar-state state-${safeState}`} aria-live="polite">
           <span className="aj-avatar-state-dot" aria-hidden="true" />
