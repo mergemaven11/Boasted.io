@@ -3,7 +3,6 @@ import {
   BookOpen,
   BriefcaseBusiness,
   CalendarDays,
-  CheckCircle2,
   GraduationCap,
   LifeBuoy,
   LockKeyhole,
