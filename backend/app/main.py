@@ -28,6 +28,7 @@ from app.ops_debug import new_request_id, record_request
 from app.ops_routes import router as ops_router
 from app.ops_invite_routes import router as ops_invite_router
 from app.ops_user_routes import router as ops_user_router
+from app.ai_verification_routes import router as ai_verification_router
 from app.packet_audit_routes import router as packet_audit_router
 from app.plans import enforce_usage_limit
 from app.private_packet_routes import router as private_packet_router
@@ -40,6 +41,7 @@ from app.rate_limit import check_rate_limit
 from app.reports_routes import router as reports_router
 from app.resume_builder_routes import router as resume_builder_router
 from app.resume_import_fast_routes import router as resume_import_fast_router
+from app.verified_resume_routes import router as verified_resume_router
 from app.routes import router as entries_router
 
 app = FastAPI(
@@ -269,11 +271,13 @@ app.include_router(private_packet_router)
 app.include_router(packet_audit_router)
 app.include_router(private_packet_share_router)
 app.include_router(interview_catalog_router)
+app.include_router(verified_resume_router)
 app.include_router(resume_builder_router)
 app.include_router(resume_import_fast_router)
 app.include_router(ops_router)
 app.include_router(ops_user_router)
 app.include_router(ops_invite_router)
+app.include_router(ai_verification_router)
 
 
 @app.get("/")

@@ -1,0 +1,138 @@
+name: CI Full Validation
+
+on:
+  workflow_call:
+    inputs:
+      mode:
+        description: Validation mode
+        required: false
+        type: string
+        default: nightly
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Run the launch-grade full validation suite
+        required: true
+        type: choice
+        options:
+          - full
+        default: full
+
+concurrency:
+  group: ci-full-validation-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backend-full:
+    name: Full backend validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      MONGO_URL: mongodb://localhost:27017
+      JWT_SECRET: test-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run full backend suite
+        run: python -m pytest
+
+  frontend-full:
+    name: Full browser and production frontend validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Deterministic frontend checks
+        run: |
+          npm run test:analytics
+          node scripts/verify-aisha-source.mjs
+          npm run test:interview
+          npm run test:resume
+          npm run test:seo
+      - name: Audit every visible click path in real Chrome
+        run: npm run test:clicks
+      - name: Confirm responsive UI on phone, tablet, and desktop
+        run: npm run test:layout
+      - name: Upload responsive failures
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: responsive-ui-failures
+          path: frontend/artifacts/ui-layout
+          if-no-files-found: ignore
+          retention-days: 3
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
+      - name: Enforce production bundle budgets
+        run: npm run test:bundle
+      - name: Verify Aisha production bundle
+        run: node scripts/verify-aisha-build.mjs
+
+  security-full:
+    name: Full dependency vulnerability audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Audit Python dependencies
+        run: |
+          python -m pip install pip-audit
+          pip-audit -r backend/requirements.txt --ignore-vuln PYSEC-2026-1325
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Audit frontend dependencies
+        working-directory: frontend
+        run: |
+          npm ci
+          for attempt in 1 2 3; do
+            set +e
+            audit_output="$(npm audit --audit-level=high 2>&1)"
+            audit_status=$?
+            set -e
+            printf '%s\n' "$audit_output"
+            if [ "$audit_status" -eq 0 ]; then exit 0; fi
+            if printf '%s\n' "$audit_output" | grep -Eq '503 Service Unavailable|audit endpoint returned an error|ECONNRESET|ETIMEDOUT|EAI_AGAIN' && [ "$attempt" -lt 3 ]; then sleep 10; continue; fi
+            exit "$audit_status"
+          done

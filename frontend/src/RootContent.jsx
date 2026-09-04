@@ -6,6 +6,7 @@ import useSearchAppearanceMeta from "./useSearchAppearanceMeta.js";
 const lazyPage = (loader) => lazy(loader);
 const App = lazyPage(() => import("./App.jsx"));
 const AccomplishmentsPage = lazyPage(() => import("./AccomplishmentsPage.jsx"));
+const AIVerificationPage = lazyPage(() => import("./AIVerificationPage.jsx"));
 const AppSidebar = lazyPage(() => import("./AppSidebar.jsx"));
 const AppearanceSettingsPage = lazyPage(() => import("./AppearanceSettingsPage.jsx"));
 const BillingSettingsPage = lazyPage(() => import("./BillingSettingsPage.jsx"));
@@ -140,6 +141,7 @@ function RootContent() {
     if (path === "/app") Content = DashboardPage;
     else if (path === "/ops") Content = OpsConsolePage;
     else if (path === "/ops/users") Content = OpsUsersPage;
+    else if (path === "/ops/ai-verification") Content = AIVerificationPage;
     else if (path === "/app/settings") Content = SettingsPage;
     else if (path === "/app/profile") Content = ProfilePage;
     else if (path === "/app/settings/appearance") Content = AppearanceSettingsPage;
