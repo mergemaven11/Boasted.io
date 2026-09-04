@@ -1,22 +1,26 @@
-# BragStack V1 Release Notes
+# BragStack V1 Release Notes — Historical Baseline
 
-BragStack V1 turns accomplishment tracking into a complete career-proof workflow.
+These notes describe the original V1 baseline. They are preserved for project history and should **not** be used as the current feature list.
 
-## Included in V1
+For the current September 2026 product status, temporary Pro open access, Education expansion, Support Center, and the active roadmap, see [`RELEASE_STATUS.md`](RELEASE_STATUS.md).
 
-- Authenticated private accomplishment tracking
-- Editable public profiles and shareable public proof
+## Original V1 scope
+
+BragStack V1 established the first career-proof workflow:
+
+- authenticated private accomplishment tracking
+- editable public profiles and shareable public proof
 - Impact Receipts with evidence metadata, skills, shared credit, trust signals, and visibility controls
-- Weekly, all-time, and custom career reports
-- Résumé bullet generation
-- Searchable report highlights
-- Copyable résumé bullets and Markdown reports
-- Downloadable Markdown career reports
+- weekly, all-time, and custom career reports
+- résumé bullet generation
+- searchable report highlights
+- copyable résumé bullets and Markdown reports
+- downloadable Markdown career reports
 - Docker Compose local development
 - FastAPI OpenAPI documentation
-- Automated backend coverage for reports, profiles, receipt visibility, and public privacy
+- automated backend coverage for reports, profiles, receipt visibility, and public privacy
 
-## Product flow
+## Original V1 product flow
 
 ```text
 Brag Entry
@@ -28,14 +32,8 @@ Evidence + Shared Credit + Trust Signals
 Career Report / Public Proof
 ```
 
-## Post-V1 roadmap
+That original flow has since evolved into the current BragStack model:
 
-The following are intentionally deferred rather than required for V1:
+**Capture → Prove → Package → Share → Connect**
 
-- richer Impact Receipt editing UX
-- direct GitHub, Jira, and Zendesk integrations
-- collaborator invitation and confirmation workflows
-- review and promotion packet generators
-- PDF export
-- teams and organizations
-- SSO, audit logs, and enterprise permissions
+Several items that were once listed as post-V1 work — including review/promotion packets, PDF export, richer verification workflows, Resume Builder, Practice Interview, Career Intelligence, Education, and broader customer-facing product surfaces — now exist in the product. Their current status is maintained in `RELEASE_STATUS.md` rather than duplicated here.
