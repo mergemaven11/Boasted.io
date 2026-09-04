@@ -14,6 +14,8 @@ from app.public_slug_routes import get_user_by_public_slug
 router = APIRouter(tags=["profile-connection"])
 
 ALLOWED_CONVERSATION_TYPES = {
+    "general-chat",
+    "virtual-coffee",
     "recruiter-chat",
     "technical-deep-dive",
     "networking",
@@ -51,7 +53,7 @@ class ProfileConnectionUpdate(BaseModel):
     open_to_talk: bool | None = None
     open_to_talk_url: str | None = Field(default=None, max_length=500)
     open_to_talk_note: str | None = Field(default=None, max_length=240)
-    open_to_talk_types: list[str] | None = Field(default=None, max_length=5)
+    open_to_talk_types: list[str] | None = Field(default=None, max_length=7)
     calendly_enabled: bool | None = None
     calendly_url: str | None = Field(default=None, max_length=500)
 
