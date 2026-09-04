@@ -1,0 +1,37 @@
+name: CI Nightly
+
+on:
+  schedule:
+    - cron: "17 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recent-change:
+    name: Check for recent main changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      changed: ${{ steps.recent.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - id: recent
+        run: |
+          if git log -1 --since='24 hours ago' --format='%H' | grep -q .; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  heavy-validation:
+    name: Nightly heavy validation
+    needs: recent-change
+    if: needs.recent-change.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/ci-full-validation.yml
+    with:
+      mode: nightly
