@@ -23,3 +23,14 @@ executive_goals_collection = db["executive_goals"]
 executive_export_audit_collection = db["executive_export_audit"]
 stripe_webhook_events_collection = db["stripe_webhook_events"]
 rate_limits_collection = db["rate_limits"]
+
+# Team / organization foundation. Organization membership never grants access
+# to a user's private proof by itself; review visibility is driven by explicit
+# user-created review shares in ``review_shares_collection``.
+organizations_collection = db["organizations"]
+organization_memberships_collection = db["organization_memberships"]
+organization_invitations_collection = db["organization_invitations"]
+teams_collection = db["teams"]
+team_memberships_collection = db["team_memberships"]
+review_shares_collection = db["review_shares"]
+review_templates_collection = db["review_templates"]
