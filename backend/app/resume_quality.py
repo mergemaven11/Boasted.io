@@ -8,8 +8,6 @@ from app.ai.contracts import AISuggestion, EvidenceContext
 from app.ai.guards import validate_grounded_suggestion
 from app.resume_builder import receipt_text
 
-_NUMERIC_RE = re.compile(r"(?<!\w)(?:[$£€]?\d+(?:[,.]\d+)*(?:%|x|\+)?)(?!\w)")
-
 
 @dataclass(frozen=True)
 class ResumeQualityViolation:
@@ -25,6 +23,34 @@ def _normalize(value: str) -> str:
 
 def _receipt_id(receipt: dict) -> str:
     return str(receipt.get("_id", receipt.get("id", "")))
+
+
+def build_safe_generated_summary(*, target_role: str, receipts: list[dict], existing_resume_text: str, current_summary: str) -> str:
+    """Return a summary that cannot turn a target role into employment history.
+
+    User-provided summaries are preserved exactly. When BragStack needs to
+    generate a summary, it uses only skills present in selected Impact Receipts
+    and phrases the target role as intent ("Targeting … roles") rather than a
+    claim that the user already holds that title. Without source evidence, the
+    generated summary is intentionally blank.
+    """
+    source_text = _normalize(existing_resume_text)
+    summary = str(current_summary or "").strip()
+    if summary and _normalize(summary) in source_text:
+        return summary[:1200]
+    if not receipts:
+        return ""
+
+    skills: list[str] = []
+    for receipt in receipts:
+        for raw_skill in receipt.get("skills") or []:
+            skill = str(raw_skill or "").strip()
+            if skill and skill.casefold() not in {item.casefold() for item in skills}:
+                skills.append(skill)
+    role = str(target_role or "").strip()
+    if skills:
+        return f"Targeting {role} roles, with documented work demonstrating {', '.join(skills[:5])}."[:1200]
+    return f"Targeting {role} roles, with resume content grounded in selected Impact Receipts."[:1200]
 
 
 def verify_resume_analysis(
@@ -79,8 +105,8 @@ def verify_resume_analysis(
         for item in validate_grounded_suggestion(suggestion, (evidence,)):
             violations.append(ResumeQualityViolation(item.code, item.message))
 
-    imported_skills = set()
     source_text = _normalize(existing_resume_text)
+    imported_skills = set()
     for skill in analysis.get("skills", []):
         normalized = _normalize(skill)
         if normalized and normalized in source_text:
@@ -103,9 +129,6 @@ def verify_resume_analysis(
             )
 
     summary = str(analysis.get("summary") or "").strip()
-    imported_summary = str((analysis.get("imported_resume") or {}).get("summary") or "").strip()
-    # Current analyze_resume does not expose imported summary separately. When
-    # source resume text contains the exact summary, it is user-provided.
     summary_is_imported = bool(summary and _normalize(summary) in source_text)
     if summary and not summary_is_imported:
         if not receipts:
@@ -134,9 +157,6 @@ def verify_resume_analysis(
             for item in validate_grounded_suggestion(suggestion, evidence):
                 violations.append(ResumeQualityViolation(item.code, item.message))
 
-            # Target role is user intent, not a proven employment title. A safe
-            # generated summary may say the user is targeting the role but must
-            # not assert that they already hold it.
             normalized_summary = _normalize(summary)
             role = _normalize(target_role)
             if role and normalized_summary.startswith(role + " with"):
@@ -147,9 +167,6 @@ def verify_resume_analysis(
                     )
                 )
 
-    # Job-description requirements are allowed in matching diagnostics, but not
-    # silently promoted into the user's skills. The skill-source check above is
-    # the enforceable boundary for that failure mode.
     unique = {(item.code, item.message): item for item in violations}
     violations = list(unique.values())
     checks = {
@@ -159,6 +176,8 @@ def verify_resume_analysis(
         "skills_grounded_in_user_sources": not any(item.code == "unsupported_skill" for item in violations),
         "target_role_not_claimed_as_history": not any(item.code == "target_role_presented_as_fact" for item in violations),
         "summary_requires_evidence": not any(item.code == "generated_summary_without_evidence" for item in violations),
+        # Company and education fields are imported/manual only in the current
+        # builder; BragStack does not synthesize them from a job description.
         "company_and_education_generation": True,
     }
     return {
