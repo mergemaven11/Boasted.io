@@ -40,7 +40,8 @@ jobs:
           if printf '%s\n' "$changed_files" | grep -Eq '^(backend/requirements\.txt|frontend/package\.json|frontend/package-lock\.json|\.github/workflows/ci-)'; then echo "dependencies=true" >> "$GITHUB_OUTPUT"; else echo "dependencies=false" >> "$GITHUB_OUTPUT"; fi
 
   backend-medium:
-    name: Medium backend suite
+    # Preserve the protected-branch context while using the cheaper medium PR tier.
+    name: Run backend tests
     needs: changes
     if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
@@ -74,7 +75,8 @@ jobs:
         run: python -m pytest
 
   frontend-medium:
-    name: Medium frontend suite
+    # Preserve the protected-branch context while using the cheaper medium PR tier.
+    name: Test, lint and build frontend
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
@@ -104,7 +106,9 @@ jobs:
         run: npm run build
 
   dependency-audit:
-    name: Dependency audit when manifests change
+    # Preserve the protected-branch context. This expensive job runs only when
+    # dependency manifests or CI workflow definitions changed.
+    name: Dependency vulnerability audit
     needs: changes
     if: needs.changes.outputs.dependencies == 'true'
     runs-on: ubuntu-latest
