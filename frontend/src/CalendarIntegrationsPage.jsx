@@ -1,16 +1,21 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  CalendarCheck2,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
   Clock3,
+  ExternalLink,
   Link2,
   RefreshCw,
+  Save,
   ShieldCheck,
   Sparkles,
   Video,
 } from "lucide-react";
+import { getProfileConnection, updateProfileConnection } from "./profileConnectionApi.js";
 import "./CalendarIntegrationsPage.css";
+import "./CalendarPublicScheduling.css";
 
 const PROVIDERS = [
   {
@@ -55,6 +60,10 @@ export default function CalendarIntegrationsPage() {
   const [providerState] = useState({ google: "disconnected", microsoft: "disconnected" });
   const [connectionMessage, setConnectionMessage] = useState("");
   const [calendarView, setCalendarView] = useState("month");
+  const [calendly, setCalendly] = useState({ calendly_url: "", calendly_enabled: false });
+  const [calendlySaving, setCalendlySaving] = useState(false);
+  const [calendlyMessage, setCalendlyMessage] = useState("");
+  const [calendlyError, setCalendlyError] = useState("");
   const days = useMemo(() => buildMonthDays(month), [month]);
   const today = dayKey(new Date());
   const selected = dayKey(selectedDay);
@@ -67,6 +76,28 @@ export default function CalendarIntegrationsPage() {
   const selectedMeetings = meetingsByDay[selected] || [];
   const connectedProviders = Object.values(providerState).filter((state) => state === "connected").length;
 
+  useEffect(() => {
+    let active = true;
+    getProfileConnection()
+      .then((data) => {
+        if (!active) return;
+        setCalendly({
+          calendly_url: data.calendly_url || "",
+          calendly_enabled: Boolean(data.calendly_enabled),
+        });
+      })
+      .catch((error) => {
+        if (!active) return;
+        if (error.response?.status === 401) {
+          localStorage.removeItem("bragstack_token");
+          window.location.assign("/login");
+          return;
+        }
+        setCalendlyError("Calendly settings could not be loaded.");
+      });
+    return () => { active = false; };
+  }, []);
+
   function moveMonth(offset) {
     setMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
   }
@@ -76,24 +107,86 @@ export default function CalendarIntegrationsPage() {
     setConnectionMessage(`${providerName} is ready for OAuth wiring. BragStack has not connected or read any calendar data yet.`);
   }
 
+  async function saveCalendly(event) {
+    event.preventDefault();
+    setCalendlySaving(true);
+    setCalendlyMessage("");
+    setCalendlyError("");
+    try {
+      const updated = await updateProfileConnection(calendly);
+      setCalendly({
+        calendly_url: updated.calendly_url || "",
+        calendly_enabled: Boolean(updated.calendly_enabled),
+      });
+      setCalendlyMessage(updated.calendly_enabled
+        ? "Calendly is now visible as an interactive calendar on your public Proof Profile."
+        : "Calendly settings saved. The calendar is hidden from your public Proof Profile.");
+    } catch (error) {
+      setCalendlyError(error.response?.data?.detail || "Calendly settings could not be saved.");
+    } finally {
+      setCalendlySaving(false);
+    }
+  }
+
   return (
     <main className="calendar-integrations-page">
       <header className="calendar-integrations-header">
         <div>
           <p className="calendar-kicker">INTEGRATIONS · CALENDARS</p>
           <h1>Your schedule, beside your proof.</h1>
-          <span>Connect calendars to see upcoming meetings in BragStack without making your private schedule part of your public Proof Profile.</span>
+          <span>Keep private calendars private, or intentionally publish a Calendly booking calendar on your Proof Profile.</span>
         </div>
-        <div className="calendar-privacy-pill"><ShieldCheck size={16}/> Private workspace only</div>
+        <div className="calendar-privacy-pill"><ShieldCheck size={16}/> You control what becomes public</div>
       </header>
 
-      <section className="calendar-overview" aria-label="Calendar overview">
-        <article><span>Connected calendars</span><strong>{connectedProviders}</strong><small>Google + Microsoft supported</small></article>
-        <article><span>Upcoming meetings</span><strong>{meetings.length}</strong><small>Nothing is imported until you authorize it</small></article>
-        <article><span>Public exposure</span><strong>None</strong><small>Your schedule never becomes profile proof</small></article>
+      <section className="calendly-integration-card" aria-labelledby="calendly-heading">
+        <div className="calendly-integration-copy">
+          <div className="calendly-mark" aria-hidden="true"><CalendarCheck2 size={24}/></div>
+          <div>
+            <p className="calendar-kicker">PUBLIC SCHEDULING</p>
+            <h2 id="calendly-heading">Calendly on your Proof Profile</h2>
+            <p>Paste your public Calendly scheduling link. BragStack does not request Calendly OAuth or access your private calendar; it embeds the scheduling experience you choose to publish.</p>
+          </div>
+        </div>
+        <form className="calendly-settings-form" onSubmit={saveCalendly}>
+          <label>
+            <span>Calendly scheduling link</span>
+            <div className="calendly-url-row">
+              <input
+                type="url"
+                value={calendly.calendly_url}
+                onChange={(event) => setCalendly((current) => ({ ...current, calendly_url: event.target.value }))}
+                placeholder="https://calendly.com/your-name/30min"
+                autoComplete="url"
+              />
+              {calendly.calendly_url && <a href={calendly.calendly_url} target="_blank" rel="noreferrer" aria-label="Open Calendly link"><ExternalLink size={17}/></a>}
+            </div>
+            <small>Only HTTPS calendly.com scheduling links are accepted.</small>
+          </label>
+          <label className="calendly-toggle">
+            <input
+              type="checkbox"
+              checked={calendly.calendly_enabled}
+              onChange={(event) => setCalendly((current) => ({ ...current, calendly_enabled: event.target.checked }))}
+            />
+            <span><strong>Show the actual calendar on my public Proof Profile</strong><small>Visitors can select a date and available time without leaving your profile.</small></span>
+          </label>
+          {calendlyMessage && <div className="calendly-save-message success" role="status">{calendlyMessage}</div>}
+          {calendlyError && <div className="calendly-save-message error" role="alert">{calendlyError}</div>}
+          <div className="calendly-form-actions">
+            <span><ShieldCheck size={15}/> BragStack stores the public link only.</span>
+            <button type="submit" disabled={calendlySaving}><Save size={16}/> {calendlySaving ? "Saving…" : "Save Calendly"}</button>
+          </div>
+        </form>
       </section>
 
-      <section className="provider-grid" aria-label="Calendar providers">
+      <section className="calendar-overview" aria-label="Calendar overview">
+        <article><span>Connected private calendars</span><strong>{connectedProviders}</strong><small>Google + Microsoft planned</small></article>
+        <article><span>Upcoming meetings</span><strong>{meetings.length}</strong><small>Nothing is imported until you authorize it</small></article>
+        <article><span>Public scheduling</span><strong>{calendly.calendly_enabled ? "On" : "Off"}</strong><small>Calendly is the only public calendar surface</small></article>
+      </section>
+
+      <section className="provider-grid" aria-label="Private calendar providers">
         {PROVIDERS.map((provider) => {
           const state = providerState[provider.id];
           return (
@@ -117,7 +210,7 @@ export default function CalendarIntegrationsPage() {
         <div className="calendar-main">
           <div className="calendar-toolbar">
             <div>
-              <p className="calendar-kicker">UPCOMING MEETINGS</p>
+              <p className="calendar-kicker">PRIVATE WORKSPACE CALENDAR</p>
               <h2>{monthLabel(month)}</h2>
             </div>
             <div className="calendar-toolbar-right">
@@ -160,7 +253,7 @@ export default function CalendarIntegrationsPage() {
             <div className="calendar-agenda-view">
               <div className="agenda-empty-icon"><CalendarDays size={28}/></div>
               <h3>Your agenda will live here</h3>
-              <p>Once a calendar is connected, BragStack can show a clean chronological list of upcoming meetings without exposing private calendar data publicly.</p>
+              <p>Once a private calendar is connected, BragStack can show a clean chronological list of upcoming meetings without exposing that data publicly.</p>
             </div>
           )}
         </div>
@@ -194,8 +287,8 @@ export default function CalendarIntegrationsPage() {
             <div className="agenda-empty">
               <div className="agenda-empty-icon"><CalendarDays size={28}/></div>
               <h3>No synced meetings yet</h3>
-              <p>Connect Google Calendar or Microsoft Outlook above. BragStack will show upcoming meetings here once provider OAuth and calendar sync are authorized.</p>
-              <span><Sparkles size={14}/> We will never publish your calendar to your Proof Profile.</span>
+              <p>Google and Outlook OAuth remain private-workspace integrations. They are separate from your public Calendly embed.</p>
+              <span><Sparkles size={14}/> Private calendar events never become profile proof.</span>
             </div>
           )}
         </aside>
@@ -203,7 +296,7 @@ export default function CalendarIntegrationsPage() {
 
       <section className="calendar-boundary-note">
         <ShieldCheck size={18}/>
-        <div><strong>Privacy boundary</strong><p>Calendar data is for your authenticated workspace and meeting preparation. Public Proof Profiles and Open to Talk do not expose event titles, attendees, notes, or private availability.</p></div>
+        <div><strong>Privacy boundary</strong><p>Calendly publishes only the scheduling experience behind the link you provide. Google/Outlook event titles, attendees, notes, and private calendar data remain separate and are never exposed on your Proof Profile.</p></div>
       </section>
     </main>
   );
