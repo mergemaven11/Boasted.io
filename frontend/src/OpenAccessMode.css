@@ -1,7 +1,7 @@
 /* Temporary launch-safety mode: paid upgrades are paused. Keep stale paid pricing
    and upgrade CTAs out of the public landing experience until billing is restored. */
 .landing-page::before {
-  content: "🎉 BragStack Pro is temporarily free for everyone — enjoy full access! No new subscription or card is required.";
+  content: "🎉 TEMPORARY OPEN ACCESS · BragStack Pro is free for individual customer accounts for now. Team and Enterprise features are not included. No card required.";
   display: block;
   width: 100%;
   box-sizing: border-box;
