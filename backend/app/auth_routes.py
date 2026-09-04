@@ -19,6 +19,9 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 PASSWORD_RESET_FROM = os.getenv("PASSWORD_RESET_FROM", "BragStack <noreply@usebragstack.com>")
 EMAIL_VERIFICATION_FROM = os.getenv("EMAIL_VERIFICATION_FROM", PASSWORD_RESET_FROM)
+CURRENT_TERMS_VERSION = "2026-09-04"
+CURRENT_PRIVACY_VERSION = "2026-09-04"
+MINIMUM_SELF_SERVICE_AGE = 18
 PROFILE_THEMES = {
     "default",
     "clinical",
@@ -54,6 +57,11 @@ class RegisterRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=80)
     email: EmailStr
     password: str = Field(..., min_length=8)
+    terms_accepted: bool = False
+    privacy_acknowledged: bool = False
+    age_18_or_older: bool = False
+    terms_version: str = Field(default="", max_length=40)
+    privacy_version: str = Field(default="", max_length=40)
 
 
 class EmailVerificationRequest(BaseModel):
@@ -122,6 +130,37 @@ def _hash_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
+def _validate_new_account_legal_acceptance(payload: RegisterRequest) -> None:
+    """Require affirmative, versioned legal acceptance before account creation."""
+    if not payload.age_18_or_older:
+        raise HTTPException(
+            status_code=400,
+            detail=f"BragStack self-service accounts currently require users to be at least {MINIMUM_SELF_SERVICE_AGE} years old.",
+        )
+    if not payload.terms_accepted or not payload.privacy_acknowledged:
+        raise HTTPException(
+            status_code=400,
+            detail="You must agree to the Terms and acknowledge the Privacy Policy before creating an account.",
+        )
+    if payload.terms_version != CURRENT_TERMS_VERSION or payload.privacy_version != CURRENT_PRIVACY_VERSION:
+        raise HTTPException(
+            status_code=409,
+            detail="BragStack's legal terms changed. Refresh the registration page and review the current Terms and Privacy Policy before continuing.",
+        )
+
+
+def _legal_acceptance_record(method: str) -> dict:
+    accepted_at = datetime.now(timezone.utc).isoformat()
+    return {
+        "terms_version": CURRENT_TERMS_VERSION,
+        "privacy_version": CURRENT_PRIVACY_VERSION,
+        "terms_accepted_at": accepted_at,
+        "privacy_acknowledged_at": accepted_at,
+        "age_18_or_older_attested": True,
+        "method": method,
+    }
+
+
 async def _send_email(to_email, subject, html, from_value):
     if not RESEND_API_KEY:
         raise HTTPException(status_code=503, detail="Email delivery is not configured yet.")
@@ -159,6 +198,7 @@ def _issue_verification_token(user):
 
 @router.post("/register")
 async def register_user(payload: RegisterRequest):
+    _validate_new_account_legal_acceptance(payload)
     email = payload.email.lower().strip()
     if users_collection.find_one({"email": email}):
         raise HTTPException(status_code=409, detail="An account with this email already exists")
@@ -168,6 +208,7 @@ async def register_user(payload: RegisterRequest):
         "public_slug": generate_unique_public_slug(payload.name),
         "hashed_password": hash_password(payload.password),
         "email_verification_required": True,
+        "legal_acceptance": _legal_acceptance_record("email_password_registration"),
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     result = users_collection.insert_one(doc)
