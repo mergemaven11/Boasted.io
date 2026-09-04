@@ -11,6 +11,25 @@ This runbook describes safe operational checks for BragStack Stripe webhook deli
 - An abandoned processing claim has a short lease and may be reclaimed after the lease expires.
 - User billing documents track `billing_last_stripe_event_created`; an older webhook event must not regress state established by a newer event.
 
+## Georgia automatic-renewal compliance gate
+
+BragStack Pro is a recurring online subscription. The webhook state machine is only one part of the billing flow; it does **not** by itself satisfy customer disclosure/notice duties.
+
+Before recurring billing is treated as production-ready for Georgia consumers, verify the complete flow against `docs/GEORGIA_INTERIM_LEGAL_COMPLIANCE_BASELINE.md`, including:
+
+- clear automatic-renewal terms before purchase and close to the consent action;
+- affirmative consent before charging;
+- a retainable acknowledgment containing renewal terms, cancellation policy, and cancellation instructions;
+- a simple, working electronic cancellation path;
+- a notice before or within three days after a recurring charge (where required and not opted out as permitted) stating that the subscription renews unless canceled, the renewal period/additional terms, an electronic cancellation method/link, and BragStack contact information;
+- a retainable notice of material subscription-term changes with cancellation instructions.
+
+**Important:** Do not assume Stripe's default receipt/invoice emails satisfy every Georgia requirement. Inspect the actual production messages. If a required element is missing, BragStack must send its own compliant notice or configure Stripe so the required information is present.
+
+Operationally retain enough non-sensitive evidence to show the subscription state, cancellation state, relevant billing event, and delivery of any BragStack-controlled legal notice. Do not retain full payment-card data.
+
+Primary Georgia reference: O.C.G.A. § 10-1-439.9. Federal online negative-option requirements under ROSCA also require clear material terms, express informed consent, and a simple cancellation mechanism.
+
 ## Investigating a webhook
 
 1. Identify the Stripe event ID in the Stripe dashboard or approved operational tooling.
@@ -39,6 +58,8 @@ If billing state appears wrong:
 - confirm webhook signature failures are not occurring;
 - confirm the event ledger is writable and MongoDB is healthy;
 - review sanitized request/error telemetry;
+- verify a customer who canceled is not being incorrectly treated as renewing;
+- if a charge occurred, verify any legally required renewal notice was sent with the required cancellation/contact information;
 - avoid editing production MongoDB documents by hand unless the documented emergency procedure explicitly requires it.
 
 Any manual production correction should record who performed it, why it was necessary, the affected event/user identifiers, and the final verified subscription state without including secrets or payment details.
