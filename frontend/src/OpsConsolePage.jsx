@@ -65,10 +65,12 @@ function buildOpsMessages({ service = {}, persisted = {}, audit = null }) {
     messages.push({
       id: `infra:mongo:${service.mongo}`,
       source: "Infrastructure",
-      category: "infrastructure",
+      category: "Database",
       priority: "urgent",
       title: "MongoDB health needs attention",
       summary: `The API reports MongoDB as ${service.mongo}. Production data operations may be affected.`,
+      meaning: "BragStack's API cannot confirm a healthy database connection. Reads or writes may fail until connectivity recovers.",
+      nextStep: "Refresh diagnostics once. If MongoDB is still degraded, check the database and Render service health before shipping more changes.",
       createdAt: new Date().toISOString(),
       syncRecommended: true,
     });
@@ -79,10 +81,12 @@ function buildOpsMessages({ service = {}, persisted = {}, audit = null }) {
     messages.push({
       id: `app:5xx:${serverErrors}:${persisted.sample_size || 0}`,
       source: "Application",
-      category: "application",
+      category: "Server errors",
       priority: serverErrors >= 5 ? "urgent" : "warning",
       title: `${serverErrors} server error${serverErrors === 1 ? "" : "s"} in the retention window`,
       summary: "BragStack has persisted 5xx responses that are worth reviewing before they become a user-facing pattern.",
+      meaning: "At least one request failed because of a server-side problem, rather than a normal user validation error.",
+      nextStep: "Review Recent 4xx / 5xx requests and Grouped backend exceptions below. Repeated paths or fingerprints deserve a code fix first.",
       createdAt: persisted.failures?.[0]?.created_at || persisted.failures?.[0]?.timestamp,
       syncRecommended: serverErrors >= 5,
     });
@@ -92,10 +96,12 @@ function buildOpsMessages({ service = {}, persisted = {}, audit = null }) {
     messages.push({
       id: `error:${row.fingerprint}`,
       source: "Application",
-      category: "application",
+      category: "Exception group",
       priority: Number(row.count || 0) >= 3 ? "action" : "warning",
       title: row.error_type || "Grouped backend exception",
       summary: `${row.method || "REQUEST"} ${row.path || "unknown path"} · ${row.count || 1} occurrence${Number(row.count || 1) === 1 ? "" : "s"}.`,
+      meaning: "The same sanitized backend exception fingerprint occurred more than once or was important enough to retain for review.",
+      nextStep: "Match the route and fingerprint to the latest deploy. If the count is growing, inspect the route implementation and recent changes before it spreads.",
       detail: row.version ? `Version ${row.version}` : null,
       createdAt: row.last_seen,
       syncRecommended: Number(row.count || 0) >= 3,
@@ -108,10 +114,12 @@ function buildOpsMessages({ service = {}, persisted = {}, audit = null }) {
     messages.push({
       id: `failure:${row.request_id || `${row.method}:${row.path}:${row.created_at || row.timestamp}`}`,
       source: "Application",
-      category: "application",
+      category: "Failed request",
       priority: "warning",
       title: `${status} response on ${row.path || "request"}`,
       summary: `${row.method || "REQUEST"} ${row.path || "unknown path"} returned ${status}${row.duration_ms != null ? ` in ${row.duration_ms} ms` : ""}.`,
+      meaning: "A specific production API request failed with a server error. One isolated failure can be transient; repeated failures are a pattern.",
+      nextStep: "Use the request ID in the Persistent Failures table and compare it with grouped exceptions, the route, and the deployed commit.",
       detail: row.request_id ? `Request ${row.request_id}` : null,
       createdAt: row.created_at || row.timestamp,
       syncRecommended: true,
@@ -123,11 +131,13 @@ function buildOpsMessages({ service = {}, persisted = {}, audit = null }) {
     if (duration < 2000) return;
     messages.push({
       id: `slow:${row.request_id || `${row.method}:${row.path}:${row.created_at || row.timestamp}`}`,
-      source: "Application",
-      category: "performance",
+      source: "Performance",
+      category: "Slow request",
       priority: duration >= 5000 ? "action" : "info",
       title: "Slow production request detected",
       summary: `${row.method || "REQUEST"} ${row.path || "unknown path"} took ${duration} ms.`,
+      meaning: "A production request took long enough that a user may have experienced visible waiting.",
+      nextStep: "Look for repeated slow calls to the same path. Prioritize optimization when the route is common, user-facing, or repeatedly above the threshold.",
       detail: row.request_id ? `Request ${row.request_id}` : null,
       createdAt: row.created_at || row.timestamp,
       syncRecommended: duration >= 5000,
@@ -136,17 +146,31 @@ function buildOpsMessages({ service = {}, persisted = {}, audit = null }) {
 
   (audit?.events || []).slice(0, 8).forEach((event, index) => {
     const isVerification = event.event === "verification_email_resent";
+    const isInvite = event.event === "user_invite_sent";
+    const isRoleChange = !isVerification && !isInvite;
     messages.push({
       id: `admin:${event.created_at || index}:${event.event || "activity"}`,
       source: "Admin",
-      category: "security",
+      category: isInvite ? "User invitation" : isVerification ? "Account support" : "Access control",
       priority: "info",
-      title: isVerification ? "Verification email resent" : "Internal access updated",
-      summary: isVerification
-        ? "An authorized operator resent an account verification email."
-        : "An authorized operator changed internal role permissions. The detailed audit record remains below.",
+      title: isInvite ? "User invitation sent" : isVerification ? "Verification email resent" : "Internal access updated",
+      summary: isInvite
+        ? `An authorized operator invited ${event.target_email || "a new user"} to create a BragStack account.`
+        : isVerification
+          ? "An authorized operator resent an account verification email."
+          : "An authorized operator changed internal role permissions. The detailed audit record remains below.",
+      meaning: isInvite
+        ? "A registration invitation was sent. No account or password was created for the recipient."
+        : isVerification
+          ? "A user who already has an account was sent a new verification email."
+          : "Someone's internal BragStack permissions changed, which can affect access to Ops or administrative tools.",
+      nextStep: isInvite
+        ? "No action is needed unless the recipient says the invitation was not received."
+        : isVerification
+          ? "No action is needed unless the user still cannot verify their account."
+          : "Review the audit entry below and confirm the new roles follow least-privilege access.",
       createdAt: event.created_at,
-      syncRecommended: false,
+      syncRecommended: Boolean(isRoleChange),
     });
   });
 
@@ -166,6 +190,7 @@ function PriorityIcon({ priority }) {
 function OpsInbox({ service, persisted, audit }) {
   const messages = useMemo(() => buildOpsMessages({ service, persisted, audit }), [service, persisted, audit]);
   const [state, setState] = useState(readInboxState);
+  const [expanded, setExpanded] = useState({});
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
 
@@ -190,7 +215,7 @@ function OpsInbox({ service, persisted, audit }) {
     if (filter === "attention" && !ATTENTION_PRIORITIES.has(message.priority)) return false;
     if (filter === "updates" && message.priority !== "info") return false;
     if (query.trim()) {
-      const haystack = `${message.title} ${message.summary} ${message.source} ${message.category}`.toLowerCase();
+      const haystack = `${message.title} ${message.summary} ${message.source} ${message.category} ${message.meaning || ""} ${message.nextStep || ""}`.toLowerCase();
       if (!haystack.includes(query.trim().toLowerCase())) return false;
     }
     return true;
@@ -198,6 +223,11 @@ function OpsInbox({ service, persisted, audit }) {
 
   function markRead(id) {
     setState((current) => ({ ...current, read: { ...current.read, [id]: true } }));
+  }
+
+  function toggleDetails(id) {
+    markRead(id);
+    setExpanded((current) => ({ ...current, [id]: !current[id] }));
   }
 
   function archiveMessage(id) {
@@ -229,7 +259,7 @@ function OpsInbox({ service, persisted, audit }) {
       <div>
         <p className="ops-kicker">FOUNDER · OPS INBOX</p>
         <h2><Inbox size={22} aria-hidden="true" /> Messages worth reading</h2>
-        <p>Important production, admin, performance, and integration updates without raw-log noise.</p>
+        <p>Each card is a plain-English Ops alert. Tap <strong>View details</strong> to see what it means and exactly what to do next.</p>
       </div>
       <div className="ops-inbox-summary" aria-label="Ops inbox summary">
         <div><Bell size={17} /><strong>{unreadCount}</strong><span>Unread</span></div>
@@ -249,10 +279,12 @@ function OpsInbox({ service, persisted, audit }) {
       {filteredMessages.map((message) => <article className={`ops-message ${message.priority} ${isRead(message.id) ? "read" : "unread"}`} key={message.id}>
         <div className="ops-message-icon"><PriorityIcon priority={message.priority} /></div>
         <div className="ops-message-body">
-          <div className="ops-message-meta"><span className={`ops-priority ${message.priority}`}>{message.priority}</span><span>{message.source}</span><span>{relativeTime(message.createdAt)}</span>{!isRead(message.id) && <span className="ops-unread-dot">Unread</span>}{message.syncRecommended && <span className="ops-sync-badge">Discuss recommended</span>}</div>
+          <div className="ops-message-meta"><span className={`ops-priority ${message.priority}`}>{message.priority}</span><span>{message.category}</span><span>{message.source}</span><span>{relativeTime(message.createdAt)}</span>{!isRead(message.id) && <span className="ops-unread-dot">Unread</span>}{message.syncRecommended && <span className="ops-sync-badge">Discuss recommended</span>}</div>
           <h3>{message.title}</h3><p>{message.summary}</p>{message.detail && <small>{message.detail}</small>}
+          {expanded[message.id] && <div className="ops-message-explainer"><div><strong>What this means</strong><p>{message.meaning || message.summary}</p></div><div><strong>What to do next</strong><p>{message.nextStep || "No immediate action is required."}</p></div></div>}
         </div>
         <div className="ops-message-actions">
+          <button type="button" className="ops-details-button" onClick={() => toggleDetails(message.id)}><Info size={15} /> {expanded[message.id] ? "Hide details" : "View details"}</button>
           {!isRead(message.id) && <button type="button" onClick={() => markRead(message.id)}><CheckCheck size={15} /> Mark read</button>}
           {!isArchived(message.id) && <button type="button" onClick={() => snoozeMessage(message.id)}><Clock3 size={15} /> Snooze 1h</button>}
           <button type="button" onClick={() => archiveMessage(message.id)}><Archive size={15} /> {isArchived(message.id) ? "Restore" : "Archive"}</button>
@@ -275,6 +307,7 @@ function ErrorGroups({ rows = [] }) {
 
 function AuditEventRow({ event }) {
   if (event.event === "verification_email_resent") return <div><strong>{event.actor_email}</strong><span>resent verification email</span><code>{event.target_email}</code></div>;
+  if (event.event === "user_invite_sent") return <div><strong>{event.actor_email}</strong><span>invited a new user</span><code>{event.target_email}</code></div>;
   return <div><strong>{event.actor_email}</strong><span>changed {event.target_email}</span><code>{(event.previous_roles || []).join(", ") || "none"} → {(event.next_roles || []).join(", ") || "none"}</code></div>;
 }
 
