@@ -41,4 +41,27 @@ jobs:
 
       - name: Audit frontend dependencies
         working-directory: frontend
-        run: npm audit --audit-level=high
+        run: |
+          for attempt in 1 2 3; do
+            set +e
+            audit_output="$(npm audit --audit-level=high 2>&1)"
+            audit_status=$?
+            set -e
+
+            printf '%s\n' "$audit_output"
+            if [ "$audit_status" -eq 0 ]; then
+              exit 0
+            fi
+
+            if printf '%s\n' "$audit_output" | grep -Eq '503 Service Unavailable|audit endpoint returned an error|ECONNRESET|ETIMEDOUT|EAI_AGAIN'; then
+              if [ "$attempt" -lt 3 ]; then
+                echo "npm audit service unavailable; retrying transient registry failure ($attempt/3)."
+                sleep 10
+                continue
+              fi
+            fi
+
+            exit "$audit_status"
+          done
+
+          exit 1

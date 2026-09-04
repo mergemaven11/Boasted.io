@@ -30,6 +30,21 @@ PUBLIC_PROFILE_EVENT_TYPES = {
 }
 
 
+def _is_calendly_booking_url(value: str | None) -> bool:
+    """Return whether a URL is an HTTPS Calendly scheduling page."""
+    if not value:
+        return False
+    normalized = value.strip().rstrip("/")
+    parsed = urlparse(normalized)
+    hostname = (parsed.hostname or "").lower()
+    return bool(
+        parsed.scheme == "https"
+        and (hostname == "calendly.com" or hostname.endswith(".calendly.com"))
+        and parsed.path
+        and parsed.path != "/"
+    )
+
+
 class ProfileConnectionUpdate(BaseModel):
     """Represent user-controlled Open to Talk and public scheduling settings."""
 
@@ -60,14 +75,8 @@ class ProfileConnectionUpdate(BaseModel):
         normalized = value.strip().rstrip("/")
         if not normalized:
             return ""
-        parsed = urlparse(normalized)
-        hostname = (parsed.hostname or "").lower()
-        if parsed.scheme != "https" or not (
-            hostname == "calendly.com" or hostname.endswith(".calendly.com")
-        ):
-            raise ValueError("Calendly URL must be an https://calendly.com/... link")
-        if not parsed.path or parsed.path == "/":
-            raise ValueError("Calendly URL must include your scheduling page path")
+        if not _is_calendly_booking_url(normalized):
+            raise ValueError("Calendly URL must be an https://calendly.com/... scheduling link")
         return normalized
 
     @field_validator("open_to_talk_types")
@@ -110,13 +119,33 @@ class PublicProfileAnalyticsEvent(BaseModel):
 
 
 def serialize_connection_settings(user: dict, *, public: bool) -> dict:
-    """Serialize connection settings without leaking disabled contact data."""
+    """Serialize connection settings without leaking disabled contact data.
+
+    Legacy users stored Calendly in ``open_to_talk_url`` before dedicated
+    Calendly fields existed. When that legacy URL was already explicitly
+    public through Open to Talk, continue exposing it as the inline scheduler
+    until the user saves the new Calendly settings. An explicit
+    ``calendly_enabled`` value always wins, so disabling the new integration is
+    respected.
+    """
     open_to_talk_enabled = bool(user.get("open_to_talk", False))
-    calendly_enabled = bool(user.get("calendly_enabled", False))
+    open_to_talk_url = user.get("open_to_talk_url", "") or ""
+    stored_calendly_url = user.get("calendly_url", "") or ""
+
+    legacy_calendly_url = ""
+    if open_to_talk_enabled and _is_calendly_booking_url(open_to_talk_url):
+        legacy_calendly_url = open_to_talk_url.strip().rstrip("/")
+
+    if "calendly_enabled" in user:
+        calendly_enabled = bool(user.get("calendly_enabled", False))
+    else:
+        calendly_enabled = bool(legacy_calendly_url)
+
+    effective_calendly_url = stored_calendly_url or legacy_calendly_url
 
     return {
         "open_to_talk": open_to_talk_enabled,
-        "open_to_talk_url": user.get("open_to_talk_url", "")
+        "open_to_talk_url": open_to_talk_url
         if (open_to_talk_enabled or not public)
         else "",
         "open_to_talk_note": user.get("open_to_talk_note", "")
@@ -126,7 +155,7 @@ def serialize_connection_settings(user: dict, *, public: bool) -> dict:
         if (open_to_talk_enabled or not public)
         else [],
         "calendly_enabled": calendly_enabled,
-        "calendly_url": user.get("calendly_url", "")
+        "calendly_url": effective_calendly_url
         if (calendly_enabled or not public)
         else "",
     }
