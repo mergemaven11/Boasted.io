@@ -1,4 +1,7 @@
 const GA_MEASUREMENT_ID = "G-MKGEER9N5C";
+export const ANALYTICS_CONSENT_KEY = "bragstack_analytics_consent_v1";
+export const ANALYTICS_CONSENT_GRANTED = "granted";
+export const ANALYTICS_CONSENT_DENIED = "denied";
 
 const GA_NAME_PATTERN = /^[a-z][a-z0-9_]{0,39}$/;
 const UTM_FIELDS = [
@@ -39,6 +42,38 @@ function safeStorageWrite(storage, key, value) {
   }
 }
 
+function safeConsentRead() {
+  if (typeof window === "undefined") return null;
+  try {
+    const value = window.localStorage?.getItem(ANALYTICS_CONSENT_KEY);
+    return value === ANALYTICS_CONSENT_GRANTED || value === ANALYTICS_CONSENT_DENIED ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+export function getAnalyticsConsent() {
+  return safeConsentRead();
+}
+
+export function hasAnalyticsConsent() {
+  return safeConsentRead() === ANALYTICS_CONSENT_GRANTED;
+}
+
+export function setAnalyticsConsent(choice) {
+  if (typeof window === "undefined") return false;
+  if (![ANALYTICS_CONSENT_GRANTED, ANALYTICS_CONSENT_DENIED].includes(choice)) return false;
+  try {
+    window.localStorage?.setItem(ANALYTICS_CONSENT_KEY, choice);
+  } catch {
+    return false;
+  }
+
+  // Google documents this flag as a way to disable measurement for a property.
+  window[`ga-disable-${GA_MEASUREMENT_ID}`] = choice !== ANALYTICS_CONSENT_GRANTED;
+  return true;
+}
+
 function readUtmParametersFromUrl() {
   if (typeof window === "undefined") return {};
 
@@ -52,7 +87,7 @@ function readUtmParametersFromUrl() {
 }
 
 export function captureCampaignAttribution() {
-  if (typeof window === "undefined") return {};
+  if (typeof window === "undefined" || !hasAnalyticsConsent()) return {};
 
   const incomingUtm = readUtmParametersFromUrl();
   if (!Object.keys(incomingUtm).length) {
@@ -70,7 +105,7 @@ export function captureCampaignAttribution() {
 }
 
 export function getCampaignEventParameters() {
-  if (typeof window === "undefined") return {};
+  if (typeof window === "undefined" || !hasAnalyticsConsent()) return {};
 
   const sessionUtm = captureCampaignAttribution();
   const firstTouchUtm = safeStorageRead(window.localStorage, FIRST_TOUCH_UTM_KEY);
@@ -87,10 +122,15 @@ export function getCampaignEventParameters() {
 }
 
 export function initializeAnalytics() {
-  if (typeof window === "undefined" || typeof document === "undefined") return;
+  if (typeof window === "undefined" || typeof document === "undefined") return false;
+  if (!hasAnalyticsConsent()) {
+    window[`ga-disable-${GA_MEASUREMENT_ID}`] = true;
+    return false;
+  }
 
+  window[`ga-disable-${GA_MEASUREMENT_ID}`] = false;
   captureCampaignAttribution();
-  if (window.__bragstackGaInitialized) return;
+  if (window.__bragstackGaInitialized) return true;
 
   window.__bragstackGaInitialized = true;
   window.dataLayer = window.dataLayer || [];
@@ -106,6 +146,7 @@ export function initializeAnalytics() {
   script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
   script.dataset.bragstackAnalytics = "true";
   document.head.appendChild(script);
+  return true;
 }
 
 function sanitizeEventParameters(parameters = {}) {
@@ -119,7 +160,7 @@ function sanitizeEventParameters(parameters = {}) {
 }
 
 export function trackAnalyticsEvent(eventName, parameters = {}) {
-  if (typeof window === "undefined" || !GA_NAME_PATTERN.test(eventName)) return false;
+  if (typeof window === "undefined" || !GA_NAME_PATTERN.test(eventName) || !hasAnalyticsConsent()) return false;
 
   initializeAnalytics();
   if (typeof window.gtag !== "function") return false;
