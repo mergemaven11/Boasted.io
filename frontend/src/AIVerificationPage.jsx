@@ -54,7 +54,33 @@ function AIVerificationPage() {
     }
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      api.get("/ops/ai-verification/summary?days=30"),
+      api.get("/ops/ai-verification/release-policy"),
+    ])
+      .then(([summaryResponse, policyResponse]) => {
+        if (!active) return;
+        setSummary(summaryResponse.data);
+        setPolicy(policyResponse.data);
+      })
+      .catch((requestError) => {
+        if (!active) return;
+        if (requestError.response?.status === 401) {
+          localStorage.removeItem("bragstack_token");
+          window.location.assign("/login");
+          return;
+        }
+        setError(requestError.response?.data?.detail || "AI verification metrics could not be loaded.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const features = useMemo(() => Object.entries(summary?.features || {}), [summary]);
   const resumeGate = summary?.release_gate?.resume_builder;
