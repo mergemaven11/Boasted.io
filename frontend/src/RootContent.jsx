@@ -25,6 +25,7 @@ const OpsConsolePage = lazyPage(() => import("./OpsConsolePage.jsx"));
 const OpsUsersPage = lazyPage(() => import("./OpsUsersPage.jsx"));
 const ReceiptVerificationCenter = lazyPage(() => import("./ReceiptVerificationCenter.jsx"));
 const ReceiptVerificationPage = lazyPage(() => import("./ReceiptVerificationPage.jsx"));
+const ReleaseStatusPage = lazyPage(() => import("./ReleaseStatusPage.jsx"));
 const ResumeBuilderPage = lazyPage(() => import("./ResumeBuilderPage.jsx"));
 const SearchSitelinksNav = lazyPage(() => import("./SearchSitelinksNav.jsx"));
 const SecurityPage = lazyPage(() => import("./SecurityPage.jsx"));
@@ -143,6 +144,12 @@ function RootContent() {
 
       if (path === "/docs") {
         const docsHeaderNav = document.querySelector(".docs-topbar nav");
+        if (docsHeaderNav && !docsHeaderNav.querySelector('a[href="/docs/release"]')) {
+          const releaseGuideLink = document.createElement("a");
+          releaseGuideLink.href = "/docs/release";
+          releaseGuideLink.textContent = "What's new";
+          docsHeaderNav.insertBefore(releaseGuideLink, docsHeaderNav.firstChild);
+        }
         if (docsHeaderNav && !docsHeaderNav.querySelector('a[href="/docs/education"]')) {
           const educationGuideLink = document.createElement("a");
           educationGuideLink.href = "/docs/education";
@@ -150,6 +157,12 @@ function RootContent() {
           docsHeaderNav.insertBefore(educationGuideLink, docsHeaderNav.firstChild);
         }
         const docsSidebar = document.querySelector(".docs-sidebar");
+        if (docsSidebar && !docsSidebar.querySelector('a[href="/docs/release"]')) {
+          const releaseSidebarLink = document.createElement("a");
+          releaseSidebarLink.href = "/docs/release";
+          releaseSidebarLink.textContent = "🚀 What's new + roadmap";
+          docsSidebar.insertBefore(releaseSidebarLink, docsSidebar.children[1] || null);
+        }
         if (docsSidebar && !docsSidebar.querySelector('a[href="/docs/education"]')) {
           const educationSidebarLink = document.createElement("a");
           educationSidebarLink.href = "/docs/education";
@@ -180,6 +193,7 @@ function RootContent() {
   else if (path === "/verify-receipt") content = <ReceiptVerificationPage />;
   else if (path === "/upgrade") content = <UpgradePage />;
   else if (path === "/education") content = <EducationMarketingPage />;
+  else if (path === "/docs/release") content = <ReleaseStatusPage />;
   else if (path === "/docs/education") content = <EducationGuidePage />;
   else if (path === "/docs") content = <DocsPage />;
   else if (path === "/nda-safety") content = <NDAGuidancePage />;
