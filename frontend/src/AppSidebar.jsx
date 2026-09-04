@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BarChart3, BrainCircuit, Building2, ChevronDown, FileCheck2, FileText, GraduationCap, Home, ListChecks, LogOut, Menu, ReceiptText, Settings, ShieldCheck, Sparkles, UserRound, Users, Video, X } from "lucide-react";
+import { BarChart3, BrainCircuit, Building2, ChevronDown, FileCheck2, FileText, GraduationCap, Home, LifeBuoy, ListChecks, LogOut, Menu, ReceiptText, Settings, ShieldCheck, UserRound, Users, Video, X } from "lucide-react";
 import { getCurrentUser } from "./api";
 import "./AppShell.css";
 import "./SidebarCollapsible.css";
@@ -28,14 +28,15 @@ function AppSidebar() {
   function toolIsActive(href) { const target = new URL(href, window.location.origin); return path === target.pathname && search === target.search && hash === target.hash; }
   function toggleCareerTools(event) { const open = event.currentTarget.open; setCareerToolsOpen(open); localStorage.setItem("bragstack_career_tools_nav", open ? "open" : "closed"); }
   const isPro = Boolean(user?.entitlements?.advanced_reports);
-  const isCompanyUser = user?.email?.trim().toLowerCase().endsWith("@usebragstack.com") === true;
-  const hasExecutiveImpact = Boolean(user?.entitlements?.executive_command_center) && ["owner", "admin", "executive"].includes(user?.workspace_role);
+  const companyEmail = user?.email?.trim().toLowerCase().endsWith("@usebragstack.com") === true;
+  const isCompanyUser = companyEmail && Boolean(user?.entitlements?.executive_command_center);
+  const hasExecutiveImpact = isCompanyUser && ["owner", "admin", "executive"].includes(user?.workspace_role);
 
   return <>
     <header className="mobile-app-bar"><a className="mobile-brand" href="/app"><img src="/brandmark.svg" alt="" /><strong>BragStack</strong></a><button type="button" onClick={() => setMobileOpen((open) => !open)} aria-label="Toggle navigation">{mobileOpen ? <X size={21} /> : <Menu size={21} />}</button></header>
     <aside className={`app-sidebar ${mobileOpen ? "mobile-open" : ""}`}>
       <a className="sidebar-brand" href="/app"><img className="sidebar-logo" src="/brandmark.svg" alt="BragStack" /><span><strong>BragStack</strong><small>PROVE · GROW · GET HIRED</small></span></a>
-      <div className="sidebar-plan-row"><span className={isPro ? "pro" : "free"}>{isPro ? "PRO" : "FREE"}</span><small>{isPro ? "Advanced career proof" : "Core career proof"}</small></div>
+      <div className="sidebar-plan-row"><span className={isPro ? "pro" : "free"}>{isPro ? "PRO" : "FREE"}</span><small>{isPro ? "Open Pro access · no charge" : "Core career proof"}</small></div>
       <a className="sidebar-add" href="/app/accomplishments?create=1">+ Create accomplishment</a>
       <nav className="sidebar-nav" aria-label="BragStack navigation">
         <p className="sidebar-section-label">Workspace</p>
@@ -44,11 +45,11 @@ function AppSidebar() {
         {hasExecutiveImpact && <><p className="sidebar-section-label">Enterprise</p><a className={path === "/app/executive-impact" ? "active" : ""} href="/app/executive-impact"><Building2 size={18}/><span>Executive Impact</span></a></>}
         <p className="sidebar-section-label">Account & tools</p>
         <a className={path.startsWith("/app/settings") || path === "/app/profile" ? "active" : ""} href="/app/settings"><Settings size={18} /><span>Settings</span></a>
+        <a className={path === "/app/support" ? "active" : ""} href="/app/support"><LifeBuoy size={18} /><span>Support</span></a>
         {isCompanyUser && <><p className="sidebar-section-label">Internal</p><a className={path === "/ops" ? "active" : ""} href="/ops"><ShieldCheck size={18} /><span>Ops Console</span></a><a className={path === "/ops/users" ? "active" : ""} href="/ops/users"><Users size={18} /><span>User Accounts</span></a><a className={path === "/ops/ai-verification" ? "active" : ""} href="/ops/ai-verification"><BrainCircuit size={18} /><span>AI Verification</span></a></>}
         <a href="/docs"><FileText size={18} /><span>Docs & guides</span></a>
-        {user && !isPro && <a className="sidebar-upgrade" href="/upgrade"><Sparkles size={18} /><span>Upgrade to Pro</span></a>}
       </nav>
-      <div className="sidebar-footer"><a className="sidebar-user" href="/app/settings" aria-label="Account settings">{user?.avatar_url ? <img className="sidebar-user-avatar sidebar-user-avatar-image" src={user.avatar_url} alt="" /> : <span className="sidebar-user-avatar">{user?.name?.charAt(0).toUpperCase() || "B"}</span>}<span><strong>{user?.name || "BragStack member"}</strong><small>{isPro ? "Pro plan · Settings" : "Free plan · Settings"}</small></span></a><button type="button" onClick={logout}><LogOut size={17} />Sign out</button></div>
+      <div className="sidebar-footer"><a className="sidebar-user" href="/app/settings" aria-label="Account settings">{user?.avatar_url ? <img className="sidebar-user-avatar sidebar-user-avatar-image" src={user.avatar_url} alt="" /> : <span className="sidebar-user-avatar">{user?.name?.charAt(0).toUpperCase() || "B"}</span>}<span><strong>{user?.name || "BragStack member"}</strong><small>{isPro ? "Pro access · Settings" : "Free plan · Settings"}</small></span></a><button type="button" onClick={logout}><LogOut size={17} />Sign out</button></div>
     </aside>
     {mobileOpen && <button className="sidebar-scrim" type="button" onClick={() => setMobileOpen(false)} aria-label="Close navigation" />}
   </>;
