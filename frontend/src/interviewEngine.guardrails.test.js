@@ -1,26 +1,43 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { analyzeAnswer, summarizeInterview } from "./interviewEngine.js";
+import { analyzeAnswer, buildInterviewPlan, summarizeInterview } from "./interviewEngine.js";
 
-test("critical interview language triggers an immediate failed answer", () => {
-  const analysis = analyzeAnswer("I got frustrated and said fuck it, then we moved on.", {
+test("profanity creates coaching but does not fail the interview", () => {
+  const analysis = analyzeAnswer("I got frustrated and said shit, then I reset and resolved the issue.", {
     question: "Tell me about a difficult workplace situation.",
     competency: "communication",
   });
-  assert.equal(analysis.instantFail, true);
-  assert.equal(analysis.overallScore, 0);
-  assert.equal(analysis.overallLabel, "Interview failed");
-  assert.ok(analysis.warning?.terms.includes("fuck"));
-  assert.equal(analysis.followUp, null);
+  assert.equal(analysis.instantFail, false);
+  assert.notEqual(analysis.overallLabel, "Interview failed");
+  assert.ok(analysis.warning?.terms.includes("shit"));
+  assert.match(analysis.warning?.coaching || "", /keep going/i);
 });
 
-test("drug language is treated as a critical practice-interview warning", () => {
-  const analysis = analyzeAnswer("We were talking about drugs at work.", {
+test("ordinary drug terminology is not treated as an automatic professional-language failure", () => {
+  const analysis = analyzeAnswer("I reviewed the medication and drug interaction documentation with the clinical team and updated the process.", {
     question: "Tell me about a workplace challenge.",
     competency: "judgment",
+    roleTitle: "Clinical Software Engineer",
   });
-  assert.equal(analysis.instantFail, true);
-  assert.ok(analysis.warning?.terms.includes("drugs"));
+  assert.equal(analysis.instantFail, false);
+  assert.equal(analysis.warning, null);
+});
+
+test("job descriptions drive multiple interview questions", () => {
+  const plan = buildInterviewPlan({
+    roleTitle: "Software Engineer",
+    questionCount: 8,
+    jobDescription: `
+      Build and maintain Python APIs and distributed backend services.
+      Deploy containerized workloads with Docker and Kubernetes on AWS.
+      Design reliable PostgreSQL data models and troubleshoot production incidents.
+      Collaborate with product teams to deliver customer-facing software.
+    `,
+  });
+  const targeted = plan.questions.filter((question) => question.source === "job-description");
+  assert.ok(targeted.length >= 3);
+  assert.ok(targeted.some((question) => /python|api|backend|distributed/i.test(question.text)));
+  assert.ok(targeted.some((question) => /docker|kubernetes|aws/i.test(question.text)));
 });
 
 test("weak answers receive concrete improvements rather than only a needs-detail label", () => {
@@ -56,13 +73,13 @@ test("final summary includes stars, score, verdict, and recommendations", () => 
   assert.ok(summary.recommendations.length > 0);
 });
 
-test("one critical warning fails the overall practice interview", () => {
-  const analysis = analyzeAnswer("I said shit during the meeting.", {
+test("a language coaching note does not zero the overall interview", () => {
+  const analysis = analyzeAnswer("During a conflict I said shit, caught myself, communicated the issue clearly, and resolved it with the team.", {
     question: "Tell me about a conflict.",
     competency: "communication",
   });
-  const summary = summarizeInterview([{ answer: "bad", analysis }]);
-  assert.equal(summary.failed, true);
-  assert.equal(summary.overallScore, 0);
-  assert.equal(summary.stars, 1);
+  const summary = summarizeInterview([{ answer: "example", analysis }]);
+  assert.equal(summary.failed, false);
+  assert.ok(summary.overallScore > 0);
+  assert.ok(summary.warnings.length === 1);
 });
