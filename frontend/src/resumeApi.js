@@ -22,7 +22,7 @@ export async function importResume(file) {
 }
 
 export async function buildResume(payload) {
-  const response = await resumeApi.post("/resume-builder/build", payload);
+  const response = await resumeApi.post("/resume-builder/build-verified", payload);
   return response.data;
 }
 
