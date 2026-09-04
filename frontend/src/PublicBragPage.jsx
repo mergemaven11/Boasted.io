@@ -69,16 +69,37 @@ function themeStyle(profile) {
   };
 }
 
+function apiBase() {
+  if (window.location.hostname.endsWith(".app.github.dev")) return "/api";
+  return import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8000";
+}
+
+function richShareUrl(slug, version) {
+  const encodedSlug = encodeURIComponent(slug || "");
+  const encodedVersion = encodeURIComponent(version || "0");
+  const isProductionDomain = /(^|\.)usebragstack\.com$/i.test(window.location.hostname);
+  const base = isProductionDomain
+    ? `${window.location.origin}/share/brag/${encodedSlug}`
+    : `${apiBase()}/public/brag/${encodedSlug}/share`;
+  return `${base}?v=${encodedVersion}`;
+}
+
 function ImpactCard({ receipt, featured = false }) {
   const metric = receipt.metrics?.[0];
   const confirmationCount = Number(receipt.confirmed_count || 0);
   const evidenceCount = receipt.evidence?.length || 0;
   return (
-    <article className={`portfolio-impact-card ${featured ? "featured" : ""}`}>
+    <article className={`portfolio-impact-card ${featured ? "featured" : ""} ${confirmationCount > 0 ? "verified" : ""}`}>
+      {confirmationCount > 0 && (
+        <div className="portfolio-verified-stamp">
+          <CheckCircle2 size={22} />
+          <div><strong>Verified impact</strong><span>{confirmationCount} third-party confirmation{confirmationCount === 1 ? "" : "s"}</span></div>
+        </div>
+      )}
       <div className="portfolio-card-kicker">
         <span><Award size={15} /> Impact Receipt</span>
         <div className="portfolio-proof-badges">
-          {confirmationCount > 0 && <span><CheckCircle2 size={13} /> {confirmationCount} confirmed</span>}
+          {confirmationCount > 0 && <span className="verified"><CheckCircle2 size={13} /> Third-party verified</span>}
           {evidenceCount > 0 && <span><ShieldCheck size={13} /> {evidenceCount} proof item{evidenceCount === 1 ? "" : "s"}</span>}
         </div>
       </div>
@@ -192,12 +213,30 @@ export default function PublicBragPage() {
   const topSkills = Object.entries(tags?.tags ?? {}).slice(0, 18);
   const publicEvidence = receipts.reduce((count, receipt) => count + (receipt.evidence?.length ?? 0), 0);
   const confirmations = receipts.reduce((count, receipt) => count + Number(receipt.confirmed_count || 0), 0);
+  const verifiedReceipts = receipts.filter((receipt) => Number(receipt.confirmed_count || 0) > 0).length;
+  const shareVersion = `${verifiedReceipts}-${confirmations}-${meta.total_entries}-${receipts.length}`;
+
+  useEffect(() => {
+    if (!profile) return;
+    document.title = `${name} — Proof Portfolio | BragStack`;
+    const description = profile.headline
+      ? `${profile.headline} · ${verifiedReceipts} verified impact${verifiedReceipts === 1 ? "" : "s"} · ${meta.total_entries} selected accomplishment${meta.total_entries === 1 ? "" : "s"}.`
+      : `${name}'s evidence-backed career impact on BragStack.`;
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement("meta");
+      metaDescription.setAttribute("name", "description");
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute("content", description);
+  }, [profile, name, verifiedReceipts, meta.total_entries]);
 
   async function shareProfile() {
-    const url = window.location.href;
+    const url = richShareUrl(slug, shareVersion);
+    const verifiedText = verifiedReceipts > 0 ? ` ${verifiedReceipts} verified impact${verifiedReceipts === 1 ? "" : "s"}.` : "";
     const shareData = {
       title: `${name} · BragStack Proof Portfolio`,
-      text: `View ${name}'s public portfolio of accomplishments and career impact on BragStack.`,
+      text: `View ${name}'s public portfolio of accomplishments and career impact on BragStack.${verifiedText}`,
       url,
     };
     try {
@@ -206,9 +245,9 @@ export default function PublicBragPage() {
         setShareNotice("Shared");
       } else if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
-        setShareNotice("Link copied");
+        setShareNotice("Rich link copied");
       } else {
-        window.prompt("Copy this Proof Profile link:", url);
+        window.prompt("Copy this Proof Portfolio share link:", url);
         setShareNotice("Ready to copy");
       }
     } catch (error) {
@@ -253,12 +292,13 @@ export default function PublicBragPage() {
             </div>
           </div>
 
-          <aside className="portfolio-proof-passport">
+          <aside className={`portfolio-proof-passport ${verifiedReceipts > 0 ? "has-verified-impact" : ""}`}>
             <p className="proof-eyebrow">Portfolio snapshot</p>
+            {verifiedReceipts > 0 && <div className="portfolio-passport-verified"><CheckCircle2 size={18} /><strong>{verifiedReceipts} verified impact{verifiedReceipts === 1 ? "" : "s"}</strong></div>}
             <div className="portfolio-proof-number"><strong>{meta.total_entries}</strong><span>selected accomplishments</span></div>
             <div className="portfolio-passport-grid">
               <div><strong>{receipts.length}</strong><span>Impact Receipts</span></div>
-              <div><strong>{confirmations}</strong><span>confirmations</span></div>
+              <div className={confirmations > 0 ? "verified-count" : ""}><strong>{confirmations}</strong><span>third-party confirmations</span></div>
               <div><strong>{publicEvidence}</strong><span>public proof items</span></div>
               <div><strong>{tags?.total_unique_tags ?? 0}</strong><span>demonstrated skills</span></div>
             </div>
@@ -276,7 +316,7 @@ export default function PublicBragPage() {
                 <h2>Work with receipts.</h2>
                 <p>Selected outcomes with contribution, measurable impact, skills, and proof attached.</p>
               </div>
-              <span className="portfolio-section-badge"><ShieldCheck size={14} /> Evidence-backed</span>
+              <span className={`portfolio-section-badge ${verifiedReceipts > 0 ? "verified" : ""}`}><ShieldCheck size={14} /> {verifiedReceipts > 0 ? `${verifiedReceipts} verified impact${verifiedReceipts === 1 ? "" : "s"}` : "Evidence-backed"}</span>
             </div>
             <div className="portfolio-impact-grid">
               {receipts.slice(0, 4).map((receipt, index) => <ImpactCard key={receipt.id} receipt={receipt} featured={index === 0} />)}
