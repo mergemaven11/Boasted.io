@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { Lock, Mail, Sparkles, UserPlus } from "lucide-react";
 import "./AuthPage.css";
 
+const CURRENT_TERMS_VERSION = "2026-09-04";
+const CURRENT_PRIVACY_VERSION = "2026-09-04";
+
 function getApiBaseUrl() {
   if (window.location.hostname.endsWith(".app.github.dev")) return "/api";
   return import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -58,6 +61,7 @@ function AuthPage({ mode = "login", onLogin }) {
   const initialVerifyToken = hashParams.get("verify_token") || "";
 
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [legalAccepted, setLegalAccepted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSlowSubmit, setIsSlowSubmit] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -140,8 +144,22 @@ function AuthPage({ mode = "login", onLogin }) {
     setFormData((current) => ({ ...current, [name]: value }));
   }
 
+  function legalPayload() {
+    return {
+      terms_accepted: true,
+      privacy_acknowledged: true,
+      age_18_or_older: true,
+      terms_version: CURRENT_TERMS_VERSION,
+      privacy_version: CURRENT_PRIVACY_VERSION,
+    };
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
+    if (isRegister && !legalAccepted) {
+      setErrorMessage("Before creating an account, confirm that you are at least 18, agree to the Terms, and acknowledge the Privacy Policy.");
+      return;
+    }
     setIsSubmitting(true);
     setIsSlowSubmit(false);
     setErrorMessage("");
@@ -156,7 +174,7 @@ function AuthPage({ mode = "login", onLogin }) {
         const response = await fetch(`${apiBaseUrl}/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({ ...formData, ...legalPayload() }),
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.detail || "Could not create your account. Try again.");
@@ -209,6 +227,10 @@ function AuthPage({ mode = "login", onLogin }) {
   }
 
   async function startOAuth(provider) {
+    if (isRegister && !legalAccepted) {
+      setErrorMessage("Before creating an account with Google or GitHub, confirm that you are at least 18, agree to the Terms, and acknowledge the Privacy Policy.");
+      return;
+    }
     setConnectingProvider(provider);
     setOauthIsTakingLonger(false);
     setErrorMessage("");
@@ -218,7 +240,12 @@ function AuthPage({ mode = "login", onLogin }) {
     try {
       const ready = await ensureApiReady();
       if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
-      window.location.assign(`${apiBaseUrl}/auth/${provider}/login`);
+      const endpoint = new URL(`${apiBaseUrl}/auth/${provider}/login`, window.location.origin);
+      if (isRegister) {
+        const acceptance = legalPayload();
+        Object.entries(acceptance).forEach(([key, value]) => endpoint.searchParams.set(key, String(value)));
+      }
+      window.location.assign(endpoint.toString());
     } catch (error) {
       setErrorMessage(error.message || `Could not connect to ${provider}. Please try again.`);
       setConnectingProvider("");
@@ -306,18 +333,17 @@ function AuthPage({ mode = "login", onLogin }) {
         <div className="auth-copy">
           <p className="mini-label">BragStack</p>
           <h1>
-            Save your wins before
-            <span> they disappear.</span>
+            Save your proof before
+            <span> it disappears.</span>
           </h1>
           <p>
-            Track technical work, turn progress into resume bullets, and build a
-            private career proof system you can reuse for reviews, interviews,
-            raises, and job searches.
+            Capture real work and learning, organize evidence, and build a private
+            record you can reuse for career moments and applications.
           </p>
           <div className="auth-proof-list">
             <span>Private by default</span>
-            <span>Resume-ready proof</span>
-            <span>Weekly summaries</span>
+            <span>Evidence-first</span>
+            <span>No invented outcomes</span>
           </div>
         </div>
 
@@ -330,7 +356,7 @@ function AuthPage({ mode = "login", onLogin }) {
           <h2>{isRegister ? "Start your BragStack" : "Log in to BragStack"}</h2>
           <p className="auth-muted">
             {isRegister
-              ? "Create your private workspace for career proof."
+              ? "Create your private evidence workspace. Self-service accounts currently require users to be 18 or older."
               : "Open your dashboard and keep building your proof."}
           </p>
 
@@ -374,6 +400,18 @@ function AuthPage({ mode = "login", onLogin }) {
               <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" minLength={8} required />
             </div>
           </label>
+
+          {isRegister && (
+            <div className="auth-legal-consent">
+              <label>
+                <input type="checkbox" checked={legalAccepted} onChange={(event) => setLegalAccepted(event.target.checked)} required />
+                <span>
+                  I confirm that I am at least 18 years old, I agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms &amp; Conditions</a>, and I acknowledge the <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.
+                </span>
+              </label>
+              <small>Creating an account records the current policy versions and the time of your acceptance.</small>
+            </div>
+          )}
 
           {!isRegister && (
             <button type="button" className="auth-forgot-link" onClick={() => setShowReset((current) => !current)}>
@@ -432,6 +470,7 @@ function AuthPage({ mode = "login", onLogin }) {
               <GitHubMark />
               <span>{connectingProvider === "github" ? "Connecting to GitHub..." : "Continue with GitHub"}</span>
             </button>
+            {isRegister && <p className="auth-oauth-status">The same age, Terms, and Privacy acceptance applies when creating an account with Google or GitHub.</p>}
             {connectingProvider && oauthIsTakingLonger && (
               <p className="auth-oauth-status" role="status">
                 BragStack is waking up. This can take about a minute on the current low-cost server.
