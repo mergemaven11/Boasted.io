@@ -1,4 +1,4 @@
-"""Document this first-party Python module."""
+"""Authentication and registration compliance tests."""
 import mongomock
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
@@ -11,36 +11,88 @@ client = TestClient(app)
 
 
 def _mock_users(monkeypatch):
-    """Handle mock users.
-
-    Args:
-        monkeypatch: Function argument.
-
-    Returns:
-        Function result.
-    """
     mock_client = mongomock.MongoClient()
     collection = mock_client["bragstack_test"]["users"]
     monkeypatch.setattr(auth_routes, "users_collection", collection)
     return collection
 
 
-def test_password_reset_request_hides_existing_account_when_email_delivery_fails(monkeypatch):
-    """Verify password reset request hides existing account when email delivery fails.
+def test_registration_requires_18_plus_and_legal_acceptance(monkeypatch):
+    users = _mock_users(monkeypatch)
 
-    Args:
-        monkeypatch: Function argument.
-    """
+    response = client.post(
+        "/auth/register",
+        json={
+            "name": "Adult User",
+            "email": "adult@example.com",
+            "password": "secure-pass-123",
+            "age_18_or_older": False,
+            "accepted_terms": True,
+            "accepted_privacy": True,
+        },
+    )
+
+    assert response.status_code == 422
+    assert "18" in response.json()["detail"]
+    assert users.count_documents({}) == 0
+
+
+def test_registration_requires_terms_and_privacy_acceptance(monkeypatch):
+    users = _mock_users(monkeypatch)
+
+    response = client.post(
+        "/auth/register",
+        json={
+            "name": "Adult User",
+            "email": "adult@example.com",
+            "password": "secure-pass-123",
+            "age_18_or_older": True,
+            "accepted_terms": False,
+            "accepted_privacy": True,
+        },
+    )
+
+    assert response.status_code == 422
+    assert "Terms" in response.json()["detail"]
+    assert users.count_documents({}) == 0
+
+
+def test_registration_records_legal_acceptance_versions(monkeypatch):
+    users = _mock_users(monkeypatch)
+
+    async def successful_send(email, url):
+        return None
+
+    monkeypatch.setattr(auth_routes, "_send_verification_email", successful_send)
+
+    response = client.post(
+        "/auth/register",
+        json={
+            "name": "Adult User",
+            "email": "adult@example.com",
+            "password": "secure-pass-123",
+            "age_18_or_older": True,
+            "accepted_terms": True,
+            "accepted_privacy": True,
+        },
+    )
+
+    assert response.status_code == 200
+    saved = users.find_one({"email": "adult@example.com"})
+    assert saved["age_18_or_older_confirmed_at"]
+    assert saved["minimum_account_age_at_acceptance"] == 18
+    assert saved["terms_accepted_at"]
+    assert saved["terms_version"] == auth_routes.TERMS_VERSION
+    assert saved["privacy_accepted_at"]
+    assert saved["privacy_version"] == auth_routes.PRIVACY_VERSION
+    assert saved["legal_acceptance_source"] == "email-registration"
+
+
+def test_password_reset_request_hides_existing_account_when_email_delivery_fails(monkeypatch):
     users = _mock_users(monkeypatch)
     users.insert_one({"email": "person@example.com"})
 
     async def fail_send(email, url):
-        """Handle fail send.
-
-        Args:
-            email: Function argument.
-            url: Function argument.
-        """
         raise HTTPException(status_code=502, detail="Email could not be sent.")
 
     monkeypatch.setattr(auth_routes, "_send_password_reset_email", fail_send)
@@ -54,11 +106,6 @@ def test_password_reset_request_hides_existing_account_when_email_delivery_fails
 
 
 def test_verification_resend_hides_existing_account_when_email_delivery_fails(monkeypatch):
-    """Verify verification resend hides existing account when email delivery fails.
-
-    Args:
-        monkeypatch: Function argument.
-    """
     users = _mock_users(monkeypatch)
     users.insert_one(
         {
@@ -68,12 +115,6 @@ def test_verification_resend_hides_existing_account_when_email_delivery_fails(mo
     )
 
     async def fail_send(email, url):
-        """Handle fail send.
-
-        Args:
-            email: Function argument.
-            url: Function argument.
-        """
         raise HTTPException(status_code=502, detail="Email could not be sent.")
 
     monkeypatch.setattr(auth_routes, "_send_verification_email", fail_send)
