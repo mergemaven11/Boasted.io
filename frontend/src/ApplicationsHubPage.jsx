@@ -48,6 +48,33 @@ const WORKFLOWS = [
   },
 ];
 
+const EDUCATION_STAGES = [
+  {
+    title: "Middle school",
+    status: "coming-soon",
+    badge: "COMING SOON",
+    text: "The younger-student experience is under construction and is not available in BragStack today.",
+  },
+  {
+    title: "High school",
+    status: "available",
+    badge: "AVAILABLE · 18+",
+    text: "High-school students who are already 18 can track current activities, leadership, awards, service, projects, jobs, competitions, and growth.",
+  },
+  {
+    title: "College / University",
+    status: "available",
+    badge: "AVAILABLE · 18+",
+    text: "Track research, internships, campus leadership, projects, certifications, work, service, and the skills you are building.",
+  },
+  {
+    title: "Career",
+    status: "available",
+    badge: "KEEP GOING",
+    text: "Carry the same evidence forward into resumes, interviews, portfolios, reviews, promotions, and professional opportunities.",
+  },
+];
+
 const LABELS = {
   leadership: "Leadership",
   service: "Service",
@@ -163,21 +190,29 @@ function ApplicationsHubPage() {
   }
 
   return <main className="applications-hub">
+    <section className="education-age-alert" role="status">
+      <div className="education-alert-tape">18+ ONLY · YOUNGER STUDENT EXPERIENCE UNDER CONSTRUCTION · COMING SOON</div>
+      <div className="education-age-alert-copy"><ShieldCheck size={21}/><div><strong>BragStack Education currently supports adults age 18 and older.</strong><span>That includes high-school students who are already 18 and adult college/university students. Middle-school and other under-18 student access is not currently available.</span></div></div>
+    </section>
+
     <header className="applications-hero">
       <div>
         <p className="applications-kicker"><Sparkles size={15} /> Education Workspace · 18+ for now</p>
         <h1>Keep track of the wins that are shaping your future.</h1>
-        <p>BragStack currently supports adults age 18+ who want to preserve real education, project, service, work, and learning accomplishments. Middle-school student accounts remain part of the long-term Education vision, but they are coming soon after youth privacy, consent, safety, and legal review.</p>
+        <p>BragStack currently supports adults age 18+ who want to preserve real education, project, service, work, and learning accomplishments. Younger-student accounts remain part of the long-term Education vision, but they are coming later after youth privacy, consent, safety, and legal review.</p>
       </div>
       <div className="applications-trust"><ShieldCheck size={20} /><span><strong>Your education story stays yours.</strong><small>Private by default · built from your real wins · no admissions score</small></span></div>
     </header>
 
-    <section className="application-overview">
-      <div><p className="applications-kicker"><GraduationCap size={15} /> The long-term journey</p><h2><s>Middle school student accounts</s> — Coming soon · High school history → College / University → Career</h2><p>Adults can capture useful education and career evidence now. Younger-student account access stays disabled until BragStack completes the additional legal and privacy work for that release.</p></div>
-      <div className="application-stats">
-        <div><strong>Learn</strong><span>what you are getting better at</span></div>
-        <div><strong>Grow</strong><span>see how your story changes over time</span></div>
-        <div><strong>Use it</strong><span>when the right opportunity appears</span></div>
+    <section className="education-stage-section" aria-label="Education availability by stage">
+      <div className="application-section-heading"><div><p className="applications-kicker"><GraduationCap size={15}/> Your journey</p><h2>Start where you are. Keep the record as you grow.</h2></div><span>Current account access: 18+</span></div>
+      <div className="education-stage-track">
+        {EDUCATION_STAGES.map((stage) => <article key={stage.title} className={`education-stage-card ${stage.status}`}>
+          {stage.status === "coming-soon" && <div className="education-construction-tape">UNDER CONSTRUCTION · COMING SOON · UNDER CONSTRUCTION</div>}
+          <span className="education-stage-label">{stage.badge}</span>
+          <h3>{stage.title}</h3>
+          <p>{stage.text}</p>
+        </article>)}
       </div>
     </section>
 
