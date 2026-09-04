@@ -92,8 +92,8 @@ function DashboardPage() {
         <section className="command-open-pro-note" aria-label="Temporary BragStack Pro open access">
           <Sparkles size={20} />
           <div>
-            <strong>🎉 BragStack Pro is temporarily open to everyone at no charge — enjoy full access!</strong>
-            <span>No new subscription or card is required during this open-access period. If you already have a paid subscription, you can manage future renewal in <a href="/app/settings/billing">Billing</a>.</span>
+            <strong>🎉 Temporary open access: enjoy BragStack Pro at no charge for now.</strong>
+            <span>This temporary access is for the individual Pro feature set only; Team and Enterprise features are not included. No new subscription or card is required. If you already have a paid subscription, you can manage future renewal in <a href="/app/settings/billing">Billing</a>.</span>
           </div>
         </section>
       )}
