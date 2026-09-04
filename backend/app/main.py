@@ -33,6 +33,7 @@ from app.private_packet_routes import router as private_packet_router
 from app.private_packet_share_routes import router as private_packet_share_router
 from app.profile_connection_routes import router as profile_connection_router
 from app.profile_media_routes import router as profile_media_router
+from app.public_share_routes import router as public_share_router
 from app.public_slug_routes import router as public_slug_router
 from app.rate_limit import check_rate_limit
 from app.reports_routes import router as reports_router
@@ -255,6 +256,7 @@ app.include_router(billing_router)
 app.include_router(billing_details_router)
 app.include_router(entries_router, dependencies=[Depends(enforce_entry_usage)])
 app.include_router(public_slug_router)
+app.include_router(public_share_router)
 app.include_router(impact_receipts_router, dependencies=[Depends(enforce_receipt_usage)])
 app.include_router(receipt_verification_router)
 app.include_router(core_output_router)
