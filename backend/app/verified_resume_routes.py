@@ -1,4 +1,4 @@
-"""Verified, fail-closed resume build endpoint used by the customer UI."""
+"""Verified, fail-closed resume build endpoint used by every client path."""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -13,9 +13,16 @@ from app.resume_quality import build_safe_generated_summary, verify_resume_analy
 router = APIRouter(prefix="/resume-builder", tags=["resume-builder", "verification"])
 
 
-@router.post("/build-verified")
+@router.post("/build")
+@router.post("/build-verified", include_in_schema=False)
 def build_verified_resume(payload: ResumeBuildRequest, current_user: dict = Depends(get_current_user)):
-    """Build resume suggestions and withhold any output that fails grounding checks."""
+    """Build resume suggestions and withhold any output that fails grounding checks.
+
+    The canonical legacy-compatible ``/build`` route and the explicit verified
+    alias share this exact implementation. This router is mounted before the
+    older resume-builder router so existing API clients cannot bypass the
+    verification gate by continuing to call the historical endpoint.
+    """
     require_feature(current_user, "resume_builder")
     user_id = str(current_user["_id"])
     receipts = _owned_receipts(user_id, payload.selected_receipt_ids)
