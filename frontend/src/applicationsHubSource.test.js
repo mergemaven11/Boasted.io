@@ -17,8 +17,17 @@ test("Education workspace exposes four adult education goals", () => {
   assert.match(source, /18\+ for now/i);
   assert.match(source, /no admissions score/i);
   assert.match(source, /real wins/i);
-  assert.match(source, /Middle school student accounts/);
-  assert.match(source, /Coming soon/);
+});
+
+test("Education clearly separates 18+ access from the younger-student roadmap", () => {
+  const source = read("./ApplicationsHubPage.jsx");
+  const marketing = read("./EducationMarketingPage.jsx");
+  assert.match(source, /YOUNGER STUDENT EXPERIENCE UNDER CONSTRUCTION/);
+  assert.match(source, /UNDER CONSTRUCTION · COMING SOON/);
+  assert.match(source, /high-school students who are already 18/i);
+  assert.match(source, /Middle school/);
+  assert.match(marketing, /YOUNGER STUDENT EXPERIENCE UNDER CONSTRUCTION/);
+  assert.match(marketing, /high-school students who are already 18/i);
 });
 
 test("Education keeps the existing authenticated route while using the new product label", () => {
