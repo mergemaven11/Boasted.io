@@ -14,6 +14,42 @@ const PUBLIC_META = {
     title: "Sign up for BragStack | Start Free",
     description: "Create a free BragStack account and start turning your accomplishments into career proof for resumes, interviews, reviews, and promotions.",
   },
+  "/how-it-works": {
+    title: "How BragStack Works | Capture, Prove & Reuse Career Evidence",
+    description: "See how BragStack helps you capture accomplishments, create Impact Receipts, reuse evidence for career moments, share selectively, and keep private work private.",
+  },
+  "/use-cases": {
+    title: "BragStack Use Cases | Reviews, Promotions, Resumes & Interviews",
+    description: "Explore practical BragStack use cases for performance reviews, promotions, resumes, interviews, career changes, freelancers, founders, and adults in education.",
+  },
+  "/contact": {
+    title: "Contact BragStack | Support, Privacy, Security & Billing",
+    description: "Contact BragStack for product support, general questions, privacy requests, security concerns, billing questions, or legal correspondence.",
+  },
+  "/team": {
+    title: "BragStack for Teams | Coming Soon",
+    description: "Learn about the planned BragStack Team direction for evidence-backed reviews, employee-controlled sharing, bounded analytics, and organization workflows without surveillance.",
+  },
+  "/enterprise": {
+    title: "BragStack Enterprise | Governance Roadmap for Career Evidence",
+    description: "Learn about BragStack's early enterprise direction for identity, governance, retention, admin policy controls, integrations, and employee-controlled evidence boundaries.",
+  },
+  "/security": {
+    title: "BragStack Security | Private-by-Default Career Evidence",
+    description: "Read BragStack's security approach, private-by-default model, confidential-work guidance, payment handling, and instructions for reporting a security concern.",
+  },
+  "/privacy": {
+    title: "Privacy Policy | BragStack",
+    description: "Read the BragStack Privacy Policy, including information collection, career evidence, sharing, AI-assisted features, retention, security, and privacy choices.",
+  },
+  "/terms": {
+    title: "Terms and Conditions | BragStack",
+    description: "Read the terms governing BragStack accounts, user content, acceptable use, subscriptions, AI-assisted career content, confidentiality, and service use.",
+  },
+  "/nda-safety": {
+    title: "NDA & Confidential Work Guidance | BragStack",
+    description: "Learn how to document professional accomplishments in BragStack without overriding NDAs, employer policies, client agreements, or confidentiality obligations.",
+  },
   "/education": {
     title: "BragStack Education | Student Wins & Growth for Ages 18+",
     description: "BragStack Education helps adults age 18+ capture real education wins from school, projects, activities, service, work, and learning. High-school students who are already 18 and adult college/university students can use the live workspace today.",
