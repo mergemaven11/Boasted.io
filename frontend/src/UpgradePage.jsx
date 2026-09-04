@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowLeft, CreditCard, ShieldCheck, Sparkles, Video } from "lucide-react";
 import BragStackLoader from "./BragStackLoader.jsx";
 
@@ -11,9 +11,9 @@ function getApiBaseUrl() {
 }
 
 function UpgradePage() {
-  const [status, setStatus] = useState("Preparing secure checkout…");
+  const [status, setStatus] = useState("Review the subscription details before continuing.");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("bragstack_token");
 
   async function startCheckout() {
@@ -53,21 +53,13 @@ function UpgradePage() {
     }
   }
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void startCheckout();
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   if (token && loading) {
     return <BragStackLoader message="Opening secure checkout…" detail="Connecting BragStack to Stripe. You'll continue in a secure checkout window." />;
   }
 
   return (
     <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24 }}>
-      <section style={{ width: "min(100%, 620px)", padding: 32, borderRadius: 28, border: "1px solid rgba(148,163,184,.2)", background: "rgba(15,23,42,.88)" }}>
+      <section style={{ width: "min(100%, 660px)", padding: 32, borderRadius: 28, border: "1px solid rgba(148,163,184,.2)", background: "rgba(15,23,42,.88)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
           <Sparkles size={22} />
           <strong>BragStack Pro · $9/month</strong>
@@ -81,6 +73,20 @@ function UpgradePage() {
           <span><CreditCard size={17} style={{ verticalAlign: "middle", marginRight: 8 }} />Subscription access updates through verified billing events</span>
         </div>
 
+        <div style={{ margin: "22px 0", padding: 18, borderRadius: 18, border: "1px solid rgba(147,197,253,.22)", background: "rgba(2,6,23,.45)" }}>
+          <strong>Subscription terms before you buy</strong>
+          <ul style={{ margin: "12px 0 0", paddingLeft: 20, color: "#cbd5e1", lineHeight: 1.65 }}>
+            <li>BragStack Pro is currently $9 per month, plus any applicable taxes shown at checkout.</li>
+            <li>Your subscription renews automatically each month until you cancel.</li>
+            <li>You can cancel future renewal through BragStack's available billing controls or support. Cancellation generally leaves paid access active through the end of the current paid period.</li>
+            <li>Except where required by law or expressly stated at purchase, charges already paid are non-refundable.</li>
+            <li>Stripe's checkout page shows the final amount and any promotion, tax, or payment details that apply to your purchase.</li>
+          </ul>
+          <p style={{ margin: "12px 0 0", color: "#94a3b8", fontSize: ".85rem", lineHeight: 1.55 }}>
+            By continuing and completing the purchase, you agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms &amp; Conditions</a> and acknowledge the <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.
+          </p>
+        </div>
+
         <p><strong>{status}</strong></p>
         {error && <p style={{ color: "#fecaca" }}>{error}</p>}
 
@@ -90,9 +96,9 @@ function UpgradePage() {
               <a className="btn primary" href="/login">Sign in</a>
               <a className="btn secondary" href="/register">Create account</a>
             </>
-          ) : !loading ? (
-            <button className="btn primary" type="button" onClick={startCheckout}>Try checkout again</button>
-          ) : null}
+          ) : (
+            <button className="btn primary" type="button" onClick={startCheckout}>Continue to Stripe · $9/month</button>
+          )}
           <a className="btn secondary" href="/#pricing"><ArrowLeft size={16} /> Back to pricing</a>
         </div>
       </section>
