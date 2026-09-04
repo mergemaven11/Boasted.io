@@ -7,7 +7,7 @@ import httpx
 from fastapi import APIRouter, Depends
 
 from app.auth import get_current_user
-from app.plans import PLAN_PRICING, get_plan_for_user
+from app.plans import PLAN_PRICING, get_plan_for_user, open_pro_access_enabled
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 STRIPE_API_BASE = "https://api.stripe.com/v1"
@@ -16,8 +16,12 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 
 def _fallback_payload(user: dict) -> dict:
     plan = get_plan_for_user(user)
+    has_subscription = bool(user.get("stripe_subscription_id"))
+    open_access = open_pro_access_enabled()
     pricing = PLAN_PRICING.get(plan, {})
     monthly = pricing.get("monthly")
+    if open_access and not has_subscription:
+        monthly = 0
     return {
         "plan": plan,
         "status": user.get("billing_status", "free"),
@@ -25,9 +29,12 @@ def _fallback_payload(user: dict) -> dict:
         "current_period_end": user.get("billing_current_period_end"),
         "amount": monthly,
         "currency": "usd" if monthly is not None else None,
-        "interval": "month" if monthly is not None else None,
+        "interval": "month" if monthly not in {None, 0} else None,
         "payment_method": None,
         "stripe_live": False,
+        "has_subscription": has_subscription,
+        "open_pro_access": open_access,
+        "new_paid_upgrades_enabled": not open_access,
     }
 
 
@@ -78,6 +85,7 @@ async def billing_details(current_user: dict = Depends(get_current_user)):
             "interval": recurring.get("interval") or payload["interval"],
             "payment_method": _payment_method(subscription.get("default_payment_method")),
             "stripe_live": True,
+            "has_subscription": True,
         })
         return payload
     except Exception:
