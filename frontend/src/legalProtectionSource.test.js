@@ -54,3 +54,25 @@ test("NDA and security pages warn against restricted and regulated data", () => 
   assert.match(security, /Security features are not a compliance certification/);
   assert.match(security, /No online service can promise absolute security/);
 });
+
+test("non-essential analytics requires an affirmative privacy choice", () => {
+  const analytics = read("./analytics.js");
+  const consent = read("./AnalyticsConsentBanner.jsx");
+  const main = read("./main.jsx");
+  assert.match(analytics, /ANALYTICS_CONSENT_GRANTED/);
+  assert.match(analytics, /if \(!hasAnalyticsConsent\(\)\)/);
+  assert.match(consent, /Analytics stays off unless you choose Allow analytics/);
+  assert.match(consent, /Essential only/);
+  assert.match(consent, /Privacy choices/);
+  assert.doesNotMatch(main, /loadAnalyticsWhenIdle/);
+  assert.match(main, /<AnalyticsConsentBanner \/>/);
+});
+
+test("subscription checkout requires a disclosure screen and explicit purchase action", () => {
+  const source = read("./UpgradePage.jsx");
+  assert.match(source, /Subscription terms before you buy/);
+  assert.match(source, /renews automatically each month until you cancel/);
+  assert.match(source, /charges already paid are non-refundable/);
+  assert.match(source, /Continue to Stripe · \$9\/month/);
+  assert.doesNotMatch(source, /useEffect\(\(\) => \{/);
+});
