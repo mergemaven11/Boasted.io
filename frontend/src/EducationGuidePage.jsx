@@ -24,7 +24,7 @@ const captureIdeas = [
 ];
 
 const workflow = [
-  { title: "1. Capture the win", text: "Open Accomplishments and save the moment while you still remember the details. BragStack accounts are currently 18+, and Middle School student accounts are not open yet." },
+  { title: "1. Capture the win", text: "Open Accomplishments and save the moment while you still remember the details. BragStack accounts are currently 18+. High-school students who are already 18 and adult college/university students can use the current Education workspace." },
   { title: "2. Tell what happened", text: "Describe the situation, what you personally did, what changed afterward, and what you learned. Numbers and specific details help when you genuinely know them." },
   { title: "3. Keep useful proof", text: "Add safe evidence, tags, or confirmation when available. Do not upload secrets, protected student records, passwords, restricted school systems, or anything you are not allowed to keep." },
   { title: "4. Open Education", text: "Your Education workspace reviews the accomplishments you actually saved and helps organize them around a goal." },
@@ -47,7 +47,7 @@ export default function EducationGuidePage() {
     <section className="education-guide-hero">
       <p><Sparkles size={16}/> BRAGSTACK EDUCATION GUIDE · CURRENTLY 18+</p>
       <h1>Build your education story one real win at a time.</h1>
-      <span>Adults can use BragStack to remember what they did, what they learned, how they grew, and the evidence behind it—then bring those real examples forward when an opportunity matters.</span>
+      <span>Adults—including high-school students who are already 18—can use BragStack to remember what they did, what they learned, how they grew, and the evidence behind it, then bring those real examples forward when an opportunity matters.</span>
     </section>
 
     <section className="education-guide-callout">
@@ -57,7 +57,12 @@ export default function EducationGuidePage() {
 
     <section className="education-guide-callout">
       <GraduationCap size={26}/>
-      <div><strong>Education is a long-term proof workspace, not an admissions score.</strong><p>Adults can organize real accomplishments from college/university, certifications, work, activities, projects, service, and earlier education history where supported. The longer-term vision extends the same proof model from school into a career record.</p></div>
+      <div><strong>High school and college can still be part of the live 18+ product.</strong><p>An 18-year-old high-school student can use the current Education workspace, as can adult college/university students. The restriction is based on age, not simply the name of the education stage.</p></div>
+    </section>
+
+    <section className="education-guide-callout">
+      <GraduationCap size={26}/>
+      <div><strong>Education is a long-term proof workspace, not an admissions score.</strong><p>Adults can organize real accomplishments from high school where age-eligible, college/university, certifications, work, activities, projects, service, and earlier education history where supported. The longer-term vision extends the same proof model from school into a career record.</p></div>
     </section>
 
     <section className="education-guide-section">
@@ -106,7 +111,7 @@ export default function EducationGuidePage() {
 
     <section className="education-guide-cta">
       <h2>Start with one thing you are proud of.</h2>
-      <p>You do not need your whole education history on day one.</p>
+      <p>If you are 18 or older, you do not need your whole education history on day one.</p>
       <div><a href="/register">Create my BragStack</a><a href="/education">Back to Education overview</a></div>
       <small>Current account access: adults age 18 and older.</small>
     </section>
