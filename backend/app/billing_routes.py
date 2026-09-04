@@ -13,7 +13,7 @@ from pymongo.errors import DuplicateKeyError
 
 from app.auth import get_current_user
 from app.database import stripe_webhook_events_collection, users_collection
-from app.plans import get_plan_for_user
+from app.plans import get_plan_for_user, open_pro_access_enabled
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -273,6 +273,8 @@ def _subscription_status_payload(user: dict) -> dict:
         "cancel_at_period_end": bool(user.get("billing_cancel_at_period_end", False)),
         "current_period_end": user.get("billing_current_period_end"),
         "has_subscription": bool(user.get("stripe_subscription_id")),
+        "open_pro_access": open_pro_access_enabled(),
+        "new_paid_upgrades_enabled": not open_pro_access_enabled(),
     }
 
 
@@ -305,6 +307,12 @@ async def _update_stripe_subscription(subscription_id: str, *, cancel_at_period_
 @router.post("/checkout-session")
 async def create_checkout_session(current_user: dict = Depends(get_current_user)):
     """Create a Stripe Checkout subscription session for BragStack Pro."""
+    if open_pro_access_enabled():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Paid upgrades are temporarily paused. BragStack Pro is currently open to all users at no charge.",
+        )
+
     _require_stripe_checkout_config()
 
     if get_plan_for_user(current_user) == "pro" and current_user.get("billing_status") in {
@@ -404,6 +412,12 @@ async def resume_subscription(current_user: dict = Depends(get_current_user)):
     Returns:
         Function result.
     """
+    if open_pro_access_enabled():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Paid renewals cannot be resumed while BragStack paid upgrades are paused.",
+        )
+
     subscription_id = current_user.get("stripe_subscription_id")
     if not subscription_id or get_plan_for_user(current_user) != "pro":
         raise HTTPException(status_code=409, detail="There is no Pro subscription to resume.")
