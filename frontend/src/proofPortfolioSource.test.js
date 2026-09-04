@@ -35,3 +35,21 @@ test("Proof Portfolio mounts the inline Calendly scheduler", () => {
   assert.match(calendly, /Calendly\.initInlineWidget/);
   assert.match(calendly, /parentElement/);
 });
+
+test("uploaded profile photos replace the public portfolio letter avatar", () => {
+  const source = read("./publicPortfolioAvatar.js");
+  const main = read("./main.jsx");
+  assert.match(source, /\/public\/brag\/\$\{encodeURIComponent\(slug\)\}\/avatar/);
+  assert.match(source, /\.proof-portfolio \.portfolio-avatar/);
+  assert.match(source, /host\.replaceChildren\(image\)/);
+  assert.match(source, /objectFit = "cover"/);
+  assert.match(main, /installPublicPortfolioAvatar/);
+});
+
+test("Appearance settings always provide a route back to Settings", () => {
+  const source = read("./AppearanceSettingsPage.jsx");
+  assert.match(source, /href="\/app\/settings"/);
+  assert.match(source, /Back to settings/);
+  assert.match(source, /window\.location\.replace\("\/app\/settings\?saved=appearance"\)/);
+  assert.doesNotMatch(source, /name:form\.name,headline:form\.headline/);
+});
