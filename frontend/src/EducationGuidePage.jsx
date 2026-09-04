@@ -24,9 +24,9 @@ const captureIdeas = [
 ];
 
 const workflow = [
-  { title: "1. Capture the win", text: "Open Accomplishments and save the moment while you still remember the details. Choose Middle School, High School, or College / University when that is the right context." },
+  { title: "1. Capture the win", text: "Open Accomplishments and save the moment while you still remember the details. BragStack accounts are currently 18+, and Middle School student accounts are not open yet." },
   { title: "2. Tell what happened", text: "Describe the situation, what you personally did, what changed afterward, and what you learned. Numbers and specific details help when you genuinely know them." },
-  { title: "3. Keep useful proof", text: "Add safe evidence, tags, or confirmation when available. Do not upload secrets, private student records, passwords, restricted school systems, or anything you are not allowed to keep." },
+  { title: "3. Keep useful proof", text: "Add safe evidence, tags, or confirmation when available. Do not upload secrets, protected student records, passwords, restricted school systems, or anything you are not allowed to keep." },
   { title: "4. Open Education", text: "Your Education workspace reviews the accomplishments you actually saved and helps organize them around a goal." },
   { title: "5. Pick a goal", text: "Choose Scholarships, Programs, Internships, or Essay Stories to see which of your real wins may be worth reviewing first." },
   { title: "6. Use the shortlist", text: "Copy the wins you want to work with, compare them with the real requirements, and keep the final application, essay, or submission accurate and in your own voice." },
@@ -45,14 +45,19 @@ export default function EducationGuidePage() {
     </header>
 
     <section className="education-guide-hero">
-      <p><Sparkles size={16}/> BRAGSTACK EDUCATION GUIDE</p>
-      <h1>Build your school story one real win at a time.</h1>
-      <span>Use BragStack to remember what you did, what you learned, how you grew, and the evidence behind it—then bring those real examples forward when an opportunity matters.</span>
+      <p><Sparkles size={16}/> BRAGSTACK EDUCATION GUIDE · CURRENTLY 18+</p>
+      <h1>Build your education story one real win at a time.</h1>
+      <span>Adults can use BragStack to remember what they did, what they learned, how they grew, and the evidence behind it—then bring those real examples forward when an opportunity matters.</span>
     </section>
 
     <section className="education-guide-callout">
       <GraduationCap size={26}/>
-      <div><strong>Education is a long-term student workspace, not an admissions score.</strong><p>It is designed to help organize real accomplishments from school, activities, projects, service, work, and learning from middle school through university and into a career record.</p></div>
+      <div><strong><s>Middle School student accounts</s> — Coming soon.</strong><p>BragStack accounts are currently limited to people age 18 or older. The younger-student experience remains on the roadmap while we complete youth privacy, parental-consent, safety, retention, and legal review. Do not create an account or upload school information if you are under 18.</p></div>
+    </section>
+
+    <section className="education-guide-callout">
+      <GraduationCap size={26}/>
+      <div><strong>Education is a long-term proof workspace, not an admissions score.</strong><p>Adults can organize real accomplishments from college/university, certifications, work, activities, projects, service, and earlier education history where supported. The longer-term vision extends the same proof model from school into a career record.</p></div>
     </section>
 
     <section className="education-guide-section">
@@ -85,7 +90,7 @@ export default function EducationGuidePage() {
     <section className="education-guide-section education-guide-trust">
       <div className="education-guide-heading"><ShieldCheck size={22}/><div><span>TRUST & PRIVACY</span><h2>Your story stays under your control.</h2></div></div>
       <div className="education-guide-list">
-        <div><LockKeyhole size={18}/><span>Student accomplishments are private unless you explicitly choose to make something public.</span></div>
+        <div><LockKeyhole size={18}/><span>Education accomplishments are private unless you explicitly choose to make something public.</span></div>
         <div><CheckCircle2 size={18}/><span>Education Intelligence uses your saved record; it does not invent activities, schools, awards, grades, roles, metrics, or life experiences.</span></div>
         <div><CheckCircle2 size={18}/><span>BragStack does not provide admissions odds, scholarship odds, or a student ranking score.</span></div>
         <div><CheckCircle2 size={18}/><span>If you ask a teacher, coach, mentor, or other person to confirm something, choose only someone who genuinely knows the work.</span></div>
@@ -94,15 +99,16 @@ export default function EducationGuidePage() {
     </section>
 
     <section className="education-guide-section">
-      <div className="education-guide-heading"><GraduationCap size={22}/><div><span>STUDENTS & AGE REQUIREMENTS</span><h2>Account eligibility still matters.</h2></div></div>
-      <p>BragStack&apos;s Education features can describe experiences that begin in middle school, but that does not override the eligibility rules in the BragStack Terms or age requirements that apply where you live. Students who are not legally eligible to create an account independently should not register independently.</p>
-      <p>BragStack does not currently describe a separate guardian-managed child account experience in this guide. If that product experience is introduced later, the documentation will be updated to explain how it works.</p>
+      <div className="education-guide-heading"><GraduationCap size={22}/><div><span>AGE REQUIREMENTS</span><h2>BragStack is 18+ for now.</h2></div></div>
+      <p>New account registration requires confirmation that you are at least 18 years old plus acceptance of the current Terms and Privacy Policy. This is an interim boundary while BragStack completes the work needed for younger-student accounts.</p>
+      <p>Middle School remains visible as a Coming Soon product direction. It is not currently an invitation for a minor to register, and BragStack does not currently offer a guardian-managed child account experience.</p>
     </section>
 
     <section className="education-guide-cta">
       <h2>Start with one thing you are proud of.</h2>
-      <p>You do not need your whole school history on day one.</p>
+      <p>You do not need your whole education history on day one.</p>
       <div><a href="/register">Create my BragStack</a><a href="/education">Back to Education overview</a></div>
+      <small>Current account access: adults age 18 and older.</small>
     </section>
   </main>;
 }

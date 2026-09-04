@@ -24,8 +24,8 @@ const studentWins = [
 ];
 
 const stages = [
-  { title: "Middle school", text: "Start noticing the moments that show curiosity, effort, teamwork, service, creativity, and growth." },
-  { title: "High school", text: "Keep a real record of activities, leadership, awards, projects, service, jobs, competitions, and the stories behind them." },
+  { title: "Middle school — Coming soon", text: "Student accounts for this stage are on the roadmap, but are not open yet while BragStack completes youth privacy, consent, and safety review." },
+  { title: "High school history", text: "Adults can preserve prior activities, leadership, awards, projects, service, jobs, competitions, and the stories behind them when useful." },
   { title: "College / University", text: "Track research, internships, campus leadership, projects, certifications, work, service, and the skills you are building." },
   { title: "Career", text: "Carry the same evidence forward into resumes, interviews, portfolios, reviews, promotions, and professional opportunities." },
 ];
@@ -39,21 +39,21 @@ const goals = [
 
 export default function EducationMarketingPage() {
   useEffect(() => {
-    document.title = "BragStack Education | Turn student wins into a story that grows with you";
+    document.title = "BragStack Education | Build an education proof record that grows with you";
     let meta = document.querySelector('meta[name="description"]');
     if (!meta) {
       meta = document.createElement("meta");
       meta.setAttribute("name", "description");
       document.head.appendChild(meta);
     }
-    meta.setAttribute("content", "BragStack Education helps students capture real wins from school, activities, service, projects, work, and learning, then reuse them for scholarships, programs, internships, essays, and future careers.");
+    meta.setAttribute("content", "BragStack Education is currently available to adults 18+ for capturing real education, project, service, work, and learning accomplishments. Middle-school student accounts are coming soon after youth privacy and safety review.");
   }, []);
 
   return <main className="education-marketing">
     <header className="education-nav">
       <a className="education-brand" href="/">BragStack</a>
       <nav aria-label="Education navigation">
-        <a href="#journey">Student journey</a>
+        <a href="#journey">Education journey</a>
         <a href="#goals">What it helps with</a>
         <a href="/docs/education">Education guide</a>
       </nav>
@@ -62,24 +62,25 @@ export default function EducationMarketingPage() {
 
     <section className="education-hero">
       <div>
-        <p className="education-eyebrow"><Sparkles size={16}/> BRAGSTACK EDUCATION</p>
+        <p className="education-eyebrow"><Sparkles size={16}/> BRAGSTACK EDUCATION · 18+ FOR NOW</p>
         <h1>Your grades are only part of your story.<span> Keep the wins, too.</span></h1>
-        <p className="education-lede">Projects. Awards. Clubs. Sports. Service. Research. First jobs. Skills. Leadership. The things you learn when something is hard. BragStack gives those moments a place to live so your future self does not have to reconstruct years of growth from memory.</p>
+        <p className="education-lede">Projects. Awards. Clubs. Sports. Service. Research. First jobs. Skills. Leadership. The things you learn when something is hard. Adults can give those moments a place to live so future-you does not have to reconstruct years of growth from memory.</p>
         <div className="education-actions"><a className="education-primary" href="/register">Start building my story <ArrowRight size={18}/></a><a className="education-secondary" href="/docs/education">See how Education works</a></div>
+        <p className="education-note"><LockKeyhole size={15}/> Accounts are currently limited to people age 18+. <s>Middle School student accounts</s> — <strong>Coming soon.</strong></p>
         <p className="education-note"><LockKeyhole size={15}/> Private by default. Built from your real accomplishments. No admissions score and no invented achievements.</p>
       </div>
       <aside className="education-story-card">
-        <span>YOUR JOURNEY</span>
+        <span>THE LONG-TERM VISION</span>
         <h2>One record that can grow with you.</h2>
-        <div className="education-story-line"><b>Middle school</b><i/></div>
-        <div className="education-story-line"><b>High school</b><i/></div>
+        <div className="education-story-line"><b><s>Middle school student accounts</s> · Coming soon</b><i/></div>
+        <div className="education-story-line"><b>High school history</b><i/></div>
         <div className="education-story-line"><b>College / University</b><i/></div>
         <div className="education-story-line"><b>Career</b></div>
       </aside>
     </section>
 
     <section className="education-section" id="journey">
-      <div className="education-heading"><p>THE STUDENT JOURNEY</p><h2>Capture the story while you are living it.</h2><span>BragStack Education is not just an application page. It is a running record of what you are learning, doing, improving, and achieving.</span></div>
+      <div className="education-heading"><p>THE EDUCATION JOURNEY</p><h2>Capture the story while you are living it.</h2><span>BragStack Education is a running record of what you are learning, doing, improving, and achieving. The live product is 18+ while younger-student access remains on the roadmap.</span></div>
       <div className="education-stage-grid">{stages.map((stage, index) => <article key={stage.title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{stage.title}</h3><p>{stage.text}</p></article>)}</div>
     </section>
 
@@ -103,12 +104,12 @@ export default function EducationMarketingPage() {
     </section>
 
     <section className="education-trust">
-      <div><p>BUILT TO SUPPORT STUDENTS, NOT SCORE THEM</p><h2>You are more than a number.</h2><p>BragStack does not calculate admissions odds, scholarship odds, student rankings, or a made-up “potential” score. It organizes the story you actually created and leaves the decisions to the real people and programs involved.</p></div>
+      <div><p>BUILT TO SUPPORT YOUR STORY, NOT SCORE IT</p><h2>You are more than a number.</h2><p>BragStack does not calculate admissions odds, scholarship odds, rankings, or a made-up “potential” score. It organizes the story you actually created and leaves decisions to the real people and programs involved.</p></div>
       <div className="education-trust-list"><span><LockKeyhole size={17}/> Private by default</span><span><Check size={17}/> Real accomplishments only</span><span><Check size={17}/> You choose what becomes public</span><span><Check size={17}/> You stay the author of your essays and story</span></div>
     </section>
 
     <section className="education-cta">
-      <GraduationCap size={30}/><h2>Your future self should not have to remember everything.</h2><p>Start with one thing you did that you are proud of.</p><div><a className="education-primary" href="/register">Start my BragStack <ArrowRight size={18}/></a><a className="education-secondary" href="/docs/education">Read the student guide</a></div><small>Account eligibility is governed by BragStack&apos;s Terms and applicable age requirements.</small>
+      <GraduationCap size={30}/><h2>Your future self should not have to remember everything.</h2><p>Adults 18+: start with one thing you did that you are proud of.</p><div><a className="education-primary" href="/register">Start my BragStack <ArrowRight size={18}/></a><a className="education-secondary" href="/docs/education">Read the Education guide</a></div><small>BragStack accounts are currently 18+. Middle-school student accounts are coming soon after legal, privacy, consent, and safety review.</small>
     </section>
   </main>;
 }

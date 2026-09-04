@@ -63,9 +63,6 @@ def _redirect_uri(request: Request, provider: str) -> str:
     if OAUTH_CALLBACK_BASE_URL:
         return f"{OAUTH_CALLBACK_BASE_URL}/auth/{provider}/callback"
 
-    # Render and other reverse proxies terminate TLS before the FastAPI process.
-    # Build the public callback from the forwarded host/scheme so the redirect URI
-    # sent to OAuth providers is the same HTTPS URI registered with the provider.
     forwarded_proto = request.headers.get("x-forwarded-proto", "").split(",", 1)[0].strip()
     forwarded_host = request.headers.get("x-forwarded-host", "").split(",", 1)[0].strip()
     host = forwarded_host or request.headers.get("host", "").strip()
@@ -86,7 +83,12 @@ def _find_or_create_oauth_user(
     email: str,
     name: str,
 ) -> dict:
-    """Link OAuth identity without replacing user-authored profile fields."""
+    """Link OAuth identity without replacing user-authored profile fields.
+
+    New OAuth account creation is temporarily disabled so every new BragStack
+    account passes through the explicit 18+ and legal-acceptance registration
+    flow. Existing OAuth users continue to sign in normally.
+    """
     normalized_email = email.lower().strip()
     provider_field = f"oauth.{provider}_id"
     verified_at = datetime.now(timezone.utc).isoformat()
@@ -110,8 +112,6 @@ def _find_or_create_oauth_user(
 
     user = users_collection.find_one({"email": normalized_email})
     if user:
-        # Only link the provider and verification state. Never replace profile
-        # fields such as bio, headline, URLs, theme, avatar, or Open to Talk.
         users_collection.update_one(
             {"_id": user["_id"]},
             {
@@ -128,17 +128,13 @@ def _find_or_create_oauth_user(
         )
         return users_collection.find_one({"_id": user["_id"]})
 
-    user_doc = {
-        "name": (name or normalized_email.split("@", 1)[0]).strip(),
-        "email": normalized_email,
-        "public_slug": _generate_unique_public_slug(name or "user"),
-        "oauth": {f"{provider}_id": provider_user_id},
-        "email_verified_at": verified_at,
-        "email_verification_required": False,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
-    result = users_collection.insert_one(user_doc)
-    return users_collection.find_one({"_id": result.inserted_id})
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail=(
+            "New Google/GitHub account creation is temporarily unavailable. "
+            "Create your BragStack account with email/password first so you can confirm the 18+ requirement and accept the current Terms and Privacy Policy."
+        ),
+    )
 
 
 def _frontend_success_redirect(user: dict) -> RedirectResponse:

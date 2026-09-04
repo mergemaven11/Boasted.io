@@ -7,16 +7,18 @@ function read(relativePath) {
   return fs.readFileSync(fileURLToPath(new URL(relativePath, import.meta.url)), "utf8");
 }
 
-test("Education workspace exposes four student goals", () => {
+test("Education workspace exposes four adult education goals", () => {
   const source = read("./ApplicationsHubPage.jsx");
   assert.match(source, /id: "scholarship"/);
   assert.match(source, /id: "special-program"/);
   assert.match(source, /id: "internship"/);
   assert.match(source, /id: "essay-prep"/);
   assert.match(source, /Education Workspace/);
+  assert.match(source, /18\+ for now/i);
   assert.match(source, /no admissions score/i);
   assert.match(source, /real wins/i);
-  assert.match(source, /Middle school → High school → College \/ University → Career/);
+  assert.match(source, /Middle school student accounts/);
+  assert.match(source, /Coming soon/);
 });
 
 test("Education keeps the existing authenticated route while using the new product label", () => {

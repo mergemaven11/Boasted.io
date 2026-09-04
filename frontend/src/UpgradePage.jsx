@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowLeft, CreditCard, ShieldCheck, Sparkles, Video } from "lucide-react";
 import BragStackLoader from "./BragStackLoader.jsx";
 
@@ -11,15 +11,19 @@ function getApiBaseUrl() {
 }
 
 function UpgradePage() {
-  const [status, setStatus] = useState("Preparing secure checkout…");
+  const [status, setStatus] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [billingAcknowledged, setBillingAcknowledged] = useState(false);
   const token = localStorage.getItem("bragstack_token");
 
   async function startCheckout() {
     if (!token) {
-      setLoading(false);
       setStatus("Sign in first to upgrade your BragStack account.");
+      return;
+    }
+    if (!billingAcknowledged) {
+      setError("Please confirm the recurring billing terms before continuing to Stripe.");
       return;
     }
 
@@ -53,21 +57,13 @@ function UpgradePage() {
     }
   }
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void startCheckout();
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  if (token && loading) {
+  if (loading) {
     return <BragStackLoader message="Opening secure checkout…" detail="Connecting BragStack to Stripe. You'll continue in a secure checkout window." />;
   }
 
   return (
     <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24 }}>
-      <section style={{ width: "min(100%, 620px)", padding: 32, borderRadius: 28, border: "1px solid rgba(148,163,184,.2)", background: "rgba(15,23,42,.88)" }}>
+      <section style={{ width: "min(100%, 660px)", padding: 32, borderRadius: 28, border: "1px solid rgba(148,163,184,.2)", background: "rgba(15,23,42,.88)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
           <Sparkles size={22} />
           <strong>BragStack Pro · $9/month</strong>
@@ -81,7 +77,17 @@ function UpgradePage() {
           <span><CreditCard size={17} style={{ verticalAlign: "middle", marginRight: 8 }} />Subscription access updates through verified billing events</span>
         </div>
 
-        <p><strong>{status}</strong></p>
+        <div style={{ margin: "24px 0", padding: 18, borderRadius: 18, border: "1px solid rgba(166,220,255,.24)", background: "rgba(2,6,23,.48)" }}>
+          <strong style={{ display: "block", marginBottom: 8 }}>Recurring subscription terms</strong>
+          <p style={{ margin: "0 0 10px", lineHeight: 1.6 }}><strong>$9 per month.</strong> BragStack Pro automatically renews every month until you cancel. Cancel future renewal from BragStack billing settings. Cancellation normally leaves Pro access active through the period already paid for. Fees already paid are non-refundable except where required by law or expressly stated at purchase.</p>
+          <p style={{ margin: "0 0 12px", lineHeight: 1.6 }}>Review the <a href="/terms" target="_blank" rel="noreferrer">Terms</a>, <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>, and <a href="/legal/georgia-consumer-notice.html" target="_blank" rel="noreferrer">Georgia Billing & Privacy Notice</a>.</p>
+          <label style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer", lineHeight: 1.5 }}>
+            <input type="checkbox" checked={billingAcknowledged} onChange={(event) => setBillingAcknowledged(event.target.checked)} style={{ marginTop: 4 }} />
+            <span>I understand this is a <strong>$9/month automatically renewing subscription</strong> and that I can cancel future renewal using BragStack billing settings.</span>
+          </label>
+        </div>
+
+        {status && <p><strong>{status}</strong></p>}
         {error && <p style={{ color: "#fecaca" }}>{error}</p>}
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 22 }}>
@@ -90,9 +96,9 @@ function UpgradePage() {
               <a className="btn primary" href="/login">Sign in</a>
               <a className="btn secondary" href="/register">Create account</a>
             </>
-          ) : !loading ? (
-            <button className="btn primary" type="button" onClick={startCheckout}>Try checkout again</button>
-          ) : null}
+          ) : (
+            <button className="btn primary" type="button" onClick={startCheckout} disabled={!billingAcknowledged}>Continue to secure Stripe checkout</button>
+          )}
           <a className="btn secondary" href="/#pricing"><ArrowLeft size={16} /> Back to pricing</a>
         </div>
       </section>

@@ -7,10 +7,15 @@ function applyAvatar(avatarUrl) {
   const host = document.querySelector(".proof-portfolio .portfolio-avatar");
   if (!host || !avatarUrl) return false;
 
+  const existing = host.querySelector("img[data-bragstack-profile-avatar]");
+  if (existing?.dataset.source === avatarUrl) return true;
+
   const image = document.createElement("img");
   image.src = avatarUrl;
   image.alt = "Profile photo";
   image.decoding = "async";
+  image.dataset.bragstackProfileAvatar = "true";
+  image.dataset.source = avatarUrl;
   image.style.width = "100%";
   image.style.height = "100%";
   image.style.objectFit = "cover";
@@ -30,17 +35,25 @@ export async function installPublicPortfolioAvatar() {
   try {
     const response = await fetch(`${apiBase()}/public/brag/${encodeURIComponent(slug)}/avatar`, {
       headers: { Accept: "application/json" },
+      cache: "no-store",
     });
     if (!response.ok) return;
     const data = await response.json();
     const avatarUrl = String(data?.avatar_url || "").trim();
-    if (!avatarUrl || applyAvatar(avatarUrl)) return;
+    if (!avatarUrl) return;
 
+    // React first renders the letter avatar, then re-renders when public profile
+    // data arrives. A one-time DOM replacement gets overwritten by that second
+    // render, which made saved photos appear briefly and then disappear. Keep a
+    // short-lived observer active long enough to restore the persisted photo
+    // after any profile-data re-render.
+    applyAvatar(avatarUrl);
+    const root = document.getElementById("root") || document.body;
     const observer = new MutationObserver(() => {
-      if (applyAvatar(avatarUrl)) observer.disconnect();
+      applyAvatar(avatarUrl);
     });
-    observer.observe(document.getElementById("root") || document.body, { childList: true, subtree: true });
-    window.setTimeout(() => observer.disconnect(), 10000);
+    observer.observe(root, { childList: true, subtree: true });
+    window.setTimeout(() => observer.disconnect(), 60000);
   } catch {
     // Keep the initial-letter fallback if the public avatar cannot be loaded.
   }

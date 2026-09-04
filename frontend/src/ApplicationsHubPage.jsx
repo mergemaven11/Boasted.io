@@ -165,15 +165,15 @@ function ApplicationsHubPage() {
   return <main className="applications-hub">
     <header className="applications-hero">
       <div>
-        <p className="applications-kicker"><Sparkles size={15} /> Education Workspace</p>
+        <p className="applications-kicker"><Sparkles size={15} /> Education Workspace · 18+ for now</p>
         <h1>Keep track of the wins that are shaping your future.</h1>
-        <p>School moves fast. BragStack helps you remember what you did, what you learned, what you improved, and what you are proud of—from middle school through college and beyond. When an opportunity comes up, your story is already here.</p>
+        <p>BragStack currently supports adults age 18+ who want to preserve real education, project, service, work, and learning accomplishments. Middle-school student accounts remain part of the long-term Education vision, but they are coming soon after youth privacy, consent, safety, and legal review.</p>
       </div>
-      <div className="applications-trust"><ShieldCheck size={20} /><span><strong>Your school story stays yours.</strong><small>Private by default · built from your real wins · no admissions score</small></span></div>
+      <div className="applications-trust"><ShieldCheck size={20} /><span><strong>Your education story stays yours.</strong><small>Private by default · built from your real wins · no admissions score</small></span></div>
     </header>
 
     <section className="application-overview">
-      <div><p className="applications-kicker"><GraduationCap size={15} /> Your journey</p><h2>Middle school → High school → College / University → Career</h2><p>Capture wins as they happen so you do not have to rebuild years of growth from memory later.</p></div>
+      <div><p className="applications-kicker"><GraduationCap size={15} /> The long-term journey</p><h2><s>Middle school student accounts</s> — Coming soon · High school history → College / University → Career</h2><p>Adults can capture useful education and career evidence now. Younger-student account access stays disabled until BragStack completes the additional legal and privacy work for that release.</p></div>
       <div className="application-stats">
         <div><strong>Learn</strong><span>what you are getting better at</span></div>
         <div><strong>Grow</strong><span>see how your story changes over time</span></div>
@@ -197,7 +197,7 @@ function ApplicationsHubPage() {
       <section className="application-overview">
         <div><p className="applications-kicker"><Target size={15} /> {activeWorkflow.title}</p><h2>Here&apos;s what your saved wins can already help you talk about.</h2><p>{activeWorkflow.blurb}</p></div>
         <div className="application-stats">
-          <div><strong>{data.summary?.education_accomplishments ?? 0}</strong><span>school & learning wins</span></div>
+          <div><strong>{data.summary?.education_accomplishments ?? 0}</strong><span>education & learning wins</span></div>
           <div><strong>{data.summary?.accomplishments_analyzed ?? 0}</strong><span>total wins reviewed</span></div>
           <div><strong>{data.summary?.recommended_evidence_count ?? 0}</strong><span>good examples to start with</span></div>
         </div>
