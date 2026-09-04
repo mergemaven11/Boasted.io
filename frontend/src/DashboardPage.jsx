@@ -88,6 +88,16 @@ function DashboardPage() {
         </div>
       </header>
 
+      {user?.plan === "pro" && (
+        <section className="command-open-pro-note" aria-label="Temporary BragStack Pro open access">
+          <Sparkles size={20} />
+          <div>
+            <strong>🎉 BragStack Pro is temporarily open to everyone at no charge — enjoy full access!</strong>
+            <span>No new subscription or card is required during this open-access period. If you already have a paid subscription, you can manage future renewal in <a href="/app/settings/billing">Billing</a>.</span>
+          </div>
+        </section>
+      )}
+
       {error && <div className="command-alert">{error}</div>}
 
       <section className="command-metrics" aria-label="Career proof metrics">
