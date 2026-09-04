@@ -50,12 +50,24 @@
   transform: translateY(-1px);
 }
 
-.public-auth-actions {
+.public-auth-actions,
+.public-auth-register-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 0.65rem;
   flex: 0 0 auto;
+}
+
+.public-auth-register-actions {
+  position: absolute;
+  top: 1rem;
+  right: 1.25rem;
+  z-index: 50;
+}
+
+.public-auth-register-actions a {
+  text-decoration: none;
 }
 
 .public-auth-button {
@@ -100,7 +112,8 @@
   background: rgba(23, 34, 57, 0.86);
 }
 
-.public-auth-header a:focus-visible {
+.public-auth-header a:focus-visible,
+.public-auth-register-actions a:focus-visible {
   outline: 3px solid rgba(166, 220, 255, 0.34);
   outline-offset: 3px;
 }
@@ -126,6 +139,11 @@
     min-height: 38px;
     padding: 0.5rem 0.78rem;
     font-size: 0.78rem;
+  }
+
+  .public-auth-register-actions {
+    top: 0.75rem;
+    right: 0.75rem;
   }
 }
 
@@ -160,7 +178,8 @@
     background: rgba(15, 23, 42, 0.46);
   }
 
-  .public-auth-actions {
+  .public-auth-actions,
+  .public-auth-register-actions {
     gap: 0.45rem;
   }
 
