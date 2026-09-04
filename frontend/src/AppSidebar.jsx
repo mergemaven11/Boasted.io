@@ -8,24 +8,24 @@ const WORKSPACE_ITEMS = [
   { href: "/app", label: "Dashboard", icon: Home },
   { href: "/app/accomplishments", label: "Accomplishments", icon: ListChecks },
   { href: "/app/impact-receipts", label: "Impact Receipts", icon: ReceiptText },
-  { href: "/app/applications", label: "Applications", icon: GraduationCap },
+  { href: "/app/applications", label: "Education", icon: GraduationCap },
   { href: "/app/intelligence", label: "Career Intelligence", icon: BrainCircuit },
 ];
 const CAREER_TOOLS = [
   { href: "/app/resume-builder", label: "Resume Builder", icon: FileText },
   { href: "/app/interview-practice", label: "Practice interview", icon: Video },
   { href: "/app/reports", label: "Career analytics", icon: BarChart3 },
-  { href: "/app/reports#packet-builder", label: "Career packets", icon: FileCheck2 },
+  { href: "/app/reports?packet=performance-review", label: "Career packets", icon: FileCheck2 },
 ];
 
 function AppSidebar() {
   const [user, setUser] = useState(null); const [mobileOpen, setMobileOpen] = useState(false);
-  const path = window.location.pathname; const search = window.location.search;
+  const path = window.location.pathname; const search = window.location.search; const hash = window.location.hash;
   const careerToolsActive = path === "/app/resume-builder" || path === "/app/interview-practice" || path === "/app/reports";
   const [careerToolsOpen, setCareerToolsOpen] = useState(() => careerToolsActive || localStorage.getItem("bragstack_career_tools_nav") !== "closed");
   useEffect(() => { let mounted = true; (async () => { try { const data = await getCurrentUser(); if (mounted) setUser(data); } catch (error) { if (error.response?.status === 401) { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); } } })(); return () => { mounted = false; }; }, []);
   function logout() { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); }
-  function toolIsActive(href) { const target = new URL(href, window.location.origin); return path === target.pathname && (!target.search || search === target.search); }
+  function toolIsActive(href) { const target = new URL(href, window.location.origin); return path === target.pathname && search === target.search && hash === target.hash; }
   function toggleCareerTools(event) { const open = event.currentTarget.open; setCareerToolsOpen(open); localStorage.setItem("bragstack_career_tools_nav", open ? "open" : "closed"); }
   const isPro = Boolean(user?.entitlements?.advanced_reports);
   const isCompanyUser = user?.email?.trim().toLowerCase().endsWith("@usebragstack.com") === true;
