@@ -11,6 +11,7 @@ import "./ProfileUploadPolish.css";
 import PublicAuthHeader from "./PublicAuthHeader.jsx";
 import RootContent from "./RootContent.jsx";
 import { installInterviewBrowserPreflight } from "./interviewBrowserPreflight.js";
+import { installPublicPortfolioAvatar } from "./publicPortfolioAvatar.js";
 
 installInterviewBrowserPreflight();
 
@@ -20,6 +21,8 @@ createRoot(document.getElementById("root")).render(
     <RootContent />
   </StrictMode>,
 );
+
+void installPublicPortfolioAvatar();
 
 function loadAnalyticsWhenIdle() {
   import("./analytics.js")
