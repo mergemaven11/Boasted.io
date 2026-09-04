@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { ArrowLeft, BarChart3, ExternalLink, Mail, Search, ShieldCheck, UserRound } from "lucide-react";
 import { getOpsAccess, getOpsUserAnalytics, getOpsUserDirectory, resendOpsVerificationEmail } from "./opsApi";
+import OpsInviteCard from "./OpsInviteCard.jsx";
 import "./OpsUsersPage.css";
 
 function formatDate(value) {
@@ -139,9 +140,11 @@ export default function OpsUsersPage() {
 
   return <main className="ops-users-page">
     <header className="ops-users-header">
-      <div><a href="/ops"><ArrowLeft size={16} /> Ops Console</a><p>INTERNAL · CUSTOMER SUPPORT</p><h1>User Accounts</h1><span>Search customer state and inspect evidence adoption without exposing passwords, tokens, payment details, or private content.</span></div>
+      <div><a href="/ops"><ArrowLeft size={16} /> Ops Console</a><p>INTERNAL · CUSTOMER SUPPORT</p><h1>User Accounts</h1><span>Search customer state, invite new users, and inspect evidence adoption without exposing passwords, tokens, payment details, or private content.</span></div>
       <div className="ops-users-role"><ShieldCheck size={18} />{(access?.roles || []).join(", ") || "checking access"}</div>
     </header>
+
+    <OpsInviteCard />
 
     <form className="ops-users-filters" onSubmit={submit}>
       <label className="ops-users-search"><Search size={17} /><input value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search name, email, or public slug" /></label>
