@@ -1,1 +1,3 @@
+/share/brag/*    https://api.usebragstack.com/public/brag/:splat/share    200
+/share-card/brag/*    https://api.usebragstack.com/public/brag/:splat/share-card.png    200
 /*    /index.html   200
