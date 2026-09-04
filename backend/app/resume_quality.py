@@ -42,11 +42,14 @@ def build_safe_generated_summary(*, target_role: str, receipts: list[dict], exis
         return ""
 
     skills: list[str] = []
+    seen_skills: set[str] = set()
     for receipt in receipts:
         for raw_skill in receipt.get("skills") or []:
             skill = str(raw_skill or "").strip()
-            if skill and skill.casefold() not in {item.casefold() for item in skills}:
+            key = skill.casefold()
+            if skill and key not in seen_skills:
                 skills.append(skill)
+                seen_skills.add(key)
     role = str(target_role or "").strip()
     if skills:
         return f"Targeting {role} roles, with documented work demonstrating {', '.join(skills[:5])}."[:1200]
@@ -93,7 +96,7 @@ def verify_resume_analysis(
             continue
         evidence = EvidenceContext(evidence_ids=(source_id,), content=receipt_text(receipt))
         suggestion = AISuggestion(
-            task="resume_bullet",
+            task="career_writing",
             payload={"text": str(bullet.get("text") or "")},
             source_evidence_ids=(source_id,),
             provider="resume-builder-deterministic",
@@ -145,7 +148,7 @@ def verify_resume_analysis(
                 if _receipt_id(receipt)
             )
             suggestion = AISuggestion(
-                task="resume_summary",
+                task="career_writing",
                 payload={"summary": summary},
                 source_evidence_ids=tuple(item.evidence_ids[0] for item in evidence),
                 provider="resume-builder-deterministic",
