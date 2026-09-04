@@ -18,6 +18,30 @@ function SignalBadge({ signal }) {
   return <span className={`ci-signal ci-signal-${signal}`}>{titleCase(signal)}</span>;
 }
 
+function LoadingShell() {
+  return (
+    <main className="ci-page">
+      <section className="ci-hero">
+        <div>
+          <span className="ci-kicker"><BrainCircuit size={17} /> BragStack Career Intelligence™</span>
+          <h1>Your career proof, interpreted.</h1>
+          <p>See what your work actually demonstrates, where your evidence is strongest, and which proof gaps are worth fixing next.</p>
+          <div className="ci-hero-actions">
+            <a className="ci-primary" href="/app/accomplishments?create=1">Capture new proof <ArrowRight size={17} /></a>
+            <a className="ci-secondary" href="/app/impact-receipts">View Impact Receipts</a>
+          </div>
+        </div>
+        <aside className="ci-lead-signal">
+          <span>Analyzing your proof</span>
+          <strong>Building your career signal…</strong>
+          <p>Your saved accomplishments and Impact Receipts are being connected into one evidence-backed view.</p>
+        </aside>
+      </section>
+      <BragStackLoader message="Reading your career proof…" detail="Connecting accomplishments, skills, evidence, and Impact Receipts." />
+    </main>
+  );
+}
+
 function CareerIntelligencePage() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
@@ -83,7 +107,7 @@ function CareerIntelligencePage() {
   const visibleSkills = allSkills.slice((skillPage - 1) * SKILLS_PER_PAGE, skillPage * SKILLS_PER_PAGE);
 
   if (!data && !error) {
-    return <BragStackLoader message="Reading your career proof…" detail="Connecting accomplishments, skills, evidence, and Impact Receipts." />;
+    return <LoadingShell />;
   }
 
   if (error) {
