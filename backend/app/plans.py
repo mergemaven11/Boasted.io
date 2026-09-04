@@ -17,8 +17,10 @@ FREE_IMPACT_RECEIPT_LIMIT = 1
 INTERNAL_EMAIL_DOMAIN = "usebragstack.com"
 
 # Temporary launch-safety mode. While BragStack is not accepting new paid
-# subscriptions, every normal customer receives the Pro feature set at no cost.
-# Set BRAGSTACK_OPEN_PRO_ACCESS=false later to restore persisted plan behavior.
+# subscriptions, ordinary Free/Pro customer accounts receive the Pro feature set
+# at no cost. Team and Enterprise plans keep their own entitlements and are not
+# part of this temporary promotion. Set BRAGSTACK_OPEN_PRO_ACCESS=false later to
+# restore persisted Free/Pro behavior.
 OPEN_PRO_ACCESS = os.getenv("BRAGSTACK_OPEN_PRO_ACCESS", "true").strip().lower() in {
     "1",
     "true",
@@ -148,14 +150,18 @@ def get_plan_for_user(user: dict) -> str:
     """Resolve the effective UI-facing plan for a user.
 
     Internal staff continue to present as Pro while receiving their separately
-    gated internal entitlements. During the temporary open-access window,
-    customer accounts also present as Pro without changing stored billing data.
+    gated internal entitlements. Team and Enterprise customers retain their
+    persisted plans. During the temporary open-access window, ordinary Free/Pro
+    customer accounts present as Pro without changing stored billing data.
     """
     if is_internal_user(user):
         return "pro"
+    persisted_plan = normalize_plan(user.get("plan"))
+    if persisted_plan in {"team", "enterprise"}:
+        return persisted_plan
     if OPEN_PRO_ACCESS:
         return "pro"
-    return normalize_plan(user.get("plan"))
+    return persisted_plan
 
 
 def get_entitlements_for_user(user: dict) -> dict[str, Any]:
@@ -163,22 +169,29 @@ def get_entitlements_for_user(user: dict) -> dict[str, Any]:
 
     Open access grants only the ordinary Pro feature set. It never grants Team,
     Enterprise, founder, ops, SSO, audit-log, retention, or executive features.
-    Internal users retain the Enterprise feature set for staff operations.
+    Internal users retain the Enterprise feature set for staff operations, while
+    real Team/Enterprise customers retain their purchased plan entitlements.
     """
     if is_internal_user(user):
         return dict(PLAN_FEATURES["enterprise"])
+    persisted_plan = normalize_plan(user.get("plan"))
+    if persisted_plan in {"team", "enterprise"}:
+        return dict(PLAN_FEATURES[persisted_plan])
     if OPEN_PRO_ACCESS:
         return dict(PLAN_FEATURES["pro"])
-    return dict(PLAN_FEATURES[get_plan_for_user(user)])
+    return dict(PLAN_FEATURES[persisted_plan])
 
 
 def get_pricing_for_user(user: dict) -> dict[str, Any]:
     """Return display pricing for a user's effective access state."""
     if is_internal_user(user):
         return {"monthly": 0, "label": "Internal"}
+    persisted_plan = normalize_plan(user.get("plan"))
+    if persisted_plan in {"team", "enterprise"}:
+        return dict(PLAN_PRICING[persisted_plan])
     if OPEN_PRO_ACCESS:
-        return {"monthly": 0, "label": "Pro · Open access"}
-    return dict(PLAN_PRICING[get_plan_for_user(user)])
+        return {"monthly": 0, "label": "Pro · Temporary open access"}
+    return dict(PLAN_PRICING[persisted_plan])
 
 
 def require_feature(user: dict, feature_name: str) -> None:
