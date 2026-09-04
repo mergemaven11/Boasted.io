@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
-import { ArrowRight, BrainCircuit, CheckCircle2, Gauge, Lightbulb, ReceiptText, Sparkles, Target, TrendingUp } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, BrainCircuit, CheckCircle2, Gauge, Lightbulb, ReceiptText, RefreshCw, Sparkles, Target, TrendingUp } from "lucide-react";
 import BragStackLoader from "./BragStackLoader.jsx";
 import "./CareerIntelligencePage.css";
+
+const SKILLS_PER_PAGE = 6;
 
 function getApiBaseUrl() {
   if (window.location.hostname.endsWith(".app.github.dev")) return "/api";
@@ -19,47 +21,75 @@ function SignalBadge({ signal }) {
 function CareerIntelligencePage() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [refreshMessage, setRefreshMessage] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [skillPage, setSkillPage] = useState(1);
 
-  useEffect(() => {
-    let active = true;
+  async function loadIntelligence({ refresh = false } = {}) {
     const token = localStorage.getItem("bragstack_token");
     if (!token) {
       window.location.assign("/login");
-      return undefined;
+      return;
     }
 
-    (async () => {
-      try {
-        const response = await fetch(`${getApiBaseUrl()}/career-intelligence`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (response.status === 401) {
-          localStorage.removeItem("bragstack_token");
-          window.location.assign("/login");
-          return;
-        }
-        if (!response.ok) throw new Error(`Career Intelligence request failed (${response.status})`);
-        const payload = await response.json();
-        if (active) setData(payload);
-      } catch (requestError) {
-        console.error(requestError);
-        if (active) setError("Career Intelligence could not load your proof right now.");
-      }
-    })();
+    if (refresh) {
+      setIsRefreshing(true);
+      setRefreshMessage("");
+    }
+    setError("");
 
-    return () => { active = false; };
+    try {
+      const cacheBuster = refresh ? `?refresh=${Date.now()}` : "";
+      const response = await fetch(`${getApiBaseUrl()}/career-intelligence${cacheBuster}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (response.status === 401) {
+        localStorage.removeItem("bragstack_token");
+        window.location.assign("/login");
+        return;
+      }
+      if (!response.ok) throw new Error(`Career Intelligence request failed (${response.status})`);
+      const payload = await response.json();
+      setData(payload);
+      setSkillPage(1);
+      if (refresh) {
+        const count = payload?.summary?.accomplishments ?? 0;
+        setRefreshMessage(`Career Intelligence re-ran using ${count} accomplishment${count === 1 ? "" : "s"}.`);
+      }
+    } catch (requestError) {
+      console.error(requestError);
+      if (data) setRefreshMessage("Career Intelligence could not refresh right now. Your previous results are still shown.");
+      else setError("Career Intelligence could not load your proof right now.");
+    } finally {
+      if (refresh) setIsRefreshing(false);
+    }
+  }
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => void loadIntelligence(), 0);
+    return () => window.clearTimeout(timeoutId);
+    // Initial load only. Re-runs are explicit so the user knows when fresh proof is analyzed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const allSkills = useMemo(() => {
+    if (Array.isArray(data?.skills) && data.skills.length) return data.skills;
+    return Array.isArray(data?.top_skills) ? data.top_skills : [];
+  }, [data]);
+  const totalSkillPages = Math.max(1, Math.ceil(allSkills.length / SKILLS_PER_PAGE));
+  const visibleSkills = allSkills.slice((skillPage - 1) * SKILLS_PER_PAGE, skillPage * SKILLS_PER_PAGE);
 
   if (!data && !error) {
     return <BragStackLoader message="Reading your career proof…" detail="Connecting accomplishments, skills, evidence, and Impact Receipts." />;
   }
 
   if (error) {
-    return <main className="ci-page"><section className="ci-error"><strong>Career Intelligence unavailable</strong><p>{error}</p><button type="button" onClick={() => window.location.reload()}>Try again</button></section></main>;
+    return <main className="ci-page"><section className="ci-error"><strong>Career Intelligence unavailable</strong><p>{error}</p><button type="button" onClick={() => void loadIntelligence({ refresh: true })}>Try again</button></section></main>;
   }
 
-  const { summary = {}, top_skills: skills = [], gaps = [], recommended_actions: actions = [], top_categories: categories = [] } = data;
-  const leadSkill = skills[0];
+  const { summary = {}, gaps = [], recommended_actions: actions = [], top_categories: categories = [] } = data;
+  const leadSkill = data.top_skills?.[0] || allSkills[0];
 
   return (
     <main className="ci-page">
@@ -70,17 +100,21 @@ function CareerIntelligencePage() {
           <p>See what your work actually demonstrates, where your evidence is strongest, and which proof gaps are worth fixing next.</p>
           <div className="ci-hero-actions">
             <a className="ci-primary" href="/app/accomplishments?create=1">Capture new proof <ArrowRight size={17} /></a>
+            <button className="ci-secondary ci-refresh" type="button" disabled={isRefreshing} onClick={() => void loadIntelligence({ refresh: true })}>
+              <RefreshCw size={16} className={isRefreshing ? "ci-spin" : ""} /> {isRefreshing ? "Re-running…" : "Re-run intelligence"}
+            </button>
             <a className="ci-secondary" href="/app/impact-receipts">View Impact Receipts</a>
           </div>
+          {refreshMessage && <div className="ci-refresh-message" role="status">{refreshMessage}</div>}
         </div>
         <aside className="ci-lead-signal">
           <span>Lead career signal</span>
-          {leadSkill ? <><strong>{leadSkill.skill}</strong><SignalBadge signal={leadSkill.signal} /><p>Supported by {leadSkill.demonstrations} proof record{leadSkill.demonstrations === 1 ? "" : "s"}.</p></> : <><strong>Build your signal</strong><p>Add accomplishments and skills to start creating evidence-backed career intelligence.</p></>}
+          {leadSkill ? <><strong>{leadSkill.skill}</strong><SignalBadge signal={leadSkill.signal} /><p>Supported by {leadSkill.demonstrations} proof record{leadSkill.demonstrations === 1 ? "" : "s"}. Intelligence currently analyzes all {summary.accomplishments ?? 0} saved accomplishments.</p></> : <><strong>Build your signal</strong><p>Add accomplishments and skills to start creating evidence-backed career intelligence.</p></>}
         </aside>
       </section>
 
       <section className="ci-metrics" aria-label="Career proof summary">
-        <article><ReceiptText size={20} /><span>Accomplishments</span><strong>{summary.accomplishments ?? 0}</strong></article>
+        <article><ReceiptText size={20} /><span>Accomplishments analyzed</span><strong>{summary.accomplishments ?? 0}</strong></article>
         <article><Sparkles size={20} /><span>Impact Receipts</span><strong>{summary.impact_receipts ?? 0}</strong></article>
         <article><TrendingUp size={20} /><span>Quantified results</span><strong>{summary.quantified_results ?? 0}</strong></article>
         <article><CheckCircle2 size={20} /><span>Confirmed receipts</span><strong>{summary.confirmed_receipts ?? 0}</strong></article>
@@ -89,13 +123,19 @@ function CareerIntelligencePage() {
       <section className="ci-grid">
         <article className="ci-panel ci-skills-panel">
           <div className="ci-panel-heading"><div><span>Evidence map</span><h2>Demonstrated skills</h2></div><Gauge size={22} /></div>
-          {skills.length ? <div className="ci-skill-list">{skills.map((skill) => (
-            <div className="ci-skill-card" key={skill.skill}>
-              <div className="ci-skill-top"><div><strong>{skill.skill}</strong><SignalBadge signal={skill.signal} /></div><span className="ci-points">{skill.evidence_points} proof pts</span></div>
-              <div className="ci-bar"><span style={{ width: `${Math.max(6, skill.evidence_points)}%` }} /></div>
-              <div className="ci-proof-facts"><span>{skill.demonstrations} demonstrations</span><span>{skill.quantified_examples} quantified</span><span>{skill.evidence_items} evidence</span><span>{skill.confirmations} confirmed</span></div>
+          {allSkills.length ? <>
+            <div className="ci-skill-list">{visibleSkills.map((skill) => (
+              <div className="ci-skill-card" key={skill.skill}>
+                <div className="ci-skill-top"><div><strong>{skill.skill}</strong><SignalBadge signal={skill.signal} /></div><span className="ci-points">{skill.evidence_points} proof pts</span></div>
+                <div className="ci-bar"><span style={{ width: `${Math.max(6, skill.evidence_points)}%` }} /></div>
+                <div className="ci-proof-facts"><span>{skill.demonstrations} demonstrations</span><span>{skill.quantified_examples} quantified</span><span>{skill.evidence_items} evidence</span><span>{skill.confirmations} confirmed</span></div>
+              </div>
+            ))}</div>
+            <div className="ci-skill-pagination" aria-label="Skills pagination">
+              <span>Showing {(skillPage - 1) * SKILLS_PER_PAGE + 1}–{Math.min(skillPage * SKILLS_PER_PAGE, allSkills.length)} of {allSkills.length} skills</span>
+              <div><button type="button" disabled={skillPage === 1} onClick={() => setSkillPage((page) => Math.max(1, page - 1))}>Previous</button><strong>Page {skillPage} of {totalSkillPages}</strong><button type="button" disabled={skillPage === totalSkillPages} onClick={() => setSkillPage((page) => Math.min(totalSkillPages, page + 1))}>Next</button></div>
             </div>
-          ))}</div> : <div className="ci-empty"><p>No skill signals yet.</p><a href="/app/accomplishments?create=1">Add skills to an accomplishment</a></div>}
+          </> : <div className="ci-empty"><p>No skill signals yet.</p><a href="/app/accomplishments?create=1">Add skills to an accomplishment</a></div>}
         </article>
 
         <aside className="ci-side-stack">

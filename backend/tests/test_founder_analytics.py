@@ -36,7 +36,9 @@ def test_founder_analytics_uses_real_first_party_metadata(monkeypatch):
             {
                 "_id": user_a,
                 "email": "a@example.com",
-                "created_at": (now - timedelta(hours=2)).isoformat(),
+                # Keep the fixture within the current UTC calendar day even
+                # when CI happens to run just after midnight.
+                "created_at": (now - timedelta(minutes=5)).isoformat(),
                 "public_slug": "person-a",
                 "plan": "pro",
             },

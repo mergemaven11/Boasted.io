@@ -14,7 +14,7 @@ from app.certification_packet_pdf import (
 from app.certification_packet_routes import _build_certification_packet
 from app.interview_packet_pdf import build_interview_packet_pdf, make_interview_packet_filename
 from app.interview_packet_routes import _build_interview_packet
-from app.packet_audit import record_packet_export
+from app.packet_audit import record_packet_export, record_packet_generation
 from app.packet_platform_pdf import build_platform_packet_pdf, make_platform_packet_filename
 from app.packet_platform_routes import build_platform_packet
 from app.packet_request_models import (
@@ -176,6 +176,12 @@ def _build_certification(payload: CertificationPacketRequest, current_user: dict
     )["packet"]
 
 
+def _generation_response(*, current_user: dict, packet: dict) -> dict:
+    """Record metadata-only history when a packet preview is generated."""
+    history_id = record_packet_generation(user_id=str(current_user["_id"]), packet=packet)
+    return {"packet": packet, "history_id": history_id}
+
+
 def _pdf_response(*, current_user: dict, packet: dict, pdf_bytes: bytes, filename: str):
     """Handle pdf response.
 
@@ -219,7 +225,7 @@ def create_performance_review_packet(
     Returns:
         Function result.
     """
-    return {"packet": _build_base(payload, current_user)}
+    return _generation_response(current_user=current_user, packet=_build_base(payload, current_user))
 
 
 @router.post("/performance-review-v12")
@@ -236,7 +242,7 @@ def create_performance_review_packet_v12(
     Returns:
         Function result.
     """
-    return {"packet": _build_platform(payload, current_user)}
+    return _generation_response(current_user=current_user, packet=_build_platform(payload, current_user))
 
 
 @router.post("/promotion")
@@ -253,7 +259,7 @@ def create_promotion_packet(
     Returns:
         Function result.
     """
-    return {"packet": _build_promotion(payload, current_user)}
+    return _generation_response(current_user=current_user, packet=_build_promotion(payload, current_user))
 
 
 @router.post("/interview")
@@ -270,7 +276,7 @@ def create_interview_packet(
     Returns:
         Function result.
     """
-    return {"packet": _build_interview(payload, current_user)}
+    return _generation_response(current_user=current_user, packet=_build_interview(payload, current_user))
 
 
 @router.post("/certification")
@@ -287,7 +293,7 @@ def create_certification_packet(
     Returns:
         Function result.
     """
-    return {"packet": _build_certification(payload, current_user)}
+    return _generation_response(current_user=current_user, packet=_build_certification(payload, current_user))
 
 
 @router.post("/performance-review.pdf")

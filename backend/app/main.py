@@ -14,6 +14,7 @@ from app.auth import get_current_user
 from app.auth_routes import router as auth_router
 from app.oauth_routes import router as oauth_router
 from app.billing_routes import router as billing_router
+from app.billing_details_routes import router as billing_details_router
 from app.beta_metrics_routes import router as beta_metrics_router
 from app.career_intelligence_routes import router as career_intelligence_router
 from app.core_output_routes import router as core_output_router
@@ -32,10 +33,12 @@ from app.private_packet_routes import router as private_packet_router
 from app.private_packet_share_routes import router as private_packet_share_router
 from app.profile_connection_routes import router as profile_connection_router
 from app.profile_media_routes import router as profile_media_router
+from app.public_share_routes import router as public_share_router
 from app.public_slug_routes import router as public_slug_router
 from app.rate_limit import check_rate_limit
 from app.reports_routes import router as reports_router
 from app.resume_builder_routes import router as resume_builder_router
+from app.resume_import_fast_routes import router as resume_import_fast_router
 from app.routes import router as entries_router
 
 app = FastAPI(
@@ -124,8 +127,6 @@ async def add_security_headers_and_telemetry(request: Request, call_next):
             status_code=500,
             duration_ms=duration_ms,
         )
-        # Exception telemetry is intentionally written synchronously because
-        # there is no response object to attach a background task to.
         record_persistent_request(
             request_id=request_id,
             method=request.method,
@@ -166,8 +167,6 @@ async def add_security_headers_and_telemetry(request: Request, call_next):
     return response
 
 
-# Keep CORS outside the application middleware above so early responses such as
-# rate-limit 429s still carry browser-readable CORS headers.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[frontend_url, "http://localhost:5173", "http://127.0.0.1:5173"],
@@ -254,8 +253,10 @@ app.include_router(oauth_router)
 app.include_router(profile_media_router)
 app.include_router(profile_connection_router)
 app.include_router(billing_router)
+app.include_router(billing_details_router)
 app.include_router(entries_router, dependencies=[Depends(enforce_entry_usage)])
 app.include_router(public_slug_router)
+app.include_router(public_share_router)
 app.include_router(impact_receipts_router, dependencies=[Depends(enforce_receipt_usage)])
 app.include_router(receipt_verification_router)
 app.include_router(core_output_router)
@@ -268,6 +269,7 @@ app.include_router(packet_audit_router)
 app.include_router(private_packet_share_router)
 app.include_router(interview_catalog_router)
 app.include_router(resume_builder_router)
+app.include_router(resume_import_fast_router)
 app.include_router(ops_router)
 app.include_router(ops_user_router)
 

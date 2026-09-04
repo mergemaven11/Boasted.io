@@ -73,7 +73,8 @@ def serialize_public_impact_receipt(receipt):
     """
     evidence=[{"evidence_type":i.get("evidence_type","other"),"title":i.get("title",""),"reference":i.get("reference"),"description":i.get("description")} for i in receipt.get("evidence",[]) if i.get("is_public",False)]
     confirmed=sum(1 for c in receipt.get("confirmations",[]) if c.get("status")=="confirmed")
-    return {"id":str(receipt["_id"]),"source_entry_id":receipt.get("source_entry_id",""),"accomplishment":receipt.get("accomplishment",""),"contribution":receipt.get("contribution",""),"result":receipt.get("result",""),"skills":receipt.get("skills",[]),"evidence":evidence,"trust_signals":receipt.get("trust_signals",["self-documented"]),"confirmed_count":confirmed,"created_at":receipt.get("created_at"),"updated_at":receipt.get("updated_at")}
+    metrics=[{"label":m.get("label",""),"value":m.get("value",""),"context":m.get("context")} for m in receipt.get("metrics",[]) if m.get("label") and m.get("value")]
+    return {"id":str(receipt["_id"]),"source_entry_id":receipt.get("source_entry_id",""),"accomplishment":receipt.get("accomplishment",""),"contribution":receipt.get("contribution",""),"result":receipt.get("result",""),"metrics":metrics,"skills":receipt.get("skills",[]),"evidence":evidence,"trust_signals":receipt.get("trust_signals",["self-documented"]),"confirmed_count":confirmed,"created_at":receipt.get("created_at"),"updated_at":receipt.get("updated_at")}
 def get_user_by_public_slug(slug):
     """Handle get user by public slug.
 

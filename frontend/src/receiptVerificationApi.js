@@ -22,7 +22,7 @@ export async function getReceiptVerification(token) {
   return response.data;
 }
 
-export async function decideReceiptVerification(token, decision) {
-  const response = await verificationApi.post(`/receipt-verifications/${encodeURIComponent(token)}/decision`, { decision });
+export async function decideReceiptVerification(token, decision, note = "") {
+  const response = await verificationApi.post(`/receipt-verifications/${encodeURIComponent(token)}/decision`, { decision, note });
   return response.data;
 }

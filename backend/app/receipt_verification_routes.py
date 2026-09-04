@@ -35,8 +35,9 @@ class VerificationRequest(BaseModel):
 
 
 class VerificationDecision(BaseModel):
-    """Represent VerificationDecision."""
+    """Represent a verifier's decision and optional private note to the receipt owner."""
     decision: str = Field(..., pattern="^(confirmed|declined)$")
+    note: str = Field(default="", max_length=800)
 
 
 def _hash_token(token: str) -> str:
@@ -349,12 +350,17 @@ def decide_receipt_verification(token: str, payload: VerificationDecision):
     """
     receipt, confirmation, request_record = _find_by_token(token)
     now = datetime.now(timezone.utc)
+    verifier_note = payload.note.strip()
     confirmations = receipt.get("confirmations", [])
     for item in confirmations:
         if item.get("id") == confirmation.get("id"):
             item["status"] = payload.decision
             item["confirmed_at"] = now if payload.decision == "confirmed" else None
             item["responded_at"] = now
+            if verifier_note:
+                item["verifier_note"] = verifier_note
+            else:
+                item.pop("verifier_note", None)
             item.pop("expires_at", None)
             item.pop("email", None)
             item.pop("message", None)
