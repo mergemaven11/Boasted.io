@@ -15,7 +15,7 @@ resumeApi.interceptors.request.use((config) => {
 export async function importResume(file) {
   const form = new FormData();
   form.append("file", file);
-  const response = await resumeApi.post("/resume-builder/import", form, {
+  const response = await resumeApi.post("/resume-builder/import-fast", form, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return response.data;

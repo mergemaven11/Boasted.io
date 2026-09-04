@@ -1,12 +1,110 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { LogOut, X } from "lucide-react";
+import { Camera, CheckCircle2, LogOut, Mic, X } from "lucide-react";
 import InterviewPracticePage from "./InterviewPracticePage.jsx";
 import "./AnimatedInterviewerAvatar.css";
 import "./InterviewPracticeZoomLayout.css";
 import "./InterviewExperienceV3.css";
 import "./InterviewResponsiveReference.css";
 import "./InterviewReferenceLayout.css";
+import "./InterviewHandoffBridge.css";
+
+const RESUME_CONTEXT_KEY = "bragstack_resume_interview_context_v1";
+const MEDIA_PRIMED_KEY = "bragstack_interview_media_primed_v1";
+
+function setControlledValue(element, value) {
+  if (!element || value === undefined || value === null) return;
+  const prototype = element instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+  const setter = Object.getOwnPropertyDescriptor(prototype, "value")?.set;
+  if (setter) setter.call(element, String(value));
+  else element.value = String(value);
+  element.dispatchEvent(new Event("input", { bubbles: true }));
+  element.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function ResumeInterviewHandoff() {
+  const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("from") !== "resume") return undefined;
+
+    let context;
+    try {
+      context = JSON.parse(localStorage.getItem(RESUME_CONTEXT_KEY) || "null");
+    } catch {
+      context = null;
+    }
+    if (!context || typeof context !== "object") return undefined;
+
+    let applied = false;
+    const apply = () => {
+      if (applied) return true;
+      const roleInput = document.querySelector('.interview-setup-card input[name="roleTitle"]');
+      const jobDescription = document.querySelector('.interview-setup-card textarea[name="jobDescription"]');
+      if (!roleInput || !jobDescription) return false;
+
+      if (context.targetRole) setControlledValue(roleInput, context.targetRole);
+      if (context.jobDescription) setControlledValue(jobDescription, context.jobDescription);
+      applied = true;
+      localStorage.removeItem(RESUME_CONTEXT_KEY);
+      setNotice(
+        context.targetRole || context.jobDescription
+          ? "Resume details loaded into your interview setup. Review them, then start when you're ready."
+          : "Resume context received. Add a target role to begin your interview."
+      );
+      return true;
+    };
+
+    if (apply()) return undefined;
+    const observer = new MutationObserver(() => {
+      if (apply()) observer.disconnect();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    const timeout = window.setTimeout(() => observer.disconnect(), 4000);
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(timeout);
+    };
+  }, []);
+
+  if (!notice) return null;
+  return <div className="interview-handoff-notice" role="status"><CheckCircle2 size={17} /><span>{notice}</span></div>;
+}
+
+function InterviewMediaPermissionBridge() {
+  const [notice, setNotice] = useState("");
+  const requestingRef = useRef(false);
+
+  useEffect(() => {
+    const requestMediaFromStartGesture = (event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement) || !form.classList.contains("interview-setup-card")) return;
+      if (!navigator.mediaDevices?.getUserMedia || requestingRef.current) return;
+      if (sessionStorage.getItem(MEDIA_PRIMED_KEY) === "granted") return;
+
+      requestingRef.current = true;
+      setNotice("Requesting camera and microphone access…");
+      navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+        .then((stream) => {
+          stream.getTracks().forEach((track) => track.stop());
+          sessionStorage.setItem(MEDIA_PRIMED_KEY, "granted");
+          setNotice("Camera and microphone access allowed. You can control your camera during the interview.");
+          window.setTimeout(() => setNotice(""), 5500);
+        })
+        .catch(() => {
+          setNotice("Camera or microphone access was not allowed. You can still type answers; use your browser's site permissions to enable media and retry.");
+        })
+        .finally(() => { requestingRef.current = false; });
+    };
+
+    document.addEventListener("submit", requestMediaFromStartGesture, true);
+    return () => document.removeEventListener("submit", requestMediaFromStartGesture, true);
+  }, []);
+
+  if (!notice) return null;
+  return <div className="interview-media-notice" role="status"><span><Mic size={16} /><Camera size={16} /></span><p>{notice}</p></div>;
+}
 
 function InterviewExitGuard() {
   const [active, setActive] = useState(false);
@@ -84,5 +182,5 @@ function InterviewExitGuard() {
 }
 
 export default function InterviewPracticeExperience() {
-  return <><InterviewPracticePage /><InterviewExitGuard /></>;
+  return <><ResumeInterviewHandoff /><InterviewMediaPermissionBridge /><InterviewPracticePage /><InterviewExitGuard /></>;
 }

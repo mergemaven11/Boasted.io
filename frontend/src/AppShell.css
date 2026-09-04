@@ -286,9 +286,26 @@
     transition: transform 180ms ease;
     z-index: 70;
     box-shadow: 30px 0 80px rgba(0,0,0,.45);
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
 
   .app-sidebar.mobile-open { transform: translateX(0); }
+
+  .app-sidebar .sidebar-nav {
+    flex: 0 0 auto;
+    min-height: auto;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .app-sidebar .sidebar-footer {
+    margin-top: 18px;
+    padding-bottom: max(4px, env(safe-area-inset-bottom));
+  }
 
   .sidebar-nav a { min-height: 44px; }
 
@@ -298,6 +315,7 @@
     inset: 0;
     z-index: 65;
     background: rgba(0,0,0,.58);
+    touch-action: none;
   }
 }
 

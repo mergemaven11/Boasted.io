@@ -7,7 +7,7 @@ import {
   Pin,
   ShieldCheck,
 } from "lucide-react";
-
+import PacketHistoryPanel from "./PacketHistoryPanel.jsx";
 import "./PacketBuilderPanel.css";
 
 const CAREER_AREAS = ["", "Healthcare", "Education", "Technology", "Sales", "Operations", "Skilled Trades", "Creative", "Customer Service", "Management", "Government", "Nonprofit", "Student", "Other"];
@@ -106,7 +106,8 @@ function PacketBuilderPanel({ options, onChange, onBuild, isLoading, error, high
         ? "Organize credentials, continuing education, demonstrated competencies, experience, and supporting evidence for certification, licensure, renewal, or regulated-career reviews—without calling self-added proof verified."
         : "Build a tailored physical dossier. Pin the work that matters, choose sections, add clearly labeled context, and select a professional print theme without changing the underlying evidence metrics.";
 
-  return (
+  return <>
+    <PacketHistoryPanel refreshKey={isLoading} compact />
     <section className="packet-builder-pro" aria-labelledby="packet-builder-title">
       <div className="packet-builder-pro-header">
         <div className="packet-builder-pro-icon"><FileStack size={22} /></div>
@@ -171,7 +172,7 @@ function PacketBuilderPanel({ options, onChange, onBuild, isLoading, error, high
       </div>
       {error && <p className="packet-builder-pro-error">{String(error)}</p>}
     </section>
-  );
+  </>;
 }
 
 export default PacketBuilderPanel;
