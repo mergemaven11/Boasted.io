@@ -44,7 +44,7 @@ export default function CalendarIntegrationsPage() {
   const days=useMemo(()=>buildMonthDays(month),[month]);
   const today=dayKey(new Date());
   const selected=dayKey(selectedDay);
-  const meetings=[];
+  const meetings=useMemo(()=>[],[]);
   const meetingsByDay=useMemo(()=>meetings.reduce((map,meeting)=>{const key=dayKey(new Date(meeting.starts_at));map[key]=[...(map[key]||[]),meeting];return map;},{}),[meetings]);
   const selectedMeetings=meetingsByDay[selected]||[];
   const connectedProviders=Object.values(providerState).filter((state)=>state==="connected").length;
