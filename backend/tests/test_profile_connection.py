@@ -20,6 +20,8 @@ def test_disabled_public_connection_hides_stored_contact_data():
         "open_to_talk_url": "",
         "open_to_talk_note": "",
         "open_to_talk_types": [],
+        "calendly_enabled": False,
+        "calendly_url": "",
     }
 
 
@@ -38,6 +40,8 @@ def test_enabled_public_connection_exposes_only_connection_settings():
         "open_to_talk_url": "https://cal.example.com/tee",
         "open_to_talk_note": "Open to platform engineering conversations.",
         "open_to_talk_types": ["technical-deep-dive", "networking"],
+        "calendly_enabled": False,
+        "calendly_url": "",
     }
 
 
