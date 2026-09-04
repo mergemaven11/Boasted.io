@@ -46,10 +46,23 @@ test("uploaded profile photos replace the public portfolio letter avatar", () =>
   assert.match(main, /installPublicPortfolioAvatar/);
 });
 
-test("Appearance settings always provide a route back to Settings", () => {
-  const source = read("./AppearanceSettingsPage.jsx");
-  assert.match(source, /href="\/app\/settings"/);
-  assert.match(source, /Back to settings/);
-  assert.match(source, /window\.location\.replace\("\/app\/settings\?saved=appearance"\)/);
-  assert.doesNotMatch(source, /name:form\.name,headline:form\.headline/);
+test("Appearance settings are the only profile theme editor and return to Settings after save", () => {
+  const appearance = read("./AppearanceSettingsPage.jsx");
+  const profile = read("./ProfilePage.jsx");
+  assert.match(appearance, /PROFILE_THEMES/);
+  assert.match(appearance, /href="\/app\/settings"/);
+  assert.match(appearance, /Back to settings/);
+  assert.match(appearance, /window\.location\.assign\("\/app\/settings\?saved=appearance"\)/);
+  assert.doesNotMatch(profile, /PROFILE_THEMES/);
+  assert.doesNotMatch(profile, /profile_theme:form\.profile_theme/);
+  assert.doesNotMatch(profile, /profile_primary_color:form\.profile_primary_color/);
+});
+
+test("Profile form persists identity fields without resubmitting appearance state", () => {
+  const source = read("./ProfilePage.jsx");
+  assert.match(source, /name:form\.name,headline:form\.headline,bio:form\.bio,location:form\.location/);
+  assert.match(source, /github_url:form\.github_url,portfolio_url:form\.portfolio_url,resume_url:form\.resume_url/);
+  assert.match(source, /const savedProfile=await updateCurrentUserProfile\(profileFields\)/);
+  assert.match(source, /const savedConnection=await updateProfileConnection/);
+  assert.match(source, /const savedAvatar=await updateProfileAvatar/);
 });

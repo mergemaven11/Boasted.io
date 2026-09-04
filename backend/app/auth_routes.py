@@ -19,7 +19,32 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 PASSWORD_RESET_FROM = os.getenv("PASSWORD_RESET_FROM", "BragStack <noreply@usebragstack.com>")
 EMAIL_VERIFICATION_FROM = os.getenv("EMAIL_VERIFICATION_FROM", PASSWORD_RESET_FROM)
-PROFILE_THEMES = {"default", "clinical", "educator", "engineer", "designer", "executive", "trades", "creator", "hospitality", "finance", "legal", "public-service"}
+PROFILE_THEMES = {
+    "default",
+    "clinical",
+    "educator",
+    "engineer",
+    "designer",
+    "executive",
+    "trades",
+    "creator",
+    "hospitality",
+    "finance",
+    "legal",
+    "public-service",
+    "midnight",
+    "aurora",
+    "ember",
+    "monochrome",
+    "ocean",
+    "orchid",
+    "forest",
+    "copper",
+    "rose-gold",
+    "blueprint",
+    "studio",
+    "research",
+}
 HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 PROFILE_TEXT_FIELDS = {"name", "headline", "bio", "location", "github_url", "portfolio_url", "resume_url"}
 PROFILE_COLOR_FIELDS = {"profile_primary_color", "profile_secondary_color", "profile_background_color"}
