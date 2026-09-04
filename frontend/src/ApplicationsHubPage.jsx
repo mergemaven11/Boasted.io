@@ -48,6 +48,33 @@ const WORKFLOWS = [
   },
 ];
 
+const STUDENT_STAGES = [
+  {
+    title: "Middle school",
+    status: "coming-soon",
+    label: "COMING SOON",
+    text: "The younger-student experience is under construction and is not available in BragStack today.",
+  },
+  {
+    title: "High school",
+    status: "available",
+    label: "18+ STUDENTS",
+    text: "Adult high-school students can track projects, activities, leadership, service, awards, jobs, and growth.",
+  },
+  {
+    title: "College / University",
+    status: "available",
+    label: "18+ STUDENTS",
+    text: "Track research, internships, campus leadership, projects, work, certifications, service, and skills.",
+  },
+  {
+    title: "Career",
+    status: "available",
+    label: "KEEP GOING",
+    text: "Carry the same proof forward into resumes, interviews, portfolios, reviews, promotions, and opportunities.",
+  },
+];
+
 const LABELS = {
   leadership: "Leadership",
   service: "Service",
@@ -163,21 +190,29 @@ function ApplicationsHubPage() {
   }
 
   return <main className="applications-hub">
+    <section className="education-age-alert" role="status">
+      <div className="education-alert-tape">18+ ONLY · YOUNGER STUDENT EXPERIENCE UNDER CONSTRUCTION · COMING SOON</div>
+      <div className="education-age-alert-copy"><ShieldCheck size={21}/><div><strong>BragStack Education currently supports users age 18 and older.</strong><span>Adult high-school and college/university students can use Education now. Middle-school and other under-18 student access is not currently available.</span></div></div>
+    </section>
+
     <header className="applications-hero">
       <div>
-        <p className="applications-kicker"><Sparkles size={15} /> Education Workspace</p>
+        <p className="applications-kicker"><Sparkles size={15} /> Education Workspace · 18+</p>
         <h1>Keep track of the wins that are shaping your future.</h1>
-        <p>School moves fast. BragStack helps you remember what you did, what you learned, what you improved, and what you are proud of—from middle school through college and beyond. When an opportunity comes up, your story is already here.</p>
+        <p>For adult students, school still moves fast. BragStack helps you remember what you did, what you learned, what you improved, and what you are proud of—from high school through college, university, and into your career.</p>
       </div>
       <div className="applications-trust"><ShieldCheck size={20} /><span><strong>Your school story stays yours.</strong><small>Private by default · built from your real wins · no admissions score</small></span></div>
     </header>
 
-    <section className="application-overview">
-      <div><p className="applications-kicker"><GraduationCap size={15} /> Your journey</p><h2>Middle school → High school → College / University → Career</h2><p>Capture wins as they happen so you do not have to rebuild years of growth from memory later.</p></div>
-      <div className="application-stats">
-        <div><strong>Learn</strong><span>what you are getting better at</span></div>
-        <div><strong>Grow</strong><span>see how your story changes over time</span></div>
-        <div><strong>Use it</strong><span>when the right opportunity appears</span></div>
+    <section className="education-stage-section" aria-label="Education availability by stage">
+      <div className="application-section-heading"><div><p className="applications-kicker"><GraduationCap size={15}/> Your journey</p><h2>Start where you are. Keep the record as you grow.</h2></div><span>Current access: 18+</span></div>
+      <div className="education-stage-track">
+        {STUDENT_STAGES.map((stage) => <article key={stage.title} className={`education-stage-card ${stage.status}`}>
+          {stage.status === "coming-soon" && <div className="education-construction-tape">UNDER CONSTRUCTION · COMING SOON · UNDER CONSTRUCTION</div>}
+          <span className="education-stage-label">{stage.label}</span>
+          <h3>{stage.title}</h3>
+          <p>{stage.text}</p>
+        </article>)}
       </div>
     </section>
 
@@ -239,7 +274,7 @@ function ApplicationsHubPage() {
         </aside>
       </div>
 
-      <section className="application-methodology"><ShieldCheck size={17} /><p><strong>Education Intelligence v1</strong> organizes the accomplishments you really saved. It does not make up activities, give you an admissions score, or promise scholarships, internships, or acceptance. You stay in control of your story.</p></section>
+      <section className="application-methodology"><ShieldCheck size={17} /><p><strong>Education Intelligence v1</strong> organizes the accomplishments you really saved. It does not make up activities, give you an admissions score, or promise scholarships, internships, or acceptance. BragStack Education currently supports users age 18+.</p></section>
     </>}
   </main>;
 }
