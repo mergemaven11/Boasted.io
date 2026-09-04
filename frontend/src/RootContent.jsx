@@ -131,6 +131,25 @@ function RootContent() {
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       document.querySelectorAll('a[href="/#security"]').forEach((link) => link.setAttribute("href", "/security"));
+
+      if (path === "/docs") {
+        const docsHeaderNav = document.querySelector(".docs-topbar nav");
+        if (docsHeaderNav && !docsHeaderNav.querySelector('a[href="/docs/education"]')) {
+          const educationGuideLink = document.createElement("a");
+          educationGuideLink.href = "/docs/education";
+          educationGuideLink.textContent = "Education";
+          docsHeaderNav.insertBefore(educationGuideLink, docsHeaderNav.firstChild);
+        }
+        const docsSidebar = document.querySelector(".docs-sidebar");
+        if (docsSidebar && !docsSidebar.querySelector('a[href="/docs/education"]')) {
+          const educationSidebarLink = document.createElement("a");
+          educationSidebarLink.href = "/docs/education";
+          educationSidebarLink.textContent = "🎓 Education for students";
+          docsSidebar.insertBefore(educationSidebarLink, docsSidebar.children[1] || null);
+        }
+        return;
+      }
+
       if (path !== "/") return;
       const landingNav = document.querySelector(".landing-nav-links");
       if (landingNav && !landingNav.querySelector('a[href="/education"]')) {
