@@ -8,15 +8,6 @@ on:
       - "frontend/package-lock.json"
       - ".github/workflows/security-ci.yml"
       - ".github/workflows/full-ci.yml"
-  push:
-    branches:
-      - main
-    paths:
-      - "backend/requirements.txt"
-      - "frontend/package.json"
-      - "frontend/package-lock.json"
-      - ".github/workflows/security-ci.yml"
-      - ".github/workflows/full-ci.yml"
   workflow_dispatch:
 
 concurrency:

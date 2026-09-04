@@ -6,13 +6,6 @@ on:
       - "frontend/**"
       - ".github/workflows/frontend-ci.yml"
       - ".github/workflows/full-ci.yml"
-  push:
-    branches:
-      - main
-    paths:
-      - "frontend/**"
-      - ".github/workflows/frontend-ci.yml"
-      - ".github/workflows/full-ci.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
