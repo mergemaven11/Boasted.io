@@ -10,6 +10,8 @@ from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 from typing import Iterable
 
+from pymongo.errors import PyMongoError
+
 from app.database import ai_verification_events_collection
 
 VERIFICATION_SCHEMA_VERSION = "ai-verification-v1"
@@ -47,29 +49,40 @@ def record_verification_event(
     source_count: int = 0,
     generated_item_count: int = 0,
     user_id: str = "",
-) -> None:
-    """Persist privacy-safe verification metadata for one smart-feature run."""
+) -> bool:
+    """Persist privacy-safe verification metadata without blocking the feature.
+
+    Verification telemetry is operational evidence, not a dependency of the
+    customer workflow. A temporary MongoDB telemetry-write failure must never
+    prevent someone from building a resume, viewing Career Intelligence, or
+    using another smart feature. The return value lets internal tests/diagnostics
+    distinguish a successful write from a best-effort drop.
+    """
     normalized_codes = sorted({str(code).strip()[:120] for code in violation_codes if str(code).strip()})
-    ai_verification_events_collection.insert_one(
-        {
-            "verification_schema_version": VERIFICATION_SCHEMA_VERSION,
-            "feature": str(feature).strip()[:80],
-            "task": str(task).strip()[:120],
-            "passed": bool(passed),
-            "violation_codes": normalized_codes,
-            "provider": str(provider).strip()[:120],
-            "model_id": str(model_id).strip()[:160],
-            "model_revision": str(model_revision).strip()[:160],
-            "prompt_version": str(prompt_version).strip()[:120],
-            "schema_version": str(schema_version).strip()[:120],
-            "source_count": max(0, int(source_count)),
-            "generated_item_count": max(0, int(generated_item_count)),
-            # User ID is retained only for deduplicating repeated internal runs;
-            # no email, name, resume text, evidence text, or output text is stored.
-            "user_id": str(user_id).strip()[:64],
-            "created_at": datetime.now(timezone.utc),
-        }
-    )
+    try:
+        ai_verification_events_collection.insert_one(
+            {
+                "verification_schema_version": VERIFICATION_SCHEMA_VERSION,
+                "feature": str(feature).strip()[:80],
+                "task": str(task).strip()[:120],
+                "passed": bool(passed),
+                "violation_codes": normalized_codes,
+                "provider": str(provider).strip()[:120],
+                "model_id": str(model_id).strip()[:160],
+                "model_revision": str(model_revision).strip()[:160],
+                "prompt_version": str(prompt_version).strip()[:120],
+                "schema_version": str(schema_version).strip()[:120],
+                "source_count": max(0, int(source_count)),
+                "generated_item_count": max(0, int(generated_item_count)),
+                # User ID is retained only for deduplicating repeated internal runs;
+                # no email, name, resume text, evidence text, or output text is stored.
+                "user_id": str(user_id).strip()[:64],
+                "created_at": datetime.now(timezone.utc),
+            }
+        )
+        return True
+    except PyMongoError:
+        return False
 
 
 def _percentage(numerator: int, denominator: int) -> float:
@@ -141,6 +154,7 @@ def build_verification_summary(*, days: int = 30) -> dict:
             resume_errors.get("unsupported_high_risk_language", 0)
             + resume_errors.get("unsupported_skill", 0)
             + resume_errors.get("generated_summary_without_evidence", 0)
+            + resume_errors.get("target_role_presented_as_fact", 0)
         ) <= resume_threshold["maximum_fabrication_failures"],
     }
 
