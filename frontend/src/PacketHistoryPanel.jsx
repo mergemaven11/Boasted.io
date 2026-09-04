@@ -58,7 +58,8 @@ export default function PacketHistoryPanel({ refreshKey = 0, compact = false }) 
   }
 
   useEffect(() => {
-    void load();
+    const timeoutId = window.setTimeout(() => void load(), 0);
+    return () => window.clearTimeout(timeoutId);
     // refreshKey intentionally re-queries after a packet build/export.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshKey]);
