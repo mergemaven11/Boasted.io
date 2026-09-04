@@ -11,6 +11,15 @@
   const routeMeta = {
     "/": ["BragStack | Turn Your Work Into Career Proof", "BragStack helps professionals capture wins, attach evidence, create Impact Receipts, build Proof Profiles and Professional Packets, and selectively share career proof when it matters."],
     "/docs": ["BragStack Docs | Career Proof, Billing, Privacy & Product Help", "Customer documentation for BragStack accounts, Impact Receipts, reports, public proof profiles, privacy, billing, and BragStack Pro."],
+    "/how-it-works": ["How BragStack Works | Capture, Prove & Reuse Career Evidence", "See how BragStack helps you capture accomplishments, create Impact Receipts, reuse evidence for career moments, share selectively, and keep private work private."],
+    "/use-cases": ["BragStack Use Cases | Reviews, Promotions, Resumes & Interviews", "Explore BragStack use cases for performance reviews, promotions, resumes, interviews, career changes, freelancers, founders, and adults in education."],
+    "/contact": ["Contact BragStack | Support, Privacy, Security & Billing", "Contact BragStack for product support, privacy requests, security concerns, billing questions, general questions, or legal correspondence."],
+    "/team": ["BragStack for Teams | Coming Soon", "Learn about the planned BragStack Team direction for evidence-backed reviews, employee-controlled sharing, bounded analytics, and organization workflows without surveillance."],
+    "/enterprise": ["BragStack Enterprise | Governance Roadmap for Career Evidence", "Learn about BragStack's early enterprise direction for identity, governance, retention, admin policy controls, integrations, and employee-controlled evidence boundaries."],
+    "/security": ["BragStack Security | Private-by-Default Career Evidence", "Read BragStack's security approach, private-by-default model, confidential-work guidance, payment handling, and instructions for reporting a security concern."],
+    "/privacy": ["Privacy Policy | BragStack", "Read the BragStack Privacy Policy, including information collection, career evidence, sharing, AI-assisted features, retention, security, and privacy choices."],
+    "/terms": ["Terms and Conditions | BragStack", "Read the terms governing BragStack accounts, user content, acceptable use, subscriptions, AI-assisted career content, confidentiality, and service use."],
+    "/nda-safety": ["NDA & Confidential Work Guidance | BragStack", "Learn how to document professional accomplishments in BragStack without overriding NDAs, employer policies, client agreements, or confidentiality obligations."],
     "/resume-accomplishments": ["Resume Accomplishments & Achievement Tracker | BragStack", "Track work accomplishments, measurable impact, and evidence so you can build stronger resume bullets from real career proof."],
     "/career-portfolio": ["Career Portfolio & Professional Proof Profile | BragStack", "Build a professional career portfolio from selected accomplishments, skills, evidence, and measurable impact while keeping your account private by default."],
     "/performance-reviews": ["Performance Review Accomplishment Tracker | BragStack", "Capture wins throughout the year and turn documented impact into performance-review material without rebuilding months of work from memory."],
@@ -79,18 +88,46 @@
     nav.dataset.brandPatched = "true";
   }
 
+  function ensureFooterLink(column, label, href) {
+    if (!column) return;
+    const normalized = label.trim().toLowerCase();
+    let link = Array.from(column.querySelectorAll("a")).find((item) => item.textContent?.trim().toLowerCase() === normalized);
+    if (!link) {
+      link = document.createElement("a");
+      link.textContent = label;
+      column.appendChild(link);
+    }
+    link.setAttribute("href", href);
+  }
+
   function ensureDarkFooterLinks(root = document) {
     const footer = root.querySelector?.(".mega-footer") || document.querySelector(".mega-footer");
-    if (!footer || footer.dataset.legalLinksPatched === "true") return;
+    if (!footer) return;
     const columns = footer.querySelector(".mega-footer-columns");
     if (!columns) return;
-    const resources = Array.from(columns.children).find((column) => column.querySelector("h3")?.textContent?.trim().toLowerCase() === "resources");
+
+    const byHeading = (heading) => Array.from(columns.children).find((column) => column.querySelector("h3")?.textContent?.trim().toLowerCase() === heading);
+    const resources = byHeading("resources");
+    const company = byHeading("company");
+
     if (resources) {
       const docsPlaceholder = Array.from(resources.children).find((item) => item.textContent?.trim().toLowerCase().startsWith("docs"));
-      if (docsPlaceholder) { const docs = document.createElement("a"); docs.href = "/docs"; docs.textContent = "Docs"; docsPlaceholder.replaceWith(docs); }
-      if (!resources.querySelector('a[href="/nda-safety"]')) { const nda = document.createElement("a"); nda.href = "/nda-safety"; nda.textContent = "NDA & confidential work"; resources.appendChild(nda); }
+      if (docsPlaceholder && docsPlaceholder.tagName !== "A") { const docs = document.createElement("a"); docs.href = "/docs"; docs.textContent = "Docs"; docsPlaceholder.replaceWith(docs); }
+      ensureFooterLink(resources, "How it works", "/how-it-works");
+      ensureFooterLink(resources, "Use cases", "/use-cases");
+      ensureFooterLink(resources, "Sign in", "/login");
+      ensureFooterLink(resources, "Create account", "/register");
+      ensureFooterLink(resources, "NDA & confidential work", "/nda-safety");
     }
-    if (!Array.from(columns.children).some((column) => column.querySelector("h3")?.textContent?.trim().toLowerCase() === "legal")) {
+
+    if (company) {
+      ensureFooterLink(company, "Contact", "/contact");
+      ensureFooterLink(company, "Team waitlist", "/team");
+      ensureFooterLink(company, "Enterprise", "/enterprise");
+      ensureFooterLink(company, "Trust & privacy", "/security");
+    }
+
+    if (!byHeading("legal")) {
       const legal = document.createElement("div");
       legal.innerHTML = '<h3>Legal</h3><a href="/privacy">Privacy Policy</a><a href="/terms">Terms & Conditions</a><a href="/nda-safety">Confidentiality guidance</a>';
       columns.appendChild(legal);
@@ -110,10 +147,23 @@
     return CONTACT_EMAIL;
   }
 
+  function patchNamedPublicLink(link, text) {
+    const routes = {
+      "how it works": "/how-it-works",
+      "use cases": "/use-cases",
+      "contact": "/contact",
+      "team waitlist": "/team",
+      "enterprise": "/enterprise",
+      "trust & privacy": "/security",
+    };
+    if (routes[text]) link.setAttribute("href", routes[text]);
+  }
+
   function patchLinks(root = document) {
     root.querySelectorAll?.("a[href]").forEach((link) => {
       const href = link.getAttribute("href") || "";
       const text = (link.textContent || "").trim().toLowerCase();
+      patchNamedPublicLink(link, text);
       if (href.toLowerCase().startsWith(`mailto:${PERSONAL_EMAIL.toLowerCase()}`)) {
         const query = href.includes("?") ? href.slice(href.indexOf("?")) : "";
         const roleEmail = roleEmailForLink(link);
