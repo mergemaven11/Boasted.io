@@ -64,10 +64,14 @@ export default function CalendarIntegrationsPage() {
       });
       setShowOnProfile(Boolean(updated.calendly_enabled));
       setCalendlyUrl(updated.calendly_url||"");
-      setCalendlyMessage(trimmed
-        ? (updated.calendly_enabled ? "Saved — the interactive Calendly calendar is live on your public Proof Portfolio." : "Saved — enable public display when you want the calendar visible.")
-        : "Calendly scheduling removed.");
-    }catch(error){setCalendlyError(error.response?.data?.detail||"Calendly settings could not be saved.");}finally{setSavingCalendly(false);}
+      const notice = !trimmed
+        ? "Calendly scheduling removed."
+        : updated.calendly_enabled
+          ? "Calendly saved. Your interactive calendar is live on your public Proof Portfolio."
+          : "Calendly settings saved. Enable public display whenever you want the calendar visible.";
+      sessionStorage.setItem("bragstack_settings_notice", notice);
+      window.location.assign("/app/settings?saved=calendly");
+    }catch(error){setCalendlyError(error.response?.data?.detail||"Calendly settings could not be saved.");setSavingCalendly(false);}
   }
 
   return (
