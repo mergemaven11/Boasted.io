@@ -1,0 +1,63 @@
+/* Resume Builder output should look like a resume, not a BragStack dashboard. */
+.resume-v2-paper {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 8.5in);
+  min-height: 11in;
+  margin: 0 auto;
+  padding: .55in .62in .62in;
+  box-sizing: border-box;
+  border: 1px solid #d8dce2 !important;
+  border-radius: 2px !important;
+  background: #fff !important;
+  color: #15171a !important;
+  box-shadow: 0 12px 38px rgba(15,23,42,.13) !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  line-height: 1.35;
+}
+
+.resume-v2-paper-banner {
+  order: -2;
+  margin: -.18in 0 .18in !important;
+  padding: 0 0 10px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background: transparent !important;
+  color: #4b5563 !important;
+  font-size: 11px !important;
+}
+.resume-v2-paper-banner button { color:#1f4b7a !important; background:transparent !important; border:0 !important; text-decoration:underline; }
+.resume-v2-paper > header { order:-1; text-align:center; margin-bottom:14px; }
+.resume-v2-paper > header h1 { margin:0 0 5px !important; color:#111827 !important; font-family:Georgia,"Times New Roman",serif !important; font-size:28px !important; font-weight:700 !important; letter-spacing:.01em !important; }
+.resume-v2-contact { justify-content:center !important; gap:6px 12px !important; color:#374151 !important; font-size:11px !important; }
+.resume-v2-contact span:not(:last-child)::after { content:" ·"; margin-left:10px; color:#9ca3af; }
+
+.resume-v2-paper section { margin:0 0 15px !important; padding:0 !important; border:0 !important; background:transparent !important; color:#17191c !important; }
+.resume-v2-paper section:has(.resume-v2-summary) { order:1; }
+.resume-v2-paper section:has(.resume-v2-skills) { order:2; }
+.resume-v2-paper section:has(.resume-v2-job) { order:3; }
+.resume-v2-paper section:has(.resume-v2-support-lines) { order:4; }
+.resume-v2-paper section h2 { margin:0 0 7px !important; padding:0 0 4px !important; border-bottom:1.5px solid #1f2937 !important; color:#111827 !important; font-family:Arial,Helvetica,sans-serif !important; font-size:12px !important; font-weight:800 !important; letter-spacing:.08em !important; text-transform:uppercase !important; }
+.resume-v2-summary { margin:0 !important; color:#25282d !important; font-size:11.5px !important; line-height:1.48 !important; }
+.resume-v2-skills { margin:0 !important; color:#25282d !important; font-size:11.5px !important; line-height:1.5 !important; }
+.resume-v2-job { margin:0 0 13px !important; }
+.resume-v2-job-head { align-items:baseline !important; gap:8px !important; }
+.resume-v2-job-head strong { color:#111827 !important; font-size:12px !important; font-weight:800 !important; }
+.resume-v2-job-head span { color:#222 !important; font-size:11.5px !important; font-weight:700 !important; }
+.resume-v2-job-head time { color:#374151 !important; font-size:11px !important; white-space:nowrap; }
+.resume-v2-job-location { margin:2px 0 5px !important; color:#4b5563 !important; font-size:10.5px !important; }
+.resume-v2-job ul { margin:4px 0 0 17px !important; padding:0 !important; }
+.resume-v2-job li { margin:0 0 4px !important; padding:0 !important; color:#202327 !important; font-size:11px !important; line-height:1.42 !important; }
+.resume-v2-job li.proof-backed { color:#202327 !important; background:transparent !important; border:0 !important; }
+.resume-v2-support-lines { display:grid !important; gap:4px !important; color:#202327 !important; font-size:11px !important; }
+
+@media (max-width: 760px) {
+  .resume-v2-paper { min-height:auto; padding:30px 26px 34px; }
+  .resume-v2-paper > header h1 { font-size:24px !important; }
+  .resume-v2-job-head { align-items:flex-start !important; flex-direction:column !important; gap:2px !important; }
+}
+
+@media print {
+  .resume-v2-paper { width:8.5in; min-height:11in; margin:0; border:0 !important; box-shadow:none !important; }
+  .resume-v2-paper-banner { display:none !important; }
+}
