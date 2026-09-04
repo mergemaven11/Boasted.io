@@ -2,11 +2,16 @@ import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
 import {
+  ANALYTICS_CONSENT_DENIED,
+  ANALYTICS_CONSENT_GRANTED,
   ANALYTICS_EVENTS,
   GA_MEASUREMENT_ID,
   captureCampaignAttribution,
+  getAnalyticsConsent,
   getCampaignEventParameters,
+  hasAnalyticsConsent,
   initializeAnalytics,
+  setAnalyticsConsent,
   trackAnalyticsEvent,
 } from "./analytics.js";
 
@@ -60,12 +65,38 @@ function installBrowserFakes() {
   };
 }
 
+function allowAnalytics() {
+  assert.equal(setAnalyticsConsent(ANALYTICS_CONSENT_GRANTED), true);
+  assert.equal(hasAnalyticsConsent(), true);
+}
+
 describe("BragStack analytics", () => {
   beforeEach(() => {
     installBrowserFakes();
   });
 
-  it("loads the BragStack GA4 tag and configures the measurement ID once", () => {
+  it("does not load Google Analytics or store campaign attribution before consent", () => {
+    setUrl("/?utm_source=linkedin&utm_campaign=launch");
+
+    assert.equal(getAnalyticsConsent(), null);
+    assert.equal(hasAnalyticsConsent(), false);
+    assert.equal(initializeAnalytics(), false);
+    assert.deepEqual(captureCampaignAttribution(), {});
+    assert.equal(trackAnalyticsEvent(ANALYTICS_EVENTS.SIGN_UP, { method: "email_password" }), false);
+    assert.equal(document.head.querySelector("script[data-bragstack-analytics]"), null);
+    assert.deepEqual(getCampaignEventParameters(), {});
+  });
+
+  it("respects an essential-only analytics choice", () => {
+    assert.equal(setAnalyticsConsent(ANALYTICS_CONSENT_DENIED), true);
+    assert.equal(getAnalyticsConsent(), ANALYTICS_CONSENT_DENIED);
+    assert.equal(hasAnalyticsConsent(), false);
+    assert.equal(initializeAnalytics(), false);
+    assert.equal(window[`ga-disable-${GA_MEASUREMENT_ID}`], true);
+  });
+
+  it("loads the BragStack GA4 tag and configures the measurement ID once after consent", () => {
+    allowAnalytics();
     initializeAnalytics();
     initializeAnalytics();
 
@@ -80,6 +111,7 @@ describe("BragStack analytics", () => {
   });
 
   it("captures approved UTM attribution without storing unrelated query parameters", () => {
+    allowAnalytics();
     setUrl(
       "/?utm_source=linkedin&utm_medium=paid_social&utm_campaign=founder_launch&utm_source_platform=linkedin_ads&utm_content=profile&utm_creative_format=video&utm_marketing_tactic=prospecting&email=private@example.com",
     );
@@ -104,6 +136,7 @@ describe("BragStack analytics", () => {
   });
 
   it("caps UTM values at the GA4 event-parameter value limit", () => {
+    allowAnalytics();
     const oversizedCampaign = "x".repeat(150);
     setUrl(`/?utm_source=linkedin&utm_campaign=${oversizedCampaign}`);
 
@@ -113,6 +146,7 @@ describe("BragStack analytics", () => {
   });
 
   it("keeps first-touch attribution while allowing a later campaign to become the active session campaign", () => {
+    allowAnalytics();
     setUrl("/?utm_source=linkedin&utm_campaign=launch");
     captureCampaignAttribution();
 
@@ -127,7 +161,8 @@ describe("BragStack analytics", () => {
     assert.equal(parameters.first_utm_campaign, "launch");
   });
 
-  it("enriches successful product events with UTM attribution", () => {
+  it("enriches successful product events with UTM attribution after consent", () => {
+    allowAnalytics();
     setUrl("/register?utm_source=linkedin&utm_medium=social&utm_campaign=beta");
 
     const tracked = trackAnalyticsEvent(ANALYTICS_EVENTS.SIGN_UP, {
