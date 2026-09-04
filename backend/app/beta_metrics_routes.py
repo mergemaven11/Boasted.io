@@ -1,17 +1,40 @@
-"""Document this first-party Python module."""
+"""Beta metrics and authenticated support intake routes."""
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 from typing import Literal
 
+import httpx
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.auth import get_current_user
-from app.database import beta_feedback_collection, impact_receipts_collection
+from app.database import beta_feedback_collection, db, impact_receipts_collection
+from app.plans import is_internal_user
 
 
 router = APIRouter(prefix="/beta", tags=["beta"])
+support_tickets_collection = db["support_tickets"]
+
+GITHUB_SUPPORT_TOKEN = os.getenv("GITHUB_SUPPORT_TOKEN", "").strip()
+GITHUB_SUPPORT_REPO = os.getenv("GITHUB_SUPPORT_REPO", "mergemaven11/bragstack").strip()
+
+SUPPORT_CATEGORIES = {
+    "bug": "Bug / something is broken",
+    "account": "Account / sign-in",
+    "billing": "Billing / subscription",
+    "education": "Education / applications",
+    "feature": "Feature request",
+    "accessibility": "Accessibility",
+    "privacy_security": "Privacy / security",
+    "other": "Other",
+}
+
+GITHUB_CATEGORY_LABELS = {
+    "bug": ["bug"],
+    "feature": ["enhancement"],
+}
 
 
 class BetaFeedbackCreate(BaseModel):
@@ -23,15 +46,27 @@ class BetaFeedbackCreate(BaseModel):
     primary_value: str = Field(default="", max_length=500)
 
 
+class SupportTicketCreate(BaseModel):
+    """Customer support request that can be synchronized to private GitHub Issues."""
+
+    category: Literal[
+        "bug",
+        "account",
+        "billing",
+        "education",
+        "feature",
+        "accessibility",
+        "privacy_security",
+        "other",
+    ]
+    title: str = Field(..., min_length=4, max_length=140)
+    description: str = Field(..., min_length=10, max_length=6000)
+    page_url: str = Field(default="", max_length=500)
+    browser: str = Field(default="", max_length=500)
+
+
 def _receipt_dates(user_id: str) -> list[str]:
-    """Handle receipt dates.
-
-    Args:
-        user_id: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle receipt dates."""
     dates = []
     for receipt in impact_receipts_collection.find({"user_id": user_id}):
         value = receipt.get("created_at")
@@ -43,14 +78,7 @@ def _receipt_dates(user_id: str) -> list[str]:
 
 
 def _user_product_metrics(user_id: str) -> dict:
-    """Handle user product metrics.
-
-    Args:
-        user_id: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle user product metrics."""
     receipt_count = impact_receipts_collection.count_documents({"user_id": user_id})
     distinct_days = _receipt_dates(user_id)
     return {
@@ -62,20 +90,124 @@ def _user_product_metrics(user_id: str) -> dict:
     }
 
 
+def _github_issue_body(ticket: dict) -> str:
+    """Create a bounded support issue body without secrets or auth data."""
+    return "\n".join(
+        [
+            "## Customer support intake",
+            "",
+            f"**Category:** {SUPPORT_CATEGORIES.get(ticket['category'], ticket['category'])}",
+            f"**Ticket ID:** `{ticket['ticket_id']}`",
+            f"**Reporter:** {ticket.get('reporter_email') or 'authenticated user'}",
+            f"**Page:** {ticket.get('page_url') or 'Not provided'}",
+            "",
+            "## Description",
+            ticket["description"],
+            "",
+            "## Browser / device",
+            ticket.get("browser") or "Not provided",
+            "",
+            "---",
+            "Submitted through the authenticated BragStack Support Center. Do not post passwords, tokens, API keys, confidential employer material, medical information, student records, or other sensitive data into this issue.",
+        ]
+    )
+
+
+async def _sync_support_ticket_to_github(ticket: dict) -> dict | None:
+    """Create a private GitHub issue when a server-side support token is configured."""
+    if not GITHUB_SUPPORT_TOKEN or not GITHUB_SUPPORT_REPO:
+        return None
+
+    labels = GITHUB_CATEGORY_LABELS.get(ticket["category"], [])
+    payload = {
+        "title": f"[{SUPPORT_CATEGORIES.get(ticket['category'], ticket['category'])}] {ticket['title']}",
+        "body": _github_issue_body(ticket),
+    }
+    if labels:
+        payload["labels"] = labels
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        response = await client.post(
+            f"https://api.github.com/repos/{GITHUB_SUPPORT_REPO}/issues",
+            headers={
+                "Authorization": f"Bearer {GITHUB_SUPPORT_TOKEN}",
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+                "User-Agent": "BragStack-Support",
+            },
+            json=payload,
+        )
+    if response.status_code not in {200, 201}:
+        return {"error": f"github_status_{response.status_code}"}
+    data = response.json()
+    return {
+        "issue_number": data.get("number"),
+        "issue_url": data.get("html_url"),
+    }
+
+
+@router.post("/support-ticket")
+async def submit_support_ticket(
+    payload: SupportTicketCreate,
+    current_user: dict = Depends(get_current_user),
+):
+    """Save a categorized support ticket first, then best-effort sync it to GitHub."""
+    now = datetime.now(timezone.utc)
+    ticket_id = f"BS-{now.strftime('%Y%m%d%H%M%S')}-{str(current_user['_id'])[-6:].upper()}"
+    document = {
+        "ticket_id": ticket_id,
+        "user_id": str(current_user["_id"]),
+        "reporter_email": (current_user.get("email") or "").strip().lower(),
+        "category": payload.category,
+        "title": payload.title.strip(),
+        "description": payload.description.strip(),
+        "page_url": payload.page_url.strip(),
+        "browser": payload.browser.strip(),
+        "status": "received",
+        "github_sync_status": "pending" if GITHUB_SUPPORT_TOKEN else "not_configured",
+        "created_at": now,
+    }
+    result = support_tickets_collection.insert_one(document)
+
+    github = None
+    try:
+        github = await _sync_support_ticket_to_github(document)
+    except Exception:
+        github = {"error": "github_sync_failed"}
+
+    if github and github.get("issue_number"):
+        support_tickets_collection.update_one(
+            {"_id": result.inserted_id},
+            {
+                "$set": {
+                    "github_sync_status": "synced",
+                    "github_issue_number": github["issue_number"],
+                    "github_issue_url": github.get("issue_url"),
+                }
+            },
+        )
+    elif github and github.get("error"):
+        support_tickets_collection.update_one(
+            {"_id": result.inserted_id},
+            {"$set": {"github_sync_status": "failed", "github_sync_error": github["error"]}},
+        )
+
+    return {
+        "saved": True,
+        "ticket_id": ticket_id,
+        "category": payload.category,
+        "github_synced": bool(github and github.get("issue_number")),
+        "github_issue_number": github.get("issue_number") if github else None,
+        "message": "Your support request was received. BragStack support can follow up using the email on your account.",
+    }
+
+
 @router.post("/feedback")
 def submit_beta_feedback(
     payload: BetaFeedbackCreate,
     current_user: dict = Depends(get_current_user),
 ):
-    """Handle submit beta feedback.
-
-    Args:
-        payload: Function argument.
-        current_user: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle submit beta feedback."""
     user_id = str(current_user["_id"])
     now = datetime.now(timezone.utc)
     document = {
@@ -108,14 +240,7 @@ def submit_beta_feedback(
 
 @router.get("/me")
 def my_beta_metrics(current_user: dict = Depends(get_current_user)):
-    """Handle my beta metrics.
-
-    Args:
-        current_user: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle my beta metrics."""
     user_id = str(current_user["_id"])
     feedback = beta_feedback_collection.find_one({"user_id": user_id})
     return {
@@ -134,7 +259,10 @@ def my_beta_metrics(current_user: dict = Depends(get_current_user)):
 
 @router.get("/metrics")
 def aggregate_beta_metrics(current_user: dict = Depends(get_current_user)):
-    """Return anonymized beta-level funnel and pull metrics with no user identities."""
+    """Return founder beta metrics only to verified BragStack internal identities."""
+    if not is_internal_user(current_user):
+        from fastapi import HTTPException, status
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Internal analytics are not available for this account.")
 
     receipt_users = impact_receipts_collection.distinct("user_id")
     feedback_users = beta_feedback_collection.distinct("user_id")
@@ -153,15 +281,7 @@ def aggregate_beta_metrics(current_user: dict = Depends(get_current_user)):
     strong_miss = sum(1 for score in miss_scores if score >= 4)
 
     def pct(value: int, denominator: int) -> int:
-        """Handle pct.
-
-        Args:
-            value: Function argument.
-            denominator: Function argument.
-
-        Returns:
-            Function result.
-        """
+        """Handle pct."""
         return round((value / denominator) * 100) if denominator else 0
 
     return {
