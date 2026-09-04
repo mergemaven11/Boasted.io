@@ -1,0 +1,138 @@
+name: Full Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Why this full validation is being run"
+        required: false
+        default: "launch or production validation"
+
+concurrency:
+  group: full-validation-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      MONGO_URL: mongodb://localhost:27017
+      JWT_SECRET: test-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Install backend dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Compile backend
+        run: python -m compileall .
+      - name: Run complete backend regression suite
+        run: python -m pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Test analytics and UTM attribution
+        run: npm run test:analytics
+      - name: Verify Aisha source and render contract
+        run: node scripts/verify-aisha-source.mjs
+      - name: Test interview intelligence engine
+        run: npm run test:interview
+      - name: Test structured resume helpers
+        run: npm run test:resume
+      - name: Verify search appearance and sitelink signals
+        run: npm run test:seo
+      - name: Audit every visible click path in real Chrome
+        run: npm run test:clicks
+      - name: Confirm responsive UI on phone, tablet, and desktop
+        run: npm run test:layout
+      - name: Lint frontend
+        run: npm run lint
+      - name: Build production frontend
+        run: npm run build
+      - name: Enforce production bundle budgets
+        run: npm run test:bundle
+      - name: Verify Aisha production bundle
+        run: node scripts/verify-aisha-build.mjs
+      - name: Upload browser QA failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bragstack-full-browser-failures
+          path: frontend/artifacts/ui-layout
+          if-no-files-found: ignore
+          retention-days: 7
+
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Audit backend dependencies
+        run: |
+          python -m pip install pip-audit
+          pip-audit -r backend/requirements.txt --ignore-vuln PYSEC-2026-1325
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci --no-fund
+      - name: Audit frontend dependencies
+        working-directory: frontend
+        run: |
+          for attempt in 1 2 3; do
+            set +e
+            audit_output="$(npm audit --audit-level=high 2>&1)"
+            audit_status=$?
+            set -e
+            printf '%s\n' "$audit_output"
+            if [ "$audit_status" -eq 0 ]; then
+              exit 0
+            fi
+            if printf '%s\n' "$audit_output" | grep -Eq '503 Service Unavailable|audit endpoint returned an error|ECONNRESET|ETIMEDOUT|EAI_AGAIN'; then
+              if [ "$attempt" -lt 3 ]; then
+                sleep 10
+                continue
+              fi
+            fi
+            exit "$audit_status"
+          done
+          exit 1
