@@ -10,11 +10,13 @@ import "./ProfilePage.css";
 const EMPTY_PROFILE = { name:"",headline:"",bio:"",location:"",avatar_url:"",github_url:"",portfolio_url:"",resume_url:"",profile_theme:"default",profile_primary_color:"",profile_secondary_color:"",profile_background_color:"" };
 const EMPTY_CONNECTION = { open_to_talk:false,open_to_talk_url:"",open_to_talk_note:"",open_to_talk_types:[] };
 const CONVERSATION_TYPES = [
-  ["recruiter-chat","Recruiter chat"],
-  ["technical-deep-dive","Technical deep dive"],
-  ["networking","Networking"],
-  ["mentoring","Mentoring"],
-  ["consulting","Consulting"],
+  ["general-chat","General chat","Open conversation"],
+  ["virtual-coffee","Virtual coffee","Casual introduction"],
+  ["recruiter-chat","Recruiter chat","Career opportunities"],
+  ["technical-deep-dive","Technical deep dive","Technical discussion"],
+  ["networking","Networking","Professional connection"],
+  ["mentoring","Mentoring","Advice and guidance"],
+  ["consulting","Consulting","Project or advisory work"],
 ];
 
 function ProfilePage() {
@@ -37,9 +39,10 @@ function ProfilePage() {
       };
       await updateCurrentUserProfile(profileFields);
       await updateProfileConnection(connection);
-      const updated=await updateProfileAvatar(avatarUrl);
-      setUser(updated);setForm(c=>({...c,...updated,avatar_url:updated.avatar_url??avatarUrl}));setMessage("Profile, appearance, and connection settings saved.");
-    }catch(err){setError(err.response?.data?.detail||"Your profile could not be saved.");}finally{setSaving(false);}
+      await updateProfileAvatar(avatarUrl);
+      sessionStorage.setItem("bragstack_settings_notice","Profile, bio, appearance, and Open to Talk settings saved.");
+      window.location.assign("/app/settings?saved=profile");
+    }catch(err){setError(err.response?.data?.detail||"Your profile could not be saved.");setSaving(false);}
   }
   if(loading)return <BragStackLoader compact message="Loading your profile…" detail="Bringing in your career identity and appearance settings." />;
   const avatarLetter=form.name?.charAt(0).toUpperCase()||"B"; const theme=getProfileTheme(form.profile_theme); const primary=form.profile_primary_color||theme.primary; const secondary=form.profile_secondary_color||theme.secondary; const background=form.profile_background_color||theme.background;
@@ -61,7 +64,7 @@ function ProfilePage() {
           <label className="profile-wide">Contact or booking URL<input type="url" name="open_to_talk_url" value={connection.open_to_talk_url} onChange={handleConnectionChange} placeholder="https://cal.com/you or another contact page"/><small>This is the only destination BragStack exposes when Open to Talk is enabled.</small></label>
           <label className="profile-wide">Short note<textarea name="open_to_talk_note" value={connection.open_to_talk_note} onChange={handleConnectionChange} rows={3} maxLength={240} placeholder="Happy to discuss platform engineering, Docker troubleshooting, or support tooling."/></label>
         </div>
-        <div className="theme-gallery">{CONVERSATION_TYPES.map(([value,label])=><button type="button" key={value} className={`theme-card ${connection.open_to_talk_types.includes(value)?"selected":""}`} onClick={()=>toggleConversationType(value)} aria-pressed={connection.open_to_talk_types.includes(value)}><span><strong>{label}</strong><small>{connection.open_to_talk_types.includes(value)?"Visible on profile":"Optional"}</small></span></button>)}</div>
+        <div className="theme-gallery conversation-type-gallery">{CONVERSATION_TYPES.map(([value,label,description])=><button type="button" key={value} className={`theme-card ${connection.open_to_talk_types.includes(value)?"selected":""}`} onClick={()=>toggleConversationType(value)} aria-pressed={connection.open_to_talk_types.includes(value)}><span><strong>{label}</strong><small>{connection.open_to_talk_types.includes(value)?"Visible on profile":description}</small></span></button>)}</div>
       </section>
       <section className="appearance-section"><div className="appearance-heading"><div><p className="profile-settings-eyebrow"><Palette size={14}/> Public profile appearance</p><h2>Make your Proof Profile yours</h2><p>Start with a career-inspired theme, then customize the colors if you want.</p></div></div>
         <div className="theme-gallery">{PROFILE_THEMES.map(t=><button type="button" key={t.id} className={`theme-card ${form.profile_theme===t.id?"selected":""}`} onClick={()=>selectTheme(t.id)} aria-pressed={form.profile_theme===t.id}><span className="theme-swatch" style={{background:`linear-gradient(135deg,${t.primary},${t.secondary} 55%,${t.background} 56%)`}}/><span><strong>{t.name}</strong><small>{t.career}</small></span></button>)}</div>
