@@ -8,18 +8,20 @@ export default function PublicAuthHeader() {
   if (!isRegister && !isLogin) return null;
 
   const cta = isRegister
-    ? { href: "/login", label: "Log in" }
+    ? { href: "/", label: "Return" }
     : { href: "/register", label: "Start free" };
 
   return (
     <header className="public-auth-header" aria-label="BragStack public navigation">
       <a className="public-auth-brand" href="/">BragStack</a>
 
-      <nav className="public-auth-links" aria-label="Public site navigation">
-        <a href="/#how-it-works">How it works</a>
-        <a href="/#product">Product</a>
-        <a href="/#pricing">Pricing</a>
-      </nav>
+      {!isRegister && (
+        <nav className="public-auth-links" aria-label="Public site navigation">
+          <a href="/#how-it-works">How it works</a>
+          <a href="/#product">Product</a>
+          <a href="/#pricing">Pricing</a>
+        </nav>
+      )}
 
       <div className="public-auth-actions">
         <a className="public-auth-button public-auth-button-secondary" href="/docs">Docs</a>
