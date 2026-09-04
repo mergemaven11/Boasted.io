@@ -128,6 +128,8 @@
   padding-right: 4px;
 }
 
+.sidebar-workspace-item { display: contents; }
+
 .sidebar-section-label {
   margin: 15px 10px 5px;
   color: #5f5a55;
@@ -166,6 +168,25 @@
 .sidebar-nav a.active::before { background: #ffb184; }
 .sidebar-nav a.active svg { color: #ffb184; }
 .sidebar-nav .sidebar-upgrade { color: #ffd2b8; border: 1px solid rgba(255,177,132,.16); margin-top: 6px; }
+.sidebar-nav .sidebar-proof-profile {
+  margin: 2px 0 6px;
+  color: #e4f6ff;
+  border: 1px solid rgba(125,211,252,.16);
+  background: rgba(14,165,233,.06);
+}
+.sidebar-nav .sidebar-proof-profile svg { color: #7dd3fc; }
+.sidebar-nav .sidebar-proof-profile small {
+  margin-left: auto;
+  padding: 3px 6px;
+  border-radius: 999px;
+  color: #86efac;
+  background: rgba(34,197,94,.1);
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.sidebar-nav .sidebar-proof-profile:hover { background: rgba(14,165,233,.1); border-color: rgba(125,211,252,.28); }
 
 .sidebar-footer {
   flex: 0 0 auto;
