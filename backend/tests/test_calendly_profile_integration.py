@@ -101,3 +101,53 @@ def test_partial_connection_update_does_not_clear_calendly(connection_context):
     stored = users.find_one({"_id": user["_id"]})
     assert stored["calendly_enabled"] is True
     assert stored["calendly_url"] == calendly_url
+
+
+def test_legacy_open_to_talk_calendly_url_drives_inline_scheduler(connection_context):
+    """Existing public Calendly links continue to power the new portfolio embed."""
+    user, users = connection_context
+    legacy_url = "https://calendly.com/calendar-user/30min"
+    users.update_one(
+        {"_id": user["_id"]},
+        {
+            "$set": {
+                "open_to_talk": True,
+                "open_to_talk_url": legacy_url,
+                "open_to_talk_note": "Book a conversation.",
+            }
+        },
+    )
+
+    public_response = client.get(f"/public/brag/{user['public_slug']}/connection")
+
+    assert public_response.status_code == 200
+    payload = public_response.json()
+    assert payload["open_to_talk"] is True
+    assert payload["open_to_talk_url"] == legacy_url
+    assert payload["calendly_enabled"] is True
+    assert payload["calendly_url"] == legacy_url
+
+
+def test_explicit_calendly_disable_overrides_legacy_open_to_talk_url(connection_context):
+    """A user who explicitly disables Calendly must not be re-enabled by fallback."""
+    user, users = connection_context
+    legacy_url = "https://calendly.com/calendar-user/30min"
+    users.update_one(
+        {"_id": user["_id"]},
+        {
+            "$set": {
+                "open_to_talk": True,
+                "open_to_talk_url": legacy_url,
+                "calendly_enabled": False,
+            }
+        },
+    )
+
+    public_response = client.get(f"/public/brag/{user['public_slug']}/connection")
+
+    assert public_response.status_code == 200
+    payload = public_response.json()
+    assert payload["open_to_talk"] is True
+    assert payload["open_to_talk_url"] == legacy_url
+    assert payload["calendly_enabled"] is False
+    assert payload["calendly_url"] == ""
