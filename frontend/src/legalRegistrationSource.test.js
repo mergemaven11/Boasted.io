@@ -29,11 +29,23 @@ test("middle-school student accounts remain visible as coming soon but disabled"
   assert.match(source, /18\+/);
 });
 
-test("paid checkout requires explicit recurring billing acknowledgement", () => {
+test("paid upgrade page is paused and cannot initiate Stripe checkout", () => {
   const source = read("./UpgradePage.jsx");
-  assert.match(source, /automatically renews every month until you cancel/);
-  assert.match(source, /billingAcknowledged/);
-  assert.match(source, /Continue to secure Stripe checkout/);
+  assert.match(source, /Pro is temporarily unlocked for everyone/);
+  assert.match(source, /Paid upgrades are paused right now/);
+  assert.match(source, /No new BragStack Pro subscription is required/);
+  assert.doesNotMatch(source, /\/billing\/checkout-session/);
+  assert.doesNotMatch(source, /Continue to secure Stripe checkout/);
+});
+
+test("support center has categorized intake and warns against sensitive data", () => {
+  const source = read("./SupportPage.jsx");
+  assert.match(source, /Bug \/ something is broken/);
+  assert.match(source, /Billing \/ subscription/);
+  assert.match(source, /Education \/ applications/);
+  assert.match(source, /Privacy \/ security/);
+  assert.match(source, /Do not submit passwords, access tokens, API keys/);
+  assert.match(source, /\/beta\/support-ticket/);
 });
 
 test("public portfolio avatar repair stays active across React rerenders", () => {
