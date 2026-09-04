@@ -34,6 +34,7 @@ const ProfilePage = lazyPage(() => import("./ProfilePage.jsx"));
 const ProCareerPage = lazyPage(() => import("./ProCareerPage.jsx"));
 const SeoLandingPage = lazyPage(() => import("./SeoLandingPages.jsx"));
 const SettingsPage = lazyPage(() => import("./SettingsPage.jsx"));
+const SupportPage = lazyPage(() => import("./SupportPage.jsx"));
 const UpgradePage = lazyPage(() => import("./UpgradePage.jsx"));
 const LegalPages = lazyPage(() => import("./LegalPages.jsx"));
 
@@ -77,8 +78,16 @@ function LegacyShareRedirect({ path }) {
   }, [path]);
   return <BragStackLoader message="Opening Proof Portfolio…" detail="Preserving the shared profile theme and public proof." />;
 }
-function ProRequired({ feature = "This feature" }) { return <main className="page"><section className="notice"><strong>BragStack Pro</strong><span>{feature} is available on Pro. Upgrade to unlock advanced career tools.</span><a className="btn primary" href="/upgrade">Upgrade to Pro</a></section></main>; }
+function InternalRedirect() {
+  useEffect(() => { window.location.replace("/app"); }, []);
+  return <BragStackLoader message="Opening your workspace…" detail="Internal operations pages are not available for this account." />;
+}
+function ProRequired({ feature = "This feature" }) { return <main className="page"><section className="notice"><strong>Not available for this account</strong><span>{feature} is not included in your current access level.</span><a className="btn primary" href="/app/support">Contact support</a></section></main>; }
 function ImpactReceiptsWithVerification() { return <><ImpactReceiptsPage /><ReceiptVerificationCenter /></>; }
+function isInternalUiUser(candidate) {
+  const companyEmail = candidate?.email?.trim().toLowerCase().endsWith("@usebragstack.com") === true;
+  return companyEmail && Boolean(candidate?.entitlements?.executive_command_center);
+}
 
 function RootContent() {
   const path = window.location.pathname.replace(/\/$/, "") || "/";
@@ -179,7 +188,9 @@ function RootContent() {
   else if (path === "/") content = <><App /><LandingInterviewShowcase /><LandingResumeShowcase /><SearchSitelinksNav /></>;
   else {
     let Content = App; let contentProps = {};
-    if (path === "/app") Content = DashboardPage;
+    const internalRouteBlocked = path.startsWith("/ops") && planLoaded && !isInternalUiUser(user);
+    if (internalRouteBlocked) Content = InternalRedirect;
+    else if (path === "/app") Content = DashboardPage;
     else if (path === "/ops") Content = OpsConsolePage;
     else if (path === "/ops/users") Content = OpsUsersPage;
     else if (path === "/ops/ai-verification") Content = AIVerificationPage;
@@ -187,6 +198,7 @@ function RootContent() {
     else if (path === "/app/profile") Content = ProfilePage;
     else if (path === "/app/settings/appearance") Content = AppearanceSettingsPage;
     else if (path === "/app/settings/billing") Content = BillingSettingsPage;
+    else if (path === "/app/support") Content = SupportPage;
     else if (path === "/app/accomplishments") Content = AccomplishmentsPage;
     else if (path === "/app/impact-receipts") Content = ImpactReceiptsWithVerification;
     else if (path === "/app/applications") Content = ApplicationsHubPage;
