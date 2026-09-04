@@ -19,6 +19,13 @@ test("public brag route is the professional Proof Portfolio", () => {
   assert.match(source, /Selected work/);
 });
 
+test("legacy rich-share links redirect to the themed Proof Portfolio route", () => {
+  const source = read("./RootContent.jsx");
+  assert.match(source, /path\.startsWith\("\/share\/brag\/"\)/);
+  assert.match(source, /window\.location\.replace\(slug \? `\/brag\/\$\{slug\}\$\{window\.location\.search\}` : "\/"\)/);
+  assert.match(source, /Opening Proof Portfolio…/);
+});
+
 test("Proof Portfolio mounts the inline Calendly scheduler", () => {
   const source = read("./PublicBragPage.jsx");
   const calendly = read("./CalendlyEmbed.jsx");
