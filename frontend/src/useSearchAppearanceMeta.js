@@ -15,16 +15,16 @@ const PUBLIC_META = {
     description: "Create a free BragStack account and start turning your accomplishments into career proof for resumes, interviews, reviews, and promotions.",
   },
   "/education": {
-    title: "BragStack Education | Track Student Wins, Growth & Opportunities",
-    description: "BragStack Education helps students capture real wins from school, projects, activities, service, work, and learning, then reuse them for scholarships, programs, internships, essays, and future careers.",
+    title: "BragStack Education | Student Wins & Growth for Ages 18+",
+    description: "BragStack Education helps adults age 18+ capture real education wins from school, projects, activities, service, work, and learning. High-school students who are already 18 and adult college/university students can use the live workspace today.",
   },
   "/docs": {
     title: "BragStack Docs | How to Use Career Proof",
     description: "Learn how to use BragStack, Impact Receipts, Resume Builder, Practice Interviewer, privacy controls, and career proof workflows.",
   },
   "/docs/education": {
-    title: "BragStack Education Guide | How Students Track Wins & Growth",
-    description: "Learn how BragStack Education helps students capture real accomplishments, organize their growth, protect private information, and prepare for scholarships, programs, internships, and essay stories.",
+    title: "BragStack Education Guide | Student Wins & Growth for Ages 18+",
+    description: "Learn how adults age 18+ can use BragStack Education to capture real accomplishments, organize growth, protect private information, and prepare for scholarships, programs, internships, and essay stories.",
   },
 };
 
