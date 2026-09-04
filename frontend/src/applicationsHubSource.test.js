@@ -13,10 +13,20 @@ test("Education workspace exposes four student goals", () => {
   assert.match(source, /id: "special-program"/);
   assert.match(source, /id: "internship"/);
   assert.match(source, /id: "essay-prep"/);
-  assert.match(source, /Education Workspace/);
+  assert.match(source, /Education Workspace · 18\+/);
   assert.match(source, /no admissions score/i);
   assert.match(source, /real wins/i);
-  assert.match(source, /Middle school → High school → College \/ University → Career/);
+});
+
+test("Education makes the younger-student boundary obvious", () => {
+  const source = read("./ApplicationsHubPage.jsx");
+  const marketing = read("./EducationMarketingPage.jsx");
+  assert.match(source, /Middle school/);
+  assert.match(source, /UNDER CONSTRUCTION · COMING SOON/);
+  assert.match(source, /Adult high-school and college\/university students can use Education now/i);
+  assert.match(source, /BragStack Education currently supports users age 18 and older/i);
+  assert.match(marketing, /YOUNGER STUDENT EXPERIENCE UNDER CONSTRUCTION/);
+  assert.match(marketing, /For students 18\+/);
 });
 
 test("Education keeps the existing authenticated route while using the new product label", () => {
