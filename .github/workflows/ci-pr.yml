@@ -62,6 +62,9 @@ jobs:
     env:
       MONGO_URL: mongodb://localhost:27017
       JWT_SECRET: test-secret
+      # The full regression suite preserves normal plan behavior; dedicated
+      # open-access tests explicitly enable the temporary promotion in-process.
+      BRAGSTACK_OPEN_PRO_ACCESS: "false"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
