@@ -85,37 +85,51 @@ function ApplicationsHubPage() {
   const [error, setError] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
   const [notice, setNotice] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const activeWorkflow = WORKFLOWS.find((workflow) => workflow.id === applicationType) || WORKFLOWS[0];
 
-  async function load(type = applicationType) {
+  useEffect(() => {
+    let active = true;
+    getApplicationIntelligence(applicationType)
+      .then((result) => {
+        if (!active) return;
+        setData(result);
+        setSelectedIds((result.recommended_evidence || []).slice(0, 3).map((item) => item.entry_id));
+        setError("");
+        setNotice("");
+        setLoading(false);
+      })
+      .catch((requestError) => {
+        if (!active) return;
+        if (requestError.status === 401) {
+          localStorage.removeItem("bragstack_token");
+          window.location.assign("/login");
+          return;
+        }
+        setError(requestError.message || "Application guidance could not be loaded.");
+        setData(null);
+        setLoading(false);
+      });
+    return () => { active = false; };
+  }, [applicationType, refreshKey]);
+
+  function chooseWorkflow(type) {
+    if (type === applicationType) return;
     setLoading(true);
     setError("");
     setNotice("");
-    try {
-      const result = await getApplicationIntelligence(type);
-      setData(result);
-      setSelectedIds((result.recommended_evidence || []).slice(0, 3).map((item) => item.entry_id));
-    } catch (requestError) {
-      if (requestError.status === 401) {
-        localStorage.removeItem("bragstack_token");
-        window.location.assign("/login");
-        return;
-      }
-      setError(requestError.message || "Application guidance could not be loaded.");
-      setData(null);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => { void load(applicationType); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [applicationType]);
-
-  function chooseWorkflow(type) {
     setApplicationType(type);
     const next = new URL(window.location.href);
     next.searchParams.set("type", type);
     window.history.replaceState({}, "", `${next.pathname}${next.search}`);
+  }
+
+  function retryLoad() {
+    setLoading(true);
+    setError("");
+    setNotice("");
+    setRefreshKey((current) => current + 1);
   }
 
   function toggleEntry(entryId) {
@@ -168,7 +182,7 @@ function ApplicationsHubPage() {
 
     {loading && <BragStackLoader compact message={`Finding your best ${activeWorkflow.title.toLowerCase()} evidence…`} detail="Reviewing your saved accomplishments and proof without inventing new claims." />}
 
-    {!loading && error && <section className="application-error"><strong>Could not load application guidance.</strong><span>{error}</span><button type="button" onClick={() => void load()}><RefreshCw size={16} /> Try again</button></section>}
+    {!loading && error && <section className="application-error"><strong>Could not load application guidance.</strong><span>{error}</span><button type="button" onClick={retryLoad}><RefreshCw size={16} /> Try again</button></section>}
 
     {!loading && data && <>
       <section className="application-overview">
