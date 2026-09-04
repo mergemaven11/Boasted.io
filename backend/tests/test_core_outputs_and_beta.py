@@ -207,6 +207,11 @@ def test_beta_feedback_captures_activation_repeat_return_and_pull(output_context
     assert metrics["returned_to_create"] is True
     assert feedback.count_documents({}) == 1
 
+    # Aggregate metrics are founder/internal only. Promote the test identity to
+    # a verified BragStack internal account before reading the aggregate view.
+    user["email"] = "staff@usebragstack.com"
+    user["email_verification_required"] = False
+
     aggregate = client.get("/beta/metrics")
     assert aggregate.status_code == 200
     data = aggregate.json()
