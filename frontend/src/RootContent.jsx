@@ -23,6 +23,7 @@ const LandingInterviewShowcase = lazyPage(() => import("./LandingInterviewShowca
 const LandingResumeShowcase = lazyPage(() => import("./LandingResumeShowcase.jsx"));
 const OpsConsolePage = lazyPage(() => import("./OpsConsolePage.jsx"));
 const OpsUsersPage = lazyPage(() => import("./OpsUsersPage.jsx"));
+const PublicInfoPage = lazyPage(() => import("./PublicInfoPages.jsx"));
 const ReceiptVerificationCenter = lazyPage(() => import("./ReceiptVerificationCenter.jsx"));
 const ReceiptVerificationPage = lazyPage(() => import("./ReceiptVerificationPage.jsx"));
 const ResumeBuilderPage = lazyPage(() => import("./ResumeBuilderPage.jsx"));
@@ -175,6 +176,11 @@ function RootContent() {
   else if (path === "/docs") content = <DocsPage />;
   else if (path === "/nda-safety") content = <NDAGuidancePage />;
   else if (path === "/security") content = <SecurityPage />;
+  else if (path === "/how-it-works") content = <PublicInfoPage page="how-it-works" />;
+  else if (path === "/use-cases") content = <PublicInfoPage page="use-cases" />;
+  else if (path === "/contact") content = <PublicInfoPage page="contact" />;
+  else if (path === "/team") content = <PublicInfoPage page="team" />;
+  else if (path === "/enterprise") content = <PublicInfoPage page="enterprise" />;
   else if (seoLandingContent) content = <SeoLandingPage content={seoLandingContent} />;
   else if (path === "/") content = <><App /><LandingInterviewShowcase /><LandingResumeShowcase /><SearchSitelinksNav /></>;
   else {
