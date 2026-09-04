@@ -14,22 +14,59 @@
     "/resume-accomplishments": ["Resume Accomplishments & Achievement Tracker | BragStack", "Track work accomplishments, measurable impact, and evidence so you can build stronger resume bullets from real career proof."],
     "/career-portfolio": ["Career Portfolio & Professional Proof Profile | BragStack", "Build a professional career portfolio from selected accomplishments, skills, evidence, and measurable impact while keeping your account private by default."],
     "/performance-reviews": ["Performance Review Accomplishment Tracker | BragStack", "Capture wins throughout the year and turn documented impact into performance-review material without rebuilding months of work from memory."],
-    "/promotion-packet": ["Promotion Packet & Career Impact Evidence | BragStack", "Organize scope, ownership, leadership, growth, and measurable results into evidence-backed promotion material."],
+    "/promotion-packet": ["Promotions & Career Impact Evidence | BragStack", "Organize scope, ownership, leadership, growth, and measurable results into evidence-backed promotion material."],
     "/interview-preparation": ["Interview Preparation From Real Work Accomplishments | BragStack", "Prepare behavioral and technical interview stories from documented situations, actions, results, metrics, and skills."],
     "/impact-receipts": ["Impact Receipts | Evidence-Backed Work Accomplishments | BragStack", "Create structured proof of your contribution, result, evidence, skills, shared credit, and measurable career impact."],
     "/career-analytics": ["Career Analytics for Skills, Accomplishments & Impact | BragStack", "See patterns across your skills, work accomplishments, evidence coverage, ownership, and career impact over time."],
-    "/public-proof-profiles": ["Public Career Proof Profiles for Hiring & Portfolios | BragStack", "Share selected accomplishments and Impact Receipts with recruiters, hiring managers, clients, and your network without exposing private work history."],
+    "/public-proof-profiles": ["Proof Profiles | Public Career Proof | BragStack", "Share selected accomplishments and Impact Receipts without exposing your private BragStack workspace."],
+    "/professional-packets": ["Professional Packets | BragStack", "Organize selected career evidence for reviews, promotions, resumes, interviews, and other professional conversations."],
+    "/open-to-talk": ["Open to Talk | BragStack", "Opt in to a user-controlled contact path from selected public career proof without exposing private workspace or calendar data."],
+    "/freelancers": ["BragStack for Freelancers", "Keep reusable evidence of project outcomes, approved proof, skills, and client-safe accomplishments across engagements."],
+    "/teams": ["BragStack Teams | Coming Soon", "Learn about BragStack's planned team experience built around employee-owned proof, optional confirmation, and bounded analytics."],
+    "/use-cases": ["BragStack Use Cases", "See how BragStack can support performance reviews, promotions, resumes, interviews, freelance work, portfolios, and career transitions."],
+    "/contact": ["Contact BragStack", "Contact BragStack for product support, billing, privacy, security, business, or general questions."],
+    "/team-waitlist": ["BragStack Team Waitlist", "Join the BragStack Teams interest list. Team functionality is still in development and joining does not create a paid subscription."],
+    "/enterprise": ["BragStack Enterprise | Early Conversations", "Start an early conversation about identity, governance, retention, integrations, support, and privacy boundaries for larger organizations."],
+  };
+
+  const footerDestinations = {
+    "impact receipts": "/impact-receipts",
+    "proof profiles": "/public-proof-profiles",
+    "professional packets": "/professional-packets",
+    "reports": "/professional-packets",
+    "career analytics": "/career-analytics",
+    "open to talk": "/open-to-talk",
+    "performance reviews": "/performance-reviews",
+    "promotions": "/promotion-packet",
+    "interviews": "/interview-preparation",
+    "freelancers": "/freelancers",
+    "teams": "/teams",
+    "how it works": "/how-it-works",
+    "use cases": "/use-cases",
+    "contact": "/contact",
+    "team waitlist": "/team-waitlist",
+    "enterprise": "/enterprise",
+    "trust & privacy": "/security",
+    "security": "/security",
+    "pricing": "/pricing",
   };
 
   function setMeta(selector, attrs) {
     let element = document.head.querySelector(selector);
-    if (!element) { element = document.createElement("meta"); document.head.appendChild(element); }
+    if (!element) {
+      element = document.createElement("meta");
+      document.head.appendChild(element);
+    }
     Object.entries(attrs).forEach(([key, value]) => element.setAttribute(key, value));
   }
 
   function setCanonical(url) {
     let link = document.head.querySelector('link[rel="canonical"]');
-    if (!link) { link = document.createElement("link"); link.rel = "canonical"; document.head.appendChild(link); }
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "canonical";
+      document.head.appendChild(link);
+    }
     link.href = url;
   }
 
@@ -56,7 +93,10 @@
     const nav = root.querySelector?.(".landing-nav") || document.querySelector(".landing-nav");
     if (!nav || nav.dataset.brandPatched === "true") return;
     const logo = nav.querySelector(".landing-logo");
-    if (logo) { logo.textContent = "BragStack"; logo.setAttribute("aria-label", "BragStack home"); }
+    if (logo) {
+      logo.textContent = "BragStack";
+      logo.setAttribute("aria-label", "BragStack home");
+    }
     const actions = nav.querySelector(".landing-nav-actions");
     if (actions) {
       if (!actions.querySelector('a[href="/docs"]')) {
@@ -66,9 +106,9 @@
         docs.textContent = "Docs";
         actions.prepend(docs);
       }
-      if (!actions.querySelector('a[href="/#pricing"]')) {
+      if (!actions.querySelector('a[href="/pricing"]') && !actions.querySelector('a[href="/#pricing"]')) {
         const pricing = document.createElement("a");
-        pricing.href = "/#pricing";
+        pricing.href = "/pricing";
         pricing.className = "landing-login-link landing-pricing-link";
         pricing.textContent = "Pricing";
         const login = actions.querySelector('a[href="/login"]');
@@ -87,8 +127,18 @@
     const resources = Array.from(columns.children).find((column) => column.querySelector("h3")?.textContent?.trim().toLowerCase() === "resources");
     if (resources) {
       const docsPlaceholder = Array.from(resources.children).find((item) => item.textContent?.trim().toLowerCase().startsWith("docs"));
-      if (docsPlaceholder) { const docs = document.createElement("a"); docs.href = "/docs"; docs.textContent = "Docs"; docsPlaceholder.replaceWith(docs); }
-      if (!resources.querySelector('a[href="/nda-safety"]')) { const nda = document.createElement("a"); nda.href = "/nda-safety"; nda.textContent = "NDA & confidential work"; resources.appendChild(nda); }
+      if (docsPlaceholder) {
+        const docs = document.createElement("a");
+        docs.href = "/docs";
+        docs.textContent = "Docs";
+        docsPlaceholder.replaceWith(docs);
+      }
+      if (!resources.querySelector('a[href="/nda-safety"]')) {
+        const nda = document.createElement("a");
+        nda.href = "/nda-safety";
+        nda.textContent = "NDA & confidential work";
+        resources.appendChild(nda);
+      }
     }
     if (!Array.from(columns.children).some((column) => column.querySelector("h3")?.textContent?.trim().toLowerCase() === "legal")) {
       const legal = document.createElement("div");
@@ -96,6 +146,20 @@
       columns.appendChild(legal);
     }
     footer.dataset.legalLinksPatched = "true";
+  }
+
+  function rewriteFooterDestinations(root = document) {
+    const footerRoots = [
+      ...(root.matches?.(".mega-footer, .legal-site-footer") ? [root] : []),
+      ...(root.querySelectorAll?.(".mega-footer, .legal-site-footer") || []),
+    ];
+    footerRoots.forEach((footer) => {
+      footer.querySelectorAll("a[href]").forEach((link) => {
+        const label = (link.textContent || "").trim().toLowerCase();
+        const destination = footerDestinations[label];
+        if (destination) link.setAttribute("href", destination);
+      });
+    });
   }
 
   function roleEmailForLink(link) {
@@ -121,15 +185,25 @@
         if ((link.textContent || "").trim().toLowerCase() === PERSONAL_EMAIL.toLowerCase()) link.textContent = roleEmail;
       }
       if (href === "http://localhost:8000/docs" || href === "https://api.usebragstack.com/docs") {
-        link.setAttribute("href", "/docs"); link.removeAttribute("target"); link.removeAttribute("rel"); if (text.includes("api docs")) link.textContent = "Docs";
+        link.setAttribute("href", "/docs");
+        link.removeAttribute("target");
+        link.removeAttribute("rel");
+        if (text.includes("api docs")) link.textContent = "Docs";
       }
-      if (text.startsWith("docs") && (href === "#" || href === "" || text.includes("coming soon"))) { link.setAttribute("href", "/docs"); link.textContent = "Docs"; }
+      if (text.startsWith("docs") && (href === "#" || href === "" || text.includes("coming soon"))) {
+        link.setAttribute("href", "/docs");
+        link.textContent = "Docs";
+      }
     });
     patchMarketingNavbar(root);
     ensureDarkFooterLinks(root);
+    rewriteFooterDestinations(root);
   }
 
-  applySeo(); patchLinks();
-  const observer = new MutationObserver((mutations) => mutations.forEach((mutation) => mutation.addedNodes.forEach((node) => { if (node.nodeType === Node.ELEMENT_NODE) patchLinks(node); })));
+  applySeo();
+  patchLinks();
+  const observer = new MutationObserver((mutations) => mutations.forEach((mutation) => mutation.addedNodes.forEach((node) => {
+    if (node.nodeType === Node.ELEMENT_NODE) patchLinks(node);
+  })));
   observer.observe(document.documentElement, { childList: true, subtree: true });
 })();
