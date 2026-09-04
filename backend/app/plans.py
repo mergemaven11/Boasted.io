@@ -7,6 +7,7 @@ reimplementing plan checks so pricing and entitlement behavior stays consistent.
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from fastapi import HTTPException, status
@@ -14,6 +15,16 @@ from fastapi import HTTPException, status
 FREE_ENTRY_LIMIT = 5
 FREE_IMPACT_RECEIPT_LIMIT = 1
 INTERNAL_EMAIL_DOMAIN = "usebragstack.com"
+
+# Temporary launch-safety mode. While BragStack is not accepting new paid
+# subscriptions, every normal customer receives the Pro feature set at no cost.
+# Set BRAGSTACK_OPEN_PRO_ACCESS=false later to restore persisted plan behavior.
+OPEN_PRO_ACCESS = os.getenv("BRAGSTACK_OPEN_PRO_ACCESS", "true").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 
 PLAN_PRICING: dict[str, dict[str, Any]] = {
     "free": {"monthly": 0, "label": "Free"},
@@ -114,29 +125,19 @@ PLAN_FEATURES: dict[str, dict[str, Any]] = {
 }
 
 
+def open_pro_access_enabled() -> bool:
+    """Return whether the temporary no-charge Pro access window is enabled."""
+    return OPEN_PRO_ACCESS
+
+
 def normalize_plan(plan: str | None) -> str:
-    """Normalize an arbitrary plan value to a supported plan key.
-
-    Args:
-        plan: User-supplied or persisted plan value.
-
-    Returns:
-        A valid key from ``PLAN_FEATURES``. Unknown or missing values fall back
-        to ``free``.
-    """
+    """Normalize an arbitrary plan value to a supported plan key."""
     normalized = (plan or "free").strip().lower()
     return normalized if normalized in PLAN_FEATURES else "free"
 
 
 def is_internal_user(user: dict) -> bool:
-    """Determine whether a user is a verified BragStack internal identity.
-
-    Args:
-        user: User document containing email and verification fields.
-
-    Returns:
-        ``True`` for verified identities on the BragStack company domain.
-    """
+    """Determine whether a user is a verified BragStack internal identity."""
     email = (user.get("email") or "").strip().lower()
     if not email.endswith(f"@{INTERNAL_EMAIL_DOMAIN}"):
         return False
@@ -146,16 +147,13 @@ def is_internal_user(user: dict) -> bool:
 def get_plan_for_user(user: dict) -> str:
     """Resolve the effective UI-facing plan for a user.
 
-    Internal users present as Pro so existing UI checks remain compatible while
-    entitlement resolution can still grant the complete internal feature set.
-
-    Args:
-        user: User document containing plan and identity fields.
-
-    Returns:
-        The effective plan key used by product UI and plan messaging.
+    Internal staff continue to present as Pro while receiving their separately
+    gated internal entitlements. During the temporary open-access window,
+    customer accounts also present as Pro without changing stored billing data.
     """
     if is_internal_user(user):
+        return "pro"
+    if OPEN_PRO_ACCESS:
         return "pro"
     return normalize_plan(user.get("plan"))
 
@@ -163,44 +161,28 @@ def get_plan_for_user(user: dict) -> str:
 def get_entitlements_for_user(user: dict) -> dict[str, Any]:
     """Return a copy of the feature entitlements available to a user.
 
-    Args:
-        user: User document containing plan and identity fields.
-
-    Returns:
-        A copy of the resolved entitlement mapping. Internal users receive the
-        enterprise feature set for staff testing and operations.
+    Open access grants only the ordinary Pro feature set. It never grants Team,
+    Enterprise, founder, ops, SSO, audit-log, retention, or executive features.
+    Internal users retain the Enterprise feature set for staff operations.
     """
     if is_internal_user(user):
         return dict(PLAN_FEATURES["enterprise"])
+    if OPEN_PRO_ACCESS:
+        return dict(PLAN_FEATURES["pro"])
     return dict(PLAN_FEATURES[get_plan_for_user(user)])
 
 
 def get_pricing_for_user(user: dict) -> dict[str, Any]:
-    """Return display pricing for a user's effective plan.
-
-    Args:
-        user: User document containing plan and identity fields.
-
-    Returns:
-        A pricing mapping suitable for API or UI serialization. Internal users
-        receive a zero-cost ``Internal`` representation.
-    """
+    """Return display pricing for a user's effective access state."""
     if is_internal_user(user):
         return {"monthly": 0, "label": "Internal"}
+    if OPEN_PRO_ACCESS:
+        return {"monthly": 0, "label": "Pro · Open access"}
     return dict(PLAN_PRICING[get_plan_for_user(user)])
 
 
 def require_feature(user: dict, feature_name: str) -> None:
-    """Require a boolean feature entitlement for the current user.
-
-    Args:
-        user: User document used to resolve entitlements.
-        feature_name: Entitlement key that must evaluate to a truthy value.
-
-    Raises:
-        HTTPException: With status 403 when the feature is unavailable on the
-            user's current plan.
-    """
+    """Require a boolean feature entitlement for the current user."""
     entitlements = get_entitlements_for_user(user)
     if entitlements.get(feature_name):
         return
@@ -216,18 +198,7 @@ def require_feature(user: dict, feature_name: str) -> None:
 
 
 def enforce_usage_limit(*, user: dict, entitlement_name: str, current_count: int, resource_name: str) -> None:
-    """Enforce a numeric plan limit before creating another resource.
-
-    Args:
-        user: User document used to resolve plan entitlements.
-        entitlement_name: Entitlement key containing the numeric limit.
-        current_count: Number of resources the user currently owns.
-        resource_name: Human-readable resource label used in the error payload.
-
-    Raises:
-        HTTPException: With status 403 when the configured finite limit has
-            already been reached.
-    """
+    """Enforce a numeric plan limit before creating another resource."""
     entitlements = get_entitlements_for_user(user)
     limit = entitlements.get(entitlement_name)
     if limit is None or current_count < limit:
@@ -236,7 +207,7 @@ def enforce_usage_limit(*, user: dict, entitlement_name: str, current_count: int
         status_code=status.HTTP_403_FORBIDDEN,
         detail={
             "code": "plan_limit_reached",
-            "message": f"Your {get_plan_for_user(user).title()} plan includes {limit} {resource_name}. Upgrade for unlimited access.",
+            "message": f"Your {get_plan_for_user(user).title()} plan includes {limit} {resource_name}.",
             "resource": resource_name,
             "limit": limit,
             "current": current_count,
