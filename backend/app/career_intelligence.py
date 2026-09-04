@@ -13,26 +13,12 @@ QUANTIFIED_PATTERN = re.compile(
 
 
 def _clean_text(value) -> str:
-    """Handle clean text.
-
-    Args:
-        value: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle clean text."""
     return str(value or "").strip()
 
 
 def _normalized_skill(value) -> tuple[str, str] | None:
-    """Handle normalized skill.
-
-    Args:
-        value: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle normalized skill."""
     display = _clean_text(value)
     if not display:
         return None
@@ -40,14 +26,7 @@ def _normalized_skill(value) -> tuple[str, str] | None:
 
 
 def _as_datetime(value) -> datetime | None:
-    """Handle as datetime.
-
-    Args:
-        value: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle as datetime."""
     if isinstance(value, datetime):
         if value.tzinfo is None:
             return value.replace(tzinfo=timezone.utc)
@@ -72,14 +51,7 @@ def _as_datetime(value) -> datetime | None:
 
 
 def _document_datetime(document: dict) -> datetime | None:
-    """Handle document datetime.
-
-    Args:
-        document: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle document datetime."""
     return (
         _as_datetime(document.get("entry_date"))
         or _as_datetime(document.get("updated_at"))
@@ -88,26 +60,12 @@ def _document_datetime(document: dict) -> datetime | None:
 
 
 def _has_quantified_text(*values) -> bool:
-    """Handle has quantified text.
-
-    Args:
-        values: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle has quantified text."""
     return any(QUANTIFIED_PATTERN.search(_clean_text(value)) for value in values)
 
 
 def _confirmed_count(receipt: dict) -> int:
-    """Handle confirmed count.
-
-    Args:
-        receipt: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle confirmed count."""
     return sum(
         1
         for confirmation in receipt.get("confirmations", []) or []
@@ -116,14 +74,7 @@ def _confirmed_count(receipt: dict) -> int:
 
 
 def _document_id(document: dict) -> str | None:
-    """Handle document id.
-
-    Args:
-        document: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle document id."""
     value = document.get("_id") or document.get("id")
     text = _clean_text(value)
     return text or None
@@ -137,13 +88,15 @@ def build_career_intelligence(
 ) -> dict:
     """Build explainable career signals from user-owned proof records.
 
-    A receipt derived from an accomplishment enriches that underlying proof;
-    it does not become a second demonstration merely because it is a separate
-    document. Standalone receipts remain independent proof records.
+    Every accomplishment and every Impact Receipt is analyzed. For a
+    skill-specific demonstration count, a receipt derived from an
+    accomplishment enriches the same underlying demonstration rather than
+    inflating that skill merely because a second document exists.
     """
     entries = list(entries)
     receipts = list(receipts)
     now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    total_proof_records = len(entries) + len(receipts)
 
     skill_state = defaultdict(
         lambda: {
@@ -326,7 +279,7 @@ def build_career_intelligence(
         top = skills[0]
         recommendations.insert(
             0,
-            f"Use {top['skill']} as a lead career signal; it is supported by {top['demonstrations']} proof record{'s' if top['demonstrations'] != 1 else ''}.",
+            f"Lead with {top['skill']}; it appears in {top['demonstrations']} distinct demonstration{'s' if top['demonstrations'] != 1 else ''} across {total_proof_records} total proof record{'s' if total_proof_records != 1 else ''} analyzed.",
         )
     if not recommendations:
         recommendations.append("Keep capturing new accomplishments so your career signals stay current.")
@@ -336,6 +289,7 @@ def build_career_intelligence(
         "summary": {
             "accomplishments": len(entries),
             "impact_receipts": len(receipts),
+            "total_proof_records": total_proof_records,
             "unique_skills": len(skills),
             "quantified_results": len(quantified_proof_keys),
             "evidence_items": evidence_items,
