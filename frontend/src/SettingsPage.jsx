@@ -14,8 +14,8 @@ const SETTINGS=[
 
 export default function SettingsPage(){
   const section=new URLSearchParams(window.location.search).get("section");
-  const[notice,setNotice]=useState("");
-  useEffect(()=>{const stored=sessionStorage.getItem("bragstack_settings_notice");if(stored){setNotice(stored);sessionStorage.removeItem("bragstack_settings_notice");}},[]);
+  const[notice]=useState(()=>sessionStorage.getItem("bragstack_settings_notice")||"");
+  useEffect(()=>{if(notice)sessionStorage.removeItem("bragstack_settings_notice");},[notice]);
   if(section==="integrations")return <CalendarIntegrationsPage/>;
   return <main className="settings-page"><header className="settings-header"><p>ACCOUNT</p><h1>Settings</h1><span>Manage your profile, integrations, public appearance, privacy, and BragStack account.</span></header>{notice&&<div className="settings-success" role="status">✓ {notice}</div>}<section className="settings-grid">{SETTINGS.map(({href,icon:Icon,title,description,comingSoon})=>comingSoon?<div className="settings-card settings-card-disabled" key={title}><div className="settings-card-icon"><Icon size={22}/></div><div><div className="settings-card-title"><h2>{title}</h2><small>Coming soon</small></div><p>{description}</p></div></div>:<a className="settings-card" href={href} key={title}><div className="settings-card-icon"><Icon size={22}/></div><div><div className="settings-card-title"><h2>{title}</h2><ChevronRight size={19}/></div><p>{description}</p></div></a>)}<button className="settings-card" type="button" onClick={startProductTour}><div className="settings-card-icon"><GraduationCap size={22}/></div><div><div className="settings-card-title"><h2>Help & tutorial</h2><ChevronRight size={19}/></div><p>Restart the guided BragStack tour whenever you want a refresher.</p></div></button></section></main>;
 }
