@@ -5,6 +5,7 @@ import "./index.css";
 import "./ReferencePolish.css";
 import "./MarketingFooterOrder.css";
 import "./ResponsiveLayoutGuard.css";
+import "./ImpactReceiptsResponsive.css";
 import RootContent from "./RootContent.jsx";
 import { installInterviewBrowserPreflight } from "./interviewBrowserPreflight.js";
 

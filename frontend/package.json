@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test:analytics": "node --test src/analytics.test.js",
     "test:interview": "node --test src/interviewEngine*.test.js",
     "test:resume": "node --test src/resumeStructured.test.js src/dashboardTags.test.js",
     "test:seo": "node scripts/verify-search-appearance.mjs",

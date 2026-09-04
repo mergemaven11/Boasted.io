@@ -58,6 +58,10 @@ jobs:
         if: github.event_name != 'pull_request' || steps.changes.outputs.run_frontend == 'true'
         run: npm ci
 
+      - name: Test analytics events and UTM attribution
+        if: github.event_name != 'pull_request' || steps.changes.outputs.run_frontend == 'true'
+        run: npm run test:analytics
+
       - name: Verify Aisha source and real-browser render
         if: github.event_name != 'pull_request' || steps.changes.outputs.run_frontend == 'true'
         run: node scripts/verify-aisha-source.mjs
