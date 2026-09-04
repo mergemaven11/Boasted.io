@@ -10,7 +10,7 @@
     "test:analytics": "node --test src/analytics.test.js",
     "test:interview": "node --test src/interviewEngine*.test.js",
     "test:resume": "node --test src/resumeStructured.test.js src/dashboardTags.test.js",
-    "test:seo": "node scripts/verify-search-appearance.mjs",
+    "test:seo": "node --test src/proofPortfolioSource.test.js && node scripts/verify-search-appearance.mjs",
     "test:clicks": "node scripts/run-click-audit.mjs",
     "test:layout": "node scripts/audit-responsive-layout.mjs",
     "test:bundle": "node scripts/verify-bundle-budget.mjs",
