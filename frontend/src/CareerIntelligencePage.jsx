@@ -54,8 +54,10 @@ function CareerIntelligencePage() {
       setData(payload);
       setSkillPage(1);
       if (refresh) {
-        const count = payload?.summary?.accomplishments ?? 0;
-        setRefreshMessage(`Career Intelligence re-ran using ${count} accomplishment${count === 1 ? "" : "s"}.`);
+        const accomplishments = payload?.summary?.accomplishments ?? 0;
+        const receipts = payload?.summary?.impact_receipts ?? 0;
+        const total = payload?.summary?.total_proof_records ?? accomplishments + receipts;
+        setRefreshMessage(`Career Intelligence re-ran across ${total} proof record${total === 1 ? "" : "s"}: ${accomplishments} accomplishment${accomplishments === 1 ? "" : "s"} + ${receipts} Impact Receipt${receipts === 1 ? "" : "s"}.`);
       }
     } catch (requestError) {
       console.error(requestError);
@@ -90,6 +92,7 @@ function CareerIntelligencePage() {
 
   const { summary = {}, gaps = [], recommended_actions: actions = [], top_categories: categories = [] } = data;
   const leadSkill = data.top_skills?.[0] || allSkills[0];
+  const totalProofRecords = summary.total_proof_records ?? ((summary.accomplishments ?? 0) + (summary.impact_receipts ?? 0));
 
   return (
     <main className="ci-page">
@@ -109,12 +112,12 @@ function CareerIntelligencePage() {
         </div>
         <aside className="ci-lead-signal">
           <span>Lead career signal</span>
-          {leadSkill ? <><strong>{leadSkill.skill}</strong><SignalBadge signal={leadSkill.signal} /><p>Supported by {leadSkill.demonstrations} proof record{leadSkill.demonstrations === 1 ? "" : "s"}. Intelligence currently analyzes all {summary.accomplishments ?? 0} saved accomplishments.</p></> : <><strong>Build your signal</strong><p>Add accomplishments and skills to start creating evidence-backed career intelligence.</p></>}
+          {leadSkill ? <><strong>{leadSkill.skill}</strong><SignalBadge signal={leadSkill.signal} /><p><b>{totalProofRecords} total proof record{totalProofRecords === 1 ? "" : "s"} analyzed</b> across {summary.accomplishments ?? 0} accomplishment{summary.accomplishments === 1 ? "" : "s"} and {summary.impact_receipts ?? 0} Impact Receipt{summary.impact_receipts === 1 ? "" : "s"}. This specific skill appears in {leadSkill.demonstrations} distinct demonstration{leadSkill.demonstrations === 1 ? "" : "s"}.</p></> : <><strong>Build your signal</strong><p>Add accomplishments and skills to start creating evidence-backed career intelligence.</p></>}
         </aside>
       </section>
 
       <section className="ci-metrics" aria-label="Career proof summary">
-        <article><ReceiptText size={20} /><span>Accomplishments analyzed</span><strong>{summary.accomplishments ?? 0}</strong></article>
+        <article><ReceiptText size={20} /><span>Total proof analyzed</span><strong>{totalProofRecords}</strong><small>{summary.accomplishments ?? 0} accomplishments + {summary.impact_receipts ?? 0} receipts</small></article>
         <article><Sparkles size={20} /><span>Impact Receipts</span><strong>{summary.impact_receipts ?? 0}</strong></article>
         <article><TrendingUp size={20} /><span>Quantified results</span><strong>{summary.quantified_results ?? 0}</strong></article>
         <article><CheckCircle2 size={20} /><span>Confirmed receipts</span><strong>{summary.confirmed_receipts ?? 0}</strong></article>
@@ -128,7 +131,7 @@ function CareerIntelligencePage() {
               <div className="ci-skill-card" key={skill.skill}>
                 <div className="ci-skill-top"><div><strong>{skill.skill}</strong><SignalBadge signal={skill.signal} /></div><span className="ci-points">{skill.evidence_points} proof pts</span></div>
                 <div className="ci-bar"><span style={{ width: `${Math.max(6, skill.evidence_points)}%` }} /></div>
-                <div className="ci-proof-facts"><span>{skill.demonstrations} demonstrations</span><span>{skill.quantified_examples} quantified</span><span>{skill.evidence_items} evidence</span><span>{skill.confirmations} confirmed</span></div>
+                <div className="ci-proof-facts"><span>{skill.demonstrations} distinct demonstrations</span><span>{skill.accomplishments ?? 0} accomplishments</span><span>{skill.impact_receipts ?? 0} receipts</span><span>{skill.quantified_examples} quantified</span><span>{skill.evidence_items} evidence</span><span>{skill.confirmations} confirmed</span></div>
               </div>
             ))}</div>
             <div className="ci-skill-pagination" aria-label="Skills pagination">
@@ -156,7 +159,7 @@ function CareerIntelligencePage() {
         {gaps.length ? <div className="ci-gap-grid">{gaps.map((gap) => <article key={gap.type}><strong>{gap.title}</strong><p>{gap.detail}</p><span>{gap.action}</span></article>)}</div> : <div className="ci-healthy"><CheckCircle2 size={22} /><div><strong>Your proof foundation looks healthy.</strong><p>Keep capturing fresh accomplishments and evidence as your work changes.</p></div></div>}
       </section>
 
-      <p className="ci-methodology">Career Intelligence summarizes user-owned proof. It does not predict hiring, promotion, or employment decisions.</p>
+      <p className="ci-methodology">Career Intelligence analyzes every saved accomplishment and Impact Receipt. Skill-specific demonstration counts are de-duplicated when a receipt comes from the same accomplishment, so a second document strengthens the proof without falsely inflating the skill.</p>
     </main>
   );
 }
