@@ -5,7 +5,7 @@ import "./SettingsPage.css";
 
 const SETTINGS=[
   {href:"/app/profile",icon:UserRound,title:"Profile",description:"Name, location, headline, bio, career details, and public profile information."},
-  {href:"/app/settings?section=integrations",icon:CalendarDays,title:"Integrations",description:"Connect Google Calendar and Microsoft Outlook, then see upcoming meetings in one private calendar."},
+  {href:"/app/settings?section=integrations",icon:CalendarDays,title:"Integrations",description:"Add Calendly to your public Proof Profile, and manage private Google or Microsoft calendar connections."},
   {href:"/app/settings/appearance",icon:Palette,title:"Profile appearance",description:"Public-page themes, career-inspired styles, and your custom profile colors."},
   {href:"/app/settings/privacy",icon:ShieldCheck,title:"Privacy & sharing",description:"Control what stays private and what can appear on your public proof profile.",comingSoon:true},
   {href:"/app/settings/billing",icon:CreditCard,title:"Plan & billing",description:"View your BragStack plan and manage subscription details."},
