@@ -156,6 +156,7 @@ function RootContent() {
           educationGuideLink.textContent = "Education";
           docsHeaderNav.insertBefore(educationGuideLink, docsHeaderNav.firstChild);
         }
+
         const docsSidebar = document.querySelector(".docs-sidebar");
         if (docsSidebar && !docsSidebar.querySelector('a[href="/docs/release"]')) {
           const releaseSidebarLink = document.createElement("a");
@@ -166,9 +167,45 @@ function RootContent() {
         if (docsSidebar && !docsSidebar.querySelector('a[href="/docs/education"]')) {
           const educationSidebarLink = document.createElement("a");
           educationSidebarLink.href = "/docs/education";
-          educationSidebarLink.textContent = "🎓 Education for students";
+          educationSidebarLink.textContent = "🎓 Education (18+)";
           docsSidebar.insertBefore(educationSidebarLink, docsSidebar.children[1] || null);
         }
+        if (docsSidebar && !docsSidebar.querySelector('a[href="/app/support"]')) {
+          const supportSidebarLink = document.createElement("a");
+          supportSidebarLink.href = "/app/support";
+          supportSidebarLink.textContent = "🛟 Support Center";
+          docsSidebar.appendChild(supportSidebarLink);
+        }
+
+        const heroTitle = document.querySelector(".docs-hero h1");
+        if (heroTitle) heroTitle.textContent = "Your career evidence network, explained simply.";
+        const heroCopy = document.querySelector(".docs-hero > p:not(.docs-kicker)");
+        if (heroCopy) heroCopy.textContent = "Learn how BragStack helps you capture real work, prove the impact, package the evidence, share only what you choose, and create a path to the right professional conversation.";
+
+        const journeyTitle = document.querySelector(".docs-journey-heading h2");
+        const journeyCopy = document.querySelector(".docs-journey-heading p");
+        if (journeyTitle) journeyTitle.textContent = "Capture → Prove → Package → Share → Connect";
+        if (journeyCopy) journeyCopy.textContent = "One evidence loop. The tools support the loop instead of becoming disconnected career utilities.";
+
+        const docsFlow = document.querySelector(".docs-flow");
+        if (docsFlow) {
+          const flowSteps = [
+            ["Capture", "Save a real accomplishment"],
+            ["Prove", "Add result + safe evidence"],
+            ["Package", "Resume, interview, review, packets"],
+            ["Share", "Publish only selected proof"],
+            ["Connect", "Open to Talk is coming next"],
+          ];
+          docsFlow.innerHTML = flowSteps.map(([title, detail], index) => `<div class="docs-flow-step step-${index + 1}"><span>${index + 1}</span><div><strong>${title}</strong><small>${detail}</small></div>${index < flowSteps.length - 1 ? '<b class="docs-flow-arrow" aria-hidden="true">→</b>' : ''}</div>`).join("");
+        }
+
+        const billingSection = document.querySelector("#billing");
+        if (billingSection) {
+          billingSection.innerHTML = '<div class="docs-section-title"><div><h2>Billing & Pro</h2><span>Temporary individual Pro open access.</span></div></div><p>Individual BragStack Pro is temporarily available at no charge while paid upgrades are paused.</p><ul><li>No card is required for temporary individual Pro access.</li><li>No new paid subscription is required during the open-access period.</li><li>Team and Enterprise features are not included in temporary Pro access.</li><li>Existing paid subscribers can still manage future renewal in Billing.</li><li>If paid plans return later, checkout must show clear pricing and require an affirmative purchase step.</li></ul>';
+        }
+
+        const executiveDocs = document.querySelector("#executive-impact");
+        if (executiveDocs) executiveDocs.hidden = true;
         return;
       }
 
