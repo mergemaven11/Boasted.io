@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Lock, Mail, Sparkles, UserPlus } from "lucide-react";
+import { Lock, Mail, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
 import "./AuthPage.css";
 
 function getApiBaseUrl() {
@@ -11,11 +11,9 @@ const sleep = (milliseconds) => new Promise((resolve) => window.setTimeout(resol
 
 async function waitForApiReady(apiBaseUrl, timeoutMs = 45000) {
   const deadline = Date.now() + timeoutMs;
-
   while (Date.now() < deadline) {
     const controller = new AbortController();
     const requestTimeout = window.setTimeout(() => controller.abort(), 8000);
-
     try {
       const response = await fetch(`${apiBaseUrl}/health`, {
         method: "GET",
@@ -23,21 +21,15 @@ async function waitForApiReady(apiBaseUrl, timeoutMs = 45000) {
         headers: { Accept: "application/json" },
         signal: controller.signal,
       });
-
       const contentType = response.headers.get("content-type") || "";
-      if (response.ok && contentType.includes("application/json")) {
-        return true;
-      }
+      if (response.ok && contentType.includes("application/json")) return true;
     } catch {
-      // A sleeping Render service can refuse or delay requests while it allocates
-      // compute. Stay on BragStack's branded UI and retry until it is actually live.
+      // Keep the branded UI visible while a low-cost API instance wakes up.
     } finally {
       window.clearTimeout(requestTimeout);
     }
-
     await sleep(700);
   }
-
   return false;
 }
 
@@ -58,6 +50,9 @@ function AuthPage({ mode = "login", onLogin }) {
   const initialVerifyToken = hashParams.get("verify_token") || "";
 
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [ageConfirmed, setAgeConfirmed] = useState(!isRegister);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSlowSubmit, setIsSlowSubmit] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -84,9 +79,7 @@ function AuthPage({ mode = "login", onLogin }) {
     return apiWarmPromiseRef.current;
   }
 
-  useEffect(() => {
-    void ensureApiReady();
-  }, [apiBaseUrl]);
+  useEffect(() => { void ensureApiReady(); }, [apiBaseUrl]);
 
   useEffect(() => {
     const hash = new URLSearchParams(window.location.hash.slice(1));
@@ -112,7 +105,6 @@ function AuthPage({ mode = "login", onLogin }) {
         try {
           const ready = await ensureApiReady();
           if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
-
           const response = await fetch(`${apiBaseUrl}/auth/email-verification/confirm`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -130,9 +122,7 @@ function AuthPage({ mode = "login", onLogin }) {
       return;
     }
 
-    if (resetTokenFromHash) {
-      history.replaceState(null, "", "/login");
-    }
+    if (resetTokenFromHash) history.replaceState(null, "", "/login");
   }, [apiBaseUrl, isRegister]);
 
   function handleChange(event) {
@@ -142,10 +132,20 @@ function AuthPage({ mode = "login", onLogin }) {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setIsSubmitting(true);
-    setIsSlowSubmit(false);
     setErrorMessage("");
     setVerificationMessage("");
+
+    if (isRegister && !ageConfirmed) {
+      setErrorMessage("BragStack accounts are currently limited to people age 18 or older.");
+      return;
+    }
+    if (isRegister && (!acceptedTerms || !acceptedPrivacy)) {
+      setErrorMessage("Please accept the Terms and Privacy Policy before creating an account.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setIsSlowSubmit(false);
     const slowSubmitTimer = window.setTimeout(() => setIsSlowSubmit(true), 1200);
 
     try {
@@ -156,7 +156,12 @@ function AuthPage({ mode = "login", onLogin }) {
         const response = await fetch(`${apiBaseUrl}/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({
+            ...formData,
+            age_18_or_older: true,
+            accepted_terms: acceptedTerms,
+            accepted_privacy: acceptedPrivacy,
+          }),
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.detail || "Could not create your account. Try again.");
@@ -172,11 +177,8 @@ function AuthPage({ mode = "login", onLogin }) {
     } catch (error) {
       console.error(error);
       setErrorMessage(
-        error.response?.data?.detail ||
-          error.message ||
-          (isRegister
-            ? "Could not create your account. Try again."
-            : "Could not log you in. Check your email and password."),
+        error.response?.data?.detail || error.message ||
+        (isRegister ? "Could not create your account. Try again." : "Could not log you in. Check your email and password."),
       );
     } finally {
       window.clearTimeout(slowSubmitTimer);
@@ -192,7 +194,6 @@ function AuthPage({ mode = "login", onLogin }) {
     try {
       const ready = await ensureApiReady();
       if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
-
       const response = await fetch(`${apiBaseUrl}/auth/email-verification/resend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -209,12 +210,14 @@ function AuthPage({ mode = "login", onLogin }) {
   }
 
   async function startOAuth(provider) {
+    if (isRegister) {
+      setErrorMessage("For now, create new accounts with email/password so BragStack can record the 18+ and legal confirmations. Existing users can still use OAuth from Log in.");
+      return;
+    }
     setConnectingProvider(provider);
     setOauthIsTakingLonger(false);
     setErrorMessage("");
-
     const slowTimer = window.setTimeout(() => setOauthIsTakingLonger(true), 4000);
-
     try {
       const ready = await ensureApiReady();
       if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
@@ -232,11 +235,9 @@ function AuthPage({ mode = "login", onLogin }) {
     event.preventDefault();
     setResetSubmitting(true);
     setResetMessage("");
-
     try {
       const ready = await ensureApiReady();
       if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
-
       const response = await fetch(`${apiBaseUrl}/auth/password-reset/request`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -255,21 +256,12 @@ function AuthPage({ mode = "login", onLogin }) {
   async function handleResetConfirm(event) {
     event.preventDefault();
     setResetMessage("");
-
-    if (newPassword.length < 8) {
-      setResetMessage("Your new password must be at least 8 characters.");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setResetMessage("The passwords do not match.");
-      return;
-    }
-
+    if (newPassword.length < 8) { setResetMessage("Your new password must be at least 8 characters."); return; }
+    if (newPassword !== confirmPassword) { setResetMessage("The passwords do not match."); return; }
     setResetSubmitting(true);
     try {
       const ready = await ensureApiReady();
       if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
-
       const response = await fetch(`${apiBaseUrl}/auth/password-reset/confirm`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -289,160 +281,85 @@ function AuthPage({ mode = "login", onLogin }) {
   }
 
   const submitLabel = isSubmitting
-    ? isRegister
-      ? isSlowSubmit
-        ? "Preparing your workspace…"
-        : "Creating your account…"
-      : isSlowSubmit
-        ? "Opening your workspace…"
-        : "Signing you in…"
-    : isRegister
-      ? "Create account"
-      : "Log in";
+    ? isRegister ? (isSlowSubmit ? "Preparing your workspace…" : "Creating your account…")
+      : (isSlowSubmit ? "Opening your workspace…" : "Signing you in…")
+    : isRegister ? "Create account" : "Log in";
 
   return (
     <main className="auth-page">
+      {isRegister && !ageConfirmed && (
+        <div className="auth-age-gate" role="dialog" aria-modal="true" aria-labelledby="age-gate-title">
+          <div className="auth-age-gate-card">
+            <div className="auth-age-gate-icon"><ShieldCheck size={26} /></div>
+            <p className="mini-label">BragStack access</p>
+            <h2 id="age-gate-title">BragStack is 18+ for now.</h2>
+            <p>We are keeping BragStack limited to adults while we finish the legal and privacy work needed for student accounts. Middle-school student access is coming later.</p>
+            <button className="btn primary" type="button" onClick={() => setAgeConfirmed(true)}>I am 18 or older</button>
+            <a className="btn secondary" href="/">Return to BragStack</a>
+            <small>Do not create an account or upload personal information if you are under 18.</small>
+          </div>
+        </div>
+      )}
+
       <section className="auth-shell">
         <div className="auth-copy">
           <p className="mini-label">BragStack</p>
-          <h1>
-            Save your wins before
-            <span> they disappear.</span>
-          </h1>
-          <p>
-            Track technical work, turn progress into resume bullets, and build a
-            private career proof system you can reuse for reviews, interviews,
-            raises, and job searches.
-          </p>
-          <div className="auth-proof-list">
-            <span>Private by default</span>
-            <span>Resume-ready proof</span>
-            <span>Weekly summaries</span>
-          </div>
+          <h1>Save your wins before<span> they disappear.</span></h1>
+          <p>Track technical work, turn progress into resume bullets, and build a private career proof system you can reuse for reviews, interviews, raises, and job searches.</p>
+          <div className="auth-proof-list"><span>Private by default</span><span>Resume-ready proof</span><span>Weekly summaries</span></div>
         </div>
 
         <form className="auth-card" onSubmit={handleSubmit} aria-busy={isSubmitting}>
-          <div className="auth-icon">
-            {isRegister ? <UserPlus size={24} /> : <Sparkles size={24} />}
-          </div>
-
+          <div className="auth-icon">{isRegister ? <UserPlus size={24} /> : <Sparkles size={24} />}</div>
           <p className="mini-label">{isRegister ? "Create account" : "Welcome back"}</p>
           <h2>{isRegister ? "Start your BragStack" : "Log in to BragStack"}</h2>
-          <p className="auth-muted">
-            {isRegister
-              ? "Create your private workspace for career proof."
-              : "Open your dashboard and keep building your proof."}
-          </p>
+          <p className="auth-muted">{isRegister ? "Create your private workspace for career proof. Adults 18+ only for now." : "Open your dashboard and keep building your proof."}</p>
 
           {isVerifying && <div className="auth-reset-panel"><strong>Verifying your email…</strong><p>One moment while BragStack confirms your account.</p></div>}
           {errorMessage && <div className="auth-error">{errorMessage}</div>}
 
           {verificationMessage && (
             <div className="auth-reset-panel">
-              <strong>Email verification</strong>
-              <p>{verificationMessage}</p>
-              {verificationEmail && (
-                <button type="button" onClick={resendVerification} disabled={verificationSubmitting}>
-                  {verificationSubmitting ? "Sending…" : "Resend verification email"}
-                </button>
-              )}
+              <strong>Email verification</strong><p>{verificationMessage}</p>
+              {verificationEmail && <button type="button" onClick={resendVerification} disabled={verificationSubmitting}>{verificationSubmitting ? "Sending…" : "Resend verification email"}</button>}
             </div>
           )}
+
+          {isRegister && <label className="auth-field">Name<div><UserPlus size={17} /><input name="name" value={formData.name} onChange={handleChange} placeholder="Tee" required /></div></label>}
+          <label className="auth-field">Email<div><Mail size={17} /><input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required /></div></label>
+          <label className="auth-field">Password<div><Lock size={17} /><input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" minLength={8} required /></div></label>
 
           {isRegister && (
-            <label className="auth-field">
-              Name
-              <div>
-                <UserPlus size={17} />
-                <input name="name" value={formData.name} onChange={handleChange} placeholder="Tee" required />
-              </div>
-            </label>
-          )}
-
-          <label className="auth-field">
-            Email
-            <div>
-              <Mail size={17} />
-              <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required />
+            <div className="auth-legal-consent">
+              <label><input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} /> <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms and Conditions</a>.</span></label>
+              <label><input type="checkbox" checked={acceptedPrivacy} onChange={(event) => setAcceptedPrivacy(event.target.checked)} /> <span>I have read the <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.</span></label>
+              <p>By creating an account, you also confirm that you are at least 18 years old.</p>
             </div>
-          </label>
-
-          <label className="auth-field">
-            Password
-            <div>
-              <Lock size={17} />
-              <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" minLength={8} required />
-            </div>
-          </label>
-
-          {!isRegister && (
-            <button type="button" className="auth-forgot-link" onClick={() => setShowReset((current) => !current)}>
-              Forgot password?
-            </button>
           )}
 
-          <button className="btn primary auth-submit" disabled={isSubmitting || isVerifying || Boolean(connectingProvider)}>
-            {submitLabel}
-          </button>
+          {!isRegister && <button type="button" className="auth-forgot-link" onClick={() => setShowReset((current) => !current)}>Forgot password?</button>}
 
-          {isSlowSubmit && (
-            <p className="auth-submit-status" role="status">
-              Securely connecting to BragStack…
-            </p>
-          )}
+          <button className="btn primary auth-submit" disabled={isSubmitting || isVerifying || Boolean(connectingProvider) || (isRegister && (!ageConfirmed || !acceptedTerms || !acceptedPrivacy))}>{submitLabel}</button>
+          {isSlowSubmit && <p className="auth-submit-status" role="status">Securely connecting to BragStack…</p>}
 
           {showReset && !isRegister && (
             <div className="auth-reset-panel">
               {resetToken ? (
-                <>
-                  <strong>Choose a new password</strong>
-                  <p>This reset link can be used once and expires after 30 minutes.</p>
-                  <div className="auth-reset-stack">
-                    <input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="New password" minLength={8} />
-                    <input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Confirm new password" minLength={8} />
-                    <button type="button" onClick={handleResetConfirm} disabled={resetSubmitting || !newPassword || !confirmPassword}>
-                      {resetSubmitting ? "Updating..." : "Update password"}
-                    </button>
-                  </div>
-                </>
+                <><strong>Choose a new password</strong><p>This reset link can be used once and expires after 30 minutes.</p><div className="auth-reset-stack"><input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="New password" minLength={8} /><input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Confirm new password" minLength={8} /><button type="button" onClick={handleResetConfirm} disabled={resetSubmitting || !newPassword || !confirmPassword}>{resetSubmitting ? "Updating..." : "Update password"}</button></div></>
               ) : (
-                <>
-                  <strong>Reset your password</strong>
-                  <p>Enter the email address on your BragStack account.</p>
-                  <div className="auth-reset-row">
-                    <input type="email" value={resetEmail} onChange={(event) => setResetEmail(event.target.value)} placeholder="you@example.com" />
-                    <button type="button" onClick={handleResetRequest} disabled={resetSubmitting || !resetEmail}>
-                      {resetSubmitting ? "Sending..." : "Send link"}
-                    </button>
-                  </div>
-                </>
+                <><strong>Reset your password</strong><p>Enter the email address on your BragStack account.</p><div className="auth-reset-row"><input type="email" value={resetEmail} onChange={(event) => setResetEmail(event.target.value)} placeholder="you@example.com" /><button type="button" onClick={handleResetRequest} disabled={resetSubmitting || !resetEmail}>{resetSubmitting ? "Sending..." : "Send link"}</button></div></>
               )}
               {resetMessage && <small>{resetMessage}</small>}
             </div>
           )}
 
-          <div className="auth-divider"><span>or continue with</span></div>
+          {isRegister ? (
+            <div className="auth-oauth-temporary"><strong>Google & GitHub sign-up</strong><p>Temporarily paused for new accounts so every new user completes the 18+ and legal-consent step. Existing OAuth users can still sign in from the Log in page.</p></div>
+          ) : (
+            <><div className="auth-divider"><span>or continue with</span></div><div className="auth-oauth-grid"><button type="button" className="auth-oauth-button auth-oauth-google" onClick={() => startOAuth("google")} disabled={Boolean(connectingProvider)}><span className="auth-google-mark" aria-hidden="true">G</span><span>{connectingProvider === "google" ? "Connecting to Google..." : "Continue with Google"}</span></button><button type="button" className="auth-oauth-button auth-oauth-github" onClick={() => startOAuth("github")} disabled={Boolean(connectingProvider)}><GitHubMark /><span>{connectingProvider === "github" ? "Connecting to GitHub..." : "Continue with GitHub"}</span></button>{connectingProvider && oauthIsTakingLonger && <p className="auth-oauth-status" role="status">BragStack is waking up. This can take about a minute on the current low-cost server.</p>}</div></>
+          )}
 
-          <div className="auth-oauth-grid">
-            <button type="button" className="auth-oauth-button auth-oauth-google" onClick={() => startOAuth("google")} disabled={Boolean(connectingProvider)}>
-              <span className="auth-google-mark" aria-hidden="true">G</span>
-              <span>{connectingProvider === "google" ? "Connecting to Google..." : "Continue with Google"}</span>
-            </button>
-            <button type="button" className="auth-oauth-button auth-oauth-github" onClick={() => startOAuth("github")} disabled={Boolean(connectingProvider)}>
-              <GitHubMark />
-              <span>{connectingProvider === "github" ? "Connecting to GitHub..." : "Continue with GitHub"}</span>
-            </button>
-            {connectingProvider && oauthIsTakingLonger && (
-              <p className="auth-oauth-status" role="status">
-                BragStack is waking up. This can take about a minute on the current low-cost server.
-              </p>
-            )}
-          </div>
-
-          <p className="auth-switch">
-            {isRegister ? "Already have an account?" : "New to BragStack?"}{" "}
-            <a href={isRegister ? "/login" : "/register"}>{isRegister ? "Log in" : "Create one"}</a>
-          </p>
+          <p className="auth-switch">{isRegister ? "Already have an account?" : "New to BragStack?"} <a href={isRegister ? "/login" : "/register"}>{isRegister ? "Log in" : "Create one"}</a></p>
         </form>
       </section>
     </main>
