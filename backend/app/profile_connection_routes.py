@@ -60,7 +60,7 @@ class ProfileConnectionUpdate(BaseModel):
     @field_validator("open_to_talk_url")
     @classmethod
     def validate_url(cls, value: str | None) -> str | None:
-        """Require a normal web URL when a connection URL is supplied."""
+        """Require a normal web URL when a legacy connection URL is supplied."""
         if value is None:
             return value
         normalized = value.strip()
@@ -174,16 +174,16 @@ def update_profile_connection(
     payload: ProfileConnectionUpdate,
     current_user: dict = Depends(get_current_user),
 ):
-    """Persist explicit, user-controlled connection and public scheduling settings."""
+    """Persist explicit, user-controlled connection and public scheduling settings.
+
+    Open to Talk describes the conversations a member welcomes and does not
+    require a URL. Calendly remains an optional scheduling integration managed
+    separately under Settings → Integrations.
+    """
     incoming = payload.model_dump(exclude_unset=True)
     current = serialize_connection_settings(current_user, public=False)
     merged = {**current, **incoming}
 
-    if merged["open_to_talk"] and not merged["open_to_talk_url"]:
-        raise HTTPException(
-            status_code=422,
-            detail="Add a contact or booking URL before turning on Open to Talk.",
-        )
     if merged["calendly_enabled"] and not merged["calendly_url"]:
         raise HTTPException(
             status_code=422,
