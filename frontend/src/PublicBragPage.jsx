@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Award,
   BriefcaseBusiness,
+  CalendarDays,
   CheckCircle2,
   ExternalLink,
   MapPin,
@@ -281,8 +282,11 @@ export default function PublicBragPage() {
             <p className="proof-bio">{profile?.bio || "A selected portfolio of accomplishments, measurable outcomes, and evidence-backed work."}</p>
             {profile?.location && <p className="proof-location"><MapPin size={15} /> {profile.location}</p>}
             <div className="proof-actions portfolio-actions">
+              {connection?.calendly_enabled && connection.calendly_url && (
+                <a className="proof-action primary" href="#schedule"><CalendarDays size={15} /> View availability</a>
+              )}
               {connection?.open_to_talk && connection.open_to_talk_url && (
-                <a className="proof-action primary" href={connection.open_to_talk_url} target="_blank" rel="noreferrer" onClick={() => void trackPublicProfileEvent(slug, "open_to_talk_click")}>
+                <a className="proof-action" href={connection.open_to_talk_url} target="_blank" rel="noreferrer" onClick={() => void trackPublicProfileEvent(slug, "open_to_talk_click")}>
                   <MessageSquare size={15} /> Open to Talk <ExternalLink size={15} />
                 </a>
               )}
@@ -306,7 +310,7 @@ export default function PublicBragPage() {
           </aside>
         </section>
 
-        {offline && <section className="proof-section"><div className="proof-error">Proof Profile data could not be loaded right now.</div></section>}
+        {offline && <section className="proof-section"><div className="proof-error">Proof Portfolio data could not be loaded right now.</div></section>}
 
         {!offline && receipts.length > 0 && (
           <section className="portfolio-section portfolio-featured-impact">
@@ -402,17 +406,21 @@ export default function PublicBragPage() {
           </div>
         </section>
 
-        {connection?.open_to_talk && connection?.open_to_talk_url && (
-          <section className="portfolio-section portfolio-contact-section">
+        {(connection?.open_to_talk || connection?.calendly_enabled) && (
+          <section className="portfolio-section portfolio-contact-section" id="schedule">
             <div className="portfolio-section-heading">
               <div>
                 <p className="proof-eyebrow">Connect</p>
                 <h2>See the work. Then start the conversation.</h2>
-                <p>{connection.open_to_talk_note || `${name} is open to relevant professional conversations.`}</p>
+                <p>{connection?.open_to_talk_note || `Choose an available time to connect with ${name}.`}</p>
               </div>
             </div>
-            <div className="proof-chips portfolio-conversation-types">{connection.open_to_talk_types?.map((type) => <span key={type}>{formatSignal(type)}</span>)}</div>
-            <CalendlyEmbed url={connection.open_to_talk_url} title={`Book time with ${name}`} />
+            {connection?.open_to_talk_types?.length > 0 && (
+              <div className="proof-chips portfolio-conversation-types">{connection.open_to_talk_types.map((type) => <span key={type}>{formatSignal(type)}</span>)}</div>
+            )}
+            {connection?.calendly_enabled && connection.calendly_url && (
+              <CalendlyEmbed url={connection.calendly_url} title={`Choose a time with ${name}`} />
+            )}
           </section>
         )}
 
