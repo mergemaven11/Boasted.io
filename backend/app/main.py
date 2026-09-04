@@ -26,6 +26,7 @@ from app.interview_catalog_routes import router as interview_catalog_router
 from app.observability import record_persistent_request
 from app.ops_debug import new_request_id, record_request
 from app.ops_routes import router as ops_router
+from app.ops_invite_routes import router as ops_invite_router
 from app.ops_user_routes import router as ops_user_router
 from app.packet_audit_routes import router as packet_audit_router
 from app.plans import enforce_usage_limit
@@ -272,6 +273,7 @@ app.include_router(resume_builder_router)
 app.include_router(resume_import_fast_router)
 app.include_router(ops_router)
 app.include_router(ops_user_router)
+app.include_router(ops_invite_router)
 
 
 @app.get("/")

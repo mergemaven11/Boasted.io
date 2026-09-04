@@ -1,38 +1,37 @@
-"""Document this first-party Python module."""
+"""OAuth redirect URI regression tests."""
 from fastapi import Request
 
 import app.oauth_routes as oauth_routes
 
 
-def _request(url: str = "http://internal-service/auth/google/login") -> Request:
-    """Handle request.
-
-    Args:
-        url: Function argument.
-
-    Returns:
-        Function result.
-    """
+def _request(
+    *,
+    host: str = "internal-service",
+    scheme: str = "http",
+    forwarded_proto: str = "",
+    forwarded_host: str = "",
+) -> Request:
+    """Build a minimal Starlette request for OAuth redirect tests."""
+    headers = [(b"host", host.encode())]
+    if forwarded_proto:
+        headers.append((b"x-forwarded-proto", forwarded_proto.encode()))
+    if forwarded_host:
+        headers.append((b"x-forwarded-host", forwarded_host.encode()))
     scope = {
         "type": "http",
         "method": "GET",
-        "scheme": "http",
+        "scheme": scheme,
         "path": "/auth/google/login",
         "raw_path": b"/auth/google/login",
         "query_string": b"",
-        "headers": [(b"host", b"internal-service")],
+        "headers": headers,
         "client": ("127.0.0.1", 12345),
-        "server": ("internal-service", 80),
+        "server": (host.split(":", 1)[0], int(host.split(":", 1)[1]) if ":" in host else 80),
     }
     return Request(scope)
 
 
 def test_redirect_uri_uses_explicit_callback_base(monkeypatch):
-    """Verify redirect uri uses explicit callback base.
-
-    Args:
-        monkeypatch: Function argument.
-    """
     monkeypatch.setattr(
         oauth_routes,
         "OAUTH_CALLBACK_BASE_URL",
@@ -48,31 +47,21 @@ def test_redirect_uri_uses_explicit_callback_base(monkeypatch):
     )
 
 
-def test_redirect_uri_falls_back_to_request_url_for_local_dev(monkeypatch):
-    """Verify redirect uri falls back to request url for local dev.
-
-    Args:
-        monkeypatch: Function argument.
-
-    Returns:
-        Function result.
-    """
+def test_redirect_uri_uses_request_host_for_local_dev(monkeypatch):
     monkeypatch.setattr(oauth_routes, "OAUTH_CALLBACK_BASE_URL", "")
+    request = _request(host="localhost:8000")
 
-    class FakeRequest:
-        """Represent FakeRequest."""
-        def url_for(self, name):
-            """Handle url for.
+    assert oauth_routes._redirect_uri(request, "google") == "http://localhost:8000/auth/google/callback"
+    assert oauth_routes._redirect_uri(request, "github") == "http://localhost:8000/auth/github/callback"
 
-            Args:
-                name: Function argument.
 
-            Returns:
-                Function result.
-            """
-            return f"http://localhost:8000/{name}"
+def test_redirect_uri_honors_reverse_proxy_public_origin(monkeypatch):
+    monkeypatch.setattr(oauth_routes, "OAUTH_CALLBACK_BASE_URL", "")
+    request = _request(
+        host="internal-service",
+        forwarded_proto="https",
+        forwarded_host="api.usebragstack.com",
+    )
 
-    request = FakeRequest()
-
-    assert oauth_routes._redirect_uri(request, "google") == "http://localhost:8000/google_callback"
-    assert oauth_routes._redirect_uri(request, "github") == "http://localhost:8000/github_callback"
+    assert oauth_routes._redirect_uri(request, "google") == "https://api.usebragstack.com/auth/google/callback"
+    assert oauth_routes._redirect_uri(request, "github") == "https://api.usebragstack.com/auth/github/callback"

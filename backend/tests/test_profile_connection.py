@@ -45,6 +45,17 @@ def test_enabled_public_connection_exposes_only_connection_settings():
     }
 
 
+def test_general_chat_and_virtual_coffee_are_valid_conversation_types():
+    """General conversation options should be available beyond job-specific categories."""
+    payload = ProfileConnectionUpdate(
+        open_to_talk=True,
+        open_to_talk_url="https://example.com/contact",
+        open_to_talk_types=["general-chat", "virtual-coffee"],
+    )
+
+    assert payload.open_to_talk_types == ["general-chat", "virtual-coffee"]
+
+
 def test_connection_update_rejects_unknown_conversation_type():
     """Only the allow-listed conversation types may be persisted."""
     with pytest.raises(ValidationError):

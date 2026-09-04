@@ -91,7 +91,11 @@ export function serializeResumeDraft({ draft, summary = "", skills = [], section
   const contactLine = [contact.location, contact.email, contact.phone, contact.linkedin, contact.github].filter(Boolean).join(" | ");
   const out = [contact.name || "YOUR NAME"];
   if (contactLine) out.push(contactLine);
+
+  // Standard, scan-friendly order: Summary → Skills → Experience → Education → Projects.
   if (clean(summary)) out.push("", "PROFESSIONAL SUMMARY", clean(summary));
+  if (skills?.length) out.push("", "SKILLS", skills.filter(Boolean).join(" | "));
+
   if (draft.experience?.length) {
     out.push("", "PROFESSIONAL EXPERIENCE");
     draft.experience.forEach((role) => {
@@ -104,8 +108,8 @@ export function serializeResumeDraft({ draft, summary = "", skills = [], section
       });
     });
   }
-  if (skills?.length) out.push("", "SKILLS", skills.filter(Boolean).join(" | "));
-  for (const key of ["projects", "education"]) {
+
+  for (const key of ["education", "projects"]) {
     const lines = sections?.[key] || [];
     if (lines.length) out.push("", key.toUpperCase(), ...lines);
   }

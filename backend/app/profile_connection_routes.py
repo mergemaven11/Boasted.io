@@ -14,6 +14,8 @@ from app.public_slug_routes import get_user_by_public_slug
 router = APIRouter(tags=["profile-connection"])
 
 ALLOWED_CONVERSATION_TYPES = {
+    "general-chat",
+    "virtual-coffee",
     "recruiter-chat",
     "technical-deep-dive",
     "networking",
@@ -51,14 +53,14 @@ class ProfileConnectionUpdate(BaseModel):
     open_to_talk: bool | None = None
     open_to_talk_url: str | None = Field(default=None, max_length=500)
     open_to_talk_note: str | None = Field(default=None, max_length=240)
-    open_to_talk_types: list[str] | None = Field(default=None, max_length=5)
+    open_to_talk_types: list[str] | None = Field(default=None, max_length=7)
     calendly_enabled: bool | None = None
     calendly_url: str | None = Field(default=None, max_length=500)
 
     @field_validator("open_to_talk_url")
     @classmethod
     def validate_url(cls, value: str | None) -> str | None:
-        """Require a normal web URL when a connection URL is supplied."""
+        """Require a normal web URL when a legacy connection URL is supplied."""
         if value is None:
             return value
         normalized = value.strip()
@@ -172,16 +174,16 @@ def update_profile_connection(
     payload: ProfileConnectionUpdate,
     current_user: dict = Depends(get_current_user),
 ):
-    """Persist explicit, user-controlled connection and public scheduling settings."""
+    """Persist explicit, user-controlled connection and public scheduling settings.
+
+    Open to Talk describes the conversations a member welcomes and does not
+    require a URL. Calendly remains an optional scheduling integration managed
+    separately under Settings → Integrations.
+    """
     incoming = payload.model_dump(exclude_unset=True)
     current = serialize_connection_settings(current_user, public=False)
     merged = {**current, **incoming}
 
-    if merged["open_to_talk"] and not merged["open_to_talk_url"]:
-        raise HTTPException(
-            status_code=422,
-            detail="Add a contact or booking URL before turning on Open to Talk.",
-        )
     if merged["calendly_enabled"] and not merged["calendly_url"]:
         raise HTTPException(
             status_code=422,

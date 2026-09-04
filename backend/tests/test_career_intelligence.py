@@ -26,6 +26,7 @@ def test_career_intelligence_combines_entries_and_receipts():
 
     assert result["summary"]["accomplishments"] == 2
     assert result["summary"]["impact_receipts"] == 1
+    assert result["summary"]["total_proof_records"] == 3
     assert result["summary"]["quantified_results"] == 2
     docker = next(skill for skill in result["skills"] if skill["skill"].casefold() == "docker")
     assert docker["demonstrations"] == 3
@@ -33,6 +34,7 @@ def test_career_intelligence_combines_entries_and_receipts():
     assert docker["evidence_items"] == 1
     assert docker["confirmations"] == 1
     assert docker["recent"] is True
+    assert "3 total proof records analyzed" in result["recommended_actions"][0]
     assert result["methodology"]["employment_decision"] is False
 
 
@@ -63,6 +65,7 @@ def test_linked_receipt_enriches_instead_of_double_counting_proof():
 
     result = build_career_intelligence(entries, receipts, now=now)
 
+    assert result["summary"]["total_proof_records"] == 2
     assert result["summary"]["quantified_results"] == 1
     docker = next(skill for skill in result["skills"] if skill["skill"] == "Docker")
     assert docker["demonstrations"] == 1
@@ -86,6 +89,7 @@ def test_career_intelligence_surfaces_proof_gaps_without_readiness_score():
     )
 
     gap_types = {gap["type"] for gap in result["gaps"]}
+    assert result["summary"]["total_proof_records"] == 3
     assert "receipt_coverage" in gap_types
     assert "quantified_impact" in gap_types
     assert "skills" in gap_types

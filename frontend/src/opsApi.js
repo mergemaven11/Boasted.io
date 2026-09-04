@@ -20,6 +20,7 @@ export async function getOpsUser(email) { const response = await opsApi.get("/op
 export async function getOpsUserDirectory(params = {}) { const response = await opsApi.get("/ops/user-directory", { params }); return response.data; }
 export async function getOpsUserAnalytics(userId) { const response = await opsApi.get(`/ops/user-directory/${userId}/analytics`); return response.data; }
 export async function resendOpsVerificationEmail(userId) { const response = await opsApi.post(`/ops/user-directory/${userId}/resend-verification`); return response.data; }
+export async function sendOpsUserInvite(payload) { const response = await opsApi.post("/ops/user-invites", payload); return response.data; }
 export async function getOpsTeam() { const response = await opsApi.get("/ops/team"); return response.data; }
 export async function updateOpsRoles(userId, roles) { const response = await opsApi.patch(`/ops/team/${userId}/roles`, { roles }); return response.data; }
 export async function getOpsAudit() { const response = await opsApi.get("/ops/audit"); return response.data; }
