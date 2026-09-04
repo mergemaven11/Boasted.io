@@ -67,7 +67,8 @@ function CareerIntelligencePage() {
   }
 
   useEffect(() => {
-    void loadIntelligence();
+    const timeoutId = window.setTimeout(() => void loadIntelligence(), 0);
+    return () => window.clearTimeout(timeoutId);
     // Initial load only. Re-runs are explicit so the user knows when fresh proof is analyzed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
