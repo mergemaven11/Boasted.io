@@ -66,6 +66,14 @@ function installInterviewSpeechGuard() {
 }
 
 function RouteFallback() { return <BragStackLoader message="Opening BragStack…" detail="Loading the tools you need." />; }
+function LegacyShareRedirect({ path }) {
+  useEffect(() => {
+    const parts = path.split("/").filter(Boolean);
+    const slug = parts[0] === "share" && parts[1] === "brag" ? parts[2] : "";
+    window.location.replace(slug ? `/brag/${slug}${window.location.search}` : "/");
+  }, [path]);
+  return <BragStackLoader message="Opening Proof Portfolio…" detail="Preserving the shared profile theme and public proof." />;
+}
 function ProRequired({ feature = "This feature" }) { return <main className="page"><section className="notice"><strong>BragStack Pro</strong><span>{feature} is available on Pro. Upgrade to unlock advanced career tools.</span><a className="btn primary" href="/upgrade">Upgrade to Pro</a></section></main>; }
 function ImpactReceiptsWithVerification() { return <><ImpactReceiptsPage /><ReceiptVerificationCenter /></>; }
 
@@ -128,7 +136,8 @@ function RootContent() {
   }, [path]);
 
   let content;
-  if (path === "/privacy" || path === "/terms") content = <LegalPages page={path === "/privacy" ? "privacy" : "terms"} />;
+  if (path.startsWith("/share/brag/")) content = <LegacyShareRedirect path={path} />;
+  else if (path === "/privacy" || path === "/terms") content = <LegalPages page={path === "/privacy" ? "privacy" : "terms"} />;
   else if (path === "/verify-receipt") content = <ReceiptVerificationPage />;
   else if (path === "/upgrade") content = <UpgradePage />;
   else if (path === "/docs") content = <DocsPage />;
