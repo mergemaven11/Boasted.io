@@ -42,7 +42,7 @@ function AppSidebar() {
         {hasExecutiveImpact && <><p className="sidebar-section-label">Enterprise</p><a className={path === "/app/executive-impact" ? "active" : ""} href="/app/executive-impact"><Building2 size={18}/><span>Executive Impact</span></a></>}
         <p className="sidebar-section-label">Account & tools</p>
         <a className={path.startsWith("/app/settings") || path === "/app/profile" ? "active" : ""} href="/app/settings"><Settings size={18} /><span>Settings</span></a>
-        {isCompanyUser && <><p className="sidebar-section-label">Internal</p><a className={path === "/ops" ? "active" : ""} href="/ops"><ShieldCheck size={18} /><span>Ops Console</span></a><a className={path === "/ops/users" ? "active" : ""} href="/ops/users"><Users size={18} /><span>User Accounts</span></a></>}
+        {isCompanyUser && <><p className="sidebar-section-label">Internal</p><a className={path === "/ops" ? "active" : ""} href="/ops"><ShieldCheck size={18} /><span>Ops Console</span></a><a className={path === "/ops/users" ? "active" : ""} href="/ops/users"><Users size={18} /><span>User Accounts</span></a><a className={path === "/ops/ai-verification" ? "active" : ""} href="/ops/ai-verification"><BrainCircuit size={18} /><span>AI Verification</span></a></>}
         <a href="/docs"><FileText size={18} /><span>Docs & guides</span></a>
         {user && !isPro && <a className="sidebar-upgrade" href="/upgrade"><Sparkles size={18} /><span>Upgrade to Pro</span></a>}
       </nav>
