@@ -14,9 +14,17 @@ const PUBLIC_META = {
     title: "Sign up for BragStack | Start Free",
     description: "Create a free BragStack account and start turning your accomplishments into career proof for resumes, interviews, reviews, and promotions.",
   },
+  "/education": {
+    title: "BragStack Education | Track Student Wins, Growth & Opportunities",
+    description: "BragStack Education helps students capture real wins from school, projects, activities, service, work, and learning, then reuse them for scholarships, programs, internships, essays, and future careers.",
+  },
   "/docs": {
     title: "BragStack Docs | How to Use Career Proof",
     description: "Learn how to use BragStack, Impact Receipts, Resume Builder, Practice Interviewer, privacy controls, and career proof workflows.",
+  },
+  "/docs/education": {
+    title: "BragStack Education Guide | How Students Track Wins & Growth",
+    description: "Learn how BragStack Education helps students capture real accomplishments, organize their growth, protect private information, and prepare for scholarships, programs, internships, and essay stories.",
   },
 };
 
