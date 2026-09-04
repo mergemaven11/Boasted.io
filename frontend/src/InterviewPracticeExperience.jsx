@@ -11,6 +11,130 @@ import "./InterviewHandoffBridge.css";
 
 const RESUME_CONTEXT_KEY = "bragstack_resume_interview_context_v1";
 const MEDIA_PRIMED_KEY = "bragstack_interview_media_primed_v1";
+const INTERVIEW_PATH = "/app/interview-practice";
+const INTERVIEWER_NAME = "Aisha Jordan";
+
+function isInterviewPath() {
+  return (window.location.pathname.replace(/\/$/, "") || "/") === INTERVIEW_PATH;
+}
+
+function brandInterviewerCopy(value = "") {
+  return String(value).replace(/\bAJ\b/g, INTERVIEWER_NAME);
+}
+
+function brandInterviewDom(root = document) {
+  const candidates = [];
+  if (root?.matches?.(".interview-practice-page")) candidates.push(root);
+  root?.querySelectorAll?.(".interview-practice-page").forEach((node) => candidates.push(node));
+  if (root === document) document.querySelectorAll(".interview-practice-page").forEach((node) => candidates.push(node));
+
+  [...new Set(candidates)].forEach((container) => {
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    let node = walker.nextNode();
+    while (node) {
+      const current = node.nodeValue || "";
+      const next = brandInterviewerCopy(current);
+      if (next !== current) node.nodeValue = next;
+      node = walker.nextNode();
+    }
+  });
+}
+
+function InterviewRuntimeSafetyBridge() {
+  useEffect(() => {
+    const synth = window.speechSynthesis;
+    const previousSpeak = synth?.speak;
+    const originalPushState = window.history.pushState;
+    const originalReplaceState = window.history.replaceState;
+
+    const stopInterviewSpeech = () => {
+      window.__bragstackInterviewActive = false;
+      try { synth?.cancel?.(); } catch { /* ignore */ }
+    };
+
+    if (synth?.speak) {
+      const brandedSpeak = function brandedSpeak(utterance) {
+        if (!isInterviewPath() || !window.__bragstackInterviewActive) {
+          try { synth.cancel?.(); } catch { /* ignore */ }
+          return;
+        }
+        try {
+          if (utterance?.text) utterance.text = brandInterviewerCopy(utterance.text);
+        } catch {
+          // Browser speech objects can expose read-only text in some implementations.
+        }
+        previousSpeak.call(synth, utterance);
+      };
+      synth.speak = brandedSpeak;
+    }
+
+    const stopForAnchorNavigation = (event) => {
+      const anchor = event.target.closest?.("a[href]");
+      if (!anchor) return;
+      const rawHref = anchor.getAttribute("href") || "";
+      if (!rawHref || rawHref.startsWith("#") || rawHref.startsWith("mailto:") || rawHref.startsWith("tel:") || anchor.target === "_blank") return;
+      const destination = new URL(anchor.href, window.location.href);
+      if ((destination.pathname.replace(/\/$/, "") || "/") !== INTERVIEW_PATH) stopInterviewSpeech();
+    };
+
+    const stopForHistoryNavigation = (method, args) => {
+      const target = args[2];
+      if (target === undefined || target === null) return;
+      try {
+        const destination = new URL(String(target), window.location.href);
+        if ((destination.pathname.replace(/\/$/, "") || "/") !== INTERVIEW_PATH) stopInterviewSpeech();
+      } catch {
+        stopInterviewSpeech();
+      }
+    };
+
+    window.history.pushState = function pushState(...args) {
+      stopForHistoryNavigation("pushState", args);
+      return originalPushState.apply(this, args);
+    };
+    window.history.replaceState = function replaceState(...args) {
+      stopForHistoryNavigation("replaceState", args);
+      return originalReplaceState.apply(this, args);
+    };
+
+    const stopForRouteEvent = () => stopInterviewSpeech();
+    const keepActiveWhileHere = () => {
+      if (isInterviewPath()) window.__bragstackInterviewActive = true;
+      else stopInterviewSpeech();
+    };
+
+    document.addEventListener("click", stopForAnchorNavigation, true);
+    window.addEventListener("pagehide", stopForRouteEvent);
+    window.addEventListener("beforeunload", stopForRouteEvent);
+    window.addEventListener("popstate", stopForRouteEvent);
+    window.addEventListener("bragstack:interview-teardown", stopForRouteEvent);
+
+    brandInterviewDom(document);
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => mutation.addedNodes.forEach((node) => {
+        if (node.nodeType === Node.ELEMENT_NODE) brandInterviewDom(node);
+      }));
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    const routeInterval = window.setInterval(keepActiveWhileHere, 120);
+
+    return () => {
+      observer.disconnect();
+      window.clearInterval(routeInterval);
+      document.removeEventListener("click", stopForAnchorNavigation, true);
+      window.removeEventListener("pagehide", stopForRouteEvent);
+      window.removeEventListener("beforeunload", stopForRouteEvent);
+      window.removeEventListener("popstate", stopForRouteEvent);
+      window.removeEventListener("bragstack:interview-teardown", stopForRouteEvent);
+      if (synth?.speak && previousSpeak && synth.speak !== previousSpeak) synth.speak = previousSpeak;
+      if (window.history.pushState !== originalPushState) window.history.pushState = originalPushState;
+      if (window.history.replaceState !== originalReplaceState) window.history.replaceState = originalReplaceState;
+      stopInterviewSpeech();
+    };
+  }, []);
+
+  return null;
+}
 
 function setControlledValue(element, value) {
   if (!element || value === undefined || value === null) return;
@@ -154,10 +278,15 @@ function InterviewExitGuard() {
   }, [active]);
 
   const requestEnd = () => setPendingHref(`${window.location.origin}/app`);
-  const keepInterview = () => setPendingHref("");
+  const keepInterview = () => {
+    window.__bragstackInterviewActive = true;
+    setPendingHref("");
+  };
   const confirmEnd = () => {
     bypassRef.current = true;
+    window.__bragstackInterviewActive = false;
     window.speechSynthesis?.cancel?.();
+    window.dispatchEvent(new CustomEvent("bragstack:interview-teardown"));
     window.location.assign(pendingHref || "/app");
   };
 
@@ -182,5 +311,5 @@ function InterviewExitGuard() {
 }
 
 export default function InterviewPracticeExperience() {
-  return <><ResumeInterviewHandoff /><InterviewMediaPermissionBridge /><InterviewPracticePage /><InterviewExitGuard /></>;
+  return <><InterviewRuntimeSafetyBridge /><ResumeInterviewHandoff /><InterviewMediaPermissionBridge /><InterviewPracticePage /><InterviewExitGuard /></>;
 }
