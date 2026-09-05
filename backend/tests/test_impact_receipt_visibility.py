@@ -6,12 +6,30 @@ import pytest
 from bson import ObjectId
 from fastapi.testclient import TestClient
 
+import app.confidentiality as confidentiality
+import app.confidentiality_routes as confidentiality_routes
 import app.impact_receipt_routes as impact_receipt_routes
 import app.public_slug_routes as public_slug_routes
 from app.main import app
 
 
 client = TestClient(app)
+
+
+def attestation_headers(method: str, path: str) -> dict[str, str]:
+    response = client.post(
+        "/confidentiality/attestations",
+        json={
+            "version": confidentiality.CONFIDENTIALITY_ATTESTATION_VERSION,
+            "method": method,
+            "path": path,
+            "confirmed": True,
+        },
+    )
+    assert response.status_code == 201, response.text
+    return {
+        confidentiality.CONFIDENTIALITY_ATTESTATION_HEADER: response.json()["attestation_token"],
+    }
 
 
 @pytest.fixture
@@ -30,6 +48,7 @@ def receipt_context(monkeypatch):
     users = mock_db["users"]
     entries = mock_db["entries"]
     receipts = mock_db["impact_receipts"]
+    attestations = mock_db["confidentiality_attestations"]
 
     user = {
         "_id": ObjectId(),
@@ -44,6 +63,8 @@ def receipt_context(monkeypatch):
     monkeypatch.setattr(public_slug_routes, "users_collection", users)
     monkeypatch.setattr(public_slug_routes, "entries_collection", entries)
     monkeypatch.setattr(public_slug_routes, "impact_receipts_collection", receipts)
+    monkeypatch.setattr(confidentiality, "confidentiality_attestations_collection", attestations)
+    monkeypatch.setattr(confidentiality_routes, "confidentiality_attestations_collection", attestations)
 
     app.dependency_overrides[impact_receipt_routes.get_current_user] = lambda: user
 
@@ -81,10 +102,12 @@ def test_owner_can_toggle_receipt_visibility(receipt_context):
     )
 
     before_update = receipts.find_one({"_id": result.inserted_id})["updated_at"]
+    path = f"/impact-receipts/{result.inserted_id}"
 
     response = client.patch(
-        f"/impact-receipts/{result.inserted_id}",
+        path,
         json={"is_public": True},
+        headers=attestation_headers("PATCH", path),
     )
 
     assert response.status_code == 200
