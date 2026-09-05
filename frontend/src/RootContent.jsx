@@ -12,6 +12,7 @@ const AppSidebar = lazyPage(() => import("./AppSidebar.jsx"));
 const ApplicationsHubPage = lazyPage(() => import("./ApplicationsHubPage.jsx"));
 const AppearanceSettingsPage = lazyPage(() => import("./AppearanceSettingsPage.jsx"));
 const BillingSettingsPage = lazyPage(() => import("./BillingSettingsPage.jsx"));
+const EmailPreferencesPage = lazyPage(() => import("./EmailPreferencesPage.jsx"));
 const CareerIntelligencePage = lazyPage(() => import("./CareerIntelligencePage.jsx"));
 const ComplianceAuditPage = lazyPage(() => import("./ComplianceAuditPage.jsx"));
 const DashboardPage = lazyPage(() => import("./DashboardPage.jsx"));
@@ -247,6 +248,7 @@ function RootContent() {
     else if (path === "/app/profile") Content = ProfilePage;
     else if (path === "/app/settings/appearance") Content = AppearanceSettingsPage;
     else if (path === "/app/settings/billing") Content = BillingSettingsPage;
+    else if (path === "/app/settings/email-preferences") Content = EmailPreferencesPage;
     else if (path === "/app/accomplishments") Content = AccomplishmentsPage;
     else if (path === "/app/impact-receipts") Content = ImpactReceiptsWithVerification;
     else if (path === "/app/applications") Content = ApplicationsHubPage;
