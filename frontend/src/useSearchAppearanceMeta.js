@@ -20,7 +20,7 @@ const PUBLIC_META = {
   },
   "/use-cases": {
     title: "BragStack Use Cases | Reviews, Promotions, Resumes & Interviews",
-    description: "Explore practical BragStack use cases for performance reviews, promotions, resumes, interviews, career changes, freelancers, founders, and adults in education.",
+    description: "Explore practical BragStack use cases for performance reviews, promotions, resumes, interviews, career changes, freelancers, founders, and education-to-career proof.",
   },
   "/contact": {
     title: "Contact BragStack | Support, Privacy, Security & Billing",
@@ -51,16 +51,16 @@ const PUBLIC_META = {
     description: "Learn how to document professional accomplishments in BragStack without overriding NDAs, employer policies, client agreements, or confidentiality obligations.",
   },
   "/education": {
-    title: "BragStack Education | Student Wins & Growth for Ages 18+",
-    description: "BragStack Education helps adults age 18+ capture real education wins from school, projects, activities, service, work, and learning. High-school students who are already 18 and adult college/university students can use the live workspace today.",
+    title: "BragStack Education | Turn Learning into Career Proof",
+    description: "BragStack Education helps college, university, trade, technical, certification, bootcamp, and continuing-education learners turn real coursework, projects, training, research, and achievements into reusable career proof.",
   },
   "/docs": {
     title: "BragStack Docs | How to Use Career Proof",
     description: "Learn how to use BragStack, Impact Receipts, Resume Builder, Practice Interviewer, privacy controls, and career proof workflows.",
   },
   "/docs/education": {
-    title: "BragStack Education Guide | Student Wins & Growth for Ages 18+",
-    description: "Learn how adults age 18+ can use BragStack Education to capture real accomplishments, organize growth, protect private information, and prepare for scholarships, programs, internships, and essay stories.",
+    title: "BragStack Education Guide | Learning & Career Proof",
+    description: "Learn how to use BragStack Education to capture coursework, projects, certifications, achievements, and contributions, then reuse that evidence for applications, resumes, interviews, portfolios, and career planning.",
   },
 };
 

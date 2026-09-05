@@ -14,22 +14,33 @@ import {
 import "./EducationGuidePage.css";
 
 const captureIdeas = [
-  "Academic achievements, strong projects, competitions, research, or a class you worked especially hard in",
-  "Awards, honors, recognition, certificates, or completed learning programs",
-  "Clubs, sports, arts, performances, student organizations, and extracurricular activities",
-  "Leadership, mentoring, organizing, teamwork, and responsibilities you took on",
+  "Coursework, labs, academic projects, capstones, research, and presentations",
+  "Awards, honors, scholarships, recognition, certificates, or completed learning programs",
+  "Campus organizations, leadership, mentoring, organizing, teamwork, and responsibilities you took on",
   "Community service, volunteering, fundraising, and ways you helped other people",
+  "Certifications, licenses, bootcamps, technical training, and professional development",
   "Internships, first jobs, side projects, portfolios, open-source work, and practical experience",
   "Challenges you worked through, lessons you learned, and moments that changed how you think",
 ];
 
 const workflow = [
-  { title: "1. Capture the win", text: "Open Accomplishments and save the moment while you still remember the details. BragStack accounts are currently 18+. High-school students who are already 18 and adult college/university students can use the current Education workspace." },
-  { title: "2. Tell what happened", text: "Describe the situation, what you personally did, what changed afterward, and what you learned. Numbers and specific details help when you genuinely know them." },
+  { title: "1. Choose an Education feature", text: "Open Education and choose the button that fits what you want to capture: coursework, an academic project, certification, achievement, group contribution, graduation milestone, or another education experience." },
+  { title: "2. Capture the real win", text: "Describe the situation, what you personally did, what changed afterward, and what you learned. Numbers and specific details help when you genuinely know them." },
   { title: "3. Keep useful proof", text: "Add safe evidence, tags, or confirmation when available. Do not upload secrets, protected student records, passwords, restricted school systems, or anything you are not allowed to keep." },
-  { title: "4. Open Education", text: "Your Education workspace reviews the accomplishments you actually saved and helps organize them around a goal." },
-  { title: "5. Pick a goal", text: "Choose Scholarships, Programs, Internships, or Essay Stories to see which of your real wins may be worth reviewing first." },
-  { title: "6. Use the shortlist", text: "Copy the wins you want to work with, compare them with the real requirements, and keep the final application, essay, or submission accurate and in your own voice." },
+  { title: "4. Reuse the evidence", text: "Education connects your saved record to Impact Receipts, skills, career matching, résumé building, interview preparation, your portfolio, and career planning." },
+  { title: "5. Prepare for opportunities", text: "Choose Scholarships, Programs, Internships, or Essay Stories when you want Education Intelligence to surface useful examples from your own saved record." },
+  { title: "6. Keep the final story accurate", text: "Compare BragStack suggestions with the real requirements and keep every application, résumé, essay, interview answer, or portfolio claim accurate and in your own voice." },
+];
+
+const featureGroups = [
+  {
+    title: "Build your education record",
+    items: ["My Education", "Coursework", "Academic Projects", "Certifications & Training", "Academic Achievements", "Group Project Contributions", "Graduation Progress", "Experience Translator"],
+  },
+  {
+    title: "Turn education into career proof",
+    items: ["Education Impact Receipts", "Skills from Education", "Career Match & Skill Gaps", "Résumé Builder", "Interview Prep", "Academic Portfolio", "Career Path Explorer"],
+  },
 ];
 
 export default function EducationGuidePage() {
@@ -45,24 +56,27 @@ export default function EducationGuidePage() {
     </header>
 
     <section className="education-guide-hero">
-      <p><Sparkles size={16}/> BRAGSTACK EDUCATION GUIDE · CURRENTLY 18+</p>
+      <p><Sparkles size={16}/> BRAGSTACK EDUCATION GUIDE</p>
       <h1>Build your education story one real win at a time.</h1>
-      <span>Adults—including high-school students who are already 18—can use BragStack to remember what they did, what they learned, how they grew, and the evidence behind it, then bring those real examples forward when an opportunity matters.</span>
+      <span>Use BragStack to remember what you learned, built, researched, completed, contributed, and achieved, then bring those real examples forward when an opportunity matters.</span>
     </section>
 
     <section className="education-guide-callout">
       <GraduationCap size={26}/>
-      <div><strong><s>Middle School student accounts</s> — Coming soon.</strong><p>BragStack accounts are currently limited to people age 18 or older. The younger-student experience remains on the roadmap while we complete youth privacy, parental-consent, safety, retention, and legal review. Do not create an account or upload school information if you are under 18.</p></div>
+      <div><strong>Education is a proof workspace, not just a school field on a profile.</strong><p>College, university, trade, technical, certification, bootcamp, professional-training, and continuing-education experiences can become reusable evidence for applications and career tools.</p></div>
     </section>
 
     <section className="education-guide-callout">
       <GraduationCap size={26}/>
-      <div><strong>High school and college can still be part of the live 18+ product.</strong><p>An 18-year-old high-school student can use the current Education workspace, as can adult college/university students. The restriction is based on age, not simply the name of the education stage.</p></div>
+      <div><strong>Your learning can become career evidence without being exaggerated.</strong><p>Coursework, research, projects, service, training, and group work can demonstrate real skills and contribution. BragStack is designed to reuse what you actually saved rather than invent experience you do not have.</p></div>
     </section>
 
-    <section className="education-guide-callout">
-      <GraduationCap size={26}/>
-      <div><strong>Education is a long-term proof workspace, not an admissions score.</strong><p>Adults can organize real accomplishments from high school where age-eligible, college/university, certifications, work, activities, projects, service, and earlier education history where supported. The longer-term vision extends the same proof model from school into a career record.</p></div>
+    <section className="education-guide-section">
+      <div className="education-guide-heading"><BookOpenCheck size={22}/><div><span>FEATURES</span><h2>Education is now a hub of focused tools.</h2></div></div>
+      <p>Use the feature buttons to start with what you are trying to capture or do next.</p>
+      <div className="education-guide-grid">
+        {featureGroups.map((group) => <article key={group.title}><strong>{group.title}</strong><p>{group.items.join(" · ")}</p></article>)}
+      </div>
     </section>
 
     <section className="education-guide-section">
@@ -77,11 +91,11 @@ export default function EducationGuidePage() {
     </section>
 
     <section className="education-guide-section">
-      <div className="education-guide-heading"><Award size={22}/><div><span>GOALS</span><h2>What the current Education workspace can help with</h2></div></div>
+      <div className="education-guide-heading"><Award size={22}/><div><span>APPLICATION TOOLS</span><h2>Use your saved evidence when an opportunity appears.</h2></div></div>
       <div className="education-guide-grid">
         <article><strong>Scholarships</strong><p>Surfaces saved examples that show areas such as leadership, service, academics, initiative, persistence, measurable contribution, and supporting proof.</p></article>
         <article><strong>Programs</strong><p>Looks for real subject interest, projects, research, competitions, collaboration, curiosity, initiative, and growth.</p></article>
-        <article><strong>Internships</strong><p>Helps identify examples showing skills, responsibility, teamwork, initiative, and results that may be useful when preparing an internship application or resume.</p></article>
+        <article><strong>Internships</strong><p>Helps identify examples showing skills, responsibility, teamwork, initiative, and results that may be useful when preparing an internship application or résumé.</p></article>
         <article><strong>Essay Stories</strong><p>Helps you remember real moments involving growth, curiosity, challenge, values, or contribution. BragStack does not write a life story for you or invent experiences.</p></article>
       </div>
     </section>
@@ -96,24 +110,24 @@ export default function EducationGuidePage() {
       <div className="education-guide-heading"><ShieldCheck size={22}/><div><span>TRUST & PRIVACY</span><h2>Your story stays under your control.</h2></div></div>
       <div className="education-guide-list">
         <div><LockKeyhole size={18}/><span>Education accomplishments are private unless you explicitly choose to make something public.</span></div>
-        <div><CheckCircle2 size={18}/><span>Education Intelligence uses your saved record; it does not invent activities, schools, awards, grades, roles, metrics, or life experiences.</span></div>
+        <div><CheckCircle2 size={18}/><span>Education Intelligence uses your saved record; it does not invent activities, schools, awards, grades, roles, metrics, credentials, or life experiences.</span></div>
         <div><CheckCircle2 size={18}/><span>BragStack does not provide admissions odds, scholarship odds, or a student ranking score.</span></div>
-        <div><CheckCircle2 size={18}/><span>If you ask a teacher, coach, mentor, or other person to confirm something, choose only someone who genuinely knows the work.</span></div>
+        <div><CheckCircle2 size={18}/><span>If you ask a teacher, professor, coach, mentor, collaborator, or other person to confirm something, choose only someone who genuinely knows the work.</span></div>
         <div><CheckCircle2 size={18}/><span>Avoid entering sensitive personal information, school credentials, protected records, confidential documents, or information you are not permitted to store.</span></div>
       </div>
     </section>
 
     <section className="education-guide-section">
-      <div className="education-guide-heading"><GraduationCap size={22}/><div><span>AGE REQUIREMENTS</span><h2>BragStack is 18+ for now.</h2></div></div>
-      <p>New account registration requires confirmation that you are at least 18 years old plus acceptance of the current Terms and Privacy Policy. This is an interim boundary while BragStack completes the work needed for younger-student accounts.</p>
-      <p>Middle School remains visible as a Coming Soon product direction. It is not currently an invitation for a minor to register, and BragStack does not currently offer a guardian-managed child account experience.</p>
+      <div className="education-guide-heading"><GraduationCap size={22}/><div><span>ACCOUNT ELIGIBILITY</span><h2>Use BragStack only when you are legally permitted to do so.</h2></div></div>
+      <p>Account eligibility is governed by the BragStack Terms and applicable law. Registration also requires affirmative acceptance of the current Terms and acknowledgment of the current Privacy Policy.</p>
+      <p>BragStack records the policy versions and acceptance time on the account so the legal-consent history is not reduced to a disappearing front-end checkbox.</p>
     </section>
 
     <section className="education-guide-cta">
       <h2>Start with one thing you are proud of.</h2>
-      <p>If you are 18 or older, you do not need your whole education history on day one.</p>
+      <p>You do not need your whole education history on day one.</p>
       <div><a href="/register">Create my BragStack</a><a href="/education">Back to Education overview</a></div>
-      <small>Current account access: adults age 18 and older.</small>
+      <small>Private by default. Built from your real evidence.</small>
     </section>
   </main>;
 }

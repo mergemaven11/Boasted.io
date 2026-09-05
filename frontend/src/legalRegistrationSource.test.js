@@ -4,29 +4,37 @@ import assert from "node:assert/strict";
 
 const read = (path) => fs.readFileSync(new URL(path, import.meta.url), "utf8");
 
-test("registration visibly requires 18+ and legal acceptance", () => {
+test("registration visibly requires legal acceptance without an age gate", () => {
   const source = read("./AuthPage.jsx");
-  assert.match(source, /BragStack is 18\+ for now/);
-  assert.match(source, /age_18_or_older/);
+  assert.doesNotMatch(source, /age_18_or_older/);
+  assert.doesNotMatch(source, /BragStack is 18\+/);
+  assert.doesNotMatch(source, /auth-age-gate/);
   assert.match(source, /accepted_terms/);
   assert.match(source, /accepted_privacy/);
   assert.match(source, /Terms and Conditions/);
   assert.match(source, /Privacy Policy/);
+  assert.match(source, /records the current policy versions/i);
 });
 
 test("new OAuth sign-up is paused while existing OAuth login remains", () => {
   const source = read("./AuthPage.jsx");
   assert.match(source, /Temporarily paused for new accounts/);
+  assert.match(source, /required legal-consent step/);
   assert.match(source, /Continue with Google/);
   assert.match(source, /Continue with GitHub/);
 });
 
-test("middle-school student accounts remain visible as coming soon but disabled", () => {
+test("education capture removes middle-school logic and exposes older-student presets", () => {
   const source = read("./AccomplishmentsPage.jsx");
-  assert.match(source, /Middle School — coming soon for student accounts/);
-  assert.match(source, /disabled=\{type === "Middle School"/);
-  assert.match(source, /Coming soon/);
-  assert.match(source, /18\+/);
+  assert.doesNotMatch(source, /Middle School/);
+  assert.doesNotMatch(source, /18\+/);
+  assert.match(source, /education_feature/);
+  assert.match(source, /coursework/);
+  assert.match(source, /academic-projects/);
+  assert.match(source, /certifications/);
+  assert.match(source, /group-projects/);
+  assert.match(source, /graduation-progress/);
+  assert.match(source, /experience-translator/);
 });
 
 test("paid checkout requires explicit recurring billing acknowledgement", () => {
