@@ -21,7 +21,7 @@ function SecurityPage() {
         <div className="security-hero-copy">
           <span className="security-kicker"><ShieldCheck size={16} /> BRAGSTACK SECURITY</span>
           <h1>Your career proof deserves careful protection.</h1>
-          <p>BragStack is designed around a simple idea: your private career evidence should stay private unless you decide otherwise. This page explains our security approach in plain English.</p>
+          <p>BragStack is designed around a simple idea: your private career evidence should stay private unless you decide otherwise. This page explains our security approach in plain English for people across professions and work settings.</p>
           <div className="security-actions"><a className="security-primary" href="/docs#privacy">Read privacy & NDA guidance</a><a className="security-secondary" href="mailto:security@usebragstack.com?subject=BragStack%20security%20report">Report a security concern</a></div>
         </div>
         <div className="security-lock-card"><ShieldCheck size={42} /><strong>Private by default</strong><span>You decide what becomes public.</span></div>
@@ -40,11 +40,11 @@ function SecurityPage() {
       </section>
 
       <section className="security-guidance">
-        <article><h2>What you should never put into BragStack</h2><ul><li>Passwords, API keys, access tokens, or authentication secrets</li><li>Customer data or personal information you are not authorized to retain</li><li>Restricted source code, internal logs, confidential documents, or trade secrets</li><li>Anything your employer, client, contract, or NDA says cannot leave its systems</li></ul><a href="/nda-safety">See our confidential-work guide →</a></article>
-        <article><h2>Report a security issue</h2><p>If you notice unexpected account activity, a suspicious sign-in that may indicate compromise, a privacy or data-exposure problem, or a possible vulnerability, contact the security address with enough detail to investigate. Do not email passwords, access tokens, card details, or confidential evidence.</p><a href="mailto:security@usebragstack.com?subject=BragStack%20security%20report">security@usebragstack.com →</a></article>
+        <article><h2>What you should never put into BragStack</h2><ul><li>Passwords, API keys, access tokens, access codes, or authentication secrets</li><li>Patient or health information, student records, case files, constituent records, customer data, payment information, or other personal information you are not authorized to retain</li><li>Restricted source code, internal logs, personnel records, private financials, confidential contracts, proprietary schematics, unreleased creative work, trade secrets, or other protected material</li><li>Anything your employer, client, school, healthcare organization, agency, professional rules, contract, NDA, privacy obligations, or applicable law says cannot be stored in a third-party system</li></ul><a href="/nda-safety">See our confidential-work guide →</a></article>
+        <article><h2>Report a security issue</h2><p>If you notice unexpected account activity, a suspicious sign-in that may indicate compromise, a privacy or data-exposure problem, or a possible vulnerability, contact the security address with enough detail to investigate. Do not email passwords, access tokens, card details, protected records, or confidential evidence.</p><a href="mailto:security@usebragstack.com?subject=BragStack%20security%20report">security@usebragstack.com →</a></article>
       </section>
 
-      <section className="security-note"><TriangleAlert size={20} /><div><strong>No online service can promise absolute security.</strong><p>BragStack uses reasonable safeguards designed to protect your information, but good account hygiene still matters: use strong credentials, protect your Google or GitHub account, and be careful about what workplace material you retain.</p></div></section>
+      <section className="security-note"><TriangleAlert size={20} /><div><strong>No online service can promise absolute security.</strong><p>BragStack uses reasonable safeguards designed to protect your information, but good account hygiene still matters: use strong credentials, protect your sign-in provider account, and be careful about what workplace, client, patient, student, customer, case, or other restricted material you retain.</p></div></section>
       <PublicFooter />
     </main>
   );
