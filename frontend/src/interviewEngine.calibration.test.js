@@ -18,12 +18,12 @@ test("vague interview answers stay red across every scoring dimension", () => {
 });
 
 test("spoken debugging evidence can graduate from Needs detail without parroting job-description keywords", () => {
-  const answer = "There was an issue with the UI and it wasn't an animation so I looked at the logs to see if the logs was giving back any feedback. The log was in the Chrome dev tools and I found the error, got the code fixed, the pull request passed the test, and it worked out.";
+  const answer = "There was an issue with the UI and it wasn't an animation So I looked at the logs to see if the logs was given back any feedback And Log is the chrome deb tools And Found the error Got the code fixed it did the pool request pass the test and it worked out";
   const analysis = analyzeAnswer(answer, {
     question: "The Software Engineer job description emphasizes infrastructure, JavaScript, software. Tell me about a specific project where you used those skills together. What did you personally build, change, diagnose, or deliver, and what was the result?",
     competency: "role_alignment",
     roleTitle: "Software Engineer",
-    jobDescription: "Build and troubleshoot software using JavaScript, browser tooling, production logs, and infrastructure practices.",
+    jobDescription: "Build infrastructure and software using JavaScript.",
   });
 
   assert.equal(analysis.signals.contextFound, true);
