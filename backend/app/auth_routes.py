@@ -21,6 +21,7 @@ PASSWORD_RESET_FROM = os.getenv("PASSWORD_RESET_FROM", "BragStack <noreply@usebr
 EMAIL_VERIFICATION_FROM = os.getenv("EMAIL_VERIFICATION_FROM", PASSWORD_RESET_FROM)
 TERMS_VERSION = "2026-09-05"
 PRIVACY_VERSION = "2026-09-05"
+MARKETING_CONSENT_VERSION = "2026-09-05"
 PROFILE_THEMES = {
     "default",
     "clinical",
@@ -58,6 +59,11 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=8)
     accepted_terms: bool
     accepted_privacy: bool
+    marketing_email_opt_in: bool = False
+
+
+class MarketingPreferencesUpdate(BaseModel):
+    marketing_email_opt_in: bool
 
 
 class EmailVerificationRequest(BaseModel):
@@ -186,6 +192,17 @@ async def register_user(payload: RegisterRequest):
         "privacy_accepted_at": accepted_at,
         "privacy_version": PRIVACY_VERSION,
         "legal_acceptance_source": "email-registration",
+        "marketing_email_opt_in": payload.marketing_email_opt_in,
+        "marketing_email_opt_in_at": accepted_at if payload.marketing_email_opt_in else None,
+        "marketing_email_opt_out_at": None,
+        "marketing_consent_version": MARKETING_CONSENT_VERSION,
+        "marketing_consent_source": "email-registration",
+        "marketing_consent_events": [{
+            "opted_in": payload.marketing_email_opt_in,
+            "version": MARKETING_CONSENT_VERSION,
+            "recorded_at": accepted_at,
+            "source": "email-registration",
+        }],
         "consents": {
             "terms": {
                 "accepted": True,
@@ -196,6 +213,12 @@ async def register_user(payload: RegisterRequest):
                 "accepted": True,
                 "version": PRIVACY_VERSION,
                 "accepted_at": accepted_at,
+            },
+            "marketing_email": {
+                "opted_in": payload.marketing_email_opt_in,
+                "version": MARKETING_CONSENT_VERSION,
+                "recorded_at": accepted_at,
+                "source": "email-registration",
             },
         },
     }
@@ -296,6 +319,54 @@ def get_me(current_user: dict = Depends(get_current_user)):
         users_collection.update_one({"_id": current_user["_id"]}, {"$set": {"public_slug": slug}})
         current_user["public_slug"] = slug
     return serialize_user(current_user)
+
+
+@router.patch("/me/marketing-preferences")
+def update_marketing_preferences(
+    payload: MarketingPreferencesUpdate,
+    current_user: dict = Depends(get_current_user),
+):
+    """Update marketing-email consent and preserve a bounded audit trail."""
+    opted_in = payload.marketing_email_opt_in
+    previous = bool(current_user.get("marketing_email_opt_in", False))
+    preference_exists = "marketing_email_opt_in" in current_user
+    if preference_exists and previous == opted_in:
+        return serialize_user(current_user)
+
+    recorded_at = datetime.now(timezone.utc).isoformat()
+    source = "account-settings"
+    current_consent = {
+        "opted_in": opted_in,
+        "version": MARKETING_CONSENT_VERSION,
+        "recorded_at": recorded_at,
+        "source": source,
+    }
+    set_fields = {
+        "marketing_email_opt_in": opted_in,
+        "marketing_consent_version": MARKETING_CONSENT_VERSION,
+        "marketing_consent_source": source,
+        "consents.marketing_email": current_consent,
+    }
+    unset_fields = {}
+    if opted_in:
+        set_fields["marketing_email_opt_in_at"] = recorded_at
+        unset_fields["marketing_email_opt_out_at"] = ""
+    else:
+        set_fields["marketing_email_opt_out_at"] = recorded_at
+
+    update = {
+        "$set": set_fields,
+        "$push": {
+            "marketing_consent_events": {
+                "$each": [current_consent],
+                "$slice": -50,
+            }
+        },
+    }
+    if unset_fields:
+        update["$unset"] = unset_fields
+    users_collection.update_one({"_id": current_user["_id"]}, update)
+    return serialize_user(users_collection.find_one({"_id": current_user["_id"]}))
 
 
 @router.patch("/me/profile")
