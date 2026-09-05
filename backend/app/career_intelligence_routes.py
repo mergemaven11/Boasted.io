@@ -3,11 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.ai.verification import record_verification_event
 from app.auth import get_current_user
-from app.career_intelligence import build_career_intelligence
-from app.career_intelligence_trajectory import (
-    TRAJECTORY_LABELS,
-    enrich_career_trajectory,
-)
+from app.career_intelligence_graph import build_career_intelligence_v5
+from app.career_intelligence_trajectory import TRAJECTORY_LABELS
 from app.database import entries_collection, impact_receipts_collection
 from app.education_intelligence import APPLICATION_PROFILES, build_application_intelligence
 
@@ -107,6 +104,43 @@ def _verify_intelligence(result: dict, entries: list[dict], receipts: list[dict]
     if methodology.get("employment_decision") is not False:
         violations.append("employment_decision_enabled")
 
+    graph = result.get("career_graph") or {}
+    if version == "career-intelligence-v5":
+        if graph.get("version") != methodology.get("graph_version"):
+            violations.append("career_graph_version_mismatch")
+        if graph.get("taxonomy_version") != methodology.get("taxonomy_version"):
+            violations.append("career_graph_taxonomy_version_mismatch")
+        if graph.get("normalization_strategy") != "exact-curated-aliases-only":
+            violations.append("career_graph_normalization_strategy_invalid")
+        if summary.get("canonical_skill_count") != len(result.get("skills") or []):
+            violations.append("canonical_skill_count_mismatch")
+
+        nodes = graph.get("nodes") or []
+        node_ids = [str(node.get("id") or "") for node in nodes]
+        if any(not node_id for node_id in node_ids) or len(node_ids) != len(set(node_ids)):
+            violations.append("career_graph_node_ids_invalid")
+        valid_node_ids = set(node_ids)
+        for node in nodes:
+            if node.get("type") not in {"skill", "domain"}:
+                violations.append("career_graph_node_type_invalid")
+                break
+            demonstrations = int(node.get("demonstrations") or 0)
+            if demonstrations < 0 or demonstrations > distinct_demonstrations:
+                violations.append("career_graph_node_demonstration_count_invalid")
+                break
+
+        for edge in graph.get("edges") or []:
+            if edge.get("relationship") not in {"supports-domain", "co-demonstrated"}:
+                violations.append("career_graph_edge_relationship_invalid")
+                break
+            if edge.get("source") not in valid_node_ids or edge.get("target") not in valid_node_ids:
+                violations.append("career_graph_edge_endpoint_invalid")
+                break
+            demonstrations = int(edge.get("demonstrations") or 0)
+            if demonstrations < 0 or demonstrations > distinct_demonstrations:
+                violations.append("career_graph_edge_demonstration_count_invalid")
+                break
+
     return sorted(set(violations))
 
 
@@ -142,12 +176,12 @@ def _load_intelligence(current_user: dict) -> dict:
     user_id = str(current_user["_id"])
     entries = list(entries_collection.find({"user_id": user_id}))
     receipts = list(impact_receipts_collection.find({"user_id": user_id}))
-    result = build_career_intelligence(entries, receipts)
-    result = enrich_career_trajectory(result, entries, receipts)
+    result = build_career_intelligence_v5(entries, receipts)
     violations = _verify_intelligence(result, entries, receipts)
     methodology = result.get("methodology") or {}
     version = str(methodology.get("version") or "career-intelligence-unknown")
     schema_version = str(methodology.get("schema_version") or version)
+    graph = result.get("career_graph") or {}
     record_verification_event(
         feature="career_intelligence",
         task="analysis",
@@ -162,6 +196,8 @@ def _load_intelligence(current_user: dict) -> dict:
             len(result.get("skills") or [])
             + len(result.get("career_themes") or [])
             + len(result.get("recommended_actions") or [])
+            + len(graph.get("nodes") or [])
+            + len(graph.get("edges") or [])
         ),
         user_id=user_id,
     )
