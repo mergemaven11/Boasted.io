@@ -13,6 +13,7 @@ import {
 import {
   assignOpsRolesByEmail,
   getLatestComplianceAudit,
+  getIntelligenceVerificationSummary,
   getOpsAccess,
   getOpsAudit,
   getOpsObservability,
@@ -78,8 +79,26 @@ function governancePriority(finding = {}) {
   return "info";
 }
 
-function buildOpsMessages({ service = {}, persisted = {}, audit = null, compliance = null }) {
+function buildOpsMessages({ service = {}, persisted = {}, audit = null, compliance = null, intelligence = null }) {
   const messages = [];
+
+  (intelligence?.recent_failures || []).slice(0, 12).forEach((failure, index) => {
+    const feature = String(failure.feature || "intelligence").replaceAll("_", " ");
+    const codes = failure.violation_codes || [];
+    messages.push({
+      id: `intelligence:${failure.feature}:${failure.task}:${failure.created_at || index}`,
+      source: "BragStack Intelligence",
+      category: feature,
+      priority: "urgent",
+      title: `${feature} result was withheld`,
+      summary: codes.length ? `Safety verification found: ${codes.join(", ")}.` : "The shared intelligence engine reported a verification failure.",
+      meaning: "BragStack failed closed instead of showing a result that did not pass its evidence, provenance, or safety rules.",
+      nextStep: "Open the Intelligence Verification report, review the violation code and affected feature, then reproduce and correct the invariant before release.",
+      detail: `${failure.task || "unknown task"} · ${failure.model_id || "shared engine"}`,
+      createdAt: failure.created_at,
+      externalUrl: "/ops/ai-verification",
+    });
+  });
 
   if (compliance) {
     const overall = String(compliance.summary?.overall || "action_required");
@@ -247,8 +266,8 @@ function PriorityIcon({ priority }) {
   return <Info size={18} aria-hidden="true" />;
 }
 
-function OpsInbox({ service, persisted, audit, compliance }) {
-  const messages = useMemo(() => buildOpsMessages({ service, persisted, audit, compliance }), [service, persisted, audit, compliance]);
+function OpsInbox({ service, persisted, audit, compliance, intelligence }) {
+  const messages = useMemo(() => buildOpsMessages({ service, persisted, audit, compliance, intelligence }), [service, persisted, audit, compliance, intelligence]);
   const [state, setState] = useState(readInboxState);
   const [expanded, setExpanded] = useState({});
   const [filter, setFilter] = useState("all");
@@ -446,6 +465,7 @@ export default function OpsConsolePage() {
   const [team, setTeam] = useState(null);
   const [audit, setAudit] = useState(null);
   const [compliance, setCompliance] = useState(null);
+  const [intelligence, setIntelligence] = useState(null);
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [userResult, setUserResult] = useState(null);
@@ -454,11 +474,11 @@ export default function OpsConsolePage() {
 
   async function loadDiagnostics() {
     const nextAccess = await getOpsAccess();
-    const [nextOverview, nextObservability, nextCompliance] = await Promise.all([getOpsOverview(), getOpsObservability(), getLatestComplianceAudit()]);
+    const [nextOverview, nextObservability, nextCompliance, nextIntelligence] = await Promise.all([getOpsOverview(), getOpsObservability(), getLatestComplianceAudit(), getIntelligenceVerificationSummary()]);
     let nextTeam = null;
     let nextAudit = null;
     if ((nextAccess.roles || []).includes("admin")) [nextTeam, nextAudit] = await Promise.all([getOpsTeam(), getOpsAudit()]);
-    return { nextAccess, nextOverview, nextObservability, nextTeam, nextAudit, nextCompliance };
+    return { nextAccess, nextOverview, nextObservability, nextTeam, nextAudit, nextCompliance, nextIntelligence };
   }
 
   async function refreshDiagnostics() {
@@ -466,7 +486,7 @@ export default function OpsConsolePage() {
     setError("");
     try {
       const data = await loadDiagnostics();
-      setAccess(data.nextAccess); setOverview(data.nextOverview); setObservability(data.nextObservability); setTeam(data.nextTeam); setAudit(data.nextAudit); setCompliance(data.nextCompliance);
+      setAccess(data.nextAccess); setOverview(data.nextOverview); setObservability(data.nextObservability); setTeam(data.nextTeam); setAudit(data.nextAudit); setCompliance(data.nextCompliance); setIntelligence(data.nextIntelligence);
     } catch (err) {
       setError(err.response?.status === 404 ? "This account is not authorized for the BragStack Ops Console." : "Ops diagnostics could not be loaded.");
     } finally {
@@ -480,7 +500,7 @@ export default function OpsConsolePage() {
       try {
         const data = await loadDiagnostics();
         if (!active) return;
-        setAccess(data.nextAccess); setOverview(data.nextOverview); setObservability(data.nextObservability); setTeam(data.nextTeam); setAudit(data.nextAudit); setCompliance(data.nextCompliance);
+        setAccess(data.nextAccess); setOverview(data.nextOverview); setObservability(data.nextObservability); setTeam(data.nextTeam); setAudit(data.nextAudit); setCompliance(data.nextCompliance); setIntelligence(data.nextIntelligence);
       } catch (err) {
         if (!active) return;
         setError(err.response?.status === 404 ? "This account is not authorized for the BragStack Ops Console." : "Ops diagnostics could not be loaded.");
@@ -519,7 +539,7 @@ export default function OpsConsolePage() {
     </section>
 
     <ComplianceAuditPanel onReceiptChange={setCompliance} />
-    <OpsInbox service={service} persisted={persisted} audit={isAdmin ? audit : null} compliance={compliance} />
+    <OpsInbox service={service} persisted={persisted} audit={isAdmin ? audit : null} compliance={compliance} intelligence={intelligence} />
     <FounderAnalyticsPanel analytics={analytics} />
 
     {isAdmin && <section className="ops-panel"><div className="ops-panel-heading"><div><p className="ops-kicker">ADMIN · TEAM & ROLES</p><h2>Invite, assign, and audit internal access</h2><p>Only verified accounts you explicitly assign receive internal access. Grant the minimum role needed; every change is persisted and audit logged.</p></div></div><RoleManager team={team} setTeam={setTeam} audit={audit} setAudit={setAudit} /></section>}

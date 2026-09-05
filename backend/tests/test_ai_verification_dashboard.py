@@ -18,6 +18,8 @@ def test_uninstrumented_features_are_never_reported_as_passing(monkeypatch):
     assert summary["features"]["resume_builder"]["instrumented"] is False
     assert summary["features"]["resume_builder"]["pass_rate"] == 0.0
     assert summary["features"]["interview_practice"]["instrumented"] is False
+    assert summary["features"]["education_intelligence"]["instrumented"] is False
+    assert summary["features"]["compliance_intelligence"]["instrumented"] is False
     assert summary["release_gate"]["resume_builder"]["ready"] is False
 
 
