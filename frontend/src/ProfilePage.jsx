@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ExternalLink, ImagePlus, MessageSquare, Save, Trash2, UserRound } from "lucide-react";
+import { ArrowLeft, ExternalLink, ImagePlus, MessageSquare, Save, Trash2, UserRound } from "lucide-react";
 import BragStackLoader from "./BragStackLoader.jsx";
 import { getCurrentUser, updateCurrentUserProfile } from "./api";
 import { getProfileConnection, updateProfileConnection } from "./profileConnectionApi";
@@ -101,7 +101,7 @@ function ProfilePage() {
   const avatarLetter=form.name?.charAt(0).toUpperCase()||"B";
 
   return <main className="profile-settings">
-    <header className="profile-settings-header"><div><p className="profile-settings-eyebrow">Account</p><h1>Edit profile</h1><p>Everything you save here persists on your BragStack account. Public colors and themes are managed separately under Profile appearance.</p></div><div className="profile-header-actions"><a className="profile-public-link" href="/app/settings/appearance">Profile appearance</a>{user?.public_slug&&<a className="profile-public-link" href={`/brag/${user.public_slug}`} target="_blank" rel="noreferrer">Preview Proof Profile <ExternalLink size={16}/></a>}</div></header>
+    <header className="profile-settings-header"><div><a className="profile-public-link" href="/app/settings"><ArrowLeft size={16}/> Back to settings</a><p className="profile-settings-eyebrow">Account</p><h1>Edit profile</h1><p>Everything you save here persists on your BragStack account. Public colors and themes are managed separately under Profile appearance.</p></div><div className="profile-header-actions"><a className="profile-public-link" href="/app/settings/appearance">Profile appearance</a>{user?.public_slug&&<a className="profile-public-link" href={`/brag/${user.public_slug}`} target="_blank" rel="noreferrer">Preview Proof Profile <ExternalLink size={16}/></a>}</div></header>
     <form className="profile-settings-card" onSubmit={handleSubmit}>
       <div className="profile-avatar-row">
         <div className="profile-settings-avatar">{form.avatar_url?<img src={form.avatar_url} alt="Profile preview"/>:(avatarLetter||<UserRound size={26}/>)}</div>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  ArrowLeft,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
@@ -76,6 +77,7 @@ export default function CalendarIntegrationsPage() {
 
   return (
     <main className="calendar-integrations-page">
+      <div style={{marginBottom:18}}><a className="provider-connect" href="/app/settings"><ArrowLeft size={17}/> Back to settings</a></div>
       <header className="calendar-integrations-header"><div><p className="calendar-kicker">INTEGRATIONS · CALENDARS</p><h1>Your schedule, beside your proof.</h1><span>Add your Calendly schedule once, then show the actual interactive calendar inside your public Proof Portfolio.</span></div><div className="calendar-privacy-pill"><ShieldCheck size={16}/> You control public booking</div></header>
 
       <section className="calendly-integration-card" aria-labelledby="calendly-heading">
