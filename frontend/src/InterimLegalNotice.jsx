@@ -55,6 +55,13 @@ export function InterimTermsNotice() {
       </section>
 
       <section>
+        <h3>Temporary complimentary Pro access</h3>
+        <p>During early access, BragStack may temporarily grant Pro features to eligible accounts at no charge as a promotional gift. Complimentary Pro access is not a paid subscription, does not require a payment method, does not authorize recurring charges, and does not by itself create any obligation to purchase Pro later.</p>
+        <p>This promotional access may be modified or ended in the future. If BragStack later offers paid Pro access, the applicable price, billing interval, renewal behavior, and cancellation terms will be presented separately, and BragStack will require a separate purchase flow and billing consent before charging an account that only received complimentary access.</p>
+        <p>Existing paid subscriptions are separate from complimentary promotional access and remain governed by the billing and cancellation terms that apply to those subscriptions unless BragStack expressly changes them in accordance with applicable law.</p>
+      </section>
+
+      <section>
         <h3>Billing and subscriptions</h3>
         <p>When a paid plan is offered, the price, billing interval, renewal behavior, material limits, and cancellation terms presented at checkout control the purchase. A recurring subscription continues until canceled as disclosed at purchase. Cancellation stops future renewal subject to the terms shown at purchase and applicable law; cancellation does not automatically create a refund for time already paid unless BragStack states otherwise or law requires one.</p>
       </section>
