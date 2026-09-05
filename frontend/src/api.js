@@ -136,6 +136,7 @@ export async function loginUser(credentials) {
 }
 export async function getCurrentUser() { const response = await api.get("/auth/me"); return response.data; }
 export async function updateCurrentUserProfile(profile) { const response = await api.patch("/auth/me/profile", profile); return response.data; }
+export async function updateMarketingPreferences(marketingEmailOptIn) { const response = await api.patch("/auth/me/marketing-preferences", { marketing_email_opt_in: marketingEmailOptIn }); return response.data; }
 export async function getBillingStatus() { const response = await api.get("/billing/status"); return response.data; }
 export async function cancelSubscription() { const response = await api.post("/billing/cancel"); return response.data; }
 export async function resumeSubscription() { const response = await api.post("/billing/resume"); return response.data; }
