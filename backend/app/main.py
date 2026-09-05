@@ -15,6 +15,7 @@ from app.billing_routes import router as billing_router
 from app.billing_details_routes import router as billing_details_router
 from app.beta_metrics_routes import router as beta_metrics_router
 from app.career_intelligence_routes import router as career_intelligence_router
+from app.compliance_routes import router as compliance_router
 from app.confidentiality import enforce_confidentiality_attestation
 from app.confidentiality_routes import (
     ops_router as confidentiality_ops_router,
@@ -265,6 +266,7 @@ app.include_router(ops_router)
 app.include_router(ops_user_router)
 app.include_router(ops_invite_router)
 app.include_router(ai_verification_router)
+app.include_router(compliance_router)
 app.include_router(confidentiality_ops_router)
 
 
