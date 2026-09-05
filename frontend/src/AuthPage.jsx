@@ -52,6 +52,7 @@ function AuthPage({ mode = "login", onLogin }) {
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
+  const [marketingEmailOptIn, setMarketingEmailOptIn] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSlowSubmit, setIsSlowSubmit] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -155,6 +156,7 @@ function AuthPage({ mode = "login", onLogin }) {
             ...formData,
             accepted_terms: acceptedTerms,
             accepted_privacy: acceptedPrivacy,
+            marketing_email_opt_in: marketingEmailOptIn,
           }),
         });
         const data = await response.json().catch(() => ({}));
@@ -314,6 +316,7 @@ function AuthPage({ mode = "login", onLogin }) {
               <label><input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} /> <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms and Conditions</a>.</span></label>
               <label><input type="checkbox" checked={acceptedPrivacy} onChange={(event) => setAcceptedPrivacy(event.target.checked)} /> <span>I have read the <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.</span></label>
               <p>BragStack records the current policy versions and the time these required agreements are accepted on your account.</p>
+              <label className="auth-marketing-consent"><input type="checkbox" checked={marketingEmailOptIn} onChange={(event) => setMarketingEmailOptIn(event.target.checked)} /> <span><strong>Optional:</strong> Send me occasional BragStack product updates, early-access announcements, and offers. I can unsubscribe anytime.</span></label>
             </div>
           )}
 
