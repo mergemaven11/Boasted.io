@@ -1,9 +1,7 @@
 """Document this first-party Python module."""
 import os
 import time
-from datetime import datetime, timedelta, timezone
 
-from bson import ObjectId
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -50,7 +48,6 @@ app = FastAPI(
     version="1.0.0",
 )
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
-ENTRY_EDIT_WINDOW = timedelta(hours=1)
 mongo_admin = mongo_client.admin
 
 
@@ -180,53 +177,24 @@ app.add_middleware(
 )
 
 
-def _as_utc(value: datetime) -> datetime:
-    """Handle as utc.
-
-    Args:
-        value: Function argument.
-
-    Returns:
-        Function result.
-    """
-    if value.tzinfo is None:
-        return value.replace(tzinfo=timezone.utc)
-    return value.astimezone(timezone.utc)
-
-
 def enforce_entry_usage(request: Request, current_user: dict = Depends(get_current_user)):
-    """Handle enforce entry usage.
+    """Enforce entry-count limits when creating accomplishments.
 
-    Args:
-        request: Function argument.
-        current_user: Function argument.
+    Existing accomplishments remain editable at any time. Verification and
+    trust-sensitive immutability are handled separately from the owner's
+    editable accomplishment record.
     """
     path = request.url.path.rstrip("/")
+    if request.method != "POST" or path != "/entries":
+        return
+
     user_id = str(current_user["_id"])
-    if request.method == "POST" and path == "/entries":
-        enforce_usage_limit(
-            user=current_user,
-            entitlement_name="max_entries",
-            current_count=entries_collection.count_documents({"user_id": user_id}),
-            resource_name="proof entries",
-        )
-        return
-    if request.method != "PUT" or not path.startswith("/entries/"):
-        return
-    entry_id = path.removeprefix("/entries/")
-    if not ObjectId.is_valid(entry_id):
-        return
-    existing_entry = entries_collection.find_one(
-        {"_id": ObjectId(entry_id), "user_id": user_id},
-        {"created_at": 1},
+    enforce_usage_limit(
+        user=current_user,
+        entitlement_name="max_entries",
+        current_count=entries_collection.count_documents({"user_id": user_id}),
+        resource_name="proof entries",
     )
-    if not existing_entry:
-        return
-    created_at = existing_entry.get("created_at")
-    if not isinstance(created_at, datetime):
-        raise HTTPException(status_code=403, detail="This accomplishment can no longer be edited.")
-    if datetime.now(timezone.utc) - _as_utc(created_at) >= ENTRY_EDIT_WINDOW:
-        raise HTTPException(status_code=403, detail="The 60-minute edit window for this accomplishment has ended.")
 
 
 def enforce_receipt_usage(request: Request, current_user: dict = Depends(get_current_user)):
