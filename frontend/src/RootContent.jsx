@@ -12,6 +12,7 @@ const ApplicationsHubPage = lazyPage(() => import("./ApplicationsHubPage.jsx"));
 const AppearanceSettingsPage = lazyPage(() => import("./AppearanceSettingsPage.jsx"));
 const BillingSettingsPage = lazyPage(() => import("./BillingSettingsPage.jsx"));
 const CareerIntelligencePage = lazyPage(() => import("./CareerIntelligencePage.jsx"));
+const ComplianceAuditPage = lazyPage(() => import("./ComplianceAuditPage.jsx"));
 const DashboardPage = lazyPage(() => import("./DashboardPage.jsx"));
 const DocsPage = lazyPage(() => import("./DocsPage.jsx"));
 const EducationGuidePage = lazyPage(() => import("./EducationGuidePage.jsx"));
@@ -189,6 +190,7 @@ function RootContent() {
     else if (path === "/ops") Content = OpsConsolePage;
     else if (path === "/ops/users") Content = OpsUsersPage;
     else if (path === "/ops/ai-verification") Content = AIVerificationPage;
+    else if (path === "/ops/compliance") Content = ComplianceAuditPage;
     else if (path === "/app/settings") Content = SettingsPage;
     else if (path === "/app/profile") Content = ProfilePage;
     else if (path === "/app/settings/appearance") Content = AppearanceSettingsPage;
