@@ -9,13 +9,14 @@ import {
 } from "lucide-react";
 import PacketHistoryPanel from "./PacketHistoryPanel.jsx";
 import "./PacketBuilderPanel.css";
+import "./PacketTypeChooser.css";
 
 const CAREER_AREAS = ["", "Healthcare", "Education", "Technology", "Sales", "Operations", "Skilled Trades", "Creative", "Customer Service", "Management", "Government", "Nonprofit", "Student", "Other"];
 const PACKET_TYPES = [
-  { value: "performance-review", label: "Performance Review Packet" },
-  { value: "promotion", label: "Promotion Packet" },
-  { value: "interview", label: "Interview Packet" },
-  { value: "certification", label: "Certification & Licensure Packet" },
+  { value: "performance-review", label: "Performance Review Packet", description: "Annual reviews, check-ins, and manager conversations." },
+  { value: "promotion", label: "Promotion Packet", description: "Build a documented case for increased scope or level." },
+  { value: "interview", label: "Interview Packet", description: "Turn selected accomplishments into evidence-backed stories." },
+  { value: "certification", label: "Certification & Licensure Packet", description: "Organize credentials, competencies, and renewal proof." },
 ];
 const CREDENTIAL_REVIEW_TYPES = ["Certification / Licensure Review", "License Renewal", "Certification Review", "Recertification", "Continuing Education Review", "Competency Review", "Other Credential Review"];
 const PERFORMANCE_SECTIONS = [
@@ -114,8 +115,26 @@ function PacketBuilderPanel({ options, onChange, onBuild, isLoading, error, high
         <div><span>BragStack Pro · Premium Artifact</span><h2 id="packet-builder-title">Build {isInterview ? "an" : "a"} {title}</h2><p>{description}</p></div>
       </div>
 
+      <div className="packet-type-chooser" role="group" aria-label="Choose packet type">
+        {PACKET_TYPES.map((type) => {
+          const active = packetType === type.value;
+          return (
+            <button
+              type="button"
+              key={type.value}
+              className={active ? "active" : ""}
+              aria-pressed={active}
+              onClick={() => changePacketType(type.value)}
+            >
+              <span className="packet-type-check" aria-hidden="true">{active ? "✓" : ""}</span>
+              <strong>{type.label}</strong>
+              <small>{type.description}</small>
+            </button>
+          );
+        })}
+      </div>
+
       <div className="packet-builder-fields">
-        <label><span>Packet type</span><select value={packetType} onChange={(event) => changePacketType(event.target.value)}>{PACKET_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}</select></label>
         <label><span>Career / work area</span><select value={options.careerArea ?? ""} onChange={(event) => update("careerArea", event.target.value)}>{CAREER_AREAS.map((area) => <option key={area || "neutral"} value={area}>{area || "Career-neutral"}</option>)}</select></label>
         <label><span>Current role title</span><input type="text" value={options.roleTitle ?? ""} onChange={(event) => update("roleTitle", event.target.value)} placeholder="Use profile headline" maxLength={160} /></label>
         <label><span>Organization / team</span><input type="text" value={options.organization ?? ""} onChange={(event) => update("organization", event.target.value)} placeholder="Optional" maxLength={180} /></label>
