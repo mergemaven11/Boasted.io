@@ -78,4 +78,22 @@ def ensure_core_indexes(db) -> dict[str, list[str]]:
         ),
     ]
 
+    confidentiality = db["confidentiality_attestations"]
+    created["confidentiality_attestations"] = [
+        confidentiality.create_index(
+            [("token_hash", ASCENDING)],
+            name="uniq_confidentiality_attestation_token",
+            unique=True,
+        ),
+        confidentiality.create_index(
+            [("user_id", ASCENDING), ("issued_at", DESCENDING)],
+            name="confidentiality_user_issued",
+        ),
+        confidentiality.create_index(
+            [("purge_at", ASCENDING)],
+            name="confidentiality_audit_retention_ttl",
+            expireAfterSeconds=0,
+        ),
+    ]
+
     return created
