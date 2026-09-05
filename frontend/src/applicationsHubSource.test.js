@@ -7,30 +7,54 @@ function read(relativePath) {
   return fs.readFileSync(fileURLToPath(new URL(relativePath, import.meta.url)), "utf8");
 }
 
-test("Education workspace exposes four adult education goals", () => {
+test("Education workspace exposes application goals and a feature launcher", () => {
   const source = read("./ApplicationsHubPage.jsx");
   assert.match(source, /id: "scholarship"/);
   assert.match(source, /id: "special-program"/);
   assert.match(source, /id: "internship"/);
   assert.match(source, /id: "essay-prep"/);
   assert.match(source, /Education Workspace/);
-  assert.match(source, /18\+ for now/i);
+  assert.match(source, /EDUCATION_FEATURES/);
+  assert.match(source, /My Education/);
+  assert.match(source, /Coursework/);
+  assert.match(source, /Academic Projects/);
+  assert.match(source, /Certifications & Training/);
+  assert.match(source, /Academic Achievements/);
+  assert.match(source, /Group Project Contributions/);
+  assert.match(source, /Graduation Progress/);
+  assert.match(source, /Experience Translator/);
+  assert.match(source, /Education Impact Receipts/);
+  assert.match(source, /Skills from Education/);
+  assert.match(source, /Career Match & Skill Gaps/);
+  assert.match(source, /Résumé Builder/);
+  assert.match(source, /Interview Prep/);
+  assert.match(source, /Academic Portfolio/);
+  assert.match(source, /Career Path Explorer/);
   assert.match(source, /no admissions score/i);
-  assert.match(source, /real wins/i);
+  assert.match(source, /real evidence/i);
 });
 
-test("Education clearly separates 18+ access from the younger-student roadmap", () => {
+test("Education removes the adult-only and middle-school roadmap framing", () => {
   const source = read("./ApplicationsHubPage.jsx");
-  const marketing = read("./EducationMarketingPage.jsx");
-  assert.match(source, /YOUNGER STUDENT EXPERIENCE UNDER CONSTRUCTION/);
-  assert.match(source, /UNDER CONSTRUCTION · COMING SOON/);
-  assert.match(source, /high-school students who are already 18/i);
-  assert.match(source, /Middle school/);
-  assert.match(marketing, /YOUNGER STUDENT EXPERIENCE UNDER CONSTRUCTION/);
-  assert.match(marketing, /high-school students who are already 18/i);
+  assert.doesNotMatch(source, /18\+/);
+  assert.doesNotMatch(source, /Middle school/i);
+  assert.doesNotMatch(source, /YOUNGER STUDENT EXPERIENCE/);
+  assert.doesNotMatch(source, /UNDER CONSTRUCTION/);
 });
 
-test("Education keeps the existing authenticated route while using the new product label", () => {
+test("Education feature buttons route into existing BragStack workflows", () => {
+  const source = read("./ApplicationsHubPage.jsx");
+  assert.match(source, /education_feature=coursework/);
+  assert.match(source, /education_feature=academic-projects/);
+  assert.match(source, /education_feature=certifications/);
+  assert.match(source, /href: "\/app\/impact-receipts"/);
+  assert.match(source, /href: "\/app\/intelligence"/);
+  assert.match(source, /href: "\/app\/resume-builder"/);
+  assert.match(source, /href: "\/app\/interview-practice"/);
+  assert.match(source, /href: "\/app\/profile"/);
+});
+
+test("Education keeps the existing authenticated route while using the product label", () => {
   const root = read("./RootContent.jsx");
   const sidebar = read("./AppSidebar.jsx");
   assert.match(root, /ApplicationsHubPage/);
