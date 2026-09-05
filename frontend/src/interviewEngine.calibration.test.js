@@ -17,6 +17,24 @@ test("vague interview answers stay red across every scoring dimension", () => {
   assert.ok(analysis.overallScore < 55);
 });
 
+test("spoken debugging evidence can graduate from Needs detail without parroting job-description keywords", () => {
+  const answer = "There was an issue with the UI and it wasn't an animation so I looked at the logs to see if the logs was giving back any feedback. The log was in the Chrome dev tools and I found the error, got the code fixed, the pull request passed the test, and it worked out.";
+  const analysis = analyzeAnswer(answer, {
+    question: "The Software Engineer job description emphasizes infrastructure, JavaScript, software. Tell me about a specific project where you used those skills together. What did you personally build, change, diagnose, or deliver, and what was the result?",
+    competency: "role_alignment",
+    roleTitle: "Software Engineer",
+    jobDescription: "Build and troubleshoot software using JavaScript, browser tooling, production logs, and infrastructure practices.",
+  });
+
+  assert.equal(analysis.signals.contextFound, true);
+  assert.equal(analysis.signals.actionFound, true);
+  assert.equal(analysis.signals.resultFound, true);
+  assert.ok(analysis.signals.behavioralEvidenceCoverage >= 67);
+  assert.ok(analysis.dimensions.relevance.score >= 55);
+  assert.ok(analysis.overallScore >= 55);
+  assert.notEqual(analysis.overallLabel, "Needs detail");
+});
+
 test("first-person language alone does not manufacture ownership credit", () => {
   const analysis = analyzeAnswer("I was on the project and I was part of the team.", {
     question: "Tell me what you personally owned during a difficult project.",
