@@ -4,6 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.ai.verification import record_verification_event
 from app.auth import get_current_user
 from app.career_intelligence import build_career_intelligence
+from app.career_intelligence_trajectory import (
+    TRAJECTORY_LABELS,
+    enrich_career_trajectory,
+)
 from app.database import entries_collection, impact_receipts_collection
 from app.education_intelligence import APPLICATION_PROFILES, build_application_intelligence
 
@@ -83,6 +87,15 @@ def _verify_intelligence(result: dict, entries: list[dict], receipts: list[dict]
         if skill.get("support_level") not in valid_support_levels:
             violations.append("skill_support_level_invalid")
             break
+        if "trajectory" in skill and skill.get("trajectory") not in TRAJECTORY_LABELS:
+            violations.append("skill_trajectory_invalid")
+            break
+        if int(skill.get("recent_demonstrations") or 0) > demonstrations:
+            violations.append("skill_recent_demonstration_overcount")
+            break
+        if int(skill.get("historical_demonstrations") or 0) > demonstrations:
+            violations.append("skill_historical_demonstration_overcount")
+            break
 
     profile = result.get("career_profile") or {}
     if profile.get("maturity") not in {"early", "developing", "well-supported"}:
@@ -125,11 +138,12 @@ def _verify_application_intelligence(result: dict, entries: list[dict], receipts
 
 
 def _load_intelligence(current_user: dict) -> dict:
-    """Build and verify Career Intelligence from the user's own proof."""
+    """Build, enrich, and verify Career Intelligence from the user's own proof."""
     user_id = str(current_user["_id"])
     entries = list(entries_collection.find({"user_id": user_id}))
     receipts = list(impact_receipts_collection.find({"user_id": user_id}))
     result = build_career_intelligence(entries, receipts)
+    result = enrich_career_trajectory(result, entries, receipts)
     violations = _verify_intelligence(result, entries, receipts)
     methodology = result.get("methodology") or {}
     version = str(methodology.get("version") or "career-intelligence-unknown")
