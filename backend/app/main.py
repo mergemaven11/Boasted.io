@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from pymongo.errors import PyMongoError
 from starlette.background import BackgroundTask, BackgroundTasks
 
+from app.account_closure_routes import router as account_closure_router
 from app.auth import get_current_user
 from app.auth_routes import router as auth_router
 from app.oauth_routes import router as oauth_router
@@ -233,6 +234,7 @@ def enforce_receipt_usage(request: Request, current_user: dict = Depends(get_cur
 
 
 app.include_router(auth_router)
+app.include_router(account_closure_router)
 app.include_router(oauth_router)
 app.include_router(profile_media_router)
 app.include_router(profile_connection_router)

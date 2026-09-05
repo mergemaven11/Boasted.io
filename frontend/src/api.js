@@ -266,3 +266,13 @@ export function buildPacketShareUrl(path) {
 }
 
 export async function getPublicImpactReceipts(slug) { const response = await api.get(getPublicBragPath(slug, "/impact-receipts")); return response.data; }
+
+export async function reportInterviewIntelligenceVerification({ responseCount, overallScore, violationCodes = [] }) {
+  const response = await api.post("/career-intelligence/interview-verification", {
+    response_count: responseCount,
+    overall_score: overallScore,
+    failed: violationCodes.length > 0,
+    violation_codes: violationCodes,
+  });
+  return response.data;
+}

@@ -1,7 +1,8 @@
 """Career Intelligence routes with deterministic quality verification."""
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 
-from app.ai.verification import record_verification_event
+from app.ai.runtime import enforce_intelligence_result, record_intelligence_outcome
 from app.auth import get_current_user
 from app.career_intelligence_graph import build_career_intelligence_v5
 from app.career_intelligence_trajectory import TRAJECTORY_LABELS
@@ -15,6 +16,14 @@ from app.major_explorer import (
 )
 
 router = APIRouter(prefix="/career-intelligence", tags=["career-intelligence"])
+
+
+class InterviewVerificationPayload(BaseModel):
+    """Privacy-safe client verification summary for Aisha Jordan sessions."""
+    response_count: int = Field(ge=0, le=50)
+    overall_score: int = Field(ge=0, le=100)
+    failed: bool = False
+    violation_codes: list[str] = Field(default_factory=list, max_length=20)
 
 
 def _bounded_percent(value) -> bool:
@@ -288,11 +297,11 @@ def _load_intelligence(current_user: dict) -> dict:
     version = str(methodology.get("version") or "career-intelligence-unknown")
     schema_version = str(methodology.get("schema_version") or version)
     graph = result.get("career_graph") or {}
-    record_verification_event(
+    return enforce_intelligence_result(result, violations=violations,
         feature="career_intelligence",
         task="analysis",
-        passed=not violations,
-        violation_codes=violations,
+        failure_code="career_intelligence_verification_failed",
+        failure_message="BragStack withheld Career Intelligence because its calculated metrics did not reconcile to your saved proof.",
         provider="deterministic",
         model_id=version,
         model_revision="deterministic",
@@ -307,16 +316,6 @@ def _load_intelligence(current_user: dict) -> dict:
         ),
         user_id=user_id,
     )
-    if violations:
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "code": "career_intelligence_verification_failed",
-                "message": "BragStack withheld Career Intelligence because its calculated metrics did not reconcile to your saved proof.",
-                "violation_codes": violations,
-            },
-        )
-    return result
 
 
 def _load_application_intelligence(current_user: dict, application_type: str) -> dict:
@@ -328,11 +327,11 @@ def _load_application_intelligence(current_user: dict, application_type: str) ->
     receipts = list(impact_receipts_collection.find({"user_id": user_id}))
     result = build_application_intelligence(entries, receipts, application_type)
     violations = _verify_application_intelligence(result, entries, receipts)
-    record_verification_event(
-        feature="career_intelligence",
+    return enforce_intelligence_result(result, violations=violations,
+        feature="education_intelligence",
         task=f"application_{application_type}",
-        passed=not violations,
-        violation_codes=violations,
+        failure_code="application_intelligence_verification_failed",
+        failure_message="BragStack withheld application guidance because its recommendations did not reconcile to your saved proof.",
         provider="deterministic",
         model_id="education-intelligence-v1",
         model_revision="deterministic",
@@ -341,16 +340,6 @@ def _load_application_intelligence(current_user: dict, application_type: str) ->
         generated_item_count=len(result.get("recommended_evidence") or []) + len(result.get("gaps") or []),
         user_id=user_id,
     )
-    if violations:
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "code": "application_intelligence_verification_failed",
-                "message": "BragStack withheld application guidance because its recommendations did not reconcile to your saved proof.",
-                "violation_codes": violations,
-            },
-        )
-    return result
 
 
 def _load_major_explorer(current_user: dict) -> dict:
@@ -360,11 +349,11 @@ def _load_major_explorer(current_user: dict) -> dict:
     receipts = list(impact_receipts_collection.find({"user_id": user_id}))
     result = build_major_explorer(entries, receipts)
     violations = _verify_major_explorer(result, entries, receipts)
-    record_verification_event(
+    return enforce_intelligence_result(result, violations=violations,
         feature="education_intelligence",
         task="major_explorer",
-        passed=not violations,
-        violation_codes=violations,
+        failure_code="major_explorer_verification_failed",
+        failure_message="BragStack withheld Major Explorer guidance because the result did not satisfy its exploration and safety rules.",
         provider="deterministic",
         model_id=MAJOR_EXPLORER_VERSION,
         model_revision="deterministic",
@@ -373,16 +362,6 @@ def _load_major_explorer(current_user: dict) -> dict:
         generated_item_count=len(result.get("recommendations") or []),
         user_id=user_id,
     )
-    if violations:
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "code": "major_explorer_verification_failed",
-                "message": "BragStack withheld Major Explorer guidance because the result did not satisfy its exploration and safety rules.",
-                "violation_codes": violations,
-            },
-        )
-    return result
 
 
 @router.get("")
@@ -419,3 +398,17 @@ def get_major_explorer(current_user: dict = Depends(get_current_user)):
 def get_application_intelligence(application_type: str, current_user: dict = Depends(get_current_user)):
     """Return verified evidence recommendations for a student application workflow."""
     return _load_application_intelligence(current_user, application_type)
+
+
+@router.post("/interview-verification", status_code=202)
+def record_interview_verification(payload: InterviewVerificationPayload, current_user: dict = Depends(get_current_user)):
+    """Record a sanitized Aisha Jordan engine outcome for the Ops intelligence inbox."""
+    violations = list(payload.violation_codes)
+    if payload.failed and not violations:
+        violations.append("interview_engine_failed")
+    record_intelligence_outcome(
+        feature="interview_practice", task="aisha_jordan_session", violations=violations,
+        model_id="aisha-jordan-interview-v6", schema_version="interview-summary-v1",
+        source_count=payload.response_count, generated_item_count=1, user_id=str(current_user["_id"]),
+    )
+    return {"recorded": True}

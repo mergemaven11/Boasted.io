@@ -29,3 +29,4 @@ export async function getComplianceCatalog() { const response = await opsApi.get
 export async function runComplianceAudit() { const response = await opsApi.post("/ops/compliance/audits"); return response.data; }
 export async function getLatestComplianceAudit() { const response = await opsApi.get("/ops/compliance/audits/latest"); return response.data; }
 export async function getComplianceAuditHistory(limit = 20) { const response = await opsApi.get("/ops/compliance/audits", { params: { limit } }); return response.data; }
+export async function getIntelligenceVerificationSummary(days = 30) { const response = await opsApi.get("/ops/ai-verification/summary", { params: { days } }); return response.data; }

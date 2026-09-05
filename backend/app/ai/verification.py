@@ -18,7 +18,9 @@ VERIFICATION_SCHEMA_VERSION = "ai-verification-v1"
 SMART_FEATURES = (
     "resume_builder",
     "career_intelligence",
+    "education_intelligence",
     "interview_practice",
+    "compliance_intelligence",
     "evidence_assistant",
 )
 
