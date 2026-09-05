@@ -1,6 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertTriangle, ShieldCheck, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AlertTriangle, CheckCircle2, ShieldCheck, X } from "lucide-react";
 
+import {
+  armConfidentialityAttestation,
+  scanSubmissionContainer,
+} from "./ndaSafety.js";
 import "./NDAInformationGate.css";
 
 const PROTECTED_PATHS = new Set([
@@ -27,8 +31,7 @@ function isProtectedActionButton(button) {
   const path = normalizedPath();
 
   if (path === "/app/accomplishments") {
-    return button.classList.contains("proof-visibility-button")
-      && button.getAttribute("aria-pressed") === "false";
+    return button.classList.contains("proof-visibility-button");
   }
 
   if (path !== "/app/impact-receipts") return false;
@@ -38,34 +41,57 @@ function isProtectedActionButton(button) {
   }
 
   return button.classList.contains("visibility-pill")
-    && button.classList.contains("private");
+    && Boolean(button.closest(".receipt-card-actions"));
+}
+
+function safetyContainerForButton(button) {
+  return (
+    button.closest(".receipt-edit-form") ||
+    button.closest(".receipt-library-card") ||
+    button.closest(".accomplishment-card") ||
+    null
+  );
 }
 
 function NDAInformationGate() {
   const [isOpen, setIsOpen] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const [safetyFindings, setSafetyFindings] = useState([]);
   const pendingActionRef = useRef(null);
   const bypassSubmitRef = useRef(null);
   const bypassClickRef = useRef(null);
 
+  const blockingFindings = useMemo(
+    () => safetyFindings.filter((item) => item.severity === "block"),
+    [safetyFindings],
+  );
+  const warningFindings = useMemo(
+    () => safetyFindings.filter((item) => item.severity === "warning"),
+    [safetyFindings],
+  );
+
   const closeGate = useCallback(() => {
     pendingActionRef.current = null;
     setConfirmed(false);
+    setSafetyFindings([]);
     setIsOpen(false);
   }, []);
 
-  const queueAction = useCallback((action) => {
+  const queueAction = useCallback((action, container = null) => {
     pendingActionRef.current = action;
+    setSafetyFindings(scanSubmissionContainer(container));
     setConfirmed(false);
     setIsOpen(true);
   }, []);
 
   function continueAction() {
-    if (!confirmed || !pendingActionRef.current) return;
+    if (!confirmed || !pendingActionRef.current || blockingFindings.length > 0) return;
     const action = pendingActionRef.current;
     pendingActionRef.current = null;
     setConfirmed(false);
+    setSafetyFindings([]);
     setIsOpen(false);
+    armConfidentialityAttestation();
     window.setTimeout(action, 0);
   }
 
@@ -90,7 +116,7 @@ function NDAInformationGate() {
         } else if (submitter instanceof HTMLElement) {
           submitter.click();
         }
-      });
+      }, form);
     }
 
     function handleClick(event) {
@@ -108,7 +134,7 @@ function NDAInformationGate() {
       queueAction(() => {
         bypassClickRef.current = button;
         button.click();
-      });
+      }, safetyContainerForButton(button));
     }
 
     document.addEventListener("submit", handleSubmit, true);
@@ -160,6 +186,29 @@ function NDAInformationGate() {
           </p>
         </div>
 
+        {blockingFindings.length > 0 ? (
+          <div className="nda-gate-warning nda-gate-local-scan blocker">
+            <AlertTriangle size={19} />
+            <div>
+              <strong>BragStack found a potential credential or secret pattern.</strong>
+              <p>For safety, this submission cannot continue yet. Return to the draft and remove the sensitive material. The scanner does not send your draft anywhere.</p>
+            </div>
+          </div>
+        ) : warningFindings.length > 0 ? (
+          <div className="nda-gate-warning nda-gate-local-scan">
+            <AlertTriangle size={19} />
+            <div>
+              <strong>{warningFindings.length} item{warningFindings.length === 1 ? "" : "s"} should be reviewed.</strong>
+              <p>The local scan noticed code-like, diagnostic, ticket-style, or internal-reference patterns. Generalize them unless you are authorized to store and disclose them.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="nda-gate-local-clear">
+            <CheckCircle2 size={17} />
+            <span>No obvious credential, code-block, diagnostic, or internal-reference pattern was detected locally. This is not a legal determination.</span>
+          </div>
+        )}
+
         <div className="nda-gate-grid">
           <div>
             <strong>Do not upload or paste</strong>
@@ -199,8 +248,13 @@ function NDAInformationGate() {
 
         <div className="nda-gate-actions">
           <button type="button" className="nda-gate-cancel" onClick={closeGate}>Cancel</button>
-          <button type="button" className="nda-gate-continue" onClick={continueAction} disabled={!confirmed}>
-            I confirm — continue
+          <button
+            type="button"
+            className="nda-gate-continue"
+            onClick={continueAction}
+            disabled={!confirmed || blockingFindings.length > 0}
+          >
+            {blockingFindings.length > 0 ? "Remove sensitive material first" : "I confirm — continue"}
           </button>
         </div>
       </section>
