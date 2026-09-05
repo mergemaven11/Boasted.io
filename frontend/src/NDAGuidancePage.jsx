@@ -58,13 +58,53 @@ function NDAGuidancePage() {
           <p><strong>Keep private:</strong> source code, unpublished architecture, internal tool names, screenshots, tickets, logs, credentials, customer data, proprietary metrics, incident details, unreleased features, or other information your agreement or employer treats as confidential.</p>
         </section>
 
-        <section><h2>9. Keep confidential proof private</h2><p>Do not make an accomplishment or Impact Receipt public unless you are permitted to disclose every detail it contains. Private-by-default controls do not replace your contractual or workplace obligations.</p></section>
+        <section>
+          <h2>9. BragStack's NDA & confidential-work safety controls</h2>
+          <p>BragStack places a confidentiality check in front of protected Accomplishment and Impact Receipt writes and public-sharing actions. The user must review the warning and explicitly confirm that the information they are about to submit or publish does not contain material they are prohibited from storing or disclosing.</p>
+          <p>The check is intentionally conservative. It is a product safety control, not permission from an employer, client, contract, or lawyer.</p>
+        </section>
 
-        <section><h2>10. Generated outputs inherit source sensitivity</h2><p>A resume bullet, review packet, interview story, or other generated output can still reveal confidential information if the underlying evidence contains it. Review every output before exporting, publishing, or sending it to someone else.</p></section>
+        <section>
+          <h2>10. The local safety scan</h2>
+          <p>Before a protected submission continues, BragStack can scan the draft text in the browser for obvious high-risk patterns. The scan is designed to flag potential credentials or secrets and to call attention to patterns that can indicate code blocks, logs or diagnostics, internal hosts, ticket-style identifiers, and other internal references.</p>
+          <p><strong>Blocking examples:</strong> private-key material, bearer tokens, password or API-key assignments, provider access tokens, and signed access-token patterns. When a blocking credential pattern is detected, the protected action cannot continue until the material is removed.</p>
+          <p><strong>Review examples:</strong> code-like blocks, stack traces, internal URLs or hosts, ticket-style identifiers, production logs, customer data references, and similar content. A warning does not mean the content is definitely confidential; it means the user should review and generalize it unless disclosure is authorized.</p>
+          <div className="legal-callout">The local pattern scan is not a legal review, data-classification system, or guarantee. It can produce false positives and false negatives. “No obvious pattern detected” does not mean an NDA permits the content.</div>
+        </section>
 
-        <section><h2>11. When not to store something</h2><p>If an agreement or policy says information may not be stored in third-party systems, do not put that information in BragStack. Use a sanitized description or leave the restricted evidence out entirely.</p></section>
+        <section>
+          <h2>11. “Make this NDA-safe” is a sanitization helper, not a legal verdict</h2>
+          <p>The NDA-safe helper is designed to reduce obvious disclosure risk by removing or generalizing common risky details. Depending on the record, it may remove detected credentials, code blocks, diagnostic output, URLs, internal ticket-style identifiers, exact metric values, and public-sharing settings.</p>
+          <p>For evidence references, a reference should only be preserved when the user has explicitly identified it as an already-public source and it does not look like an internal host. The public-source ceiling still applies: keeping a public link does not authorize adding private context that is not present in that source.</p>
+          <p><strong>Always review the rewritten result.</strong> Automated sanitization cannot know every confidential project name, architecture detail, customer fact, unpublished metric, trade secret, or contractual restriction.</p>
+        </section>
 
-        <section><h2>12. This is not legal advice</h2><p>BragStack does not review or interpret your NDA. If you are unsure what is permitted, consult the agreement, your employer or client policy, an authorized security or legal contact, or qualified counsel. Product questions can be sent to <a href="mailto:Tobias.scott@usebragstack.com">Tobias.scott@usebragstack.com</a>.</p></section>
+        <section>
+          <h2>12. Private by default, with another check before disclosure</h2>
+          <p>Career evidence should remain private unless the user deliberately chooses to share it. BragStack's safety flow is designed to re-check protected publication actions instead of treating a prior private save as permanent permission to publish later.</p>
+          <p>Making something private is useful risk reduction, but privacy settings do not make unauthorized third-party storage permissible. If the agreement prohibits storing the material outside the employer or client system at all, do not put the restricted material in BragStack.</p>
+        </section>
+
+        <section>
+          <h2>13. A safer workflow for confidential accomplishments</h2>
+          <p><strong>Step 1:</strong> Start with the career outcome you are allowed to claim: what type of problem you addressed, what skill you demonstrated, and what changed.</p>
+          <p><strong>Step 2:</strong> Remove names, internal URLs, code names, source code, ticket text, logs, customer identifiers, unreleased details, credentials, and unapproved exact metrics.</p>
+          <p><strong>Step 3:</strong> Use the local safety scan and NDA-safe helper as an additional check, then personally review the result.</p>
+          <p><strong>Step 4:</strong> Keep the record private unless every public detail is authorized. If you use public evidence, describe only what the public source itself proves.</p>
+          <p><strong>Step 5:</strong> If the agreement or policy is unclear, stop before submitting and check the agreement or an authorized legal or security contact.</p>
+        </section>
+
+        <section><h2>14. Generated outputs inherit source sensitivity</h2><p>A resume bullet, review packet, interview story, or other generated output can still reveal confidential information if the underlying evidence contains it. Review every output before exporting, publishing, or sending it to someone else.</p></section>
+
+        <section>
+          <h2>15. What the safety helper cannot decide</h2>
+          <p>BragStack cannot determine whether a particular employer considers a project name confidential, whether a metric was approved for disclosure, whether a public repository contains everything you are allowed to discuss, whether an invention-assignment clause applies, or whether a specific disclosure is permitted under a contract or law.</p>
+          <p>Do not rely on the scanner, sanitizer, a private setting, or a successful submission as evidence that disclosure is authorized.</p>
+        </section>
+
+        <section><h2>16. When not to store something</h2><p>If an agreement or policy says information may not be stored in third-party systems, do not put that information in BragStack. Use a sanitized description or leave the restricted evidence out entirely.</p></section>
+
+        <section><h2>17. This is not legal advice</h2><p>BragStack does not review or interpret your NDA and does not certify that a draft is “NDA compliant.” If you are unsure what is permitted, consult the agreement, your employer or client policy, an authorized security or legal contact, or qualified counsel. Product questions can be sent to <a href="mailto:Tobias.scott@usebragstack.com">Tobias.scott@usebragstack.com</a>.</p></section>
       </article>
     </main>
   );
