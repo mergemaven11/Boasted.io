@@ -1,6 +1,6 @@
 import "./LegalPages.css";
 
-const EFFECTIVE = "September 4, 2026";
+const EFFECTIVE = "September 5, 2026";
 
 function NoticeShell({ eyebrow, title, children }) {
   return (
@@ -23,19 +23,19 @@ export function InterimTermsNotice() {
       </p>
 
       <section>
-        <h3>Adults 18+ only for now</h3>
-        <p>BragStack accounts are currently limited to people age 18 or older. Do not create an account or submit personal information if you are under 18. Student-facing features for younger users are not available until BragStack has the appropriate legal, privacy, and operational safeguards in place.</p>
+        <h3>Account eligibility</h3>
+        <p>Use BragStack only if you are legally permitted to use the Service under the full Terms and applicable law. Creating an account requires affirmative acceptance of the current Terms and acknowledgment of the current Privacy Policy.</p>
       </section>
 
       <section>
-        <h3>Career assistance, not professional or guaranteed advice</h3>
-        <p>BragStack provides career organization, drafting, coaching, evidence-management, resume, interview-practice, reporting, and related software tools. It is not a law firm, employer, recruiter, background-check provider, financial adviser, medical provider, or human-resources decision maker. Outputs are not legal, financial, medical, employment, or other professional advice, and BragStack does not guarantee jobs, interviews, promotions, compensation, hiring decisions, admissions, scholarships, or other outcomes.</p>
-        <p>You are responsible for reviewing and verifying generated or suggested content before using it. Do not present AI-generated text, metrics, dates, credentials, employment facts, or verification statements as true unless you have confirmed that they are accurate.</p>
+        <h3>Career and education assistance, not professional or guaranteed advice</h3>
+        <p>BragStack provides career and education organization, drafting, coaching, evidence-management, resume, interview-practice, reporting, and related software tools. It is not a law firm, employer, recruiter, background-check provider, financial adviser, medical provider, admissions office, school, or human-resources decision maker. Outputs are not legal, financial, medical, employment, admissions, or other professional advice, and BragStack does not guarantee jobs, interviews, promotions, compensation, hiring decisions, admissions, scholarships, or other outcomes.</p>
+        <p>You are responsible for reviewing and verifying generated or suggested content before using it. Do not present AI-generated text, metrics, dates, credentials, employment facts, academic facts, or verification statements as true unless you have confirmed that they are accurate.</p>
       </section>
 
       <section>
         <h3>Your content, permissions, and confidentiality remain your responsibility</h3>
-        <p>Only upload, store, reference, or publish information you have the right to use. BragStack does not override an NDA, confidentiality clause, employer policy, client agreement, security rule, export-control obligation, intellectual-property right, or other legal duty. Do not upload passwords, API keys, access tokens, trade secrets, restricted source code, customer data, regulated information, or confidential employer/client materials you are not authorized to retain.</p>
+        <p>Only upload, store, reference, or publish information you have the right to use. BragStack does not override an NDA, confidentiality clause, employer or school policy, client agreement, security rule, export-control obligation, intellectual-property right, student-record restriction, or other legal duty. Do not upload passwords, API keys, access tokens, trade secrets, restricted source code, customer data, protected student records, regulated information, or confidential employer/client materials you are not authorized to retain.</p>
         <p>If a generalized description or approved reference is enough to document an accomplishment, use that instead of copying sensitive source material. Anything you intentionally make public may be copied, retained, or redistributed by other people.</p>
       </section>
 
@@ -46,12 +46,12 @@ export function InterimTermsNotice() {
 
       <section>
         <h3>Public sharing and third-party verification</h3>
-        <p>Private workspace material is intended to remain private unless a feature clearly supports sharing and you intentionally publish or share it. Before making a Proof Profile, Impact Receipt, or other item public, review it for confidential, personal, or restricted information. A verification response means only what the verifier actually confirmed; it is not an audit, certification, background check, employer endorsement, or guarantee unless that is expressly and truthfully stated.</p>
+        <p>Private workspace material is intended to remain private unless a feature clearly supports sharing and you intentionally publish or share it. Before making a Proof Profile, Impact Receipt, or other item public, review it for confidential, personal, restricted, or protected information. A verification response means only what the verifier actually confirmed; it is not an audit, certification, background check, school endorsement, employer endorsement, or guarantee unless that is expressly and truthfully stated.</p>
       </section>
 
       <section>
         <h3>Prohibited misuse</h3>
-        <p>Do not use BragStack to fabricate accomplishments or credentials, impersonate another person, harass or spam others, violate law or another person’s rights, bypass access controls, attempt unauthorized access, distribute malware, interfere with service availability, scrape the Service through unauthorized means, misuse verifier contact information, or evade subscription or usage limits.</p>
+        <p>Do not use BragStack to fabricate accomplishments, academic records, or credentials, impersonate another person, harass or spam others, violate law or another person’s rights, bypass access controls, attempt unauthorized access, distribute malware, interfere with service availability, scrape the Service through unauthorized means, misuse verifier contact information, or evade subscription or usage limits.</p>
       </section>
 
       <section>
@@ -76,12 +76,12 @@ export function InterimPrivacyNotice() {
 
       <section>
         <h3>Private by default does not mean risk-free</h3>
-        <p>BragStack is designed so private career evidence stays in your private workspace unless you intentionally share it. No online service can promise absolute security, however. Use strong credentials, protect your sign-in accounts, and avoid storing information that does not need to be in BragStack.</p>
+        <p>BragStack is designed so private career and education evidence stays in your private workspace unless you intentionally share it. No online service can promise absolute security, however. Use strong credentials, protect your sign-in accounts, and avoid storing information that does not need to be in BragStack.</p>
       </section>
 
       <section>
-        <h3>Minimize workplace and third-party data</h3>
-        <p>Do not upload confidential employer or client documents, trade secrets, restricted source code, customer information, passwords, access tokens, or other data you are not authorized to retain. When you provide another person’s contact information for an Impact Receipt verification request, use only the information reasonably necessary for that request and do not use the feature for marketing, spam, harassment, retaliation, or unrelated contact.</p>
+        <h3>Minimize workplace, education, and third-party data</h3>
+        <p>Do not upload confidential employer or client documents, protected student records, trade secrets, restricted source code, customer information, passwords, access tokens, school-system credentials, or other data you are not authorized to retain. When you provide another person’s contact information for an Impact Receipt verification request, use only the information reasonably necessary for that request and do not use the feature for marketing, spam, harassment, retaliation, or unrelated contact.</p>
       </section>
 
       <section>
@@ -95,8 +95,8 @@ export function InterimPrivacyNotice() {
       </section>
 
       <section>
-        <h3>Adults 18+ only for now</h3>
-        <p>BragStack accounts are currently limited to adults age 18 or older. Do not create an account or submit personal information if you are under 18.</p>
+        <h3>Account eligibility and consent records</h3>
+        <p>Use BragStack only if you are legally permitted to use the Service under the full Terms and applicable law. When a new account accepts the required Terms and Privacy Policy, BragStack records the current document versions and server-side acceptance time as part of the account record.</p>
       </section>
 
       <section>
