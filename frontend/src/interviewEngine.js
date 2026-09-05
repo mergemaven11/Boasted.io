@@ -31,7 +31,7 @@ function includesAny(text, words) {
 }
 
 function clampScore(value) {
-  return Math.max(0, Math.min(100, Math.round(Number(value) || 0));
+  return Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
 }
 
 function unique(items) {
