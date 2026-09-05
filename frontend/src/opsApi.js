@@ -22,6 +22,7 @@ export async function getOpsUserAnalytics(userId) { const response = await opsAp
 export async function resendOpsVerificationEmail(userId) { const response = await opsApi.post(`/ops/user-directory/${userId}/resend-verification`); return response.data; }
 export async function sendOpsUserInvite(payload) { const response = await opsApi.post("/ops/user-invites", payload); return response.data; }
 export async function getOpsTeam() { const response = await opsApi.get("/ops/team"); return response.data; }
+export async function assignOpsRolesByEmail(email, roles) { const response = await opsApi.post("/ops/team/assign", { email, roles }); return response.data; }
 export async function updateOpsRoles(userId, roles) { const response = await opsApi.patch(`/ops/team/${userId}/roles`, { roles }); return response.data; }
 export async function getOpsAudit() { const response = await opsApi.get("/ops/audit"); return response.data; }
 export async function getComplianceCatalog() { const response = await opsApi.get("/ops/compliance/catalog"); return response.data; }
