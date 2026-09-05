@@ -23,6 +23,8 @@ test("Education workspace exposes application goals and a feature launcher", () 
   assert.match(source, /Group Project Contributions/);
   assert.match(source, /Graduation Progress/);
   assert.match(source, /Experience Translator/);
+  assert.match(source, /Major Explorer/);
+  assert.match(source, /href: "#major-explorer"/);
   assert.match(source, /Education Impact Receipts/);
   assert.match(source, /Skills from Education/);
   assert.match(source, /Career Match & Skill Gaps/);
@@ -32,6 +34,25 @@ test("Education workspace exposes application goals and a feature launcher", () 
   assert.match(source, /Career Path Explorer/);
   assert.match(source, /no admissions score/i);
   assert.match(source, /real evidence/i);
+});
+
+test("Major Explorer is embedded in Education with visible non-predictive safeguards", () => {
+  const hub = read("./ApplicationsHubPage.jsx");
+  const explorer = read("./MajorExplorerPanel.jsx");
+  const api = read("./majorExplorerApi.js");
+
+  assert.match(hub, /MajorExplorerPanel/);
+  assert.match(explorer, /id="major-explorer"/);
+  assert.match(explorer, /No “best major” verdict/);
+  assert.match(explorer, /No fit percentage/);
+  assert.match(explorer, /no admissions odds/i);
+  assert.match(explorer, /not academic, career, financial, legal, licensing, or professional advice/i);
+  assert.match(explorer, /does not predict or guarantee admission, scholarships, graduation, employment, salary, licensing, or career success/i);
+  assert.match(explorer, /Verify program requirements/i);
+  assert.match(explorer, /You remain responsible/i);
+  assert.match(explorer, /Self-reported interests are not mixed into demonstrated evidence/i);
+  assert.match(explorer, /does not determine aptitude/i);
+  assert.match(api, /career-intelligence\/major-explorer/);
 });
 
 test("Education removes the adult-only and middle-school roadmap framing", () => {
