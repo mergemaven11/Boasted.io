@@ -79,7 +79,7 @@ for (const [name, value, expectedId] of warningCases) {
 
 const safeCases = [
   "Improved maintainability of an internal platform while preserving behavior.",
-  "Added API key authentication support without including any credential values.",
+  "Added API key authentication support without including sensitive values.",
   "Improved token refresh handling and automated test coverage.",
   "Public documentation: https://docs.python.org/3/",
   "Resolved issue ABC-1 and documented the customer-facing outcome.",
