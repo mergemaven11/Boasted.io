@@ -1,4 +1,4 @@
-"""Document this first-party Python module."""
+"""Tests for explainable Career Intelligence."""
 from datetime import datetime, timezone
 
 from app.career_intelligence import build_career_intelligence
@@ -34,8 +34,11 @@ def test_career_intelligence_combines_entries_and_receipts():
     assert docker["evidence_items"] == 1
     assert docker["confirmations"] == 1
     assert docker["recent"] is True
-    assert "3 total proof records analyzed" in result["recommended_actions"][0]
+    assert result["career_profile"]["primary_skills"]
+    assert "Docker" in result["career_profile"]["primary_skills"]
+    assert "repeated signals" in result["recommended_actions"][0]
     assert result["methodology"]["employment_decision"] is False
+    assert result["methodology"]["version"] == "career-intelligence-v2"
 
 
 def test_linked_receipt_enriches_instead_of_double_counting_proof():
@@ -95,3 +98,115 @@ def test_career_intelligence_surfaces_proof_gaps_without_readiness_score():
     assert "skills" in gap_types
     assert "readiness_score" not in result
     assert result["recommended_actions"]
+
+
+def test_compound_skill_tags_are_split_into_individual_signals():
+    """Historical pasted skill lists should not become one giant skill."""
+    result = build_career_intelligence(
+        [
+            {
+                "category": "Platform Engineering",
+                "tags": [
+                    "Linux · Raspberry Pi · SSH · Networking · Systems Administration",
+                    "Troubleshooting, Platform Engineering; Edge Computing | Developer Tooling",
+                ],
+                "impact": "Built and troubleshot a portable Linux platform.",
+                "entry_date": "2026-09-05",
+            }
+        ],
+        [],
+        now=datetime(2026, 9, 5, tzinfo=timezone.utc),
+    )
+
+    names = {skill["skill"] for skill in result["skills"]}
+    assert {
+        "Linux",
+        "Raspberry Pi",
+        "SSH",
+        "Networking",
+        "Systems Administration",
+        "Troubleshooting",
+        "Platform Engineering",
+        "Edge Computing",
+        "Developer Tooling",
+    }.issubset(names)
+    assert not any(" · " in name for name in names)
+    assert not any("," in name or ";" in name or "|" in name for name in names)
+
+
+def test_recent_singleton_does_not_get_extra_proof_strength_for_recency():
+    """Freshness should not inflate evidence points above older repeated proof."""
+    result = build_career_intelligence(
+        [
+            {
+                "category": "Operations",
+                "tags": ["Linux"],
+                "impact": "Resolved production incidents",
+                "entry_date": "2025-01-10",
+            },
+            {
+                "category": "Operations",
+                "tags": ["Linux"],
+                "impact": "Improved server reliability",
+                "entry_date": "2025-02-10",
+            },
+            {
+                "category": "Edge Computing",
+                "tags": ["Raspberry Pi"],
+                "impact": "Built a field device",
+                "entry_date": "2026-09-05",
+            },
+        ],
+        [],
+        now=datetime(2026, 9, 5, tzinfo=timezone.utc),
+    )
+
+    linux = next(skill for skill in result["skills"] if skill["skill"] == "Linux")
+    pi = next(skill for skill in result["skills"] if skill["skill"] == "Raspberry Pi")
+
+    assert linux["recent"] is False
+    assert pi["recent"] is True
+    assert linux["evidence_points"] > pi["evidence_points"]
+    assert result["skills"][0]["skill"] == "Linux"
+
+
+def test_career_profile_synthesizes_multiple_records_instead_of_one_latest_skill():
+    """The hero model should describe a combined body of proof."""
+    result = build_career_intelligence(
+        [
+            {
+                "category": "Platform Engineering",
+                "tags": ["Linux", "Troubleshooting"],
+                "impact": "Resolved production incidents",
+                "entry_date": "2026-01-10",
+            },
+            {
+                "category": "Platform Engineering",
+                "tags": ["Linux", "Platform Engineering"],
+                "impact": "Improved deployment reliability by 25%",
+                "entry_date": "2026-03-10",
+            },
+            {
+                "category": "Developer Tooling",
+                "tags": ["Developer Tooling", "Troubleshooting"],
+                "impact": "Created internal support tooling",
+                "entry_date": "2026-05-10",
+            },
+            {
+                "category": "Edge Computing",
+                "tags": ["Raspberry Pi · SSH · Networking"],
+                "impact": "Built a portable field device",
+                "entry_date": "2026-09-05",
+            },
+        ],
+        [],
+        now=datetime(2026, 9, 5, tzinfo=timezone.utc),
+    )
+
+    profile = result["career_profile"]
+    assert profile["repeated_skill_count"] >= 2
+    assert "Linux" in profile["primary_skills"]
+    assert "Troubleshooting" in profile["primary_skills"]
+    assert len(profile["primary_skills"]) > 1
+    assert "instead of promoting whichever accomplishment was added most recently" in profile["summary"]
+    assert "Raspberry Pi · SSH · Networking" not in profile["headline"]

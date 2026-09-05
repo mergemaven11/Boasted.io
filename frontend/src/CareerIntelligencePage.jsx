@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BrainCircuit, CheckCircle2, Gauge, Lightbulb, ReceiptText, RefreshCw, Sparkles, Target, TrendingUp } from "lucide-react";
+import {
+  ArrowRight,
+  BrainCircuit,
+  CheckCircle2,
+  Gauge,
+  Lightbulb,
+  ReceiptText,
+  RefreshCw,
+  Sparkles,
+  Target,
+  TrendingUp,
+} from "lucide-react";
 import BragStackLoader from "./BragStackLoader.jsx";
 import "./CareerIntelligencePage.css";
 
@@ -33,7 +44,7 @@ function LoadingShell() {
         </div>
         <aside className="ci-lead-signal">
           <span>Analyzing your proof</span>
-          <strong>Building your career signal…</strong>
+          <strong>Building your combined career signal…</strong>
           <p>Your saved accomplishments and Impact Receipts are being connected into one evidence-backed view.</p>
         </aside>
       </section>
@@ -111,12 +122,34 @@ function CareerIntelligencePage() {
   }
 
   if (error) {
-    return <main className="ci-page"><section className="ci-error"><strong>Career Intelligence unavailable</strong><p>{error}</p><button type="button" onClick={() => void loadIntelligence({ refresh: true })}>Try again</button></section></main>;
+    return (
+      <main className="ci-page">
+        <section className="ci-error">
+          <strong>Career Intelligence unavailable</strong>
+          <p>{error}</p>
+          <button type="button" onClick={() => void loadIntelligence({ refresh: true })}>Try again</button>
+        </section>
+      </main>
+    );
   }
 
-  const { summary = {}, gaps = [], recommended_actions: actions = [], top_categories: categories = [] } = data;
-  const leadSkill = data.top_skills?.[0] || allSkills[0];
+  const {
+    summary = {},
+    gaps = [],
+    recommended_actions: actions = [],
+    top_categories: categories = [],
+    career_profile: careerProfile = {},
+  } = data;
   const totalProofRecords = summary.total_proof_records ?? ((summary.accomplishments ?? 0) + (summary.impact_receipts ?? 0));
+  const profileSkills = Array.isArray(careerProfile.primary_skills) && careerProfile.primary_skills.length
+    ? careerProfile.primary_skills
+    : allSkills.slice(0, 4).map((skill) => skill.skill);
+  const profileHeadline = careerProfile.headline || profileSkills.slice(0, 3).join(" · ");
+  const profileSummary = careerProfile.summary || (
+    profileSkills.length
+      ? "These are the strongest signals across your saved proof, not simply the skills from your newest accomplishment."
+      : "Add accomplishments and skills to start creating evidence-backed career intelligence."
+  );
 
   return (
     <main className="ci-page">
@@ -135,8 +168,21 @@ function CareerIntelligencePage() {
           {refreshMessage && <div className="ci-refresh-message" role="status">{refreshMessage}</div>}
         </div>
         <aside className="ci-lead-signal">
-          <span>Lead career signal</span>
-          {leadSkill ? <><strong>{leadSkill.skill}</strong><SignalBadge signal={leadSkill.signal} /><p><b>{totalProofRecords} total proof record{totalProofRecords === 1 ? "" : "s"} analyzed</b> across {summary.accomplishments ?? 0} accomplishment{summary.accomplishments === 1 ? "" : "s"} and {summary.impact_receipts ?? 0} Impact Receipt{summary.impact_receipts === 1 ? "" : "s"}. This specific skill appears in {leadSkill.demonstrations} distinct demonstration{leadSkill.demonstrations === 1 ? "" : "s"}.</p></> : <><strong>Build your signal</strong><p>Add accomplishments and skills to start creating evidence-backed career intelligence.</p></>}
+          <span>Combined career signal</span>
+          {profileSkills.length ? (
+            <>
+              <strong>{profileHeadline}</strong>
+              <p>
+                <b>{totalProofRecords} total proof record{totalProofRecords === 1 ? "" : "s"} analyzed.</b>{" "}
+                {profileSummary}
+              </p>
+            </>
+          ) : (
+            <>
+              <strong>Build your signal</strong>
+              <p>{profileSummary}</p>
+            </>
+          )}
         </aside>
       </section>
 
@@ -150,19 +196,39 @@ function CareerIntelligencePage() {
       <section className="ci-grid">
         <article className="ci-panel ci-skills-panel">
           <div className="ci-panel-heading"><div><span>Evidence map</span><h2>Demonstrated skills</h2></div><Gauge size={22} /></div>
-          {allSkills.length ? <>
-            <div className="ci-skill-list">{visibleSkills.map((skill) => (
-              <div className="ci-skill-card" key={skill.skill}>
-                <div className="ci-skill-top"><div><strong>{skill.skill}</strong><SignalBadge signal={skill.signal} /></div><span className="ci-points">{skill.evidence_points} proof pts</span></div>
-                <div className="ci-bar"><span style={{ width: `${Math.max(6, skill.evidence_points)}%` }} /></div>
-                <div className="ci-proof-facts"><span>{skill.demonstrations} distinct demonstrations</span><span>{skill.accomplishments ?? 0} accomplishments</span><span>{skill.impact_receipts ?? 0} receipts</span><span>{skill.quantified_examples} quantified</span><span>{skill.evidence_items} evidence</span><span>{skill.confirmations} confirmed</span></div>
+          {allSkills.length ? (
+            <>
+              <div className="ci-skill-list">
+                {visibleSkills.map((skill) => (
+                  <div className="ci-skill-card" key={skill.skill}>
+                    <div className="ci-skill-top">
+                      <div><strong>{skill.skill}</strong><SignalBadge signal={skill.signal} /></div>
+                      <span className="ci-points">{skill.evidence_points} proof pts</span>
+                    </div>
+                    <div className="ci-bar"><span style={{ width: `${Math.max(6, skill.evidence_points)}%` }} /></div>
+                    <div className="ci-proof-facts">
+                      <span>{skill.demonstrations} distinct demonstrations</span>
+                      <span>{skill.accomplishments ?? 0} accomplishments</span>
+                      <span>{skill.impact_receipts ?? 0} receipts</span>
+                      <span>{skill.quantified_examples} quantified</span>
+                      <span>{skill.evidence_items} evidence</span>
+                      <span>{skill.confirmations} confirmed</span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}</div>
-            <div className="ci-skill-pagination" aria-label="Skills pagination">
-              <span>Showing {(skillPage - 1) * SKILLS_PER_PAGE + 1}–{Math.min(skillPage * SKILLS_PER_PAGE, allSkills.length)} of {allSkills.length} skills</span>
-              <div><button type="button" disabled={skillPage === 1} onClick={() => setSkillPage((page) => Math.max(1, page - 1))}>Previous</button><strong>Page {skillPage} of {totalSkillPages}</strong><button type="button" disabled={skillPage === totalSkillPages} onClick={() => setSkillPage((page) => Math.min(totalSkillPages, page + 1))}>Next</button></div>
-            </div>
-          </> : <div className="ci-empty"><p>No skill signals yet.</p><a href="/app/accomplishments?create=1">Add skills to an accomplishment</a></div>}
+              <div className="ci-skill-pagination" aria-label="Skills pagination">
+                <span>Showing {(skillPage - 1) * SKILLS_PER_PAGE + 1}–{Math.min(skillPage * SKILLS_PER_PAGE, allSkills.length)} of {allSkills.length} skills</span>
+                <div>
+                  <button type="button" disabled={skillPage === 1} onClick={() => setSkillPage((page) => Math.max(1, page - 1))}>Previous</button>
+                  <strong>Page {skillPage} of {totalSkillPages}</strong>
+                  <button type="button" disabled={skillPage === totalSkillPages} onClick={() => setSkillPage((page) => Math.min(totalSkillPages, page + 1))}>Next</button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="ci-empty"><p>No skill signals yet.</p><a href="/app/accomplishments?create=1">Add skills to an accomplishment</a></div>
+          )}
         </article>
 
         <aside className="ci-side-stack">
@@ -183,7 +249,9 @@ function CareerIntelligencePage() {
         {gaps.length ? <div className="ci-gap-grid">{gaps.map((gap) => <article key={gap.type}><strong>{gap.title}</strong><p>{gap.detail}</p><span>{gap.action}</span></article>)}</div> : <div className="ci-healthy"><CheckCircle2 size={22} /><div><strong>Your proof foundation looks healthy.</strong><p>Keep capturing fresh accomplishments and evidence as your work changes.</p></div></div>}
       </section>
 
-      <p className="ci-methodology">Career Intelligence analyzes every saved accomplishment and Impact Receipt. Skill-specific demonstration counts are de-duplicated when a receipt comes from the same accomplishment, so a second document strengthens the proof without falsely inflating the skill.</p>
+      <p className="ci-methodology">
+        Career Intelligence analyzes every saved accomplishment and Impact Receipt. Compound pasted skill lists are normalized into individual skills, linked receipts enrich the same underlying demonstration instead of double-counting it, and recency only breaks close ranking ties rather than adding proof strength.
+      </p>
     </main>
   );
 }
