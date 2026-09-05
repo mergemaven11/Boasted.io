@@ -59,6 +59,35 @@
 .pricing-grid-four .pricing-card-header { min-height:84px; align-items:flex-end; }
 .pricing-grid-four .pricing-card-header h3 { font-size:2.25rem; }
 .pricing-grid-four .pricing-card-header h3 span { display:block; margin-top:.2rem; }
+
+/* The early-access Pro gift keeps the regular $9/month reference visible while
+   making the current complimentary price unmistakable. No card is required. */
+.pricing-card-pro .pricing-card-header h3 {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .2rem;
+  font-size: 0;
+  line-height: 1.05;
+}
+.pricing-card-pro .pricing-card-header h3 span { display: none; }
+.pricing-card-pro .pricing-card-header h3::before {
+  content: "$9 / month";
+  color: var(--landing-muted);
+  font-size: .95rem;
+  font-weight: 750;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  opacity: .8;
+}
+.pricing-card-pro .pricing-card-header h3::after {
+  content: "FREE GIFT";
+  color: var(--landing-text);
+  font-size: 2.25rem;
+  font-weight: 950;
+  letter-spacing: -.04em;
+}
+
 .pricing-tagline { min-height:48px; margin:.9rem 0 0; color:var(--landing-muted); line-height:1.45; }
 .pricing-grid-four .pricing-card ul { flex:1; margin-top:1.4rem; }
 .pricing-card-pro { transform:translateY(-10px); box-shadow:0 28px 70px rgba(116,101,255,.18); }
