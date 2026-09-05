@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, ShieldCheck, X } from "lucide-react";
 
 import "./NDAInformationGate.css";
@@ -36,17 +36,17 @@ function NDAInformationGate() {
   const bypassSubmitRef = useRef(null);
   const bypassClickRef = useRef(null);
 
-  function closeGate() {
+  const closeGate = useCallback(() => {
     pendingActionRef.current = null;
     setConfirmed(false);
     setIsOpen(false);
-  }
+  }, []);
 
-  function queueAction(action) {
+  const queueAction = useCallback((action) => {
     pendingActionRef.current = action;
     setConfirmed(false);
     setIsOpen(true);
-  }
+  }, []);
 
   function continueAction() {
     if (!confirmed || !pendingActionRef.current) return;
@@ -105,7 +105,7 @@ function NDAInformationGate() {
       document.removeEventListener("submit", handleSubmit, true);
       document.removeEventListener("click", handleClick, true);
     };
-  }, []);
+  }, [queueAction]);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -114,7 +114,7 @@ function NDAInformationGate() {
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  }, [closeGate, isOpen]);
 
   if (!isOpen) return null;
 
