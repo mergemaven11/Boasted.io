@@ -13,6 +13,7 @@ import {
   Wrench,
 } from "lucide-react";
 import "./SupportHubPage.css";
+import "./SupportHubNavbarFix.css";
 
 const supportCards = [
   {
@@ -61,8 +62,10 @@ export default function SupportHubPage() {
 
   return <main className="support-hub-page">
     <header className="support-hub-topbar">
-      <a className="support-hub-brand" href="/"><span>BragStack</span><em>Beta</em></a>
-      <nav aria-label="Support navigation"><a href="/docs">Docs</a><a href="/security">Security</a><a href="/nda-safety">NDA guidance</a>{token ? <a href="/app">My workspace</a> : <a href="/login">Sign in</a>}</nav>
+      <div className="support-hub-topbar-inner">
+        <a className="support-hub-brand" href="/"><span>BragStack</span><em>Beta</em></a>
+        <nav aria-label="Support navigation"><a href="/docs">Docs</a><a href="/security">Security</a><a href="/nda-safety">NDA guidance</a>{token ? <a className="support-account-link" href="/app">My workspace</a> : <a className="support-account-link" href="/login">Sign in</a>}</nav>
+      </div>
     </header>
 
     <section className="support-hub-hero">
