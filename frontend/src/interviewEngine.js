@@ -3,9 +3,9 @@ import { rankImpactReceipts, scoreMeaningAlignment } from "./careerIntelligence.
 
 const STOP_WORDS = new Set(["a", "an", "and", "are", "as", "at", "be", "for", "from", "how", "i", "in", "is", "it", "me", "my", "of", "on", "or", "that", "the", "this", "to", "was", "we", "were", "what", "when", "with", "you", "your"]);
 const JOB_DESCRIPTION_NOISE = new Set(["ability", "about", "across", "also", "applicant", "candidate", "company", "demonstrated", "environment", "excellent", "experience", "experienced", "including", "knowledge", "looking", "preferred", "qualified", "requirements", "required", "responsibilities", "responsibility", "role", "skills", "strong", "team", "teams", "using", "work", "working", "years"]);
-const ACTION_WORDS = ["analyzed", "automated", "built", "changed", "chose", "coached", "collaborated", "communicated", "configured", "coordinated", "created", "decided", "deployed", "designed", "diagnosed", "documented", "escalated", "facilitated", "fixed", "implemented", "improved", "introduced", "investigated", "isolated", "led", "mentored", "migrated", "monitored", "negotiated", "optimized", "organized", "owned", "partnered", "presented", "prioritized", "proposed", "recommended", "refactored", "repaired", "resolved", "reviewed", "selected", "tested", "trained", "taught", "updated", "validated", "verified", "wrote"];
-const RESULT_WORDS = ["achieved", "afterward", "allowed", "avoided", "completed", "delivered", "eliminated", "enabled", "faster", "grew", "helped", "higher", "improved", "increased", "launched", "lower", "met", "outcome", "prevented", "recovered", "reduced", "resolved", "result", "resulted", "saved", "shortened", "ultimately"];
-const CONTEXT_WORDS = ["campaign", "case", "client", "customer", "deadline", "during", "incident", "patient", "project", "quarter", "role", "shift", "student", "team", "when", "while"];
+const ACTION_WORDS = ["analyzed", "automated", "built", "changed", "checked", "chose", "coached", "coded", "collaborated", "communicated", "configured", "coordinated", "created", "decided", "deployed", "designed", "diagnosed", "documented", "escalated", "facilitated", "fixed", "found", "implemented", "improved", "inspected", "introduced", "investigated", "isolated", "led", "looked", "mentored", "migrated", "monitored", "negotiated", "optimized", "organized", "owned", "patched", "partnered", "presented", "prioritized", "proposed", "ran", "recommended", "refactored", "repaired", "reproduced", "resolved", "reviewed", "selected", "tested", "traced", "trained", "taught", "updated", "validated", "verified", "wrote"];
+const RESULT_WORDS = ["achieved", "afterward", "allowed", "approved", "avoided", "completed", "delivered", "eliminated", "enabled", "faster", "grew", "helped", "higher", "improved", "increased", "launched", "lower", "met", "outcome", "prevented", "recovered", "reduced", "resolved", "restored", "result", "resulted", "saved", "shortened", "stabilized", "successful", "ultimately"];
+const CONTEXT_WORDS = ["bug", "campaign", "case", "challenge", "client", "customer", "deadline", "during", "error", "failure", "incident", "issue", "outage", "patient", "problem", "project", "quarter", "request", "role", "shift", "student", "team", "when", "while"];
 const FILLERS = ["um", "uh", "erm", "you know", "kind of", "sort of", "basically", "literally", "i mean"];
 const RECEIPT_ROTATION_KEY = "bragstack_interview_receipt_rotation_v1";
 
@@ -31,7 +31,7 @@ function includesAny(text, words) {
 }
 
 function clampScore(value) {
-  return Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+  return Math.max(0, Math.min(100, Math.round(Number(value) || 0));
 }
 
 function unique(items) {
@@ -245,6 +245,19 @@ function contextSignal(text) {
     || /\b(?:last|previous|recent)\s+(?:year|month|quarter|week|role|job|project)\b/i.test(text);
 }
 
+function personalActionSignal(text, firstPerson) {
+  if (!firstPerson) return false;
+  if (includesAny(text, ACTION_WORDS)) return true;
+  return /\b(?:i|i'm|i’ve|i'd)\s+(?:looked|checked|reviewed|inspected|found|identified|traced|reproduced|ran|patched|coded|debugged|tested|fixed|changed|implemented|built|created)\b/i.test(text);
+}
+
+function resultSignal(text) {
+  if (includesAny(text, RESULT_WORDS)) return true;
+  return /\bpass(?:ed)?\s+(?:all\s+)?(?:the\s+)?(?:tests?|checks?|builds?|validation)\b/i.test(text)
+    || /\b(?:tests?|checks?|builds?|validation)\s+(?:all\s+)?pass(?:ed)?\b/i.test(text)
+    || /\b(?:worked out|worked as expected|came back up|stayed stable|no longer (?:failed|failing|errored|broke|broken))\b/i.test(text);
+}
+
 function scoreRelevance(meaning, wordCount) {
   let score = clampScore(meaning?.score || 0);
   if (wordCount < 8) score = Math.min(score, 12);
@@ -358,8 +371,8 @@ export function analyzeAnswer(answer = "", { question = "", competency = "", rol
   const warning = professionalLanguageWarning(text);
   const firstPerson = /\b(i|i'm|i’ve|i'd|my)\b/i.test(text);
   const contextFound = contextSignal(text);
-  const actionFound = firstPerson && includesAny(text, ACTION_WORDS);
-  const resultFound = includesAny(text, RESULT_WORDS);
+  const actionFound = personalActionSignal(text, firstPerson);
+  const resultFound = resultSignal(text);
   const quantified = /(?:\$\s?\d|\b\d+(?:\.\d+)?\s?(?:%|percent|hours?|days?|weeks?|months?|years?|people|customers?|patients?|students?|tickets?|cases?|minutes?|seconds?|x\b))/i.test(text);
   const meaning = scoreMeaningAlignment(text, { question, competency, roleTitle, jobDescription });
   const causalEvidence = Boolean(meaning?.causalEvidence) || /\b(?:because|so that|which meant|therefore|as a result|resulted in|led to|enabled|allowed)\b/i.test(text);
@@ -375,7 +388,7 @@ export function analyzeAnswer(answer = "", { question = "", competency = "", rol
   const wordsPerMinute = durationSeconds > 5 ? Math.round(wordCount / (durationSeconds / 60)) : null;
 
   const dimensions = {
-    relevance: dimension(relevanceScore, relevanceScore >= 80 ? `Your evidence directly supports ${meaning.competency.replaceAll("_", " ")}.` : relevanceScore >= 55 ? `Your example partly supports ${meaning.competency.replaceAll("_", " ")}, but the connection needs to be explicit.` : `This answer does not yet prove ${meaning.competency.replaceAll("_", " ")}.`, `State the exact behavior or decision that demonstrates ${meaning.competency.replaceAll("_", " ")}.`),
+    relevance: dimension(relevanceScore, relevanceScore >= 80 ? `Your evidence directly supports ${meaning.competency.replaceAll("_", " ")}.` : relevanceScore >= 55 ? `Your example provides relevant evidence for ${meaning.competency.replaceAll("_", " ")}; make the connection to the exact requirement more explicit.` : `This answer does not yet prove ${meaning.competency.replaceAll("_", " ")}.`, `State the exact behavior or decision that demonstrates ${meaning.competency.replaceAll("_", " ")}.`),
     structure: dimension(structureScore, structureScore >= 80 ? "The answer has a clear situation → action → result arc." : "One or more STAR pieces are missing or too vague to score strongly.", "Use one sentence for the situation, most of the answer on your action, and finish with the result."),
     ownership: dimension(ownershipScore, actionFound ? (ownershipScore >= 70 ? "Your personal contribution is clear and supported by evidence." : "A personal action is present, but it needs clearer ownership and evidence.") : firstPerson ? "You speak in first person, but the actual action is vague." : "It is unclear what you personally owned.", "Name the exact thing you decided, built, changed, diagnosed, communicated, or led."),
     specificity: dimension(specificityScore, specificityScore >= 70 ? "Concrete details make the story credible." : "The answer relies on broad statements instead of enough evidence.", "Add one or two real details: what system/process, what constraint, what decision, or who was affected."),
@@ -404,7 +417,7 @@ export function analyzeAnswer(answer = "", { question = "", competency = "", rol
     meaning,
     warning,
     instantFail: false,
-    signals: { wordCount, fillerCount, wordsPerMinute, contextFound, actionFound, resultFound, quantified, competency: meaning.competency, conceptCoverage: meaning.conceptCoverage, causalEvidence, concreteExample: meaning.concreteExample },
+    signals: { wordCount, fillerCount, wordsPerMinute, contextFound, actionFound, resultFound, quantified, competency: meaning.competency, conceptCoverage: meaning.conceptCoverage, behavioralEvidenceCoverage: meaning.behavioralEvidenceCoverage, causalEvidence, concreteExample: meaning.concreteExample },
     missingDimension,
     followUp,
     strengths: detailed.strengths,
