@@ -24,9 +24,21 @@ function isProtectedSubmission(form) {
 }
 
 function isProtectedActionButton(button) {
-  if (normalizedPath() !== "/app/impact-receipts") return false;
-  if (!button.closest(".receipt-edit-form")) return false;
-  return button.textContent?.trim() === "Save changes";
+  const path = normalizedPath();
+
+  if (path === "/app/accomplishments") {
+    return button.classList.contains("proof-visibility-button")
+      && button.getAttribute("aria-pressed") === "false";
+  }
+
+  if (path !== "/app/impact-receipts") return false;
+
+  if (button.closest(".receipt-edit-form")) {
+    return button.textContent?.trim() === "Save changes";
+  }
+
+  return button.classList.contains("visibility-pill")
+    && button.classList.contains("private");
 }
 
 function NDAInformationGate() {
@@ -132,7 +144,7 @@ function NDAInformationGate() {
             <span className="nda-gate-icon"><ShieldCheck size={22} /></span>
             <div>
               <p className="nda-gate-eyebrow">NDA & confidentiality check</p>
-              <h2 id="nda-gate-title">Before BragStack sends this work information</h2>
+              <h2 id="nda-gate-title">Before BragStack sends or publishes this work information</h2>
             </div>
           </div>
           <button type="button" className="nda-gate-close" onClick={closeGate} aria-label="Close confidentiality check">
@@ -174,8 +186,8 @@ function NDAInformationGate() {
             onChange={(event) => setConfirmed(event.target.checked)}
           />
           <span>
-            I confirm that the information I am about to submit does not contain confidential,
-            proprietary, restricted, or other material I am prohibited from storing or disclosing.
+            I confirm that the information I am about to submit or publish does not contain
+            confidential, proprietary, restricted, or other material I am prohibited from storing or disclosing.
           </span>
         </label>
 
