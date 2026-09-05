@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Lock, Mail, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
+import { Lock, Mail, Sparkles, UserPlus } from "lucide-react";
 import "./AuthPage.css";
 
 function getApiBaseUrl() {
@@ -50,7 +50,6 @@ function AuthPage({ mode = "login", onLogin }) {
   const initialVerifyToken = hashParams.get("verify_token") || "";
 
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
-  const [ageConfirmed, setAgeConfirmed] = useState(!isRegister);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -135,10 +134,6 @@ function AuthPage({ mode = "login", onLogin }) {
     setErrorMessage("");
     setVerificationMessage("");
 
-    if (isRegister && !ageConfirmed) {
-      setErrorMessage("BragStack accounts are currently limited to people age 18 or older.");
-      return;
-    }
     if (isRegister && (!acceptedTerms || !acceptedPrivacy)) {
       setErrorMessage("Please accept the Terms and Privacy Policy before creating an account.");
       return;
@@ -158,7 +153,6 @@ function AuthPage({ mode = "login", onLogin }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...formData,
-            age_18_or_older: true,
             accepted_terms: acceptedTerms,
             accepted_privacy: acceptedPrivacy,
           }),
@@ -211,7 +205,7 @@ function AuthPage({ mode = "login", onLogin }) {
 
   async function startOAuth(provider) {
     if (isRegister) {
-      setErrorMessage("For now, create new accounts with email/password so BragStack can record the 18+ and legal confirmations. Existing users can still use OAuth from Log in.");
+      setErrorMessage("For now, create new accounts with email/password so BragStack can record the required legal confirmations. Existing users can still use OAuth from Log in.");
       return;
     }
     setConnectingProvider(provider);
@@ -287,20 +281,6 @@ function AuthPage({ mode = "login", onLogin }) {
 
   return (
     <main className="auth-page">
-      {isRegister && !ageConfirmed && (
-        <div className="auth-age-gate" role="dialog" aria-modal="true" aria-labelledby="age-gate-title">
-          <div className="auth-age-gate-card">
-            <div className="auth-age-gate-icon"><ShieldCheck size={26} /></div>
-            <p className="mini-label">BragStack access</p>
-            <h2 id="age-gate-title">BragStack is 18+ for now.</h2>
-            <p>We are keeping BragStack limited to adults while we finish the legal and privacy work needed for student accounts. Middle-school student access is coming later.</p>
-            <button className="btn primary" type="button" onClick={() => setAgeConfirmed(true)}>I am 18 or older</button>
-            <a className="btn secondary" href="/">Return to BragStack</a>
-            <small>Do not create an account or upload personal information if you are under 18.</small>
-          </div>
-        </div>
-      )}
-
       <section className="auth-shell">
         <div className="auth-copy">
           <p className="mini-label">BragStack</p>
@@ -313,7 +293,7 @@ function AuthPage({ mode = "login", onLogin }) {
           <div className="auth-icon">{isRegister ? <UserPlus size={24} /> : <Sparkles size={24} />}</div>
           <p className="mini-label">{isRegister ? "Create account" : "Welcome back"}</p>
           <h2>{isRegister ? "Start your BragStack" : "Log in to BragStack"}</h2>
-          <p className="auth-muted">{isRegister ? "Create your private workspace for career proof. Adults 18+ only for now." : "Open your dashboard and keep building your proof."}</p>
+          <p className="auth-muted">{isRegister ? "Create your private workspace for career and education proof." : "Open your dashboard and keep building your proof."}</p>
 
           {isVerifying && <div className="auth-reset-panel"><strong>Verifying your email…</strong><p>One moment while BragStack confirms your account.</p></div>}
           {errorMessage && <div className="auth-error">{errorMessage}</div>}
@@ -333,13 +313,13 @@ function AuthPage({ mode = "login", onLogin }) {
             <div className="auth-legal-consent">
               <label><input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} /> <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms and Conditions</a>.</span></label>
               <label><input type="checkbox" checked={acceptedPrivacy} onChange={(event) => setAcceptedPrivacy(event.target.checked)} /> <span>I have read the <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.</span></label>
-              <p>By creating an account, you also confirm that you are at least 18 years old.</p>
+              <p>BragStack records the current policy versions and the time these required agreements are accepted on your account.</p>
             </div>
           )}
 
           {!isRegister && <button type="button" className="auth-forgot-link" onClick={() => setShowReset((current) => !current)}>Forgot password?</button>}
 
-          <button className="btn primary auth-submit" disabled={isSubmitting || isVerifying || Boolean(connectingProvider) || (isRegister && (!ageConfirmed || !acceptedTerms || !acceptedPrivacy))}>{submitLabel}</button>
+          <button className="btn primary auth-submit" disabled={isSubmitting || isVerifying || Boolean(connectingProvider) || (isRegister && (!acceptedTerms || !acceptedPrivacy))}>{submitLabel}</button>
           {isSlowSubmit && <p className="auth-submit-status" role="status">Securely connecting to BragStack…</p>}
 
           {showReset && !isRegister && (
@@ -354,7 +334,7 @@ function AuthPage({ mode = "login", onLogin }) {
           )}
 
           {isRegister ? (
-            <div className="auth-oauth-temporary"><strong>Google & GitHub sign-up</strong><p>Temporarily paused for new accounts so every new user completes the 18+ and legal-consent step. Existing OAuth users can still sign in from the Log in page.</p></div>
+            <div className="auth-oauth-temporary"><strong>Google & GitHub sign-up</strong><p>Temporarily paused for new accounts so every new user completes the required legal-consent step. Existing OAuth users can still sign in from the Log in page.</p></div>
           ) : (
             <><div className="auth-divider"><span>or continue with</span></div><div className="auth-oauth-grid"><button type="button" className="auth-oauth-button auth-oauth-google" onClick={() => startOAuth("google")} disabled={Boolean(connectingProvider)}><span className="auth-google-mark" aria-hidden="true">G</span><span>{connectingProvider === "google" ? "Connecting to Google..." : "Continue with Google"}</span></button><button type="button" className="auth-oauth-button auth-oauth-github" onClick={() => startOAuth("github")} disabled={Boolean(connectingProvider)}><GitHubMark /><span>{connectingProvider === "github" ? "Connecting to GitHub..." : "Continue with GitHub"}</span></button>{connectingProvider && oauthIsTakingLonger && <p className="auth-oauth-status" role="status">BragStack is waking up. This can take about a minute on the current low-cost server.</p>}</div></>
           )}
