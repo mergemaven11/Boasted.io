@@ -7,7 +7,7 @@ import httpx
 from fastapi import APIRouter, Depends
 
 from app.auth import get_current_user
-from app.plans import PLAN_PRICING, get_plan_for_user
+from app.plans import get_plan_for_user, get_pricing_for_user, has_temporary_pro_gift
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 STRIPE_API_BASE = "https://api.stripe.com/v1"
@@ -16,18 +16,26 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 
 def _fallback_payload(user: dict) -> dict:
     plan = get_plan_for_user(user)
-    pricing = PLAN_PRICING.get(plan, {})
+    pricing = get_pricing_for_user(user)
+    promotional = has_temporary_pro_gift(user)
     monthly = pricing.get("monthly")
+    has_subscription = bool(user.get("stripe_subscription_id"))
     return {
         "plan": plan,
+        "persisted_plan": user.get("plan", "free"),
         "status": user.get("billing_status", "free"),
         "cancel_at_period_end": bool(user.get("billing_cancel_at_period_end", False)),
         "current_period_end": user.get("billing_current_period_end"),
         "amount": monthly,
         "currency": "usd" if monthly is not None else None,
-        "interval": "month" if monthly is not None else None,
+        "interval": None if promotional else ("month" if monthly is not None else None),
         "payment_method": None,
         "stripe_live": False,
+        "temporary_pro_gift": promotional,
+        "has_subscription": has_subscription,
+        "access_source": "complimentary_pro" if promotional else ("subscription" if has_subscription else "plan"),
+        "standard_monthly": pricing.get("standard_monthly"),
+        "promotional_notice": pricing.get("notice"),
     }
 
 
@@ -78,6 +86,11 @@ async def billing_details(current_user: dict = Depends(get_current_user)):
             "interval": recurring.get("interval") or payload["interval"],
             "payment_method": _payment_method(subscription.get("default_payment_method")),
             "stripe_live": True,
+            "has_subscription": True,
+            "access_source": "subscription",
+            "temporary_pro_gift": False,
+            "standard_monthly": None,
+            "promotional_notice": None,
         })
         return payload
     except Exception:
