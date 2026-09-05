@@ -11,6 +11,8 @@ import {
   Search,
 } from "lucide-react";
 import {
+  assignOpsRolesByEmail,
+  getLatestComplianceAudit,
   getOpsAccess,
   getOpsAudit,
   getOpsObservability,
@@ -20,8 +22,10 @@ import {
   updateOpsRoles,
 } from "./opsApi";
 import BragStackLoader from "./BragStackLoader.jsx";
+import ComplianceAuditPanel from "./ComplianceAuditPanel.jsx";
 import FounderAnalyticsPanel from "./FounderAnalyticsPanel.jsx";
 import "./OpsConsolePage.css";
+import "./ComplianceAuditPanel.css";
 
 const OPS_INBOX_STORAGE_KEY = "bragstack_ops_inbox_state_v1";
 const ATTENTION_PRIORITIES = new Set(["urgent", "action", "warning"]);
@@ -58,8 +62,64 @@ function isFutureTimestamp(value) {
   return Number(value || 0) > Date.now();
 }
 
-function buildOpsMessages({ service = {}, persisted = {}, audit = null }) {
+function governanceArea(finding = {}) {
+  const id = String(finding.control_id || "");
+  const category = String(finding.category || "").toLowerCase();
+  if (id.startsWith("BUS-") || id.startsWith("FUND-") || category.includes("fundraising") || category.includes("corporate") || category.includes("tax")) return "Business";
+  if (id.startsWith("AI-") || id.startsWith("MINORS-") || category.includes("younger") || category.includes("safety")) return "Safety";
+  if (id.startsWith("PRIV-VENDOR") || id.startsWith("PRIV-RETENTION") || id.startsWith("GOV-") || category.includes("data lifecycle") || category.includes("vendor")) return "Security";
+  return "Legal";
+}
+
+function governancePriority(finding = {}) {
+  if (finding.status === "gap" && finding.severity === "blocker") return "urgent";
+  if (finding.status === "gap" || finding.status === "counsel_review" || finding.severity === "high") return "action";
+  if (finding.status === "needs_evidence" || finding.status === "upcoming") return "warning";
+  return "info";
+}
+
+function buildOpsMessages({ service = {}, persisted = {}, audit = null, compliance = null }) {
   const messages = [];
+
+  if (compliance) {
+    const overall = String(compliance.summary?.overall || "action_required");
+    const blockers = compliance.summary?.blockers?.length || 0;
+    messages.push({
+      id: `governance:${compliance.receipt_id}`,
+      source: "Governance",
+      category: "Whole-business report",
+      priority: overall === "blocked" ? "urgent" : overall === "action_required" ? "action" : "info",
+      title: `Governance scan: ${overall.replaceAll("_", " ")}`,
+      summary: `${blockers} blocker${blockers === 1 ? "" : "s"} · ${(compliance.findings || []).length} controls reviewed across legal, business, security, and safety readiness.`,
+      meaning: "This is the latest timestamped governance receipt. It records evidence, gaps, counsel-review items, and upcoming obligations; it is not a legal certification.",
+      nextStep: overall === "ready" ? "Keep the evidence current and rerun the scan after material product, business, vendor, legal, or security changes." : "Open the governance report, start with blockers and high-severity findings, and preserve evidence as each issue is resolved.",
+      detail: `Receipt ${compliance.receipt_id}`,
+      createdAt: compliance.generated_at,
+      syncRecommended: overall !== "ready",
+      externalUrl: "/ops/compliance",
+    });
+
+    (compliance.findings || [])
+      .filter((finding) => !["pass", "not_applicable"].includes(finding.status))
+      .slice(0, 16)
+      .forEach((finding) => {
+        const area = governanceArea(finding);
+        messages.push({
+          id: `governance:${compliance.receipt_id}:${finding.control_id}`,
+          source: "Governance",
+          category: `${area} report`,
+          priority: governancePriority(finding),
+          title: finding.title,
+          summary: finding.summary,
+          meaning: `${area} control ${finding.control_id} is marked ${String(finding.status || "unknown").replaceAll("_", " ")} with ${finding.severity || "unknown"} severity in the latest governance scan.`,
+          nextStep: finding.next_action,
+          detail: finding.counsel_required ? `${finding.control_id} · counsel review` : finding.control_id,
+          createdAt: compliance.generated_at,
+          syncRecommended: finding.severity === "blocker" || finding.severity === "high" || finding.counsel_required,
+          externalUrl: "/ops/compliance#compliance-readiness",
+        });
+      });
+  }
 
   if (service.mongo && service.mongo !== "ok") {
     messages.push({
@@ -187,8 +247,8 @@ function PriorityIcon({ priority }) {
   return <Info size={18} aria-hidden="true" />;
 }
 
-function OpsInbox({ service, persisted, audit }) {
-  const messages = useMemo(() => buildOpsMessages({ service, persisted, audit }), [service, persisted, audit]);
+function OpsInbox({ service, persisted, audit, compliance }) {
+  const messages = useMemo(() => buildOpsMessages({ service, persisted, audit, compliance }), [service, persisted, audit, compliance]);
   const [state, setState] = useState(readInboxState);
   const [expanded, setExpanded] = useState({});
   const [filter, setFilter] = useState("all");
@@ -259,7 +319,7 @@ function OpsInbox({ service, persisted, audit }) {
       <div>
         <p className="ops-kicker">FOUNDER · OPS INBOX</p>
         <h2><Inbox size={22} aria-hidden="true" /> Messages worth reading</h2>
-        <p>Each card is a plain-English Ops alert. Tap <strong>View details</strong> to see what it means and exactly what to do next.</p>
+        <p>Legal, business, security, safety, application, and access-control findings arrive here as plain-English Ops messages. Tap <strong>View details</strong> to see what it means and exactly what to do next.</p>
       </div>
       <div className="ops-inbox-summary" aria-label="Ops inbox summary">
         <div><Bell size={17} /><strong>{unreadCount}</strong><span>Unread</span></div>
@@ -275,7 +335,7 @@ function OpsInbox({ service, persisted, audit }) {
     </div>
 
     <div className="ops-message-list">
-      {filteredMessages.length === 0 && <div className="ops-inbox-empty"><CheckCheck size={30} /><strong>Nothing needs your attention here.</strong><span>Try another filter, or refresh diagnostics.</span></div>}
+      {filteredMessages.length === 0 && <div className="ops-inbox-empty"><CheckCheck size={30} /><strong>Nothing needs your attention here.</strong><span>Try another filter, refresh diagnostics, or run a governance scan.</span></div>}
       {filteredMessages.map((message) => <article className={`ops-message ${message.priority} ${isRead(message.id) ? "read" : "unread"}`} key={message.id}>
         <div className="ops-message-icon"><PriorityIcon priority={message.priority} /></div>
         <div className="ops-message-body">
@@ -288,7 +348,7 @@ function OpsInbox({ service, persisted, audit }) {
           {!isRead(message.id) && <button type="button" onClick={() => markRead(message.id)}><CheckCheck size={15} /> Mark read</button>}
           {!isArchived(message.id) && <button type="button" onClick={() => snoozeMessage(message.id)}><Clock3 size={15} /> Snooze 1h</button>}
           <button type="button" onClick={() => archiveMessage(message.id)}><Archive size={15} /> {isArchived(message.id) ? "Restore" : "Archive"}</button>
-          {message.externalUrl && <a href={message.externalUrl} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Open</a>}
+          {message.externalUrl && <a href={message.externalUrl}><ExternalLink size={15} /> Open report</a>}
         </div>
       </article>)}
     </div>
@@ -314,6 +374,8 @@ function AuditEventRow({ event }) {
 function RoleManager({ team, setTeam, audit, setAudit }) {
   const [saving, setSaving] = useState("");
   const [roleError, setRoleError] = useState("");
+  const [assignEmail, setAssignEmail] = useState("");
+  const [assignRoles, setAssignRoles] = useState(["support"]);
   const roles = team?.allowed_roles || [];
 
   async function toggleRole(member, role) {
@@ -331,12 +393,46 @@ function RoleManager({ team, setTeam, audit, setAudit }) {
     }
   }
 
+  function toggleAssignRole(role) {
+    setAssignRoles((current) => current.includes(role) ? current.filter((item) => item !== role) : [...current, role]);
+  }
+
+  async function assignAccess(event) {
+    event.preventDefault();
+    if (!assignRoles.length) { setRoleError("Choose at least one role."); return; }
+    setSaving("assign");
+    setRoleError("");
+    try {
+      const updated = await assignOpsRolesByEmail(assignEmail, assignRoles);
+      setTeam((current) => {
+        const existing = (current?.members || []).some((item) => item.id === updated.id);
+        const members = existing
+          ? current.members.map((item) => item.id === updated.id ? updated : item)
+          : [updated, ...(current?.members || [])];
+        return { ...current, members };
+      });
+      setAudit(await getOpsAudit());
+      setAssignEmail("");
+      setAssignRoles(["support"]);
+    } catch (err) {
+      setRoleError(err.response?.data?.detail || "Access assignment failed.");
+    } finally {
+      setSaving("");
+    }
+  }
+
   return <>
     {roleError && <p className="ops-error">{roleError}</p>}
+    <form className="ops-user-search" onSubmit={assignAccess}>
+      <input type="email" value={assignEmail} onChange={(event) => setAssignEmail(event.target.value)} placeholder="verified-operator@example.com" required />
+      <div className="ops-role-list">{roles.map((role) => <label key={`assign-${role}`}><input type="checkbox" checked={assignRoles.includes(role)} disabled={saving === "assign"} onChange={() => toggleAssignRole(role)} /><span>{role}</span></label>)}</div>
+      <button type="submit" disabled={saving === "assign"}>{saving === "assign" ? "Assigning…" : "Assign access"}</button>
+    </form>
+    <p className="ops-empty">The person must already have a verified BragStack account. If they do not, invite them first; an invitation alone never grants internal access.</p>
     <div className="ops-team-grid">{(team?.members || []).map((member) => <article className="ops-team-card" key={member.id}>
       <div><strong>{member.name || member.email}</strong><small>{member.email}</small></div>
       {member.bootstrap_admin && <span className="ops-bootstrap-badge">Bootstrap admin</span>}
-      <div className="ops-role-list">{roles.map((role) => <label key={role}><input type="checkbox" checked={member.roles.includes(role)} disabled={saving === member.id} onChange={() => void toggleRole(member, role)} /><span>{role}</span></label>)}</div>
+      <div className="ops-role-list">{roles.map((role) => <label key={role}><input type="checkbox" checked={member.roles.includes(role)} disabled={saving === member.id || member.bootstrap_admin && role === "admin"} onChange={() => void toggleRole(member, role)} /><span>{role}</span></label>)}</div>
       <small>Effective: {(member.effective_roles || []).join(", ") || "none"}</small>
     </article>)}</div>
     <div className="ops-audit-list"><h3>Recent admin actions</h3>{(audit?.events || []).length === 0 && <p className="ops-empty">No admin actions recorded yet.</p>}{(audit?.events || []).map((event, index) => <AuditEventRow event={event} key={`${event.created_at}-${index}`} />)}</div>
@@ -349,6 +445,7 @@ export default function OpsConsolePage() {
   const [observability, setObservability] = useState(null);
   const [team, setTeam] = useState(null);
   const [audit, setAudit] = useState(null);
+  const [compliance, setCompliance] = useState(null);
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [userResult, setUserResult] = useState(null);
@@ -357,11 +454,11 @@ export default function OpsConsolePage() {
 
   async function loadDiagnostics() {
     const nextAccess = await getOpsAccess();
-    const [nextOverview, nextObservability] = await Promise.all([getOpsOverview(), getOpsObservability()]);
+    const [nextOverview, nextObservability, nextCompliance] = await Promise.all([getOpsOverview(), getOpsObservability(), getLatestComplianceAudit()]);
     let nextTeam = null;
     let nextAudit = null;
     if ((nextAccess.roles || []).includes("admin")) [nextTeam, nextAudit] = await Promise.all([getOpsTeam(), getOpsAudit()]);
-    return { nextAccess, nextOverview, nextObservability, nextTeam, nextAudit };
+    return { nextAccess, nextOverview, nextObservability, nextTeam, nextAudit, nextCompliance };
   }
 
   async function refreshDiagnostics() {
@@ -369,9 +466,9 @@ export default function OpsConsolePage() {
     setError("");
     try {
       const data = await loadDiagnostics();
-      setAccess(data.nextAccess); setOverview(data.nextOverview); setObservability(data.nextObservability); setTeam(data.nextTeam); setAudit(data.nextAudit);
+      setAccess(data.nextAccess); setOverview(data.nextOverview); setObservability(data.nextObservability); setTeam(data.nextTeam); setAudit(data.nextAudit); setCompliance(data.nextCompliance);
     } catch (err) {
-      setError(err.response?.status === 403 ? "This account is not authorized for BragStack Ops." : "Ops diagnostics could not be loaded.");
+      setError(err.response?.status === 404 ? "This account is not authorized for the BragStack Ops Console." : "Ops diagnostics could not be loaded.");
     } finally {
       setLoading(false);
     }
@@ -383,10 +480,10 @@ export default function OpsConsolePage() {
       try {
         const data = await loadDiagnostics();
         if (!active) return;
-        setAccess(data.nextAccess); setOverview(data.nextOverview); setObservability(data.nextObservability); setTeam(data.nextTeam); setAudit(data.nextAudit);
+        setAccess(data.nextAccess); setOverview(data.nextOverview); setObservability(data.nextObservability); setTeam(data.nextTeam); setAudit(data.nextAudit); setCompliance(data.nextCompliance);
       } catch (err) {
         if (!active) return;
-        setError(err.response?.status === 403 ? "This account is not authorized for BragStack Ops." : "Ops diagnostics could not be loaded.");
+        setError(err.response?.status === 404 ? "This account is not authorized for the BragStack Ops Console." : "Ops diagnostics could not be loaded.");
       } finally {
         if (active) setLoading(false);
       }
@@ -400,7 +497,7 @@ export default function OpsConsolePage() {
     catch (err) { setUserError(err.response?.data?.detail || "User diagnostics could not be loaded."); }
   }
 
-  if (loading) return <BragStackLoader compact message="Loading BragStack Ops…" detail="Checking founder analytics, service health, telemetry, database state, and authorized diagnostics." />;
+  if (loading) return <BragStackLoader compact message="Loading BragStack Ops…" detail="Checking governance reports, founder analytics, service health, telemetry, database state, and authorized diagnostics." />;
   if (error) return <main className="ops-page"><section className="ops-denied"><h1>BragStack Ops</h1><p>{error}</p><a href="/app">Return to BragStack</a></section></main>;
 
   const service = overview?.service || {};
@@ -411,24 +508,25 @@ export default function OpsConsolePage() {
   const isAdmin = (access?.roles || []).includes("admin");
 
   return <main className="ops-page">
-    <header className="ops-header"><div><p className="ops-kicker">INTERNAL · CONTROLLED ACCESS</p><h1>BragStack Ops Console</h1><p>Founder analytics, application diagnostics, persistent request tracing, grouped errors, database health, safe user-state debugging, and audited internal access management.</p></div><div className={`ops-env ${service.environment === "production" ? "production" : "nonprod"}`}>{String(service.environment || access?.environment || "unknown").toUpperCase()}</div></header>
-    <div className="ops-toolbar"><span>Roles: {(access?.roles || []).join(", ")}</span><button type="button" onClick={refreshDiagnostics}>Refresh diagnostics</button></div>
+    <header className="ops-header"><div><p className="ops-kicker">INTERNAL · EXPLICIT ACCESS ONLY</p><h1>BragStack Ops Console</h1><p>Whole-business governance scanning, Legal/Business/Security/Safety reports, Ops Inbox alerts, founder analytics, application diagnostics, safe user-state debugging, and audited internal access management.</p></div><div className={`ops-env ${service.environment === "production" ? "production" : "nonprod"}`}>{String(service.environment || access?.environment || "unknown").toUpperCase()}</div></header>
+    <div className="ops-toolbar"><span>Authorized roles: {(access?.roles || []).join(", ")}</span><button type="button" onClick={refreshDiagnostics}>Refresh Ops</button></div>
 
     <section className="ops-grid">
       <article className="ops-card"><span>API</span><strong>{service.name || "bragstack-api"}</strong><small>Commit {service.version || "unknown"}</small></article>
       <article className="ops-card"><span>MongoDB</span><strong className={service.mongo === "ok" ? "healthy" : "degraded"}>{service.mongo || "unknown"}</strong><small>Live ping from API process</small></article>
-      <article className="ops-card"><span>Persisted traces</span><strong>{persisted.sample_size || 0}</strong><small>{persisted.status_classes?.["5xx"] || 0} server errors · {persisted.retention_days || 14}-day retention</small></article>
+      <article className="ops-card"><span>Governance</span><strong>{compliance?.summary?.overall?.replaceAll("_", " ") || "not scanned"}</strong><small>{compliance?.receipt_id || "Run a scan to create a receipt"}</small></article>
       <article className="ops-card"><span>Stored users</span><strong>{database.users ?? "—"}</strong><small>{database.entries ?? "—"} accomplishments · {database.impact_receipts ?? "—"} receipts</small></article>
     </section>
 
+    <ComplianceAuditPanel onReceiptChange={setCompliance} />
+    <OpsInbox service={service} persisted={persisted} audit={isAdmin ? audit : null} compliance={compliance} />
     <FounderAnalyticsPanel analytics={analytics} />
-    <OpsInbox service={service} persisted={persisted} audit={isAdmin ? audit : null} />
+
+    {isAdmin && <section className="ops-panel"><div className="ops-panel-heading"><div><p className="ops-kicker">ADMIN · TEAM & ROLES</p><h2>Invite, assign, and audit internal access</h2><p>Only verified accounts you explicitly assign receive internal access. Grant the minimum role needed; every change is persisted and audit logged.</p></div></div><RoleManager team={team} setTeam={setTeam} audit={audit} setAudit={setAudit} /></section>}
 
     <section className="ops-panel"><div className="ops-panel-heading"><div><p className="ops-kicker">PERSISTENT OBSERVABILITY V2</p><h2>Grouped backend exceptions</h2><p>Sanitized fingerprints survive restarts and deployments without storing request bodies, headers, tokens, query strings, or exception messages.</p></div></div><ErrorGroups rows={persisted.errors} /></section>
     <section className="ops-panel"><div className="ops-panel-heading"><div><p className="ops-kicker">PERSISTENT FAILURES</p><h2>Recent 4xx / 5xx requests</h2></div></div><RequestTable rows={persisted.failures} /></section>
     <section className="ops-panel"><div className="ops-panel-heading"><div><p className="ops-kicker">PERSISTENT PERFORMANCE</p><h2>Slow requests ≥ 500 ms</h2></div></div><RequestTable rows={persisted.slow} /></section>
-
-    {isAdmin && <section className="ops-panel"><div className="ops-panel-heading"><div><p className="ops-kicker">ADMIN · TEAM & ROLES</p><h2>Internal access management</h2><p>Grant only the minimum role needed. Changes are persisted and audit logged.</p></div></div><RoleManager team={team} setTeam={setTeam} audit={audit} setAudit={setAudit} /></section>}
 
     <section className="ops-panel"><div className="ops-panel-heading"><div><p className="ops-kicker">LIVE PROCESS TELEMETRY</p><h2>Current-process failures</h2></div></div><RequestTable rows={requests.failures} /></section>
     <section className="ops-panel"><div className="ops-panel-heading"><div><p className="ops-kicker">LIVE TRAFFIC</p><h2>Recent requests</h2></div></div><RequestTable rows={requests.recent} /></section>
