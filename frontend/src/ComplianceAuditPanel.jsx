@@ -33,11 +33,16 @@ function FindingIcon({ status }) {
   return <AlertTriangle size={18} aria-hidden="true" />;
 }
 
-export default function ComplianceAuditPanel() {
+export default function ComplianceAuditPanel({ onReceiptChange = null }) {
   const [receipt, setReceipt] = useState(null);
   const [history, setHistory] = useState([]);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
+
+  function selectReceipt(nextReceipt) {
+    setReceipt(nextReceipt || null);
+    if (onReceiptChange) onReceiptChange(nextReceipt || null);
+  }
 
   useEffect(() => {
     let active = true;
@@ -45,25 +50,26 @@ export default function ComplianceAuditPanel() {
       .then(([latest, historyResponse]) => {
         if (!active) return;
         setReceipt(latest || null);
+        if (onReceiptChange) onReceiptChange(latest || null);
         setHistory(historyResponse?.receipts || []);
       })
       .catch((err) => {
         if (!active || err.response?.status === 404) return;
-        setError(err.response?.data?.detail || "Compliance receipts could not be loaded.");
+        setError(err.response?.data?.detail || "Governance receipts could not be loaded.");
       });
     return () => { active = false; };
-  }, []);
+  }, [onReceiptChange]);
 
   async function runAudit() {
     setRunning(true);
     setError("");
     try {
       const nextReceipt = await runComplianceAudit();
-      setReceipt(nextReceipt);
+      selectReceipt(nextReceipt);
       const historyResponse = await getComplianceAuditHistory(10);
       setHistory(historyResponse?.receipts || []);
     } catch (err) {
-      setError(err.response?.data?.detail || "Compliance audit could not be completed.");
+      setError(err.response?.data?.detail || "Governance scan could not be completed.");
     } finally {
       setRunning(false);
     }
@@ -81,18 +87,18 @@ export default function ComplianceAuditPanel() {
   return <section className="ops-panel compliance-panel" id="compliance-readiness">
     <div className="ops-panel-heading compliance-heading">
       <div>
-        <p className="ops-kicker">OPS · COMPLIANCE & BUSINESS READINESS</p>
-        <h2><ShieldAlert size={22} aria-hidden="true" /> Whole-business audit</h2>
-        <p>Runs conservative controls across business formation, customer contracting, privacy, billing, vendors, retention, marketing, AI, fundraising, and governance evidence. A pass is evidence—not a legal certification.</p>
+        <p className="ops-kicker">OPS · LEGAL · BUSINESS · SECURITY · SAFETY</p>
+        <h2><ShieldAlert size={22} aria-hidden="true" /> Whole-business governance scan</h2>
+        <p>Runs conservative controls across legal readiness, business formation, privacy, billing, security evidence, retention, vendors, marketing, AI safety, fundraising, and governance. Findings also feed the Ops Inbox. A pass is evidence—not a legal certification.</p>
       </div>
       <div className="compliance-actions">
-        <button type="button" className="compliance-run" disabled={running} onClick={() => void runAudit()}><PlayCircle size={17} /> {running ? "Running audit…" : "Run compliance audit"}</button>
+        <button type="button" className="compliance-run" disabled={running} onClick={() => void runAudit()}><PlayCircle size={17} /> {running ? "Running scan…" : "Run governance scan"}</button>
         <button type="button" disabled={!receipt} onClick={() => downloadReceipt(receipt)}><Download size={17} /> Download receipt</button>
       </div>
     </div>
 
     {error && <p className="ops-error">{error}</p>}
-    {!receipt && !error && <div className="compliance-empty"><FileCheck2 size={30} /><strong>No compliance receipt yet.</strong><span>Run the first audit to establish a timestamped baseline.</span></div>}
+    {!receipt && !error && <div className="compliance-empty"><FileCheck2 size={30} /><strong>No governance receipt yet.</strong><span>Run the first scan to establish a timestamped baseline and populate Ops Inbox findings.</span></div>}
 
     {receipt && <>
       <div className="compliance-receipt-meta">
@@ -131,7 +137,7 @@ export default function ComplianceAuditPanel() {
       <div className="compliance-history">
         <h3>Recent timestamped receipts</h3>
         {history.length === 0 && <p className="ops-empty">No prior receipts.</p>}
-        {history.map((item) => <button type="button" key={item.receipt_id} onClick={() => setReceipt(item)}>
+        {history.map((item) => <button type="button" key={item.receipt_id} onClick={() => selectReceipt(item)}>
           <span>{new Date(item.generated_at).toLocaleString()}</span><strong>{item.summary?.overall?.replaceAll("_", " ") || "audit"}</strong><code>{item.receipt_id}</code>
         </button>)}
       </div>

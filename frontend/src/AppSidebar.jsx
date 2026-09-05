@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { BarChart3, BrainCircuit, Building2, ChevronDown, FileCheck2, FileText, GraduationCap, Home, ListChecks, LogOut, Menu, ReceiptText, Settings, ShieldCheck, Sparkles, UserRound, Users, Video, X } from "lucide-react";
 import { getCurrentUser } from "./api";
+import { getOpsAccess } from "./opsApi";
 import "./AppShell.css";
 import "./SidebarCollapsible.css";
 
@@ -19,16 +20,20 @@ const CAREER_TOOLS = [
 ];
 
 function AppSidebar() {
-  const [user, setUser] = useState(null); const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState(null); const [mobileOpen, setMobileOpen] = useState(false); const [internalAccess, setInternalAccess] = useState(null);
   const path = window.location.pathname; const search = window.location.search; const hash = window.location.hash;
   const careerToolsActive = path === "/app/resume-builder" || path === "/app/interview-practice" || path === "/app/reports";
   const [careerToolsOpen, setCareerToolsOpen] = useState(() => careerToolsActive || localStorage.getItem("bragstack_career_tools_nav") !== "closed");
-  useEffect(() => { let mounted = true; (async () => { try { const data = await getCurrentUser(); if (mounted) setUser(data); } catch (error) { if (error.response?.status === 401) { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); } } })(); return () => { mounted = false; }; }, []);
+  useEffect(() => { let mounted = true; (async () => { try { const data = await getCurrentUser(); if (!mounted) return; setUser(data); try { const access = await getOpsAccess(); if (mounted) setInternalAccess(access?.authorized ? access : null); } catch { if (mounted) setInternalAccess(null); } } catch (error) { if (error.response?.status === 401) { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); } } })(); return () => { mounted = false; }; }, []);
   function logout() { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); }
   function toolIsActive(href) { const target = new URL(href, window.location.origin); return path === target.pathname && search === target.search && hash === target.hash; }
   function toggleCareerTools(event) { const open = event.currentTarget.open; setCareerToolsOpen(open); localStorage.setItem("bragstack_career_tools_nav", open ? "open" : "closed"); }
   const isPro = Boolean(user?.entitlements?.advanced_reports);
-  const isCompanyUser = user?.email?.trim().toLowerCase().endsWith("@usebragstack.com") === true;
+  const internalRoles = new Set(internalAccess?.roles || []);
+  const canUseOpsConsole = internalRoles.has("ops") || internalRoles.has("security") || internalRoles.has("admin");
+  const canUseUserAccounts = internalRoles.has("support") || canUseOpsConsole;
+  const canUseGovernance = canUseOpsConsole;
+  const hasAnyInternalAccess = canUseOpsConsole || canUseUserAccounts;
   const hasExecutiveImpact = Boolean(user?.entitlements?.executive_command_center) && ["owner", "admin", "executive"].includes(user?.workspace_role);
 
   return <>
@@ -44,7 +49,7 @@ function AppSidebar() {
         {hasExecutiveImpact && <><p className="sidebar-section-label">Enterprise</p><a className={path === "/app/executive-impact" ? "active" : ""} href="/app/executive-impact"><Building2 size={18}/><span>Executive Impact</span></a></>}
         <p className="sidebar-section-label">Account & tools</p>
         <a className={path.startsWith("/app/settings") || path === "/app/profile" ? "active" : ""} href="/app/settings"><Settings size={18} /><span>Settings</span></a>
-        {isCompanyUser && <><p className="sidebar-section-label">Internal</p><a className={path === "/ops" ? "active" : ""} href="/ops"><ShieldCheck size={18} /><span>Ops Console</span></a><a className={path === "/ops/users" ? "active" : ""} href="/ops/users"><Users size={18} /><span>User Accounts</span></a><a className={path === "/ops/ai-verification" ? "active" : ""} href="/ops/ai-verification"><BrainCircuit size={18} /><span>AI Verification</span></a><a className={path === "/ops/compliance" ? "active" : ""} href="/ops/compliance"><FileCheck2 size={18} /><span>Compliance Audit</span></a></>}
+        {hasAnyInternalAccess && <><p className="sidebar-section-label">Internal</p>{canUseOpsConsole && <a className={path === "/ops" ? "active" : ""} href="/ops"><ShieldCheck size={18} /><span>Ops Console</span></a>}{canUseUserAccounts && <a className={path === "/ops/users" ? "active" : ""} href="/ops/users"><Users size={18} /><span>User Accounts</span></a>}{canUseGovernance && <a className={path === "/ops/ai-verification" ? "active" : ""} href="/ops/ai-verification"><BrainCircuit size={18} /><span>AI Verification</span></a>}{canUseGovernance && <a className={path === "/ops/compliance" ? "active" : ""} href="/ops/compliance"><FileCheck2 size={18} /><span>Governance Reports</span></a>}</>}
         <a href="/docs"><FileText size={18} /><span>Docs & guides</span></a>
         {user && !isPro && <a className="sidebar-upgrade" href="/upgrade"><Sparkles size={18} /><span>Upgrade to Pro</span></a>}
       </nav>

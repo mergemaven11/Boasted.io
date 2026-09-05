@@ -56,18 +56,38 @@ def teardown_function():
     clear_for_tests()
 
 
-def test_company_domain_alone_does_not_grant_ops_access():
-    """Verify company domain alone does not grant ops access."""
+def test_unassigned_account_does_not_discover_ops_route():
+    """Verify an unassigned account gets a not-found response for internal routes."""
     _override_user(_user(roles=[]))
     response = client.get("/ops/access")
-    assert response.status_code == 403
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Not found"
 
 
-def test_internal_role_outside_company_domain_does_not_grant_access():
-    """Verify internal role outside company domain does not grant access."""
-    _override_user(_user(email="attacker@example.com", roles=["admin"]))
+def test_explicit_role_can_authorize_verified_account_from_any_domain():
+    """Verify explicit role assignment, not email domain, is the internal access boundary."""
+    _override_user(_user(email="trusted-counsel@example.com", roles=["security"]))
     response = client.get("/ops/access")
-    assert response.status_code == 403
+    assert response.status_code == 200
+    assert response.json()["roles"] == ["security"]
+
+
+def test_unverified_account_cannot_use_internal_role():
+    """Verify internal roles do not activate before required email verification."""
+    user = _user(email="operator@example.com", roles=["ops"])
+    user["email_verification_required"] = True
+    user["email_verified_at"] = None
+    _override_user(user)
+    response = client.get("/ops/access")
+    assert response.status_code == 404
+
+
+def test_owner_email_is_bootstrap_admin():
+    """Verify the founder owner account retains a bootstrap recovery admin role."""
+    _override_user(_user(email="tobias.scott@usebragstack.com", roles=[]))
+    response = client.get("/ops/access")
+    assert response.status_code == 200
+    assert "admin" in response.json()["roles"]
 
 
 def test_explicit_internal_role_grants_access():
@@ -137,11 +157,11 @@ def test_non_admin_cannot_manage_team():
     """Verify non admin cannot manage team."""
     _override_user(_user(roles=["ops"]))
     response = client.get("/ops/team")
-    assert response.status_code == 403
+    assert response.status_code == 404
 
 
-def test_admin_can_update_company_user_roles_and_audit(monkeypatch):
-    """Verify admin can update company user roles and audit.
+def test_admin_can_update_user_roles_and_audit(monkeypatch):
+    """Verify admin can update user roles and audit.
 
     Args:
         monkeypatch: Function argument.
@@ -164,18 +184,35 @@ def test_admin_can_update_company_user_roles_and_audit(monkeypatch):
     assert recorded[0]["next_roles"] == ["ops", "security"]
 
 
-def test_role_management_rejects_outside_domain_target(monkeypatch):
-    """Verify role management rejects outside domain target.
+def test_admin_can_assign_verified_account_by_email(monkeypatch):
+    """Verify an admin can explicitly grant access to an existing verified account."""
+    actor = _user(email="admin@usebragstack.com", roles=["admin"])
+    target = _user(email="trusted-counsel@example.com", roles=[])
+    _override_user(actor)
+    monkeypatch.setattr(ops_routes.users_collection, "find_one", lambda query: target)
+    monkeypatch.setattr(ops_routes.users_collection, "update_one", lambda query, update: None)
+    recorded = []
+    monkeypatch.setattr(ops_routes.ops_audit_collection, "insert_one", lambda event: recorded.append(event))
 
-    Args:
-        monkeypatch: Function argument.
-    """
-    _override_user(_user(roles=["admin"]))
-    target = _user(email="member@example.com", roles=[])
+    response = client.post("/ops/team/assign", json={"email": "trusted-counsel@example.com", "roles": ["security"]})
+    assert response.status_code == 200
+    assert response.json()["email"] == "trusted-counsel@example.com"
+    assert response.json()["roles"] == ["security"]
+    assert recorded[0]["target_email"] == "trusted-counsel@example.com"
+
+
+def test_admin_cannot_assign_unverified_account(monkeypatch):
+    """Verify unverified accounts cannot be granted internal access."""
+    actor = _user(email="admin@usebragstack.com", roles=["admin"])
+    target = _user(email="pending@example.com", roles=[])
+    target["email_verification_required"] = True
+    target["email_verified_at"] = None
+    _override_user(actor)
     monkeypatch.setattr(ops_routes.users_collection, "find_one", lambda query: target)
 
-    response = client.patch(f"/ops/team/{target['_id']}/roles", json={"roles": ["support"]})
-    assert response.status_code == 404
+    response = client.post("/ops/team/assign", json={"email": "pending@example.com", "roles": ["support"]})
+    assert response.status_code == 409
+    assert "verify" in response.json()["detail"].lower()
 
 
 def test_last_database_admin_cannot_be_removed_without_bootstrap(monkeypatch):
