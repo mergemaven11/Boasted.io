@@ -7,6 +7,12 @@ from app.career_intelligence_graph import build_career_intelligence_v5
 from app.career_intelligence_trajectory import TRAJECTORY_LABELS
 from app.database import entries_collection, impact_receipts_collection
 from app.education_intelligence import APPLICATION_PROFILES, build_application_intelligence
+from app.major_explorer import (
+    MAJOR_EXPLORER_VERSION,
+    MAJOR_PROFILES,
+    MAX_RECOMMENDATIONS,
+    build_major_explorer,
+)
 
 router = APIRouter(prefix="/career-intelligence", tags=["career-intelligence"])
 
@@ -171,6 +177,106 @@ def _verify_application_intelligence(result: dict, entries: list[dict], receipts
     return sorted(set(violations))
 
 
+def _verify_major_explorer(result: dict, entries: list[dict], receipts: list[dict]) -> list[str]:
+    """Fail closed if Major Explorer drifts into misleading decision language."""
+    violations: list[str] = []
+    summary = result.get("summary") or {}
+    methodology = result.get("methodology") or {}
+    disclaimer = result.get("disclaimer") or {}
+    recommendations = result.get("recommendations") or []
+    expected_total = len(entries) + len(receipts)
+
+    if int(summary.get("proof_records_analyzed") or 0) != expected_total:
+        violations.append("major_explorer_proof_count_mismatch")
+    distinct_demonstrations = int(summary.get("distinct_demonstrations") or 0)
+    if distinct_demonstrations < 0 or distinct_demonstrations > expected_total:
+        violations.append("major_explorer_demonstration_count_invalid")
+    if int(summary.get("recommendations_returned") or 0) != len(recommendations):
+        violations.append("major_explorer_recommendation_count_mismatch")
+    if len(recommendations) > MAX_RECOMMENDATIONS:
+        violations.append("major_explorer_recommendation_overcount")
+    if summary.get("evidence_mode") != "saved-proof-only":
+        violations.append("major_explorer_evidence_mode_invalid")
+    if summary.get("self_reported_interests_included") is not False:
+        violations.append("major_explorer_interest_source_misrepresented")
+
+    valid_fit_labels = {
+        "strong-exploration-candidate",
+        "worth-exploring",
+        "possible-direction",
+    }
+    valid_strength = {"limited", "developing", "supported"}
+    seen_major_ids: set[str] = set()
+    for recommendation in recommendations:
+        major_id = str(recommendation.get("major_id") or "")
+        if major_id not in MAJOR_PROFILES or major_id in seen_major_ids:
+            violations.append("major_explorer_major_id_invalid")
+            break
+        seen_major_ids.add(major_id)
+        if recommendation.get("fit_label") not in valid_fit_labels:
+            violations.append("major_explorer_fit_label_invalid")
+            break
+        if recommendation.get("evidence_strength") not in valid_strength:
+            violations.append("major_explorer_evidence_strength_invalid")
+            break
+        if int(recommendation.get("evidence_signal_count") or 0) <= 0:
+            violations.append("major_explorer_signal_count_invalid")
+            break
+        demonstrations = int(recommendation.get("evidence_demonstrations") or 0)
+        if demonstrations < 0 or demonstrations > distinct_demonstrations:
+            violations.append("major_explorer_evidence_demonstrations_invalid")
+            break
+        if not recommendation.get("why_it_appeared"):
+            violations.append("major_explorer_reason_missing")
+            break
+        if not recommendation.get("next_experiments"):
+            violations.append("major_explorer_experiment_missing")
+            break
+        if not str(recommendation.get("what_we_do_not_know") or "").strip():
+            violations.append("major_explorer_uncertainty_missing")
+            break
+        for forbidden in ("score", "fit_score", "fit_percent", "probability", "odds"):
+            if forbidden in recommendation:
+                violations.append("major_explorer_fake_precision_exposed")
+                break
+
+    if methodology.get("version") != MAJOR_EXPLORER_VERSION:
+        violations.append("major_explorer_version_invalid")
+    if methodology.get("career_intelligence_version") != "career-intelligence-v5":
+        violations.append("major_explorer_engine_version_invalid")
+    if methodology.get("ranking_meaning") != "evidence-alignment-for-exploration-only":
+        violations.append("major_explorer_ranking_meaning_invalid")
+
+    for field in (
+        "fit_percentage",
+        "best_major_claim",
+        "decision_maker",
+        "professional_advice",
+        "acceptance_prediction",
+        "scholarship_prediction",
+        "graduation_prediction",
+        "employment_prediction",
+        "salary_prediction",
+        "licensing_prediction",
+        "career_success_prediction",
+    ):
+        if methodology.get(field) is not False:
+            violations.append(f"major_explorer_{field}_enabled")
+
+    for field in (
+        "title",
+        "scope",
+        "not_advice",
+        "no_guarantees",
+        "verify_requirements",
+        "user_decision",
+    ):
+        if not str(disclaimer.get(field) or "").strip():
+            violations.append(f"major_explorer_disclaimer_{field}_missing")
+
+    return sorted(set(violations))
+
+
 def _load_intelligence(current_user: dict) -> dict:
     """Build, enrich, and verify Career Intelligence from the user's own proof."""
     user_id = str(current_user["_id"])
@@ -247,6 +353,38 @@ def _load_application_intelligence(current_user: dict, application_type: str) ->
     return result
 
 
+def _load_major_explorer(current_user: dict) -> dict:
+    """Build and verify evidence-backed major exploration guidance."""
+    user_id = str(current_user["_id"])
+    entries = list(entries_collection.find({"user_id": user_id}))
+    receipts = list(impact_receipts_collection.find({"user_id": user_id}))
+    result = build_major_explorer(entries, receipts)
+    violations = _verify_major_explorer(result, entries, receipts)
+    record_verification_event(
+        feature="education_intelligence",
+        task="major_explorer",
+        passed=not violations,
+        violation_codes=violations,
+        provider="deterministic",
+        model_id=MAJOR_EXPLORER_VERSION,
+        model_revision="deterministic",
+        schema_version=MAJOR_EXPLORER_VERSION,
+        source_count=len(entries) + len(receipts),
+        generated_item_count=len(result.get("recommendations") or []),
+        user_id=user_id,
+    )
+    if violations:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "code": "major_explorer_verification_failed",
+                "message": "BragStack withheld Major Explorer guidance because the result did not satisfy its exploration and safety rules.",
+                "violation_codes": violations,
+            },
+        )
+    return result
+
+
 @router.get("")
 def get_career_intelligence(current_user: dict = Depends(get_current_user)):
     """Return verified Career Intelligence."""
@@ -269,6 +407,12 @@ def get_career_intelligence_gaps(current_user: dict = Depends(get_current_user))
         "recommended_actions": intelligence["recommended_actions"],
         "methodology": intelligence["methodology"],
     }
+
+
+@router.get("/major-explorer")
+def get_major_explorer(current_user: dict = Depends(get_current_user)):
+    """Return verified, non-predictive major exploration guidance."""
+    return _load_major_explorer(current_user)
 
 
 @router.get("/applications/{application_type}")
