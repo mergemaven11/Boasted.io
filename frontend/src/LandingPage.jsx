@@ -42,21 +42,22 @@ const plans = [
   {
     name: "Free",
     price: "$0",
-    tagline: "Start your evidence record",
+    tagline: "The standard base plan after promotional access",
+    badge: "Base plan",
     features: ["5 proof entries", "1 Impact Receipt", "Basic reports", "Basic Proof Profile", "Skill tracking"],
-    cta: "Start free",
+    cta: "Create account — Pro gift included",
     href: "/register",
   },
   {
     name: "Pro",
-    price: "$9",
-    suffix: "/month",
-    tagline: "Turn your evidence into career leverage",
+    price: "$0",
+    suffix: " for now",
+    tagline: "Temporary complimentary early-access gift",
     featured: true,
-    badge: "Best for your career",
+    badge: "Complimentary Pro gift",
     features: ["Unlimited proof + Impact Receipts", "Advanced career analytics", "Performance Review Builder", "Promotion Packet", "PDF and career exports", "Advanced profile capabilities"],
-    cta: "Unlock BragStack Pro",
-    href: "/upgrade",
+    cta: "Get Pro free for now",
+    href: "/register",
   },
   {
     name: "Team",
@@ -249,9 +250,9 @@ function LandingPage() {
       </section>
 
       <section className="landing-pricing" id="pricing">
-        <div className="landing-section-heading"><p>PRICING</p><h2>Start your evidence record free.</h2><span>Upgrade when you want to package, analyze, and reuse more of the proof you have already captured.</span></div>
+        <div className="landing-section-heading"><p>PRICING</p><h2>Everyone gets Pro for now.</h2><span>BragStack Pro is temporarily complimentary as an early-access gift. No payment method is required and receiving the gift does not create a paid subscription or authorize future recurring charges.</span></div>
         <div className="pricing-grid pricing-grid-four">{plans.map((plan) => <article className={`pricing-card ${plan.featured ? "pricing-card-featured pricing-card-pro" : ""}`} key={plan.name}>{plan.badge && <div className="pricing-popular-label">{plan.badge}</div>}<div className="pricing-card-header"><div><p>{plan.name}</p><h3>{plan.price}{plan.suffix && <span>{plan.suffix}</span>}</h3></div></div><p className="pricing-tagline">{plan.tagline}</p><ul>{plan.features.map((feature) => <li key={feature}><Check size={17} />{feature}</li>)}</ul><a className={`landing-btn pricing-button ${plan.featured ? "" : "landing-btn-secondary"}`} href={plan.href}>{plan.cta}{plan.featured && <ArrowRight size={17} />}</a></article>)}</div>
-        <div className="pricing-conversion-note"><Zap size={20} /><div><strong>Your existing proof stays yours.</strong><span>Start with capture and Impact Receipts. Upgrade when you are ready to do more with the evidence.</span></div></div>
+        <div className="pricing-conversion-note"><Zap size={20} /><div><strong>Temporary gift, not automatic billing.</strong><span>Complimentary Pro access may change or end later. If paid Pro is offered again, BragStack will require a separate checkout and billing consent before charging you. Existing paid subscriptions remain governed by their current billing terms.</span></div></div>
       </section>
 
       <section className="landing-final-cta"><div><p>YOUR WORK IS ALREADY HAPPENING.</p><h2>Give the proof somewhere to live.</h2><span>Capture it now, keep it under your control, and have the right evidence ready when the next review, interview, promotion, client, or opportunity arrives.</span></div><a className="landing-btn landing-final-button" href="/register">Build my BragStack <ArrowRight size={18} /></a></section>
