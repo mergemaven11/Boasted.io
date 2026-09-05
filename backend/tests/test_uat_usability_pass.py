@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import mongomock
 from bson import ObjectId
 
+import app.plans as plans
 from app import billing_details_routes, packet_audit
 from app.resume_import_fast_routes import _extract_fast
 
@@ -83,7 +84,8 @@ def test_billing_fallback_exposes_customer_safe_fields_only():
     assert "stripe_subscription_id" not in payload
 
 
-def test_billing_fallback_marks_complimentary_pro_as_non_subscription():
+def test_billing_fallback_marks_complimentary_pro_as_non_subscription(monkeypatch):
+    monkeypatch.setattr(plans, "TEMPORARY_PRO_GIFT_ENABLED", True)
     user = {
         "_id": ObjectId(),
         "email": "beta-member@example.com",
