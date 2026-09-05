@@ -24,13 +24,18 @@ def close_account(
 ):
     """Close the current user's BragStack account.
 
-    Active paid subscriptions must be canceled before closure so deleting the
-    local account cannot leave a user without access to subscription controls.
+    A paid subscription must have future renewal canceled before closure. Once
+    cancel-at-period-end is recorded, the user may close immediately if they
+    accept losing access to any remaining paid period.
     """
-    if has_active_paid_subscription(current_user):
+    has_uncanceled_paid_subscription = (
+        has_active_paid_subscription(current_user)
+        and not bool(current_user.get("billing_cancel_at_period_end", False))
+    )
+    if has_uncanceled_paid_subscription:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Cancel your active paid subscription before closing your account.",
+            detail="Cancel future renewal for your paid subscription before closing your account.",
         )
 
     user_id = str(current_user["_id"])
