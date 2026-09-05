@@ -2,280 +2,297 @@
 
 **Internal engineering document**
 
-Status: implemented on `feature/nda-confidentiality-gate` / PR #306
+Status: end-to-end confidentiality gate, API attestation enforcement, and minimal audit receipts implemented on `feature/nda-confidentiality-gate` / PR #306.
 
 ## Purpose
 
-BragStack is designed to help users capture career evidence without encouraging them to copy confidential employer or client material into the product. The NDA safety system is a defense-in-depth UX control. It does **not** interpret contracts, decide what an employer permits, or certify that a record is legally safe to store or publish.
+BragStack helps users capture career evidence without encouraging them to copy confidential employer, client, patient, student, customer, constituent, or other restricted information into the product.
 
-The core principle is:
+The NDA/confidentiality system is a defense-in-depth safety control. It does **not** interpret contracts, decide whether disclosure is legally permitted, classify every possible secret, or certify that a record is “NDA compliant.”
+
+Core principle:
 
 > Capture the career signal, not the secret.
 
-## Current protected surfaces
+## Protected write classes
 
-The global NDA gate currently protects these user actions:
+The server recognizes these protected action classes:
 
-- Creating or editing an Accomplishment through the protected Accomplishments form.
-- Creating an Impact Receipt through the protected create form.
-- Saving an Impact Receipt edit when the protected action is recognized.
-- Changing protected Accomplishment or Impact Receipt visibility through the recognized public/private controls.
+| HTTP request | Action class |
+| --- | --- |
+| `POST /entries` | `entry.create` |
+| `PUT` or `PATCH /entries/{id}` | `entry.update` |
+| `POST /impact-receipts` | `impact_receipt.create` |
+| `POST /impact-receipts/from-entry/{id}` | `impact_receipt.create_from_entry` |
+| `PATCH /impact-receipts/{id}` | `impact_receipt.update` |
 
-Reads and ordinary navigation are not gated. Delete operations are not currently gated.
+Reads and deletes are not confidentiality-attestation protected. Authentication, billing, packets, profile changes, and unrelated API writes are not matched by this control.
 
-## High-level workflow
+The normal UI gate currently intercepts protected Accomplishment and Impact Receipt forms plus recognized publication/edit controls on `/app/accomplishments` and `/app/impact-receipts`.
+
+## End-to-end workflow
 
 ```mermaid
 flowchart TD
-    A[User submits or publishes protected career evidence] --> B[NDAInformationGate intercepts action]
-    B --> C[Collect visible input and textarea values from protected container]
-    C --> D[Run browser-side pattern scan]
-    D --> E{Blocking secret pattern found?}
-    E -- Yes --> F[Show blocker and disable Continue]
-    F --> G[User returns to draft and removes sensitive material]
+    A[User saves or publishes protected career evidence] --> B[NDAInformationGate intercepts UI action]
+    B --> C[Read visible draft fields locally]
+    C --> D[Browser pattern scan]
+    D --> E{Credential/secret blocker?}
+    E -- Yes --> F[Block Continue]
+    F --> G[User removes or generalizes risky content]
     G --> A
-    E -- No --> H{Review warnings found?}
-    H -- Yes --> I[Show warning categories]
-    H -- No --> J[Show clear-scan message with legal disclaimer]
-    I --> K[User reviews confidentiality warning]
+    E -- No --> H{Warnings?}
+    H -- Yes --> I[Show review warning]
+    H -- No --> J[Show clear-scan message + limitation]
+    I --> K[User explicitly confirms]
     J --> K
-    K --> L[User checks explicit confirmation box]
-    L --> M{Confirmed?}
-    M -- No --> K
-    M -- Yes --> N[Arm short-lived one-time client attestation]
-    N --> O[Replay original form submit or button click]
-    O --> P[Normal BragStack request flow continues]
+    K --> L[Arm short-lived one-time browser attestation]
+    L --> M[Replay original UI action]
+    M --> N[Axios protected-request matcher runs]
+    N --> O[Consume browser attestation]
+    O --> P[POST /confidentiality/attestations]
+    P --> Q[Server mints action-bound one-time token]
+    Q --> R[Protected request carries X-BragStack-Confidentiality-Attestation]
+    R --> S[Backend atomically validates + consumes token]
+    S --> T{Valid?}
+    T -- No --> U[428 Precondition Required]
+    T -- Yes --> V[Protected write continues]
+    V --> W[Minimal audit receipt remains]
 ```
 
-## Step-by-step behavior
+## 1. Global browser gate
 
-### 1. Global gate is mounted once
+`frontend/src/main.jsx` mounts `NDAInformationGate` once at the application root.
 
-`frontend/src/main.jsx` mounts `NDAInformationGate` at the application root. The gate listens globally for protected form submissions and protected button clicks.
-
-Primary component:
+Primary files:
 
 - `frontend/src/NDAInformationGate.jsx`
-
-### 2. Protected action is intercepted before the original action completes
-
-The gate uses capture-phase document listeners for `submit` and `click` events. If the current route and element match a protected action, the gate:
-
-1. calls `preventDefault()`;
-2. stops propagation;
-3. stores a callback representing the original action;
-4. scans the relevant form/card container; and
-5. opens the NDA confirmation dialog.
-
-The original action is replayed only after the safety flow permits it.
-
-### 3. Draft text is scanned locally in the browser
-
-`scanSubmissionContainer()` reads non-empty text values from `input` and `textarea` elements in the relevant protected container and passes them to `scanSensitiveText()`.
-
-The local scanner is in:
-
+- `frontend/src/NDAInformationGate.css`
 - `frontend/src/ndaSafety.js`
 
-The scan is pattern-based and does not intentionally send the draft elsewhere merely to perform the scan.
+The gate uses capture-phase `submit` and `click` listeners. For a protected action it prevents the original event, scans the associated form/card, opens the confidentiality dialog, and stores a callback that can replay the original action after confirmation.
 
-### 4. Findings are classified by severity
+Replay bypass refs prevent the replayed event from reopening the same dialog in a loop.
 
-#### Blocking findings
+## 2. Local browser scan
 
-Blocking patterns currently include categories such as:
+`scanSubmissionContainer()` gathers non-empty text values from protected `input` and `textarea` elements and runs the deterministic scanner in `ndaSafety.js`.
 
-- private-key material;
+The scan itself is local. It does not intentionally transmit the draft merely to perform pattern matching.
+
+### Blocking patterns
+
+Configured blockers include:
+
+- private-key headers;
 - bearer/authentication tokens;
-- password, API-key, access-token, or client-secret assignments;
-- common provider token formats; and
-- JWT-like signed access tokens.
+- password/API-key/access-token/client-secret assignments;
+- common provider credential formats; and
+- JWT-like access tokens.
 
-If a blocker is found:
+A blocker disables Continue even if the confirmation checkbox is checked. The UI reports the finding category and does not echo the detected secret value.
 
-- the user sees a blocking warning;
-- the confirmation button remains disabled even if the checkbox is checked; and
-- the action must not continue until the risky material is removed.
+### Warning patterns
 
-The UI reports the category rather than echoing the submitted secret value.
-
-#### Warning findings
-
-Warning patterns currently include categories such as:
+Configured review warnings include:
 
 - fenced code blocks;
 - stack traces and diagnostic/log output;
-- localhost, RFC1918/private network, `.internal`, `.corp`, and `.local` hosts;
+- localhost, RFC1918/private network addresses, `.internal`, `.corp`, and `.local` hosts;
 - ticket/work-item style identifiers; and
-- restricted-reference wording such as private repositories, internal tickets, production logs, customer data, and credentials.
+- restricted-reference wording such as private repositories, production logs, customer data, and credentials.
 
-Warnings do not automatically prove the text is confidential. They force review and encourage the user to generalize the material before continuing.
+Warnings are intentionally conservative. They do not prove that content is confidential.
 
-### 5. A clean scan is not represented as approval
+### Clean scans
 
-When no obvious high-risk pattern is detected, the dialog explicitly states that this is **not a legal determination**. Pattern matching can produce both false positives and false negatives.
+“No obvious pattern detected” is never represented as approval. Pattern matching can produce both false positives and false negatives.
 
-A clean scan means only that the current scanner did not recognize one of its configured patterns.
+## 3. Explicit user confirmation
 
-### 6. User must explicitly attest before continuing
+When no blocking finding remains, the user must confirm that the material they are about to store or publish does not contain confidential, proprietary, restricted, or other information they are prohibited from storing or disclosing.
 
-The user must check a confirmation stating that the information they are about to submit or publish does not contain confidential, proprietary, restricted, or other material they are prohibited from storing or disclosing.
+The dialog links to `/nda-safety` and explicitly says BragStack does not interpret the user’s agreement.
 
-The gate also links to the public `/nda-safety` guidance and reminds the user that BragStack does not interpret the agreement.
+## 4. One-time browser attestation
 
-### 7. The original action is replayed after confirmation
+After confirmation, `armConfidentialityAttestation()` stores a short-lived one-time attestation in browser memory. It is not persisted to local storage.
 
-When the user confirms and there are no blocking findings, the gate:
+`consumeConfidentialityAttestation()` clears the browser value when a protected request attempts to use it. The current browser TTL is 15 seconds.
 
-1. closes the dialog;
-2. arms a short-lived one-time client-side confidentiality attestation; and
-3. replays the original form submission or click.
+`isConfidentialityProtectedRequest()` uses the same protected request classes as the backend.
 
-Bypass refs in `NDAInformationGate.jsx` prevent the replayed action from immediately reopening the same gate in a loop.
+## 5. Request-layer handshake
 
-## The client attestation
+`frontend/src/api.js` contains an asynchronous Axios request interceptor.
 
-`ndaSafety.js` currently exposes:
+For a protected write:
 
-- `armConfidentialityAttestation()`;
-- `consumeConfidentialityAttestation()`; and
-- `isConfidentialityProtectedRequest()`.
+1. attach the normal bearer authentication token;
+2. consume the one-time browser confidentiality attestation;
+3. if present, mint a server token with `POST /confidentiality/attestations`;
+4. send only control metadata to the mint endpoint: version, HTTP method, path, and `confirmed: true`;
+5. attach the returned token to `X-BragStack-Confidentiality-Attestation`; and
+6. continue the original protected write.
 
-The attestation is short-lived and one-time in browser memory.
+The mint request uses bare `axios.post`, not the configured protected API instance, so it does not recursively trigger the protected-write interceptor.
 
-### Important current implementation boundary
+If no browser attestation is armed, the interceptor does **not** fabricate a server token. The protected request reaches the backend without the special header and is rejected with `428`.
 
-At the time of this document, the UI gate **arms** the one-time attestation, but the PR does not yet wire a network/request interceptor or backend endpoint to **consume and validate** that attestation on the server.
+## 6. Server attestation issuance
 
-Therefore, the currently enforced control is primarily a **client-side UX gate**. It meaningfully reduces accidental disclosure in the normal UI path, but it is not a server-side authorization boundary and should not be described internally or externally as impossible to bypass.
+Primary files:
 
-Recommended defense-in-depth follow-up:
+- `backend/app/confidentiality.py`
+- `backend/app/confidentiality_routes.py`
 
-1. add a client request interceptor for protected writes;
-2. attach an attestation version/header only when `consumeConfidentialityAttestation()` succeeds;
-3. validate the attestation requirement server-side for protected write routes;
-4. log a minimal non-sensitive audit receipt containing route class, attestation version, timestamp, and outcome; and
-5. never log the submitted confidential draft merely for the attestation audit.
+`POST /confidentiality/attestations` requires:
 
-## NDA-safe sanitization library
+- an authenticated user;
+- the current attestation version;
+- a supported protected method/path; and
+- `confirmed: true`.
 
-`ndaSafety.js` also contains sanitization helpers:
+The server generates a cryptographically random token. Only the SHA-256 hash is stored. The plaintext token is returned once to the client.
+
+Current server token TTL: 120 seconds.
+
+Tokens are bound to:
+
+- user ID;
+- action class;
+- attestation version; and
+- unconsumed/unexpired status.
+
+## 7. Atomic server enforcement
+
+`enforce_confidentiality_attestation()` is attached as a FastAPI dependency to the Accomplishment and Impact Receipt routers in `backend/app/main.py`.
+
+The backend performs an atomic `find_one_and_update` matching the user, action, version, token hash, issued status, and unexpired timestamp.
+
+Successful consumption changes the receipt to `consumed` and records `consumed_at` plus the request ID.
+
+Missing, expired, reused, wrong-user, wrong-action, or otherwise invalid tokens return `428 Precondition Required`.
+
+Because the token is consumed atomically, one token cannot be replayed for multiple protected writes.
+
+## 8. Minimal audit receipts
+
+Mongo collection:
+
+- `confidentiality_attestations`
+
+Stored control metadata includes:
+
+- user ID;
+- action class;
+- attestation version;
+- token **hash**;
+- issued/consumed status;
+- issued, expiry, consumed, and purge timestamps; and
+- request ID after successful consumption.
+
+The confidentiality receipt intentionally does **not** store the career draft, NDA text, uploaded evidence, or plaintext attestation token.
+
+Audit metadata has a retention TTL (`purge_at`) currently set to 90 days.
+
+Internal read endpoint:
+
+- `GET /ops/confidentiality/attestations`
+
+It is restricted to authorized `ops`, `security`, or `admin` roles and serializes only safe control metadata. Token hashes and draft content are not returned.
+
+## 9. Relationship to `/ops/compliance`
+
+The general compliance/business-readiness audit and confidentiality attestation receipts are separate controls with separate data stores.
+
+Do not copy confidential drafts into compliance receipts. The compliance system may eventually report whether the NDA/confidentiality control is configured and healthy, but it should reference control status rather than duplicate user career evidence.
+
+## 10. NDA-safe sanitization helpers
+
+`frontend/src/ndaSafety.js` includes:
 
 - `sanitizeNdaText()`;
 - `makeAccomplishmentNdaSafe()`; and
 - `makeImpactReceiptNdaSafe()`.
 
-These functions can:
+They can remove obvious credentials, omit fenced code, generalize ticket identifiers, remove private/internal references and diagnostics, reset sharing to private, clear exact Impact Receipt metrics, and preserve only explicitly public references that do not look internal.
 
-- remove obvious credentials;
-- omit fenced code blocks;
-- generalize ticket-style identifiers;
-- remove internal/private references;
-- remove diagnostic lines;
-- reset sharing to private;
-- clear exact Impact Receipt metric values; and
-- preserve only explicitly user-marked public evidence URLs that do not look internal.
+`frontend/src/NDASafetyPanel.jsx` is the reusable UI component for these helpers.
 
-### Current UI integration boundary
+### Current UI boundary
 
-`NDASafetyPanel.jsx` provides UI for the sanitization helper, but in the current PR it is not yet mounted into the Accomplishments or Impact Receipts page implementations. Treat the sanitizer and panel as available building blocks until page-level integration is completed.
+The global confidentiality gate and end-to-end attestation enforcement are active. `NDASafetyPanel.jsx` is still a reusable component rather than an automatically mounted panel inside every protected editor. Do not describe the production workflow as automatically rewriting every draft.
 
-Do not describe the current production workflow as automatically rewriting every protected draft unless that integration has been added and verified.
+The sanitizer is a risk-reduction helper, not a legal verdict. Users must review rewritten output.
 
-## Public-source ceiling
-
-If an evidence link is already public, BragStack may preserve that reference when the user explicitly marks it as public and it does not look internal.
+## 11. Public-source ceiling
 
 The rule remains:
 
 > The public source is the ceiling.
 
-A public merge request, release note, documentation page, or repository change may support only what that public source itself demonstrates. It does not authorize adding private customer names, architecture details, unpublished metrics, incidents, deployment details, or other nonpublic context.
+A public repository change, award, release note, campaign, documentation page, report, portfolio item, or other authorized source supports only what that source itself demonstrates. It does not authorize adding private context known from internal work.
 
-## What the system does not do
+## 12. CORS and request IDs
 
-The NDA safety system does not currently:
+`backend/app/main.py` allows `X-BragStack-Confidentiality-Attestation` through CORS.
 
-- parse or interpret the user's actual NDA;
-- know every employer-specific confidential project name;
-- know whether a metric was approved for public disclosure;
-- determine trade-secret status;
-- determine invention-assignment obligations;
-- guarantee detection of all secrets;
-- guarantee that a warning is truly confidential;
-- make prohibited third-party storage permissible because the record is marked private; or
-- provide legal advice.
+Request middleware assigns `request.state.request_id` before route dependencies run so successful attestation consumption can be correlated to a sanitized operational request record without copying the protected content into the attestation audit.
 
-## Control matrix
+## 13. Tests
 
-| Control | Current status | Enforcement point |
-| --- | --- | --- |
-| Protected UI submit interception | Implemented | Browser UI |
-| Protected visibility-action interception | Implemented | Browser UI |
-| Local credential/secret scan | Implemented | Browser UI |
-| Warning scan for code/log/internal references | Implemented | Browser UI |
-| Explicit user confirmation | Implemented | Browser UI |
-| Blocking on detected credential patterns | Implemented | Browser UI |
-| Public NDA guidance | Implemented | `/nda-safety` |
-| One-time attestation object | Implemented | Browser memory |
-| Request-layer attestation consumption | Not yet wired | Future client integration |
-| Server-side attestation validation | Not yet implemented | Future backend integration |
-| NDA-safe sanitizer library | Implemented | Frontend library |
-| NDA-safe sanitizer panel | Implemented component | Not yet mounted in protected pages |
-| Minimal audit receipt for NDA confirmation | Not yet implemented | Future backend/ops work |
-
-## Tests
-
-Primary deterministic tests:
+Frontend safety suites:
 
 - `frontend/src/ndaSafety.test.js`
 - `frontend/src/ndaInformationGateSource.test.js`
 - `frontend/src/ndaGuidanceSource.test.js`
+- `frontend/src/ndaApiSource.test.js`
 
-Coverage includes:
+Backend coverage:
 
-- credential and token pattern detection;
-- private/internal host detection;
-- ticket IDs;
-- code and diagnostic patterns;
-- expected safe wording;
-- sanitizer transformations;
-- exact metric handling;
-- evidence public/private handling;
-- public-source ceiling behavior;
-- one-time attestation behavior;
-- protected request matching;
-- gate source behavior; and
-- required public documentation language.
+- `backend/tests/test_confidentiality_attestation.py`
+- `backend/tests/test_core_indexes.py`
+- `backend/tests/test_impact_receipt_core_loop.py`
+- `backend/tests/test_impact_receipt_visibility.py`
 
-Run locally with:
+Coverage includes scanner blockers/warnings, false-positive safe wording, sanitizer transformations, one-time browser use, protected-request matching, client/server handshake wiring, stale versions, unsupported actions, missing tokens, expiry, wrong user, wrong action, token replay, safe audit serialization, index shape, and real protected Impact Receipt writes.
+
+Frontend safety command:
 
 ```bash
 cd frontend
 npm run test:safety
 ```
 
-The PR workflow also runs the NDA safety suite as part of the deterministic frontend checks.
+Backend command:
 
-## Engineering change checklist
+```bash
+cd backend
+python -m pytest
+```
 
-When changing NDA safety behavior:
+Both are part of PR CI.
 
-1. Identify every protected user action affected by the change.
-2. Confirm the gate intercepts both initial storage and later publication actions where applicable.
-3. Keep scanning local unless there is an explicit, reviewed reason to send draft content elsewhere.
-4. Never echo detected secret values in warnings, logs, analytics, or audit events.
-5. Add positive, negative, and regression tests for new scanner patterns.
-6. Add false-positive tests for ordinary career language.
-7. Update public guidance when user-visible behavior changes.
-8. Update this internal document when enforcement boundaries change.
-9. Do not describe a client-side control as a server-side security boundary.
-10. Require security/legal review before claiming that BragStack verifies NDA compliance.
+## 14. Engineering change checklist
 
-## Recommended next hardening phase
+When changing this system:
 
-The highest-value next step is to convert the current UI-only confirmation into a defense-in-depth write-control:
+1. Keep frontend and backend protected-action matching in sync.
+2. Never log or echo detected secret values.
+3. Never put the career draft or NDA text into the attestation receipt.
+4. Keep the mint endpoint outside the protected-write matcher to avoid recursion.
+5. Preserve one-time, action-bound, user-bound token semantics.
+6. Add positive, negative, replay, expiry, and false-positive tests for new rules.
+7. Re-run the safety suite, full backend suite, lint, build, and dependency audit.
+8. Update `/nda-safety` when user-visible behavior changes.
+9. Update this document whenever an enforcement boundary changes.
+10. Do not claim BragStack verifies legal NDA compliance.
 
-**Gate -> local scan -> confirmation -> one-time attestation -> request interceptor -> backend validation -> minimal audit receipt.**
+## 15. Known limitations
 
-That would preserve the current user-friendly workflow while making protected API writes much harder to bypass accidentally and providing a timestamped operational record without storing confidential draft content in the audit trail.
+The system cannot know every employer-specific project name, trade secret, protected metric, professional confidentiality rule, or contract restriction. It cannot determine whether a disclosure is legally authorized.
+
+A user with direct API access can request an attestation endpoint token after asserting `confirmed: true`; the server cannot independently prove that the human read the UI. The value of server enforcement is that protected API writes require an explicit, short-lived, auditable control step rather than silently bypassing the product’s safety workflow.
+
+The pattern scanner is a safety net, not a substitute for user judgment, employer/client policy, professional obligations, or legal review.
