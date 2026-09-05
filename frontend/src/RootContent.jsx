@@ -36,7 +36,7 @@ const ProCareerPage = lazyPage(() => import("./ProCareerPage.jsx"));
 const SeoLandingPage = lazyPage(() => import("./SeoLandingPages.jsx"));
 const SettingsPage = lazyPage(() => import("./SettingsPage.jsx"));
 const UpgradePage = lazyPage(() => import("./UpgradePage.jsx"));
-const LegalPages = lazyPage(() => import("./LegalPages.jsx"));
+const LegalPageRouter = lazyPage(() => import("./LegalPageRouter.jsx"));
 
 const INTERVIEW_PATH = "/app/interview-practice";
 
@@ -168,7 +168,7 @@ function RootContent() {
 
   let content;
   if (path.startsWith("/share/brag/")) content = <LegacyShareRedirect path={path} />;
-  else if (path === "/privacy" || path === "/terms") content = <LegalPages page={path === "/privacy" ? "privacy" : "terms"} />;
+  else if (path === "/privacy" || path === "/terms") content = <LegalPageRouter page={path === "/privacy" ? "privacy" : "terms"} />;
   else if (path === "/verify-receipt") content = <ReceiptVerificationPage />;
   else if (path === "/upgrade") content = <UpgradePage />;
   else if (path === "/education") content = <EducationMarketingPage />;
