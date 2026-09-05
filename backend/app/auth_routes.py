@@ -19,9 +19,8 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 PASSWORD_RESET_FROM = os.getenv("PASSWORD_RESET_FROM", "BragStack <noreply@usebragstack.com>")
 EMAIL_VERIFICATION_FROM = os.getenv("EMAIL_VERIFICATION_FROM", PASSWORD_RESET_FROM)
-TERMS_VERSION = "2026-09-04"
-PRIVACY_VERSION = "2026-09-04"
-MINIMUM_ACCOUNT_AGE = 18
+TERMS_VERSION = "2026-09-05"
+PRIVACY_VERSION = "2026-09-05"
 PROFILE_THEMES = {
     "default",
     "clinical",
@@ -57,7 +56,6 @@ class RegisterRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=80)
     email: EmailStr
     password: str = Field(..., min_length=8)
-    age_18_or_older: bool
     accepted_terms: bool
     accepted_privacy: bool
 
@@ -165,11 +163,6 @@ def _issue_verification_token(user):
 
 @router.post("/register")
 async def register_user(payload: RegisterRequest):
-    if not payload.age_18_or_older:
-        raise HTTPException(
-            status_code=422,
-            detail=f"BragStack accounts are currently limited to people age {MINIMUM_ACCOUNT_AGE} or older.",
-        )
     if not payload.accepted_terms or not payload.accepted_privacy:
         raise HTTPException(
             status_code=422,
@@ -188,13 +181,23 @@ async def register_user(payload: RegisterRequest):
         "hashed_password": hash_password(payload.password),
         "email_verification_required": True,
         "created_at": accepted_at,
-        "age_18_or_older_confirmed_at": accepted_at,
-        "minimum_account_age_at_acceptance": MINIMUM_ACCOUNT_AGE,
         "terms_accepted_at": accepted_at,
         "terms_version": TERMS_VERSION,
         "privacy_accepted_at": accepted_at,
         "privacy_version": PRIVACY_VERSION,
         "legal_acceptance_source": "email-registration",
+        "consents": {
+            "terms": {
+                "accepted": True,
+                "version": TERMS_VERSION,
+                "accepted_at": accepted_at,
+            },
+            "privacy_policy": {
+                "accepted": True,
+                "version": PRIVACY_VERSION,
+                "accepted_at": accepted_at,
+            },
+        },
     }
     result = users_collection.insert_one(doc)
     user = users_collection.find_one({"_id": result.inserted_id})

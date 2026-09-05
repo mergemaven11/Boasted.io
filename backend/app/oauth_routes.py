@@ -86,8 +86,8 @@ def _find_or_create_oauth_user(
     """Link OAuth identity without replacing user-authored profile fields.
 
     New OAuth account creation is temporarily disabled so every new BragStack
-    account passes through the explicit 18+ and legal-acceptance registration
-    flow. Existing OAuth users continue to sign in normally.
+    account passes through the explicit legal-acceptance registration flow.
+    Existing OAuth users continue to sign in normally.
     """
     normalized_email = email.lower().strip()
     provider_field = f"oauth.{provider}_id"
@@ -132,7 +132,7 @@ def _find_or_create_oauth_user(
         status_code=status.HTTP_403_FORBIDDEN,
         detail=(
             "New Google/GitHub account creation is temporarily unavailable. "
-            "Create your BragStack account with email/password first so you can confirm the 18+ requirement and accept the current Terms and Privacy Policy."
+            "Create your BragStack account with email/password first so the current Terms and Privacy Policy acceptance can be recorded."
         ),
     )
 

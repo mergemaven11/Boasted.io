@@ -9,7 +9,6 @@ const PAGE_SIZE = 10;
 const ENTRY_TYPES = [
   "Current Job",
   "Previous Job",
-  "Middle School",
   "High School",
   "College / University",
   "Personal Development",
@@ -18,12 +17,16 @@ const ENTRY_TYPES = [
   "Learning / Certification",
 ];
 const STUDENT_ENTRY_TYPES = new Set([
-  "Middle School",
   "High School",
   "College / University",
+  "Learning / Certification",
 ]);
 const STUDENT_CATEGORIES = [
   "Academic Achievement",
+  "Coursework",
+  "Academic Project",
+  "Capstone / Thesis",
+  "Academic Milestone",
   "Award / Honor",
   "Leadership",
   "Extracurricular Activity",
@@ -37,12 +40,76 @@ const STUDENT_CATEGORIES = [
   "Certification / Course",
 ];
 
+const EDUCATION_FEATURE_PRESETS = {
+  education: {
+    label: "My Education",
+    entry_type: "College / University",
+    category: "Academic Achievement",
+    helper: "Capture a meaningful education milestone, program experience, degree-related accomplishment, or learning achievement you want to reuse later.",
+  },
+  coursework: {
+    label: "Coursework",
+    entry_type: "College / University",
+    category: "Coursework",
+    helper: "Capture a course, lab, assignment, or body of coursework that demonstrates useful knowledge, skills, or growth.",
+  },
+  "academic-projects": {
+    label: "Academic Projects",
+    entry_type: "College / University",
+    category: "Academic Project",
+    helper: "Capture a capstone, research project, lab, presentation, design, build, or class project and focus on what you personally contributed.",
+  },
+  certifications: {
+    label: "Certifications & Training",
+    entry_type: "Learning / Certification",
+    category: "Certification / Course",
+    helper: "Record a certification, license, bootcamp, training program, continuing-education course, or other professional learning milestone.",
+  },
+  achievements: {
+    label: "Academic Achievements",
+    entry_type: "College / University",
+    category: "Award / Honor",
+    helper: "Capture an honor, scholarship, Dean's List recognition, competition result, award, or other academic achievement.",
+  },
+  "group-projects": {
+    label: "Group Project Contributions",
+    entry_type: "College / University",
+    category: "Academic Project",
+    helper: "Describe the team goal, then be precise about your own contribution, decisions, deliverables, collaboration, and measurable result.",
+  },
+  "graduation-progress": {
+    label: "Graduation Progress",
+    entry_type: "College / University",
+    category: "Academic Milestone",
+    helper: "Capture a real graduation milestone such as completing a program phase, practicum, capstone, major requirement, or other meaningful progress point.",
+  },
+  "experience-translator": {
+    label: "Experience Translator",
+    entry_type: "College / University",
+    category: "Academic Achievement",
+    helper: "Start with what you actually did in class, research, clubs, service, or training. BragStack can reuse that evidence later in career tools without inventing experience.",
+  },
+};
+
 const today = () => new Date().toISOString().slice(0, 10);
-const emptyForm = () => ({
+
+function educationPresetFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const feature = params.get("education_feature") || "";
+  const preset = EDUCATION_FEATURE_PRESETS[feature];
+  if (!preset) return null;
+  return {
+    ...preset,
+    entry_type: params.get("entry_type") || preset.entry_type,
+    category: params.get("category") || preset.category,
+  };
+}
+
+const emptyForm = (preset = null) => ({
   title: "",
-  category: "",
+  category: preset?.category || "",
   entry_date: today(),
-  entry_type: "Current Job",
+  entry_type: preset?.entry_type || "Current Job",
   situation: "",
   action: "",
   impact: "",
@@ -82,6 +149,7 @@ function entryToPayload(entry, isPublic = Boolean(entry.is_public)) {
 }
 
 function AccomplishmentsPage() {
+  const initialEducationPreset = educationPresetFromUrl();
   const [entries, setEntries] = useState([]);
   const [page, setPage] = useState(1);
   const [totalEntries, setTotalEntries] = useState(0);
@@ -92,7 +160,8 @@ function AccomplishmentsPage() {
     () => new URLSearchParams(window.location.search).get("create") === "1",
   );
   const [editingEntry, setEditingEntry] = useState(null);
-  const [form, setForm] = useState(emptyForm);
+  const [educationPreset, setEducationPreset] = useState(initialEducationPreset);
+  const [form, setForm] = useState(() => emptyForm(initialEducationPreset));
   const [isSaving, setIsSaving] = useState(false);
   const [createError, setCreateError] = useState("");
   const [visibilityUpdatingId, setVisibilityUpdatingId] = useState(null);
@@ -162,6 +231,7 @@ function AccomplishmentsPage() {
   function openCreate() {
     setCreateError("");
     setEditingEntry(null);
+    setEducationPreset(null);
     setForm(emptyForm());
     setShowCreate(true);
     window.history.replaceState({}, "", "/app/accomplishments?create=1");
@@ -170,6 +240,7 @@ function AccomplishmentsPage() {
   function openEdit(entry) {
     setCreateError("");
     setEditingEntry(entry);
+    setEducationPreset(null);
     setForm(entryToForm(entry));
     setShowCreate(true);
     window.history.replaceState(
@@ -182,6 +253,7 @@ function AccomplishmentsPage() {
   function closeCreate() {
     setShowCreate(false);
     setEditingEntry(null);
+    setEducationPreset(null);
     setCreateError("");
     window.history.replaceState({}, "", "/app/accomplishments");
   }
@@ -268,9 +340,8 @@ function AccomplishmentsPage() {
           <h1>Your accomplishments</h1>
           <p>
             Build a private record of meaningful work, education achievements,
-            activities, leadership, service, research, awards, and projects
-            before the details are forgotten. BragStack accounts are currently
-            limited to adults age 18+.
+            activities, leadership, service, research, awards, coursework, and
+            projects before the details are forgotten.
           </p>
         </div>
         <button className="accomplishments-add" type="button" onClick={openCreate}>
@@ -290,17 +361,18 @@ function AccomplishmentsPage() {
                 <p className="mini-label">
                   {editingEntry
                     ? "Edit accomplishment evidence"
-                    : "New accomplishment evidence"}
+                    : educationPreset?.label || "New accomplishment evidence"}
                 </p>
                 <h2>
-                  {editingEntry ? "Edit accomplishment" : "Create accomplishment"}
+                  {editingEntry ? "Edit accomplishment" : educationPreset ? `Add ${educationPreset.label.toLowerCase()}` : "Create accomplishment"}
                 </h2>
-                {isStudentEntry ? (
+                {educationPreset ? (
+                  <p className="edit-window-note">{educationPreset.helper}</p>
+                ) : isStudentEntry ? (
                   <p className="edit-window-note">
-                    For adults documenting education: capture grade/year, school
-                    or program, your role, time commitment, scope, recognition,
-                    measurable results, and safe evidence when you know them.
-                    BragStack does not currently offer accounts for minors.
+                    For education evidence, capture the school or program, your role,
+                    time commitment, scope, recognition, measurable results, and safe
+                    evidence when you know them.
                   </p>
                 ) : (
                   <p className="edit-window-note">
@@ -337,7 +409,7 @@ function AccomplishmentsPage() {
                 required
                 placeholder={
                   isStudentEntry
-                    ? "Led robotics team to state finals, earned science award, organized service project…"
+                    ? "Completed cloud capstone, earned science award, led research presentation…"
                     : "What did you accomplish?"
                 }
               />
@@ -385,28 +457,11 @@ function AccomplishmentsPage() {
                   onChange={handleFormChange}
                 >
                   {ENTRY_TYPES.map((type) => (
-                    <option
-                      key={type}
-                      value={type}
-                      disabled={
-                        type === "Middle School" && form.entry_type !== "Middle School"
-                      }
-                    >
-                      {type === "Middle School"
-                        ? "Middle School — coming soon for student accounts"
-                        : type}
-                    </option>
+                    <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
               </label>
             </div>
-
-            <p className="edit-window-note">
-              <s>Middle School student accounts</s> — <strong>Coming soon.</strong>{" "}
-              We are keeping the feature visible on the roadmap, but BragStack is
-              18+ while youth privacy and parental-consent requirements are reviewed
-              with counsel.
-            </p>
 
             <label>
               Situation
@@ -417,7 +472,7 @@ function AccomplishmentsPage() {
                 required
                 placeholder={
                   isStudentEntry
-                    ? "What was the class, club, team, school, program, competition, or community need? Include year and organization when useful."
+                    ? "What was the class, program, lab, club, team, research goal, competition, or community need? Include the organization or academic context when useful."
                     : "What was happening?"
                 }
               />
@@ -432,7 +487,7 @@ function AccomplishmentsPage() {
                 required
                 placeholder={
                   isStudentEntry
-                    ? "What did you personally do, create, lead, research, organize, solve, perform, or contribute?"
+                    ? "What did you personally do, create, lead, research, organize, solve, present, or contribute?"
                     : "What did you specifically do?"
                 }
               />
@@ -447,7 +502,7 @@ function AccomplishmentsPage() {
                 required
                 placeholder={
                   isStudentEntry
-                    ? "What changed? Include placement, award level, people served, money raised, growth, time commitment, audience, results, or recognition when available."
+                    ? "What changed? Include results, scope, people served, performance, recognition, time saved, grade-independent outcomes, or other measurable details when available."
                     : "What changed? Add numbers when you have them."
                 }
               />
@@ -475,7 +530,7 @@ function AccomplishmentsPage() {
                 onChange={handleFormChange}
                 placeholder={
                   isStudentEntry
-                    ? "Research, Leadership, Robotics, Writing, Service"
+                    ? "Research, Leadership, Python, Writing, Collaboration"
                     : "Docker, Python, Leadership"
                 }
               />

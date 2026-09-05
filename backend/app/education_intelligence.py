@@ -10,7 +10,6 @@ from collections import defaultdict
 from typing import Iterable
 
 EDUCATION_ENTRY_TYPES = {
-    "Middle School",
     "High School",
     "College / University",
     "Learning / Certification",
