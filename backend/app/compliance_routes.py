@@ -16,6 +16,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pymongo.errors import PyMongoError
 
+from app.ai.runtime import record_intelligence_outcome
 from app.database import compliance_audit_runs_collection, users_collection
 from app.ops_routes import require_internal_role
 
@@ -536,6 +537,20 @@ def run_compliance_audit(current_user: dict = Depends(require_internal_role("ops
         integrity_payload = {key: value for key, value in receipt.items() if key not in {"integrity_sha256"}}
         receipt["integrity_sha256"] = _canonical_hash(integrity_payload)
         compliance_audit_runs_collection.insert_one(dict(receipt))
+        actionable = [
+            finding for finding in findings
+            if finding.get("status") in {"gap", "counsel_review", "needs_evidence"}
+        ]
+        record_intelligence_outcome(
+            feature="compliance_intelligence",
+            task="whole_business_audit",
+            violations=[f"compliance:{item['control_id']}:{item['status']}" for item in actionable],
+            model_id=RULE_PACK_VERSION,
+            schema_version=RULE_PACK_VERSION,
+            source_count=len(facts),
+            generated_item_count=len(findings),
+            user_id=str(current_user.get("_id", "")),
+        )
         return _serialize_run(receipt)
     except PyMongoError as exc:
         raise HTTPException(status_code=503, detail="Compliance audit storage is unavailable.") from exc

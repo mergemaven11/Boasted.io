@@ -14,8 +14,8 @@ assert.match(interviewSource, /recognition\.interimResults = true/, "Speech reco
 assert.match(interviewSource, /recognition\.continuous = !appleMobile/, "Apple mobile speech recognition must use restartable short sessions");
 assert.match(interviewSource, /primeMicrophonePermission/, "Interviewer must prime microphone permission on mobile");
 assert.match(interviewSource, /role="dialog"/, "Per-question feedback must render as a modal dialog");
-assert.match(interviewSource, /Practice Interview with AJ/, "The interview room must identify the interviewer as AJ");
-assert.doesNotMatch(interviewSource, /Aisha Jordan|Aisha’s|Aisha is|with Aisha/, "Retired Aisha naming must not leak into the AJ experience");
+assert.match(interviewSource, /Practice Interview with Aisha Jordan/, "The interview room must identify the interviewer as Aisha Jordan");
+assert.match(interviewSource, /Aisha Jordan/, "The restored Aisha Jordan identity must be present");
 
 assert.match(avatarSource, /data-avatar-engine="bragstack-static-aj-v1"/, "AJ must identify the static interviewer engine");
 assert.match(avatarSource, /className="aj-avatar-monogram"/, "AJ must expose the static monogram avatar");
