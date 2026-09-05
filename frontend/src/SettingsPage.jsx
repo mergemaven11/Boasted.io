@@ -1,4 +1,4 @@
-import { CalendarDays, Palette, UserRound, ShieldCheck, CreditCard, ChevronRight, GraduationCap } from "lucide-react";
+import { CalendarDays, Palette, UserRound, ShieldCheck, CreditCard, ChevronRight, GraduationCap, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import CalendarIntegrationsPage from "./CalendarIntegrationsPage.jsx";
 import { startProductTour } from "./productTourActions.js";
@@ -10,6 +10,7 @@ const SETTINGS=[
   {href:"/app/settings/appearance",icon:Palette,title:"Profile appearance",description:"Public-page themes, career-inspired styles, and your custom profile colors."},
   {href:"/app/settings/privacy",icon:ShieldCheck,title:"Privacy & sharing",description:"Control what stays private and what can appear on your public proof profile.",comingSoon:true},
   {href:"/app/settings/billing",icon:CreditCard,title:"Plan & billing",description:"See your current plan, complimentary Pro gift status, and billing controls for any existing paid subscription."},
+  {href:"/app/settings/email-preferences",icon:Mail,title:"Email preferences",description:"Choose whether BragStack may send you product updates, early-access announcements, and offers."},
 ];
 
 export default function SettingsPage(){
