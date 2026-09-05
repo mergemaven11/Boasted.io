@@ -99,6 +99,7 @@ jobs:
           node scripts/verify-aisha-source.mjs
           npm run test:interview
           npm run test:resume
+          npm run test:safety
           npm run test:seo
       - name: Lint
         run: npm run lint
