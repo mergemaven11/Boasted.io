@@ -6,11 +6,30 @@ import pytest
 from bson import ObjectId
 from fastapi.testclient import TestClient
 
+import app.confidentiality as confidentiality
+import app.confidentiality_routes as confidentiality_routes
 import app.impact_receipt_routes as impact_receipt_routes
 from app.main import app
 
 
 client = TestClient(app)
+
+
+def attestation_headers(method: str, path: str) -> dict[str, str]:
+    """Mint the same one-time confidentiality token the browser uses."""
+    response = client.post(
+        "/confidentiality/attestations",
+        json={
+            "version": confidentiality.CONFIDENTIALITY_ATTESTATION_VERSION,
+            "method": method,
+            "path": path,
+            "confirmed": True,
+        },
+    )
+    assert response.status_code == 201, response.text
+    return {
+        confidentiality.CONFIDENTIALITY_ATTESTATION_HEADER: response.json()["attestation_token"],
+    }
 
 
 @pytest.fixture
@@ -27,6 +46,7 @@ def receipt_context(monkeypatch):
     mock_db = mock_client["bragstack_receipt_core_loop_test"]
     receipts = mock_db["impact_receipts"]
     entries = mock_db["entries"]
+    attestations = mock_db["confidentiality_attestations"]
     user = {
         "_id": ObjectId(),
         "name": "Core Loop User",
@@ -35,6 +55,8 @@ def receipt_context(monkeypatch):
 
     monkeypatch.setattr(impact_receipt_routes, "entries_collection", entries)
     monkeypatch.setattr(impact_receipt_routes, "impact_receipts_collection", receipts)
+    monkeypatch.setattr(confidentiality, "confidentiality_attestations_collection", attestations)
+    monkeypatch.setattr(confidentiality_routes, "confidentiality_attestations_collection", attestations)
     app.dependency_overrides[impact_receipt_routes.get_current_user] = lambda: user
 
     yield user, receipts
@@ -80,7 +102,11 @@ def test_create_standalone_receipt_captures_complete_core_loop(receipt_context):
     """
     user, receipts = receipt_context
 
-    response = client.post("/impact-receipts", json=valid_payload())
+    response = client.post(
+        "/impact-receipts",
+        json=valid_payload(),
+        headers=attestation_headers("POST", "/impact-receipts"),
+    )
 
     assert response.status_code == 201
     data = response.json()
@@ -107,7 +133,11 @@ def test_create_receipt_requires_evidence(receipt_context):
     payload = valid_payload()
     payload["evidence"] = []
 
-    response = client.post("/impact-receipts", json=payload)
+    response = client.post(
+        "/impact-receipts",
+        json=payload,
+        headers=attestation_headers("POST", "/impact-receipts"),
+    )
 
     assert response.status_code == 422
 
@@ -121,7 +151,11 @@ def test_create_receipt_rejects_blank_skills_after_normalization(receipt_context
     payload = valid_payload()
     payload["skills"] = ["   "]
 
-    response = client.post("/impact-receipts", json=payload)
+    response = client.post(
+        "/impact-receipts",
+        json=payload,
+        headers=attestation_headers("POST", "/impact-receipts"),
+    )
 
     assert response.status_code == 422
     assert response.json()["detail"] == "At least one skill is required."
@@ -154,9 +188,10 @@ def test_owner_can_update_evidence_metrics_and_visibility(receipt_context):
             "updated_at": now,
         }
     ).inserted_id
+    path = f"/impact-receipts/{receipt_id}"
 
     response = client.patch(
-        f"/impact-receipts/{receipt_id}",
+        path,
         json={
             "metrics": [{"label": "Time saved", "value": "4 hours/week"}],
             "evidence": [
@@ -169,6 +204,7 @@ def test_owner_can_update_evidence_metrics_and_visibility(receipt_context):
             ],
             "is_public": True,
         },
+        headers=attestation_headers("PATCH", path),
     )
 
     assert response.status_code == 200

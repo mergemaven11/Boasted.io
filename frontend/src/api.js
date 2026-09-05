@@ -2,6 +2,12 @@ import axios from "axios";
 
 import { ANALYTICS_EVENTS, trackAnalyticsEvent } from "./analytics.js";
 import { normalizeDashboardTags } from "./dashboardTags.js";
+import {
+  consumeConfidentialityAttestation,
+  isConfidentialityProtectedRequest,
+} from "./ndaSafety.js";
+
+const CONFIDENTIALITY_ATTESTATION_HEADER = "X-BragStack-Confidentiality-Attestation";
 
 function getDefaultApiBaseUrl() {
   if (window.location.hostname.endsWith(".app.github.dev")) return "/api";
@@ -101,9 +107,43 @@ async function downloadPacketPdf(path, packet, fallbackFilename) {
   };
 }
 
-api.interceptors.request.use((config) => {
+async function mintServerConfidentialityAttestation(method, url, version, authToken) {
+  const path = String(url || "").split("?")[0] || "/";
+  const response = await axios.post(
+    "/confidentiality/attestations",
+    {
+      version,
+      method: String(method || "").toUpperCase(),
+      path,
+      confirmed: true,
+    },
+    {
+      baseURL: getDefaultApiBaseUrl(),
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+    },
+  );
+  return response.data?.attestation_token || null;
+}
+
+api.interceptors.request.use(async (config) => {
   const token = localStorage.getItem("bragstack_token");
+  config.headers = config.headers || {};
   if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  const method = String(config.method || "").toLowerCase();
+  const url = String(config.url || "");
+  if (!isConfidentialityProtectedRequest(method, url)) return config;
+
+  const attestationVersion = consumeConfidentialityAttestation();
+  if (!attestationVersion) return config;
+
+  const serverToken = await mintServerConfidentialityAttestation(
+    method,
+    url,
+    attestationVersion,
+    token,
+  );
+  if (serverToken) config.headers[CONFIDENTIALITY_ATTESTATION_HEADER] = serverToken;
   return config;
 });
 

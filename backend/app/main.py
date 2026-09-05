@@ -17,6 +17,11 @@ from app.billing_details_routes import router as billing_details_router
 from app.beta_metrics_routes import router as beta_metrics_router
 from app.career_intelligence_routes import router as career_intelligence_router
 from app.compliance_routes import router as compliance_router
+from app.confidentiality import enforce_confidentiality_attestation
+from app.confidentiality_routes import (
+    ops_router as confidentiality_ops_router,
+    router as confidentiality_router,
+)
 from app.core_output_routes import router as core_output_router
 from app.executive_impact_routes import router as executive_impact_router
 from app.database import client as mongo_client, entries_collection, impact_receipts_collection
@@ -103,6 +108,7 @@ async def add_security_headers_and_telemetry(request: Request, call_next):
         Function result.
     """
     request_id = request.headers.get("x-request-id") or new_request_id()
+    request.state.request_id = request_id
     started = time.perf_counter()
     status_code = 500
     try:
@@ -175,7 +181,13 @@ app.add_middleware(
     allow_origin_regex=r"https://.*\.app\.github\.dev",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
-    allow_headers=["Authorization", "Content-Type", "Accept", "X-Request-ID"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "X-Request-ID",
+        "X-BragStack-Confidentiality-Attestation",
+    ],
 )
 
 
@@ -228,10 +240,17 @@ app.include_router(profile_media_router)
 app.include_router(profile_connection_router)
 app.include_router(billing_router)
 app.include_router(billing_details_router)
-app.include_router(entries_router, dependencies=[Depends(enforce_entry_usage)])
+app.include_router(confidentiality_router)
+app.include_router(
+    entries_router,
+    dependencies=[Depends(enforce_entry_usage), Depends(enforce_confidentiality_attestation)],
+)
 app.include_router(public_slug_router)
 app.include_router(public_share_router)
-app.include_router(impact_receipts_router, dependencies=[Depends(enforce_receipt_usage)])
+app.include_router(
+    impact_receipts_router,
+    dependencies=[Depends(enforce_receipt_usage), Depends(enforce_confidentiality_attestation)],
+)
 app.include_router(receipt_verification_router)
 app.include_router(core_output_router)
 app.include_router(executive_impact_router)
@@ -250,6 +269,7 @@ app.include_router(ops_user_router)
 app.include_router(ops_invite_router)
 app.include_router(ai_verification_router)
 app.include_router(compliance_router)
+app.include_router(confidentiality_ops_router)
 
 
 @app.get("/")

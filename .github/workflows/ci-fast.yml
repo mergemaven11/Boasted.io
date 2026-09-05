@@ -90,9 +90,10 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install dependencies
         run: npm ci
-      - name: Resume and interview unit checks
+      - name: Resume, interview, and confidentiality safety checks
         run: |
           npm run test:resume
           npm run test:interview
+          npm run test:safety
       - name: Lint
         run: npm run lint
