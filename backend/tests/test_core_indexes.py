@@ -20,6 +20,7 @@ def test_core_indexes_are_created_with_expected_shapes():
         "resume_documents",
         "analytics_events",
         "rate_limits",
+        "confidentiality_attestations",
     }
 
     user_indexes = db.users.index_information()
@@ -54,6 +55,13 @@ def test_core_indexes_are_created_with_expected_shapes():
     rate_limit_indexes = db.rate_limits.index_information()
     assert rate_limit_indexes["rate_limits_ttl"]["key"] == [("expires_at", 1)]
     assert rate_limit_indexes["rate_limits_ttl"]["expireAfterSeconds"] == 0
+
+    confidentiality_indexes = db.confidentiality_attestations.index_information()
+    assert confidentiality_indexes["uniq_confidentiality_attestation_token"]["key"] == [("token_hash", 1)]
+    assert confidentiality_indexes["uniq_confidentiality_attestation_token"]["unique"] is True
+    assert confidentiality_indexes["confidentiality_user_issued"]["key"] == [("user_id", 1), ("issued_at", -1)]
+    assert confidentiality_indexes["confidentiality_audit_retention_ttl"]["key"] == [("purge_at", 1)]
+    assert confidentiality_indexes["confidentiality_audit_retention_ttl"]["expireAfterSeconds"] == 0
 
 
 def test_unique_email_index_rejects_duplicate_accounts():
