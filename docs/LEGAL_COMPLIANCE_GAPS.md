@@ -1,6 +1,6 @@
 # BragStack — interim legal/compliance gaps
 
-**Reviewed:** September 4, 2026  
+**Reviewed:** September 5, 2026  
 **Purpose:** Keep us from confusing good documentation with proven legal/operational compliance while we wait for attorney review.
 
 > A green checkbox here means the control was verified in the real product/operations, not merely written into a policy.
@@ -44,8 +44,10 @@ Before marking this fully green:
 
 **Status: STRONG DRAFT, NOT LAWYER-APPROVED**
 
-Existing Privacy, Terms, and NDA guidance already cover many sensible areas. This PR adds an interim Georgia customer notice and an explicit 18+ account boundary. Counsel should still review the whole package, especially:
+Existing Privacy, Terms, NDA guidance, the interim notices, and the Georgia customer notice cover many sensible areas. The September 5 product change removes the explicit 18+ registration gate and returns account eligibility to the Terms/applicable-law standard. Counsel should still review the whole package, especially:
 
+- account eligibility and contractual-capacity language by jurisdiction;
+- any obligations triggered if younger users can lawfully create accounts under applicable rules;
 - legal entity/trade name and business contact/address;
 - governing law/venue/dispute terms;
 - arbitration/class waiver decision, if any;
@@ -76,20 +78,22 @@ Any specific retention promise — especially the documented seven-day pending-v
 
 ## 🟡 Near-term policy choices for counsel
 
-### 7. Age/minors policy
+### 7. Age, contractual capacity, and younger-user policy
 
-**Status: INTERIM 18+ BOUNDARY IMPLEMENTED — COUNSEL REVIEW STILL REQUIRED**
+**Status: PRODUCT AGE GATE REMOVED — COUNSEL REVIEW REQUIRED BEFORE TREATING THIS AS A SETTLED POLICY**
 
-BragStack now uses a conservative interim adults-only boundary:
+The current implementation now does the following:
 
-- [x] registration shows a blocking 18+ modal;
-- [x] email/password registration requires 18+ confirmation plus Terms and Privacy acceptance;
-- [x] the backend rejects new email/password accounts without those confirmations and records acceptance timestamps/versions;
-- [x] new OAuth account creation is temporarily blocked so it cannot bypass the registration gate, while existing OAuth users can continue signing in;
-- [x] Middle School student accounts remain visible as “Coming soon” but are not selectable for new records;
-- [x] internal Education Intelligence documentation and the Georgia customer notice state the 18+ boundary;
-- [ ] review any pre-existing/legacy customer accounts that predate the new age attestation and decide whether re-attestation is appropriate before broad public launch;
-- [ ] obtain counsel approval before opening under-18/student accounts.
+- [x] removes the blocking 18+ registration modal and `age_18_or_older` request field;
+- [x] requires affirmative Terms and Privacy Policy acceptance for new email/password accounts;
+- [x] records Terms and Privacy versions plus server-side acceptance timestamps in flat audit fields and a structured `consents` object;
+- [x] keeps new OAuth account creation temporarily blocked so OAuth cannot bypass the legal-consent step, while existing OAuth users can continue signing in;
+- [x] removes dedicated Middle School entry logic and coming-soon banners from the current Education product;
+- [x] refocuses Education on college/university, trade/technical, certification, bootcamp, continuing-education, internship, and career-transition evidence;
+- [ ] have counsel review the Terms/applicable-law eligibility standard for intended launch jurisdictions;
+- [ ] determine whether any additional age-assurance, parental/guardian, student-data, retention, AI-safety, or support controls are required for users who may be below the age of majority but legally able to use the Service;
+- [ ] review any pre-existing/legacy customer accounts if counsel recommends re-attestation or another account review;
+- [ ] obtain a separate legal/product review before intentionally marketing to or designing dedicated experiences for children or younger teens.
 
 Georgia SB 540 / Act 518 becomes effective July 1, 2027 and includes requirements related to conversational AI, minors, privacy tools, and safety protocols. BragStack must review applicability before that date.
 
@@ -105,9 +109,10 @@ These are useful risk-reduction controls, but they do not equal a legal certific
 
 - customer-facing Privacy Policy, Terms, NDA/confidential-work guidance, and Docs exist;
 - private workspace/public-sharing distinction is documented;
-- terms warn against fabricated career evidence and misuse of verifier contact information;
+- terms warn against fabricated career or education evidence and misuse of verifier contact information;
 - AI outputs are described as drafting/coaching aids that users must review;
-- new email/password registration records 18+ and legal-policy acceptance metadata;
+- new email/password registration records Terms/Privacy acceptance versions and timestamps server-side;
+- structured account consent records now preserve the accepted document version and acceptance time;
 - first-party subscription cancellation/resume endpoints exist;
 - Stripe webhook signatures are verified and webhook processing includes idempotency/replay protections;
 - BragStack now places a recurring-billing disclosure/acknowledgement before Stripe Checkout;
