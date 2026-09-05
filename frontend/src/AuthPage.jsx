@@ -8,8 +8,9 @@ function getApiBaseUrl() {
 }
 
 const sleep = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+const API_WAKE_TIMEOUT_MS = 120000;
 
-async function waitForApiReady(apiBaseUrl, timeoutMs = 45000) {
+async function waitForApiReady(apiBaseUrl, timeoutMs = API_WAKE_TIMEOUT_MS) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const controller = new AbortController();
@@ -336,7 +337,7 @@ function AuthPage({ mode = "login", onLogin }) {
           {isRegister ? (
             <div className="auth-oauth-temporary"><strong>Google & GitHub sign-up</strong><p>Temporarily paused for new accounts so every new user completes the required legal-consent step. Existing OAuth users can still sign in from the Log in page.</p></div>
           ) : (
-            <><div className="auth-divider"><span>or continue with</span></div><div className="auth-oauth-grid"><button type="button" className="auth-oauth-button auth-oauth-google" onClick={() => startOAuth("google")} disabled={Boolean(connectingProvider)}><span className="auth-google-mark" aria-hidden="true">G</span><span>{connectingProvider === "google" ? "Connecting to Google..." : "Continue with Google"}</span></button><button type="button" className="auth-oauth-button auth-oauth-github" onClick={() => startOAuth("github")} disabled={Boolean(connectingProvider)}><GitHubMark /><span>{connectingProvider === "github" ? "Connecting to GitHub..." : "Continue with GitHub"}</span></button>{connectingProvider && oauthIsTakingLonger && <p className="auth-oauth-status" role="status">BragStack is waking up. This can take about a minute on the current low-cost server.</p>}</div></>
+            <><div className="auth-divider"><span>or continue with</span></div><div className="auth-oauth-grid"><button type="button" className="auth-oauth-button auth-oauth-google" onClick={() => startOAuth("google")} disabled={Boolean(connectingProvider)}><span className="auth-google-mark" aria-hidden="true">G</span><span>{connectingProvider === "google" ? "Connecting to Google..." : "Continue with Google"}</span></button><button type="button" className="auth-oauth-button auth-oauth-github" onClick={() => startOAuth("github")} disabled={Boolean(connectingProvider)}><GitHubMark /><span>{connectingProvider === "github" ? "Connecting to GitHub..." : "Continue with GitHub"}</span></button>{connectingProvider && oauthIsTakingLonger && <p className="auth-oauth-status" role="status">BragStack is waking up. We’ll continue automatically as soon as it’s ready.</p>}</div></>
           )}
 
           <p className="auth-switch">{isRegister ? "Already have an account?" : "New to BragStack?"} <a href={isRegister ? "/login" : "/register"}>{isRegister ? "Log in" : "Create one"}</a></p>
