@@ -76,9 +76,33 @@ def test_billing_fallback_exposes_customer_safe_fields_only():
     assert payload["amount"] == 9
     assert payload["currency"] == "usd"
     assert payload["interval"] == "month"
+    assert payload["has_subscription"] is True
+    assert payload["temporary_pro_gift"] is False
     assert payload["payment_method"] is None
     assert "stripe_customer_id" not in payload
     assert "stripe_subscription_id" not in payload
+
+
+def test_billing_fallback_marks_complimentary_pro_as_non_subscription():
+    user = {
+        "_id": ObjectId(),
+        "email": "beta-member@example.com",
+        "plan": "free",
+        "billing_status": "free",
+        "email_verification_required": False,
+    }
+
+    payload = billing_details_routes._fallback_payload(user)
+
+    assert payload["plan"] == "pro"
+    assert payload["persisted_plan"] == "free"
+    assert payload["status"] == "complimentary_beta"
+    assert payload["amount"] == 0
+    assert payload["currency"] is None
+    assert payload["interval"] is None
+    assert payload["has_subscription"] is False
+    assert payload["temporary_pro_gift"] is True
+    assert payload["access_source"] == "complimentary_pro"
 
 
 def test_fast_resume_import_accepts_text_without_mutation():

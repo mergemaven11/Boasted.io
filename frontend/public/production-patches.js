@@ -11,6 +11,7 @@
   const routeMeta = {
     "/": ["BragStack | Turn Your Work Into Career Proof", "BragStack helps professionals capture wins, attach evidence, create Impact Receipts, build Proof Profiles and Professional Packets, and selectively share career proof when it matters."],
     "/docs": ["BragStack Docs | Career Proof, Billing, Privacy & Product Help", "Customer documentation for BragStack accounts, Impact Receipts, reports, public proof profiles, privacy, billing, and BragStack Pro."],
+    "/support": ["BragStack Support Hub | Product Help, Beta Access & Security", "Get BragStack product and account help, troubleshoot issues, understand complimentary beta access, review NDA guidance, and reach support, billing, privacy, or security contacts."],
     "/how-it-works": ["How BragStack Works | Capture, Prove & Reuse Career Evidence", "See how BragStack helps you capture accomplishments, create Impact Receipts, reuse evidence for career moments, share selectively, and keep private work private."],
     "/use-cases": ["BragStack Use Cases | Reviews, Promotions, Resumes & Interviews", "Explore BragStack use cases for performance reviews, promotions, resumes, interviews, career changes, freelancers, founders, and adults in education."],
     "/contact": ["Contact BragStack | Support, Privacy, Security & Billing", "Contact BragStack for product support, privacy requests, security concerns, billing questions, general questions, or legal correspondence."],
@@ -61,11 +62,41 @@
     }
   }
 
+  function ensureBetaLockup(nav) {
+    if (!nav) return;
+    const logo = nav.querySelector(".landing-logo");
+    if (!logo) return;
+    logo.textContent = "BragStack";
+    logo.setAttribute("aria-label", "BragStack home");
+    let lockup = logo.closest(".landing-brand-lockup");
+    if (!lockup) {
+      lockup = document.createElement("div");
+      lockup.className = "landing-brand-lockup";
+      logo.parentNode.insertBefore(lockup, logo);
+      lockup.appendChild(logo);
+    }
+    if (!lockup.querySelector(".landing-beta-badge")) {
+      const badge = document.createElement("span");
+      badge.className = "landing-beta-badge";
+      badge.textContent = "Beta";
+      lockup.appendChild(badge);
+    }
+  }
+
   function patchMarketingNavbar(root = document) {
     const nav = root.querySelector?.(".landing-nav") || document.querySelector(".landing-nav");
-    if (!nav || nav.dataset.brandPatched === "true") return;
-    const logo = nav.querySelector(".landing-logo");
-    if (logo) { logo.textContent = "BragStack"; logo.setAttribute("aria-label", "BragStack home"); }
+    if (!nav) return;
+    ensureBetaLockup(nav);
+
+    const links = nav.querySelector(".landing-nav-links");
+    if (links && !links.querySelector('a[href="/support"]')) {
+      const support = document.createElement("a");
+      support.href = "/support";
+      support.textContent = "Support";
+      const pricing = links.querySelector('a[href="#pricing"], a[href="/#pricing"]');
+      links.insertBefore(support, pricing || null);
+    }
+
     const actions = nav.querySelector(".landing-nav-actions");
     if (actions) {
       if (!actions.querySelector('a[href="/docs"]')) {
@@ -106,6 +137,26 @@
     const columns = footer.querySelector(".mega-footer-columns");
     if (!columns) return;
 
+    const footerBrand = footer.querySelector(".mega-footer-brand");
+    if (footerBrand) {
+      const logo = footerBrand.querySelector(".landing-logo");
+      if (logo) {
+        let lockup = logo.closest(".landing-brand-lockup");
+        if (!lockup) {
+          lockup = document.createElement("div");
+          lockup.className = "landing-brand-lockup landing-brand-lockup-footer";
+          logo.parentNode.insertBefore(lockup, logo);
+          lockup.appendChild(logo);
+        }
+        if (!lockup.querySelector(".landing-beta-badge")) {
+          const badge = document.createElement("span");
+          badge.className = "landing-beta-badge";
+          badge.textContent = "Beta";
+          lockup.appendChild(badge);
+        }
+      }
+    }
+
     const byHeading = (heading) => Array.from(columns.children).find((column) => column.querySelector("h3")?.textContent?.trim().toLowerCase() === heading);
     const resources = byHeading("resources");
     const company = byHeading("company");
@@ -115,6 +166,8 @@
       if (docsPlaceholder && docsPlaceholder.tagName !== "A") { const docs = document.createElement("a"); docs.href = "/docs"; docs.textContent = "Docs"; docsPlaceholder.replaceWith(docs); }
       ensureFooterLink(resources, "How it works", "/how-it-works");
       ensureFooterLink(resources, "Use cases", "/use-cases");
+      ensureFooterLink(resources, "Support Hub", "/support");
+      ensureFooterLink(resources, "Docs & guides", "/docs");
       ensureFooterLink(resources, "Sign in", "/login");
       ensureFooterLink(resources, "Create account", "/register");
       ensureFooterLink(resources, "NDA & confidential work", "/nda-safety");
@@ -143,7 +196,7 @@
     if (path === "/terms" || text.includes("legal") || href.includes("legal")) return LEGAL_EMAIL;
     if (text.includes("security") || href.includes("security")) return SECURITY_EMAIL;
     if (text.includes("billing") || href.includes("billing")) return BILLING_EMAIL;
-    if (path === "/docs" || text.includes("support") || href.includes("support")) return SUPPORT_EMAIL;
+    if (path === "/docs" || path === "/support" || text.includes("support") || href.includes("support")) return SUPPORT_EMAIL;
     return CONTACT_EMAIL;
   }
 
@@ -151,6 +204,8 @@
     const routes = {
       "how it works": "/how-it-works",
       "use cases": "/use-cases",
+      "support": "/support",
+      "support hub": "/support",
       "contact": "/contact",
       "team waitlist": "/team",
       "enterprise": "/enterprise",
