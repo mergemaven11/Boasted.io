@@ -24,3 +24,7 @@ export async function sendOpsUserInvite(payload) { const response = await opsApi
 export async function getOpsTeam() { const response = await opsApi.get("/ops/team"); return response.data; }
 export async function updateOpsRoles(userId, roles) { const response = await opsApi.patch(`/ops/team/${userId}/roles`, { roles }); return response.data; }
 export async function getOpsAudit() { const response = await opsApi.get("/ops/audit"); return response.data; }
+export async function getComplianceCatalog() { const response = await opsApi.get("/ops/compliance/catalog"); return response.data; }
+export async function runComplianceAudit() { const response = await opsApi.post("/ops/compliance/audits"); return response.data; }
+export async function getLatestComplianceAudit() { const response = await opsApi.get("/ops/compliance/audits/latest"); return response.data; }
+export async function getComplianceAuditHistory(limit = 20) { const response = await opsApi.get("/ops/compliance/audits", { params: { limit } }); return response.data; }
