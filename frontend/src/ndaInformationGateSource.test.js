@@ -35,7 +35,7 @@ test("NDA gate intercepts protected public-sharing buttons", () => {
 test("NDA gate requires an explicit user confirmation", () => {
   assert.match(gate, /I confirm — continue/);
   assert.match(gate, /confidential, proprietary, restricted/);
-  assert.match(gate, /disabled=!confirmed \|\| blockingFindings\.length > 0/);
+  assert.match(gate, /disabled=\{!confirmed \|\| blockingFindings\.length > 0\}/);
 });
 
 test("NDA gate runs the local scanner before continuing", () => {
