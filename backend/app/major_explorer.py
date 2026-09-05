@@ -384,6 +384,7 @@ def build_major_explorer(
     entries = list(entries)
     receipts = list(receipts)
     career = build_career_intelligence_v5(entries, receipts)
+    career_graph = career.get("career_graph") or {}
 
     skills = {
         _text(row.get("skill")): row
@@ -392,7 +393,7 @@ def build_major_explorer(
     }
     domains = {
         _text(row.get("domain")): row
-        for row in career.get("evidence_domains") or []
+        for row in career_graph.get("domains") or []
         if _text(row.get("domain"))
     }
     entry_texts = [_entry_text(entry) for entry in entries]
@@ -405,7 +406,6 @@ def build_major_explorer(
         points = 0
         evidence_reasons: list[str] = []
         matched_signal_keys: set[str] = set()
-        supporting_demo_keys: set[str] = set()
 
         for domain, weight in profile["domains"].items():
             row = domains.get(domain)
@@ -419,7 +419,6 @@ def build_major_explorer(
             evidence_reasons.append(
                 f"Your saved proof repeatedly connects to {domain} ({demonstrations} distinct demonstration{'s' if demonstrations != 1 else ''})."
             )
-            supporting_demo_keys.add(f"domain:{domain.casefold()}:{demonstrations}")
 
         for skill, weight in profile["skills"].items():
             row = skills.get(skill)
@@ -433,7 +432,6 @@ def build_major_explorer(
             evidence_reasons.append(
                 f"You have demonstrated {skill} across {demonstrations} distinct example{'s' if demonstrations != 1 else ''}."
             )
-            supporting_demo_keys.add(f"skill:{skill.casefold()}:{demonstrations}")
 
         keyword_entries: dict[str, int] = defaultdict(int)
         for text in entry_texts:
@@ -459,9 +457,8 @@ def build_major_explorer(
         if distinct_signals == 0:
             continue
 
-        # We intentionally cap the demonstration count at the user's real number
-        # of distinct demonstrations. This is descriptive evidence breadth, not a
-        # prediction or aptitude score.
+        # Keep breadth conservative: it can never exceed the user's real count of
+        # distinct demonstrations, and it is not exposed as a success probability.
         inferred_demo_breadth = min(
             distinct_demonstrations,
             max(
@@ -533,7 +530,7 @@ def build_major_explorer(
             "proof_records_analyzed": int(summary.get("total_proof_records") or 0),
             "distinct_demonstrations": distinct_demonstrations,
             "canonical_skills": len(career.get("skills") or []),
-            "evidence_domains": len(career.get("evidence_domains") or []),
+            "evidence_domains": len(career_graph.get("domains") or []),
             "recommendations_returned": len(selected),
             "evidence_mode": "saved-proof-only",
             "self_reported_interests_included": False,
