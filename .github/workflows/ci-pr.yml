@@ -100,6 +100,7 @@ jobs:
           npm run test:interview
           npm run test:resume
           npm run test:seo
+          npm run test:settings
       - name: Lint
         run: npm run lint
       - name: Build
