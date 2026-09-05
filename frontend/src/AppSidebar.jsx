@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BarChart3, BrainCircuit, Building2, ChevronDown, FileCheck2, FileText, GraduationCap, Home, ListChecks, LogOut, Menu, ReceiptText, Settings, ShieldCheck, Sparkles, UserRound, Users, Video, X } from "lucide-react";
+import { BarChart3, BrainCircuit, Building2, ChevronDown, FileCheck2, FileText, GraduationCap, Home, LifeBuoy, ListChecks, LogOut, Menu, ReceiptText, Settings, ShieldCheck, UserRound, Users, Video, X } from "lucide-react";
 import { getCurrentUser } from "./api";
 import { getOpsAccess } from "./opsApi";
 import "./AppShell.css";
@@ -49,11 +49,11 @@ function AppSidebar() {
         {hasExecutiveImpact && <><p className="sidebar-section-label">Enterprise</p><a className={path === "/app/executive-impact" ? "active" : ""} href="/app/executive-impact"><Building2 size={18}/><span>Executive Impact</span></a></>}
         <p className="sidebar-section-label">Account & tools</p>
         <a className={path.startsWith("/app/settings") || path === "/app/profile" ? "active" : ""} href="/app/settings"><Settings size={18} /><span>Settings</span></a>
+        <a href="/support"><LifeBuoy size={18} /><span>Support Hub</span></a>
         {hasAnyInternalAccess && <><p className="sidebar-section-label">Internal</p>{canUseOpsConsole && <a className={path === "/ops" ? "active" : ""} href="/ops"><ShieldCheck size={18} /><span>Ops Console</span></a>}{canUseUserAccounts && <a className={path === "/ops/users" ? "active" : ""} href="/ops/users"><Users size={18} /><span>User Accounts</span></a>}{canUseGovernance && <a className={path === "/ops/ai-verification" ? "active" : ""} href="/ops/ai-verification"><BrainCircuit size={18} /><span>AI Verification</span></a>}{canUseGovernance && <a className={path === "/ops/compliance" ? "active" : ""} href="/ops/compliance"><FileCheck2 size={18} /><span>Governance Reports</span></a>}</>}
         <a href="/docs"><FileText size={18} /><span>Docs & guides</span></a>
-        {user && !isPro && <a className="sidebar-upgrade" href="/upgrade"><Sparkles size={18} /><span>Upgrade to Pro</span></a>}
       </nav>
-      <div className="sidebar-footer"><a className="sidebar-user" href="/app/settings" aria-label="Account settings">{user?.avatar_url ? <img className="sidebar-user-avatar sidebar-user-avatar-image" src={user.avatar_url} alt="" /> : <span className="sidebar-user-avatar">{user?.name?.charAt(0).toUpperCase() || "B"}</span>}<span><strong>{user?.name || "BragStack member"}</strong><small>{isPro ? "Pro plan · Settings" : "Free plan · Settings"}</small></span></a><button type="button" onClick={logout}><LogOut size={17} />Sign out</button></div>
+      <div className="sidebar-footer"><a className="sidebar-user" href="/app/settings" aria-label="Account settings">{user?.avatar_url ? <img className="sidebar-user-avatar sidebar-user-avatar-image" src={user.avatar_url} alt="" /> : <span className="sidebar-user-avatar">{user?.name?.charAt(0).toUpperCase() || "B"}</span>}<span><strong>{user?.name || "BragStack member"}</strong><small>{isPro ? "Pro access · Settings" : "Account settings"}</small></span></a><button type="button" onClick={logout}><LogOut size={17} />Sign out</button></div>
     </aside>
     {mobileOpen && <button className="sidebar-scrim" type="button" onClick={() => setMobileOpen(false)} aria-label="Close navigation" />}
   </>;

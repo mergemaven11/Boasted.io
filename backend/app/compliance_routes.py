@@ -21,7 +21,7 @@ from app.ops_routes import require_internal_role
 
 router = APIRouter(prefix="/ops/compliance", tags=["ops-compliance"])
 
-RULE_PACK_VERSION = "2026-09-05.1"
+RULE_PACK_VERSION = "2026-09-05.2"
 STATUS_ORDER = {
     "gap": 5,
     "counsel_review": 4,
@@ -125,6 +125,8 @@ def _finding(
     next_action: str,
     source_keys: list[str] | None = None,
     counsel_required: bool = False,
+    affected_action: str = "General business readiness",
+    site_pause_required: bool = False,
 ) -> dict[str, Any]:
     return {
         "control_id": control_id,
@@ -136,6 +138,8 @@ def _finding(
         "evidence": evidence,
         "next_action": next_action,
         "counsel_required": counsel_required,
+        "affected_action": affected_action,
+        "site_pause_required": site_pause_required,
         "sources": [SOURCES[key] for key in (source_keys or [])],
     }
 
@@ -145,12 +149,20 @@ def _collect_facts() -> dict[str, Any]:
     total_users = users_collection.count_documents({})
     users_with_terms = users_collection.count_documents({"terms_accepted_at": {"$exists": True, "$nin": [None, ""]}})
     users_with_privacy = users_collection.count_documents({"privacy_accepted_at": {"$exists": True, "$nin": [None, ""]}})
-    pro_subscribers = users_collection.count_documents({"plan": "pro"})
+    persisted_pro_accounts = users_collection.count_documents({"plan": "pro"})
+    paid_recurring_subscribers = users_collection.count_documents(
+        {
+            "stripe_subscription_id": {"$exists": True, "$nin": [None, ""]},
+            "billing_status": {"$in": ["active", "trialing", "past_due"]},
+        }
+    )
     return {
         "total_users": total_users,
         "users_with_terms_acceptance": users_with_terms,
         "users_with_privacy_acknowledgement": users_with_privacy,
-        "pro_subscribers": pro_subscribers,
+        "persisted_pro_accounts": persisted_pro_accounts,
+        "paid_recurring_subscribers": paid_recurring_subscribers,
+        "temporary_pro_gift_enabled": _env_bool("BRAGSTACK_TEMPORARY_PRO_GIFT_ENABLED", True),
         "legal_entity_formed": _env_bool("BRAGSTACK_LEGAL_ENTITY_FORMED", False),
         "ein_obtained": _env_bool("BRAGSTACK_EIN_OBTAINED", False),
         "customer_legal_package_counsel_reviewed": _env_bool("BRAGSTACK_LEGAL_PACKAGE_COUNSEL_REVIEWED", False),
@@ -175,11 +187,11 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         category="Corporate foundation",
         title="Legal entity formation and governing records",
         status="pass" if entity_formed else "gap",
-        severity="blocker" if not entity_formed else "info",
+        severity="info" if entity_formed else "high",
         summary=(
             "A legal-entity formation signal is present. Formation documents still belong in the controlled data room."
             if entity_formed
-            else "No BragStack legal-entity formation evidence is configured. Treat the business as not yet legally formed until verified records exist."
+            else "No BragStack legal-entity formation evidence is configured. This is a business-readiness gap, not a finding that the public beta must be taken offline."
         ),
         evidence=[f"BRAGSTACK_LEGAL_ENTITY_FORMED={entity_formed}"],
         next_action=(
@@ -189,6 +201,7 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         ),
         source_keys=["ga_formation"],
         counsel_required=not entity_formed,
+        affected_action="Investment, equity issuance, and material company contracts",
     ))
 
     ein_obtained = bool(facts.get("ein_obtained"))
@@ -202,6 +215,7 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         evidence=[f"BRAGSTACK_EIN_OBTAINED={ein_obtained}"],
         next_action="Obtain/store the IRS EIN confirmation when required and keep tax identifiers out of ordinary Ops receipts.",
         source_keys=["irs_ein"],
+        affected_action="Business tax identity and formal company operations",
     ))
 
     total_users = int(facts.get("total_users") or 0)
@@ -212,7 +226,7 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         control_id="PRIV-CONSENT-001",
         category="Privacy and contracting",
         title="Terms and privacy acceptance audit trail",
-        status="pass" if total_users > 0 and missing_consent_records == 0 else ("needs_evidence" if total_users == 0 else "needs_evidence"),
+        status="pass" if total_users > 0 and missing_consent_records == 0 else "needs_evidence",
         severity="medium" if missing_consent_records else "info",
         summary=(
             "All currently stored users have both Terms and Privacy acceptance timestamps."
@@ -222,26 +236,39 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         evidence=[f"users={total_users}", f"terms_timestamps={terms_users}", f"privacy_timestamps={privacy_users}"],
         next_action="Preserve document versions and server-side acceptance times; have counsel decide whether legacy accounts need re-attestation.",
         counsel_required=missing_consent_records > 0,
+        affected_action="Account contracting and privacy notice evidence",
     ))
 
     renewal_verified = bool(facts.get("georgia_renewal_flow_production_verified"))
-    pro_subscribers = int(facts.get("pro_subscribers") or 0)
-    renewal_status = "pass" if renewal_verified else ("gap" if pro_subscribers > 0 else "needs_evidence")
+    paid_subscribers = int(facts.get("paid_recurring_subscribers") or 0)
+    persisted_pro_accounts = int(facts.get("persisted_pro_accounts") or 0)
+    gift_enabled = bool(facts.get("temporary_pro_gift_enabled"))
+    renewal_status = "pass" if renewal_verified else ("gap" if paid_subscribers > 0 else "needs_evidence")
     findings.append(_finding(
         control_id="BILL-GA-001",
         category="Subscription billing",
         title="Georgia automatic-renewal production proof",
         status=renewal_status,
-        severity="high",
+        severity="high" if paid_subscribers > 0 and not renewal_verified else ("info" if renewal_verified else "medium"),
         summary=(
             "The production renewal-flow verification flag is set."
             if renewal_verified
-            else "The Georgia subscription flow has not been marked production-verified; code-level disclosures alone are not sufficient evidence."
+            else (
+                "Active paid recurring subscription records exist, so the live renewal flow still needs production verification."
+                if paid_subscribers > 0
+                else "No active paid recurring subscription record was detected. Complimentary Pro access is not treated as a paid subscription; verify the renewal flow before re-opening new paid checkout."
+            )
         ),
-        evidence=[f"pro_subscribers={pro_subscribers}", f"production_verified={renewal_verified}"],
-        next_action="Verify the live pre-purchase disclosure, affirmative consent, retainable acknowledgement, charge notices, material-change notices, and electronic cancellation path; preserve screenshots/test evidence.",
+        evidence=[
+            f"paid_recurring_subscribers={paid_subscribers}",
+            f"persisted_pro_accounts={persisted_pro_accounts}",
+            f"temporary_pro_gift_enabled={gift_enabled}",
+            f"production_verified={renewal_verified}",
+        ],
+        next_action="Before offering new recurring paid checkout, verify the live pre-purchase disclosure, affirmative consent, retainable acknowledgement, charge notices, material-change notices, and electronic cancellation path; preserve screenshots/test evidence.",
         source_keys=["ga_renewal"],
         counsel_required=True,
+        affected_action="New recurring paid subscriptions",
     ))
 
     counsel_reviewed = bool(facts.get("customer_legal_package_counsel_reviewed"))
@@ -255,6 +282,7 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         evidence=[f"counsel_reviewed={counsel_reviewed}"],
         next_action="Have startup/privacy counsel review entity naming, contact details, eligibility/capacity, privacy, subscription, disputes, refunds/tax, accessibility/e-contracting, AI, and multi-state exposure.",
         counsel_required=not counsel_reviewed,
+        affected_action="Legal launch readiness and future paid/commercial expansion",
     ))
 
     vendor_verified = bool(facts.get("vendor_inventory_verified"))
@@ -268,6 +296,7 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         evidence=[f"vendor_inventory_verified={vendor_verified}"],
         next_action="Inventory hosting, database, auth, email, analytics, AI, payments, observability, and storage providers; reconcile contracts/DPA/security terms with actual data flows.",
         source_keys=["ftc_security"],
+        affected_action="Vendor governance and privacy/security evidence",
     ))
 
     retention_verified = bool(facts.get("retention_jobs_verified"))
@@ -281,6 +310,7 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         evidence=[f"retention_jobs_verified={retention_verified}"],
         next_action="Run evidence tests for verifier contact expiry, account deletion, generated artifacts, logs, and backups; attach the results to the audit receipt.",
         source_keys=["ftc_security"],
+        affected_action="Production data lifecycle assurances",
     ))
 
     drive_verified = bool(facts.get("drive_compliance_evidence_verified"))
@@ -293,6 +323,7 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         summary="Drive compliance evidence is marked verified." if drive_verified else "No in-app proof confirms that the controlled Drive compliance folder contains current, versioned evidence.",
         evidence=[f"drive_compliance_evidence_verified={drive_verified}"],
         next_action="Use an explicitly authorized read-only Drive evidence integration or manually attest a reviewed snapshot. Do not grant broad Drive scopes just to make this check green.",
+        affected_action="Diligence and governance evidence",
     ))
 
     email_verified = bool(facts.get("commercial_email_controls_verified"))
@@ -306,6 +337,7 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         evidence=[f"commercial_email_controls_verified={email_verified}"],
         next_action="Verify truthful routing/subject information, required identification/address disclosures, a working opt-out, timely suppression, and vendor compliance for commercial email.",
         source_keys=["ftc_can_spam"],
+        affected_action="Commercial outreach campaigns",
     ))
 
     claims_verified = bool(facts.get("marketing_claim_review_verified"))
@@ -319,6 +351,7 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         evidence=[f"marketing_claim_review_verified={claims_verified}"],
         next_action="Require evidence for measurable claims, avoid guarantees, and separately review testimonials/reviews and investor statements before publication.",
         source_keys=["ftc_ads"],
+        affected_action="Public marketing and investor claims",
     ))
 
     findings.append(_finding(
@@ -332,6 +365,7 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         next_action="Before intentionally targeting children/younger teens, have counsel evaluate COPPA plus applicable state minor/student/AI rules and define age-assurance/parental controls where required.",
         source_keys=["ftc_coppa"],
         counsel_required=True,
+        affected_action="Intentional child/younger-teen targeting and child-specific experiences",
     ))
 
     findings.append(_finding(
@@ -345,6 +379,7 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         next_action="Complete an applicability review and implementation plan well before July 1, 2027; do not wait for the effective date.",
         source_keys=["ga_ai"],
         counsel_required=True,
+        affected_action="Future Georgia AI feature compliance",
     ))
 
     employer_ai = bool(facts.get("employer_facing_ai_decisions_enabled"))
@@ -358,6 +393,7 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         evidence=[f"employer_facing_ai_decisions_enabled={employer_ai}"],
         next_action="Do not ship candidate screening/ranking/hiring recommendations until a separate employment/AI legal review and bias/governance control set is complete.",
         counsel_required=employer_ai,
+        affected_action="Employer-facing candidate screening, ranking, or hiring recommendations",
     ))
 
     accepting_investment = bool(facts.get("accepting_investment"))
@@ -379,6 +415,7 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         evidence=[f"accepting_investment={accepting_investment}", f"legal_entity_formed={entity_formed}"],
         next_action="Before accepting outside investment or issuing securities, complete entity/governance/IP/cap-table cleanup and have counsel approve the financing instrument and required filings/notices.",
         counsel_required=True,
+        affected_action="Accepting investment or issuing securities",
     ))
 
     return findings
@@ -395,22 +432,72 @@ def _summary(findings: list[dict[str, Any]]) -> dict[str, Any]:
     for finding in findings:
         by_status[finding["status"]] = by_status.get(finding["status"], 0) + 1
         by_severity[finding["severity"]] = by_severity.get(finding["severity"], 0) + 1
-    blockers = [finding["control_id"] for finding in findings if finding["severity"] == "blocker" and finding["status"] == "gap"]
-    highest = max(findings, key=lambda item: (STATUS_ORDER.get(item["status"], 0), SEVERITY_ORDER.get(item["severity"], 0)), default=None)
+
+    blockers = [
+        finding["control_id"]
+        for finding in findings
+        if finding["severity"] == "blocker" and finding["status"] == "gap"
+    ]
+    site_pause_controls = [
+        finding["control_id"]
+        for finding in findings
+        if finding.get("site_pause_required") and finding["status"] == "gap"
+    ]
+    restricted_actions = [
+        finding.get("affected_action")
+        for finding in findings
+        if finding["severity"] == "blocker" and finding["status"] == "gap" and finding.get("affected_action")
+    ]
+    highest = max(
+        findings,
+        key=lambda item: (STATUS_ORDER.get(item["status"], 0), SEVERITY_ORDER.get(item["severity"], 0)),
+        default=None,
+    )
+    billing = next((item for item in findings if item["control_id"] == "BILL-GA-001"), None)
+    corporate = next((item for item in findings if item["control_id"] == "BUS-CORP-001"), None)
+    financing = next((item for item in findings if item["control_id"] == "FUND-SEC-001"), None)
+
+    if billing and billing["status"] == "pass":
+        paid_launch_posture = "verified"
+    elif billing and "paid_recurring_subscribers=0" in billing.get("evidence", []):
+        paid_launch_posture = "verify_before_paid_launch"
+    else:
+        paid_launch_posture = "pause_new_paid_checkout"
+
+    fundraising_posture = (
+        "reviewed"
+        if corporate and corporate["status"] == "pass" and financing and financing["status"] == "pass"
+        else "hold_until_legal_ready"
+    )
+
     return {
         "by_status": by_status,
         "by_severity": by_severity,
         "blockers": blockers,
-        "overall": "blocked" if blockers else ("action_required" if any(item["status"] in {"gap", "counsel_review", "needs_evidence"} for item in findings) else "ready"),
+        "site_pause_required": bool(site_pause_controls),
+        "site_pause_controls": site_pause_controls,
+        "restricted_actions": restricted_actions,
+        "beta_posture": "pause_site" if site_pause_controls else "continue_beta",
+        "beta_posture_reason": (
+            "At least one control explicitly requires a site-wide pause."
+            if site_pause_controls
+            else "No current scanner rule requires taking the public beta offline. Resolve findings according to the specific action each control affects."
+        ),
+        "paid_launch_posture": paid_launch_posture,
+        "fundraising_posture": fundraising_posture,
+        "overall": "critical_actions" if blockers else (
+            "action_required"
+            if any(item["status"] in {"gap", "counsel_review", "needs_evidence"} for item in findings)
+            else "ready"
+        ),
         "highest_attention_control": highest["control_id"] if highest else None,
     }
 
 
 def _serialize_run(document: dict[str, Any]) -> dict[str, Any]:
     result = {key: value for key, value in document.items() if key != "_id"}
-    for key in ("generated_at",):
-        if isinstance(result.get(key), datetime):
-            result[key] = result[key].isoformat()
+    if isinstance(result.get("generated_at"), datetime):
+        result["generated_at"] = result["generated_at"].isoformat()
     return result
 
 
@@ -437,14 +524,14 @@ def run_compliance_audit(current_user: dict = Depends(require_internal_role("ops
             "receipt_id": f"cmp_{generated_at.strftime('%Y%m%dT%H%M%SZ')}_{uuid.uuid4().hex[:10]}",
             "generated_at": generated_at,
             "rule_pack_version": RULE_PACK_VERSION,
-            "environment": os.getenv("ENVIRONMENT", os.getenv("APP_ENV", "unknown")),
+            "environment": os.getenv("ENVIRONMENT") or os.getenv("APP_ENV") or ("production" if os.getenv("RENDER") else "local"),
             "app_version": os.getenv("RENDER_GIT_COMMIT", os.getenv("GIT_SHA", "unknown")),
             "actor_user_id": str(current_user.get("_id", "")),
             "actor_email": (current_user.get("email") or "").strip().lower(),
             "facts": facts,
             "findings": findings,
             "summary": _summary(findings),
-            "disclaimer": "Evidence/readiness receipt only. It does not certify legal compliance and does not replace qualified counsel or tax advice.",
+            "disclaimer": "Evidence/readiness receipt only. It does not certify legal compliance, determine whether operating the site is lawful, or replace qualified counsel or tax advice.",
         }
         integrity_payload = {key: value for key, value in receipt.items() if key not in {"integrity_sha256"}}
         receipt["integrity_sha256"] = _canonical_hash(integrity_payload)

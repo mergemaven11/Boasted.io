@@ -20,7 +20,7 @@ function downloadReceipt(receipt) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = `${receipt.receipt_id || "bragstack-compliance-receipt"}.json`;
+  anchor.download = `${receipt.receipt_id || "bragstack-governance-receipt"}.json`;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
@@ -31,6 +31,19 @@ function FindingIcon({ status }) {
   if (status === "pass" || status === "not_applicable") return <CheckCircle2 size={18} aria-hidden="true" />;
   if (status === "counsel_review") return <Gavel size={18} aria-hidden="true" />;
   return <AlertTriangle size={18} aria-hidden="true" />;
+}
+
+function postureLabel(value, kind) {
+  const labels = {
+    continue_beta: "Continue beta",
+    pause_site: "Pause site",
+    verified: "Verified",
+    verify_before_paid_launch: "Verify before paid launch",
+    pause_new_paid_checkout: "Pause new paid checkout",
+    reviewed: "Reviewed",
+    hold_until_legal_ready: "Hold until legal-ready",
+  };
+  return labels[value] || String(value || (kind === "beta" ? "Not assessed" : "Unknown")).replaceAll("_", " ");
 }
 
 export default function ComplianceAuditPanel({ onReceiptChange = null }) {
@@ -83,13 +96,14 @@ export default function ComplianceAuditPanel({ onReceiptChange = null }) {
 
   const summary = receipt?.summary || {};
   const statusCounts = summary.by_status || {};
+  const betaCanContinue = summary.beta_posture === "continue_beta";
 
   return <section className="ops-panel compliance-panel" id="compliance-readiness">
     <div className="ops-panel-heading compliance-heading">
       <div>
         <p className="ops-kicker">OPS · LEGAL · BUSINESS · SECURITY · SAFETY</p>
         <h2><ShieldAlert size={22} aria-hidden="true" /> Whole-business governance scan</h2>
-        <p>Runs conservative controls across legal readiness, business formation, privacy, billing, security evidence, retention, vendors, marketing, AI safety, fundraising, and governance. Findings also feed the Ops Inbox. A pass is evidence—not a legal certification.</p>
+        <p>Runs conservative readiness controls and separates site operations from specific launch, fundraising, billing, AI, privacy, and evidence actions. A finding is not a government order or a legal certification.</p>
       </div>
       <div className="compliance-actions">
         <button type="button" className="compliance-run" disabled={running} onClick={() => void runAudit()}><PlayCircle size={17} /> {running ? "Running scan…" : "Run governance scan"}</button>
@@ -101,6 +115,17 @@ export default function ComplianceAuditPanel({ onReceiptChange = null }) {
     {!receipt && !error && <div className="compliance-empty"><FileCheck2 size={30} /><strong>No governance receipt yet.</strong><span>Run the first scan to establish a timestamped baseline and populate Ops Inbox findings.</span></div>}
 
     {receipt && <>
+      <div className={`compliance-beta-posture ${betaCanContinue ? "continue" : "pause"}`}>
+        <div><span>Operational beta posture</span><strong>{postureLabel(summary.beta_posture, "beta")}</strong></div>
+        <p>{summary.beta_posture_reason || "Review the individual findings and the action each one affects."}</p>
+      </div>
+
+      <div className="compliance-posture-grid">
+        <div><span>Paid launch</span><strong>{postureLabel(summary.paid_launch_posture)}</strong><small>Complimentary Pro access is separate from paid Stripe subscriptions.</small></div>
+        <div><span>Fundraising</span><strong>{postureLabel(summary.fundraising_posture)}</strong><small>Entity, governance, financing, and counsel readiness are assessed separately from beta operation.</small></div>
+        <div><span>Action-specific blocks</span><strong>{(summary.blockers || []).length}</strong><small>{(summary.restricted_actions || []).length ? summary.restricted_actions.join(" · ") : "No blocked action declared by the current rule pack."}</small></div>
+      </div>
+
       <div className="compliance-receipt-meta">
         <div><span>Receipt</span><strong>{receipt.receipt_id}</strong></div>
         <div><span>Generated</span><strong>{new Date(receipt.generated_at).toLocaleString()}</strong></div>
@@ -110,8 +135,8 @@ export default function ComplianceAuditPanel({ onReceiptChange = null }) {
       </div>
 
       <div className="compliance-scorebar">
-        <div className={`compliance-overall ${summary.overall || "action_required"}`}><span>Overall</span><strong>{String(summary.overall || "action_required").replaceAll("_", " ")}</strong></div>
-        <div><span>Blockers</span><strong>{(summary.blockers || []).length}</strong></div>
+        <div className={`compliance-overall ${summary.overall || "action_required"}`}><span>Readiness</span><strong>{String(summary.overall || "action_required").replaceAll("_", " ")}</strong></div>
+        <div><span>Action blocks</span><strong>{(summary.blockers || []).length}</strong></div>
         <div><span>Gaps</span><strong>{statusCounts.gap || 0}</strong></div>
         <div><span>Needs evidence</span><strong>{statusCounts.needs_evidence || 0}</strong></div>
         <div><span>Counsel review</span><strong>{statusCounts.counsel_review || 0}</strong></div>
@@ -127,6 +152,7 @@ export default function ComplianceAuditPanel({ onReceiptChange = null }) {
             <div className="compliance-finding-meta"><span className={`compliance-status ${finding.status}`}>{STATUS_LABELS[finding.status] || finding.status}</span><span>{finding.severity}</span><span>{finding.category}</span><code>{finding.control_id}</code>{finding.counsel_required && <span className="compliance-counsel">Counsel</span>}</div>
             <h3>{finding.title}</h3>
             <p>{finding.summary}</p>
+            {finding.affected_action && <div className="compliance-affects"><strong>What this affects</strong><p>{finding.affected_action}</p></div>}
             <div className="compliance-next"><strong>Next action</strong><p>{finding.next_action}</p></div>
             {(finding.evidence || []).length > 0 && <details><summary>Evidence snapshot</summary><ul>{finding.evidence.map((item) => <li key={item}><code>{item}</code></li>)}</ul></details>}
             {(finding.sources || []).length > 0 && <details><summary>Governing / reference sources</summary><ul>{finding.sources.map((source) => <li key={`${finding.control_id}-${source.url}`}><a href={source.url} target="_blank" rel="noreferrer">{source.authority}: {source.title}</a><small>{source.jurisdiction}{source.effective_date ? ` · effective ${source.effective_date}` : ""} · verified {source.last_verified}</small></li>)}</ul></details>}

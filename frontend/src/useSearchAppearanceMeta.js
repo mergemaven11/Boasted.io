@@ -26,6 +26,10 @@ const PUBLIC_META = {
     title: "Contact BragStack | Support, Privacy, Security & Billing",
     description: "Contact BragStack for product support, general questions, privacy requests, security concerns, billing questions, or legal correspondence.",
   },
+  "/support": {
+    title: "BragStack Support Hub | Product Help, Beta Access & Security",
+    description: "Get BragStack product and account help, troubleshoot issues, understand complimentary beta access, review NDA guidance, and reach support, billing, privacy, or security contacts.",
+  },
   "/team": {
     title: "BragStack for Teams | Coming Soon",
     description: "Learn about the planned BragStack Team direction for evidence-backed reviews, employee-controlled sharing, bounded analytics, and organization workflows without surveillance.",

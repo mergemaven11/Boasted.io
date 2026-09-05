@@ -6,6 +6,6 @@ export const PRIMARY_SITELINKS = [
   ["Impact Receipts", "/impact-receipts", "Turn accomplishments into reusable proof"],
   ["Education", "/education", "Track student wins, growth, and opportunity-ready stories"],
   ["How It Works", "/how-it-works", "See how BragStack turns wins into career proof"],
-  ["Pricing", "/pricing", "Compare Free and Pro"],
+  ["Support Hub", "/support", "Get product help, beta access guidance, and support contacts"],
   ["Sign In", "/login", "Open your BragStack account"],
 ];
