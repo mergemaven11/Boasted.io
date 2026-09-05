@@ -17,6 +17,129 @@ import BragStackLoader from "./BragStackLoader.jsx";
 import { getApplicationIntelligence } from "./applicationIntelligenceApi.js";
 import "./ApplicationsHubPage.css";
 
+const EDUCATION_FEATURES = [
+  {
+    id: "education-profile",
+    group: "record",
+    title: "My Education",
+    icon: GraduationCap,
+    blurb: "Capture meaningful degree, program, school, and learning milestones as reusable career evidence.",
+    href: "/app/accomplishments?create=1&education_feature=education",
+  },
+  {
+    id: "coursework",
+    group: "record",
+    title: "Coursework",
+    icon: BookOpenCheck,
+    blurb: "Save courses, labs, assignments, and learning that demonstrate real knowledge and skills.",
+    href: "/app/accomplishments?create=1&education_feature=coursework",
+  },
+  {
+    id: "academic-projects",
+    group: "record",
+    title: "Academic Projects",
+    icon: BriefcaseBusiness,
+    blurb: "Document capstones, research, labs, presentations, builds, and class projects with your contribution clearly identified.",
+    href: "/app/accomplishments?create=1&education_feature=academic-projects",
+  },
+  {
+    id: "certifications",
+    group: "record",
+    title: "Certifications & Training",
+    icon: Award,
+    blurb: "Track certifications, licenses, bootcamps, professional training, and continuing education.",
+    href: "/app/accomplishments?create=1&education_feature=certifications",
+  },
+  {
+    id: "academic-achievements",
+    group: "record",
+    title: "Academic Achievements",
+    icon: Award,
+    blurb: "Capture honors, scholarships, awards, competition results, recognition, and meaningful academic wins.",
+    href: "/app/accomplishments?create=1&education_feature=achievements",
+  },
+  {
+    id: "group-projects",
+    group: "record",
+    title: "Group Project Contributions",
+    icon: BriefcaseBusiness,
+    blurb: "Separate the team result from what you personally designed, built, researched, organized, or delivered.",
+    href: "/app/accomplishments?create=1&education_feature=group-projects",
+  },
+  {
+    id: "graduation-progress",
+    group: "record",
+    title: "Graduation Progress",
+    icon: Target,
+    blurb: "Record meaningful program milestones, completed requirements, practicums, capstones, and progress points.",
+    href: "/app/accomplishments?create=1&education_feature=graduation-progress",
+  },
+  {
+    id: "experience-translator",
+    group: "record",
+    title: "Experience Translator",
+    icon: Sparkles,
+    blurb: "Capture what you actually did in class, research, clubs, service, or training so BragStack can reuse it as career evidence.",
+    href: "/app/accomplishments?create=1&education_feature=experience-translator",
+  },
+  {
+    id: "impact-receipts",
+    group: "career",
+    title: "Education Impact Receipts",
+    icon: ShieldCheck,
+    blurb: "Turn education accomplishments into evidence-backed proof with contribution, results, skills, and supporting evidence.",
+    href: "/app/impact-receipts",
+  },
+  {
+    id: "education-skills",
+    group: "career",
+    title: "Skills from Education",
+    icon: Lightbulb,
+    blurb: "Use your saved evidence to understand the professional skills demonstrated by coursework, projects, training, and research.",
+    href: "/app/intelligence",
+  },
+  {
+    id: "career-match",
+    group: "career",
+    title: "Career Match & Skill Gaps",
+    icon: Target,
+    blurb: "Compare your evidence with career goals, see what you already demonstrate, and identify gaps worth building next.",
+    href: "/app/intelligence",
+  },
+  {
+    id: "resume-builder",
+    group: "career",
+    title: "Résumé Builder",
+    icon: FilePenLine,
+    blurb: "Turn real coursework, projects, certifications, and achievements into evidence-grounded résumé material.",
+    href: "/app/resume-builder",
+  },
+  {
+    id: "interview-prep",
+    group: "career",
+    title: "Interview Prep",
+    icon: BriefcaseBusiness,
+    blurb: "Practice explaining your actual projects, coursework, research, skills, and contributions in interview-ready stories.",
+    href: "/app/interview-practice",
+  },
+  {
+    id: "academic-portfolio",
+    group: "career",
+    title: "Academic Portfolio",
+    icon: GraduationCap,
+    blurb: "Use your Proof Profile to present the education evidence and accomplishments you intentionally choose to share.",
+    href: "/app/profile",
+  },
+  {
+    id: "career-paths",
+    group: "career",
+    title: "Career Path Explorer",
+    icon: Lightbulb,
+    blurb: "Connect your current evidence and developing skills to possible next roles without inventing experience you do not have.",
+    href: "/app/intelligence",
+  },
+];
+
 const WORKFLOWS = [
   {
     id: "scholarship",
@@ -48,33 +171,6 @@ const WORKFLOWS = [
   },
 ];
 
-const EDUCATION_STAGES = [
-  {
-    title: "Middle school",
-    status: "coming-soon",
-    badge: "COMING SOON",
-    text: "The younger-student experience is under construction and is not available in BragStack today.",
-  },
-  {
-    title: "High school",
-    status: "available",
-    badge: "AVAILABLE · 18+",
-    text: "High-school students who are already 18 can track current activities, leadership, awards, service, projects, jobs, competitions, and growth.",
-  },
-  {
-    title: "College / University",
-    status: "available",
-    badge: "AVAILABLE · 18+",
-    text: "Track research, internships, campus leadership, projects, certifications, work, service, and the skills you are building.",
-  },
-  {
-    title: "Career",
-    status: "available",
-    badge: "KEEP GOING",
-    text: "Carry the same evidence forward into resumes, interviews, portfolios, reviews, promotions, and professional opportunities.",
-  },
-];
-
 const LABELS = {
   leadership: "Leadership",
   service: "Service",
@@ -103,6 +199,25 @@ function fitLabel(value) {
   if (value === "strong") return "Strong for this goal";
   if (value === "relevant") return "Useful for this goal";
   return "Keep building this story";
+}
+
+function FeatureGrid({ group, title, description }) {
+  const features = EDUCATION_FEATURES.filter((feature) => feature.group === group);
+  return <section className="education-feature-section" aria-label={title}>
+    <div className="education-feature-heading">
+      <div><p className="applications-kicker"><GraduationCap size={15} /> {title}</p><h2>{description}</h2></div>
+      <span>{features.length} tools</span>
+    </div>
+    <div className="education-feature-grid">
+      {features.map(({ id, title: featureTitle, icon: Icon, blurb, href }) => (
+        <a className="education-feature-card" href={href} key={id} data-education-feature={id}>
+          <span className="education-feature-icon"><Icon size={22} /></span>
+          <span className="education-feature-copy"><strong>{featureTitle}</strong><small>{blurb}</small></span>
+          <ChevronRight size={18} />
+        </a>
+      ))}
+    </div>
+  </section>;
 }
 
 function ApplicationsHubPage() {
@@ -190,38 +305,27 @@ function ApplicationsHubPage() {
   }
 
   return <main className="applications-hub">
-    <section className="education-age-alert" role="status">
-      <div className="education-alert-tape">18+ ONLY · YOUNGER STUDENT EXPERIENCE UNDER CONSTRUCTION · COMING SOON</div>
-      <div className="education-age-alert-copy"><ShieldCheck size={21}/><div><strong>BragStack Education currently supports adults age 18 and older.</strong><span>That includes high-school students who are already 18 and adult college/university students. Middle-school and other under-18 student access is not currently available.</span></div></div>
-    </section>
-
     <header className="applications-hero">
       <div>
-        <p className="applications-kicker"><Sparkles size={15} /> Education Workspace · 18+ for now</p>
-        <h1>Keep track of the wins that are shaping your future.</h1>
-        <p>BragStack currently supports adults age 18+ who want to preserve real education, project, service, work, and learning accomplishments. Younger-student accounts remain part of the long-term Education vision, but they are coming later after youth privacy, consent, safety, and legal review.</p>
+        <p className="applications-kicker"><Sparkles size={15} /> Education Workspace</p>
+        <h1>Turn what you&apos;re learning into proof you can use.</h1>
+        <p>Track coursework, projects, certifications, research, awards, milestones, service, and contributions, then reuse that real evidence for applications, résumés, interviews, portfolios, and career planning.</p>
       </div>
       <div className="applications-trust"><ShieldCheck size={20} /><span><strong>Your education story stays yours.</strong><small>Private by default · built from your real wins · no admissions score</small></span></div>
     </header>
 
-    <section className="education-stage-section" aria-label="Education availability by stage">
-      <div className="application-section-heading"><div><p className="applications-kicker"><GraduationCap size={15}/> Your journey</p><h2>Start where you are. Keep the record as you grow.</h2></div><span>Current account access: 18+</span></div>
-      <div className="education-stage-track">
-        {EDUCATION_STAGES.map((stage) => <article key={stage.title} className={`education-stage-card ${stage.status}`}>
-          {stage.status === "coming-soon" && <div className="education-construction-tape">UNDER CONSTRUCTION · COMING SOON · UNDER CONSTRUCTION</div>}
-          <span className="education-stage-label">{stage.badge}</span>
-          <h3>{stage.title}</h3>
-          <p>{stage.text}</p>
-        </article>)}
-      </div>
-    </section>
+    <FeatureGrid group="record" title="Build your education record" description="Start with the kind of learning or achievement you want to capture." />
+    <FeatureGrid group="career" title="Turn education into career proof" description="Reuse what you saved instead of starting from a blank page every time." />
 
-    <section className="application-workflow-grid" aria-label="Ways to use your education record">
-      {WORKFLOWS.map(({ id, title, icon: Icon, blurb, accent }) => <button type="button" key={id} className={`application-workflow-card ${accent} ${applicationType === id ? "active" : ""}`} onClick={() => chooseWorkflow(id)}>
-        <span className="application-workflow-icon"><Icon size={22} /></span>
-        <span><strong>{title}</strong><small>{blurb}</small></span>
-        <ChevronRight size={18} />
-      </button>)}
+    <section className="education-application-section" aria-label="Application tools">
+      <div className="education-feature-heading"><div><p className="applications-kicker"><Target size={15} /> Application tools</p><h2>Find the real wins that fit the opportunity in front of you.</h2></div><span>Built from your saved evidence</span></div>
+      <div className="application-workflow-grid">
+        {WORKFLOWS.map(({ id, title, icon: Icon, blurb, accent }) => <button type="button" key={id} className={`application-workflow-card ${accent} ${applicationType === id ? "active" : ""}`} onClick={() => chooseWorkflow(id)}>
+          <span className="application-workflow-icon"><Icon size={22} /></span>
+          <span><strong>{title}</strong><small>{blurb}</small></span>
+          <ChevronRight size={18} />
+        </button>)}
+      </div>
     </section>
 
     {loading && <BragStackLoader compact message={`Looking through your wins for ${activeWorkflow.title.toLowerCase()}…`} detail="Reviewing what you actually saved without making up achievements or experiences." />}
