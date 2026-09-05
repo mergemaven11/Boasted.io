@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import BragStackLoader from "./BragStackLoader.jsx";
+import MajorExplorerPanel from "./MajorExplorerPanel.jsx";
 import { getApplicationIntelligence } from "./applicationIntelligenceApi.js";
 import "./ApplicationsHubPage.css";
 
@@ -81,6 +82,14 @@ const EDUCATION_FEATURES = [
     icon: Sparkles,
     blurb: "Capture what you actually did in class, research, clubs, service, or training so BragStack can reuse it as career evidence.",
     href: "/app/accomplishments?create=1&education_feature=experience-translator",
+  },
+  {
+    id: "major-explorer",
+    group: "career",
+    title: "Major Explorer",
+    icon: Lightbulb,
+    blurb: "Explore possible majors from your demonstrated evidence without fit percentages, admissions odds, or a fake 'best major' verdict.",
+    href: "#major-explorer",
   },
   {
     id: "impact-receipts",
@@ -316,6 +325,8 @@ function ApplicationsHubPage() {
 
     <FeatureGrid group="record" title="Build your education record" description="Start with the kind of learning or achievement you want to capture." />
     <FeatureGrid group="career" title="Turn education into career proof" description="Reuse what you saved instead of starting from a blank page every time." />
+
+    <MajorExplorerPanel />
 
     <section className="education-application-section" aria-label="Application tools">
       <div className="education-feature-heading"><div><p className="applications-kicker"><Target size={15} /> Application tools</p><h2>Find the real wins that fit the opportunity in front of you.</h2></div><span>Built from your saved evidence</span></div>
