@@ -9,7 +9,7 @@ const SETTINGS=[
   {href:"/app/settings?section=integrations",icon:CalendarDays,title:"Integrations",description:"Embed your interactive Calendly calendar on your public Proof Portfolio and manage private calendar connections."},
   {href:"/app/settings/appearance",icon:Palette,title:"Profile appearance",description:"Public-page themes, career-inspired styles, and your custom profile colors."},
   {href:"/app/settings/privacy",icon:ShieldCheck,title:"Privacy & sharing",description:"Control what stays private and what can appear on your public proof profile.",comingSoon:true},
-  {href:"/app/settings/billing",icon:CreditCard,title:"Plan & billing",description:"See renewal date, payment method, price, subscription status, and billing controls."},
+  {href:"/app/settings/billing",icon:CreditCard,title:"Plan & billing",description:"See your current plan, complimentary Pro gift status, and billing controls for any existing paid subscription."},
 ];
 
 export default function SettingsPage(){

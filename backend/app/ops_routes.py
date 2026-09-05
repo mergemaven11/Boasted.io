@@ -2,14 +2,13 @@
 from __future__ import annotations
 
 import os
-import re
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from typing import Callable
 
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 from pymongo.errors import PyMongoError
 
 from app.auth import get_current_user
@@ -30,8 +29,8 @@ from app.plans import PLAN_PRICING, get_entitlements_for_user, get_plan_for_user
 router = APIRouter(prefix="/ops", tags=["ops"])
 
 INTERNAL_ROLES = {"support", "ops", "security", "admin"}
-COMPANY_DOMAIN = os.getenv("OPS_COMPANY_DOMAIN", "usebragstack.com").strip().lower()
-BOOTSTRAP_ADMINS = {
+OWNER_BOOTSTRAP_ADMINS = {"tobias.scott@usebragstack.com"}
+BOOTSTRAP_ADMINS = OWNER_BOOTSTRAP_ADMINS | {
     email.strip().lower()
     for email in os.getenv("OPS_ADMIN_EMAILS", "").split(",")
     if email.strip()
@@ -43,10 +42,15 @@ class InternalRoleUpdate(BaseModel):
     roles: list[str] = Field(default_factory=list, max_length=4)
 
 
-def _email_is_company(email: str) -> bool:
-    """Handle email is company."""
-    normalized = (email or "").strip().lower()
-    return bool(normalized) and normalized.endswith(f"@{COMPANY_DOMAIN}")
+class InternalRoleAssignment(BaseModel):
+    """Assign internal access to an existing verified account by email."""
+    email: EmailStr
+    roles: list[str] = Field(min_length=1, max_length=4)
+
+
+def _user_is_verified(user: dict) -> bool:
+    """Return whether the account has completed the verification required for it."""
+    return bool(user.get("email_verified_at")) or not user.get("email_verification_required", False)
 
 
 def _roles_for_user(user: dict) -> set[str]:
@@ -60,17 +64,16 @@ def _roles_for_user(user: dict) -> set[str]:
 
 
 def require_internal_role(*allowed_roles: str) -> Callable:
-    """Handle require internal role."""
+    """Require an explicitly assigned internal role on a verified account."""
     allowed = {role.lower() for role in allowed_roles}
 
     async def dependency(current_user: dict = Depends(get_current_user)) -> dict:
-        """Handle dependency."""
-        email = (current_user.get("email") or "").strip().lower()
+        """Deny internal route discovery unless the account is explicitly authorized."""
         roles = _roles_for_user(current_user)
-        if not _email_is_company(email) or not roles.intersection(allowed):
+        if not _user_is_verified(current_user) or not roles.intersection(allowed):
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Internal operations access is not authorized for this account.",
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Not found",
             )
         user = dict(current_user)
         user["_effective_internal_roles"] = sorted(roles)
@@ -86,8 +89,7 @@ def _safe_user(user: dict) -> dict:
         "id": user_id,
         "email": user.get("email", ""),
         "name": user.get("name", ""),
-        "email_verified": bool(user.get("email_verified_at"))
-        or not user.get("email_verification_required", False),
+        "email_verified": _user_is_verified(user),
         "plan": get_plan_for_user(user),
         "entitlements": get_entitlements_for_user(user),
         "created_at": user.get("created_at"),
@@ -108,6 +110,7 @@ def _safe_team_member(user: dict) -> dict:
         "id": str(user.get("_id", "")),
         "email": email,
         "name": user.get("name", ""),
+        "email_verified": _user_is_verified(user),
         "roles": stored_roles,
         "effective_roles": effective_roles,
         "bootstrap_admin": email in BOOTSTRAP_ADMINS,
@@ -472,14 +475,44 @@ def user_diagnostics(
 
 @router.get("/team")
 def list_internal_team(current_user: dict = Depends(require_internal_role("admin"))):
-    """Handle list internal team."""
+    """List only accounts that currently have explicit internal access."""
     del current_user
-    domain_pattern = re.compile(rf"@{re.escape(COMPANY_DOMAIN)}$", re.IGNORECASE)
     members = users_collection.find(
-        {"email": domain_pattern},
-        {"email": 1, "name": 1, "internal_roles": 1},
+        {
+            "$or": [
+                {"internal_roles": {"$exists": True, "$ne": []}},
+                {"email": {"$in": sorted(BOOTSTRAP_ADMINS)}},
+            ]
+        },
+        {"email": 1, "name": 1, "internal_roles": 1, "email_verified_at": 1, "email_verification_required": 1},
     ).sort("email", 1).limit(100)
     return {"members": [_safe_team_member(member) for member in members], "allowed_roles": sorted(INTERNAL_ROLES)}
+
+
+@router.post("/team/assign")
+def assign_internal_roles(
+    payload: InternalRoleAssignment,
+    current_user: dict = Depends(require_internal_role("admin")),
+):
+    """Assign internal roles by email after the account exists and is verified."""
+    normalized_email = str(payload.email).strip().lower()
+    target = users_collection.find_one({"email": normalized_email})
+    if target is None:
+        raise HTTPException(
+            status_code=404,
+            detail="No BragStack account exists for this email yet. Invite them first, then assign access after they register and verify.",
+        )
+    if not _user_is_verified(target):
+        raise HTTPException(status_code=409, detail="Verify this account before granting internal access.")
+
+    next_roles = _normalize_roles(payload.roles)
+    previous_roles = sorted({str(role).strip().lower() for role in target.get("internal_roles", [])} & INTERNAL_ROLES)
+    users_collection.update_one({"_id": target["_id"]}, {"$set": {"internal_roles": next_roles}})
+    _audit_role_change(actor=current_user, target=target, previous_roles=previous_roles, next_roles=next_roles)
+
+    updated = dict(target)
+    updated["internal_roles"] = next_roles
+    return _safe_team_member(updated)
 
 
 @router.patch("/team/{user_id}/roles")
@@ -493,8 +526,10 @@ def update_internal_roles(
         raise HTTPException(status_code=404, detail="Internal team member not found")
 
     target = users_collection.find_one({"_id": ObjectId(user_id)})
-    if target is None or not _email_is_company(target.get("email", "")):
+    if target is None:
         raise HTTPException(status_code=404, detail="Internal team member not found")
+    if not _user_is_verified(target):
+        raise HTTPException(status_code=409, detail="Verify this account before granting internal access.")
 
     next_roles = _normalize_roles(payload.roles)
     previous_roles = sorted({str(role).strip().lower() for role in target.get("internal_roles", [])} & INTERNAL_ROLES)

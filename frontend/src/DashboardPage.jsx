@@ -6,7 +6,6 @@ import {
   FileCheck2,
   Plus,
   ReceiptText,
-  Sparkles,
   Target,
 } from "lucide-react";
 
@@ -82,7 +81,7 @@ function DashboardPage() {
         </div>
         <div className="command-header-actions">
           <span className={`command-plan ${user?.plan === "pro" ? "pro" : "free"}`}>
-            {user?.plan === "pro" ? "Pro" : "Free"} plan
+            {user?.plan === "pro" ? "Pro beta access" : "Beta access"}
           </span>
           <a className="command-primary" href="/app/accomplishments?create=1"><Plus size={17} /> New accomplishment</a>
         </div>
@@ -136,7 +135,6 @@ function DashboardPage() {
             <a className="quick-primary" href="/app/accomplishments?create=1"><Plus size={17} /><span><strong>New accomplishment</strong><small>Capture a win while it is fresh</small></span></a>
             <a href="/app/impact-receipts"><ReceiptText size={17} /><span><strong>Impact Receipts</strong><small>Strengthen proof with evidence</small></span></a>
             <a href="/app/reports"><BarChart3 size={17} /><span><strong>Performance reports</strong><small>Package your impact for review</small></span></a>
-            {user?.plan !== "pro" && <a className="quick-upgrade" href="/upgrade"><Sparkles size={17} /><span><strong>Upgrade to Pro</strong><small>Unlock advanced career packaging</small></span></a>}
           </section>
 
           <section className="command-panel skill-signals">

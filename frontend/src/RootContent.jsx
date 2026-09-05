@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import BragStackLoader from "./BragStackLoader.jsx";
 import { getSeoLandingPage } from "./seoLandingContent.js";
 import useSearchAppearanceMeta from "./useSearchAppearanceMeta.js";
+import "./LandingBeta.css";
 
 const lazyPage = (loader) => lazy(loader);
 const App = lazyPage(() => import("./App.jsx"));
@@ -12,6 +13,7 @@ const ApplicationsHubPage = lazyPage(() => import("./ApplicationsHubPage.jsx"));
 const AppearanceSettingsPage = lazyPage(() => import("./AppearanceSettingsPage.jsx"));
 const BillingSettingsPage = lazyPage(() => import("./BillingSettingsPage.jsx"));
 const CareerIntelligencePage = lazyPage(() => import("./CareerIntelligencePage.jsx"));
+const ComplianceAuditPage = lazyPage(() => import("./ComplianceAuditPage.jsx"));
 const DashboardPage = lazyPage(() => import("./DashboardPage.jsx"));
 const DocsPage = lazyPage(() => import("./DocsPage.jsx"));
 const EducationGuidePage = lazyPage(() => import("./EducationGuidePage.jsx"));
@@ -35,7 +37,7 @@ const ProfilePage = lazyPage(() => import("./ProfilePage.jsx"));
 const ProCareerPage = lazyPage(() => import("./ProCareerPage.jsx"));
 const SeoLandingPage = lazyPage(() => import("./SeoLandingPages.jsx"));
 const SettingsPage = lazyPage(() => import("./SettingsPage.jsx"));
-const UpgradePage = lazyPage(() => import("./UpgradePage.jsx"));
+const SupportHubPage = lazyPage(() => import("./SupportHubPage.jsx"));
 const LegalPageRouter = lazyPage(() => import("./LegalPageRouter.jsx"));
 
 const INTERVIEW_PATH = "/app/interview-practice";
@@ -78,7 +80,11 @@ function LegacyShareRedirect({ path }) {
   }, [path]);
   return <BragStackLoader message="Opening Proof Portfolio…" detail="Preserving the shared profile theme and public proof." />;
 }
-function ProRequired({ feature = "This feature" }) { return <main className="page"><section className="notice"><strong>BragStack Pro</strong><span>{feature} is available on Pro. Upgrade to unlock advanced career tools.</span><a className="btn primary" href="/upgrade">Upgrade to Pro</a></section></main>; }
+function LegacyUpgradeRedirect() {
+  useEffect(() => { window.location.replace("/support#beta-access"); }, []);
+  return <BragStackLoader message="Opening beta access help…" detail="Paid upgrade UI is not offered during the complimentary beta period." />;
+}
+function ProRequired({ feature = "This feature" }) { return <main className="page"><section className="notice"><strong>Feature access</strong><span>{feature} is not available for this account right now. Check the Support Hub for beta-access details or contact support.</span><a className="btn primary" href="/support#beta-access">Open Support Hub</a></section></main>; }
 function ImpactReceiptsWithVerification() { return <><ImpactReceiptsPage /><ReceiptVerificationCenter /></>; }
 
 function RootContent() {
@@ -160,8 +166,54 @@ function RootContent() {
         const pricingLink = landingNav.querySelector('a[href="#pricing"]');
         landingNav.insertBefore(educationLink, pricingLink || null);
       }
+      if (landingNav && !landingNav.querySelector('a[href="/support"]')) {
+        const supportLink = document.createElement("a");
+        supportLink.href = "/support";
+        supportLink.textContent = "Support";
+        const pricingLink = landingNav.querySelector('a[href="#pricing"]');
+        landingNav.insertBefore(supportLink, pricingLink || null);
+      }
+
+      const headerLogo = document.querySelector(".landing-nav > .landing-logo");
+      if (headerLogo && !document.querySelector(".landing-nav .landing-brand-lockup")) {
+        const lockup = document.createElement("div");
+        lockup.className = "landing-brand-lockup";
+        headerLogo.parentNode.insertBefore(lockup, headerLogo);
+        lockup.appendChild(headerLogo);
+        const beta = document.createElement("span");
+        beta.className = "landing-beta-badge";
+        beta.textContent = "Beta";
+        lockup.appendChild(beta);
+      }
+
+      const footerLogo = document.querySelector(".mega-footer-brand > .landing-logo");
+      if (footerLogo && !document.querySelector(".mega-footer-brand .landing-brand-lockup")) {
+        const lockup = document.createElement("div");
+        lockup.className = "landing-brand-lockup landing-brand-lockup-footer";
+        footerLogo.parentNode.insertBefore(lockup, footerLogo);
+        lockup.appendChild(footerLogo);
+        const beta = document.createElement("span");
+        beta.className = "landing-beta-badge";
+        beta.textContent = "Beta";
+        lockup.appendChild(beta);
+      }
+
       document.querySelectorAll('a[href*="@bragstack.app"]').forEach((link) => { const href = link.getAttribute("href") || ""; const subject = href.includes("?subject=") ? `?${href.split("?")[1]}` : ""; link.setAttribute("href", `mailto:Tobias.scott@usebragstack.com${subject}`); });
       document.querySelectorAll(".mega-footer-columns span").forEach((node) => { if (node.textContent?.trim() !== "Docs · coming soon") return; const link = document.createElement("a"); link.href = "/docs"; link.textContent = "Docs"; node.replaceWith(link); });
+      const resourceHeading = Array.from(document.querySelectorAll(".mega-footer-columns h3")).find((node) => node.textContent?.trim() === "Resources");
+      const resourceColumn = resourceHeading?.parentElement;
+      if (resourceColumn && !resourceColumn.querySelector('a[href="/support"]')) {
+        const supportLink = document.createElement("a");
+        supportLink.href = "/support";
+        supportLink.textContent = "Support Hub";
+        resourceColumn.appendChild(supportLink);
+      }
+      if (resourceColumn && !resourceColumn.querySelector('a[href="/docs"]')) {
+        const docsLink = document.createElement("a");
+        docsLink.href = "/docs";
+        docsLink.textContent = "Docs & guides";
+        resourceColumn.appendChild(docsLink);
+      }
     }, 0);
     return () => window.clearTimeout(timeout);
   }, [path]);
@@ -170,7 +222,8 @@ function RootContent() {
   if (path.startsWith("/share/brag/")) content = <LegacyShareRedirect path={path} />;
   else if (path === "/privacy" || path === "/terms") content = <LegalPageRouter page={path === "/privacy" ? "privacy" : "terms"} />;
   else if (path === "/verify-receipt") content = <ReceiptVerificationPage />;
-  else if (path === "/upgrade") content = <UpgradePage />;
+  else if (path === "/upgrade") content = <LegacyUpgradeRedirect />;
+  else if (path === "/support") content = <SupportHubPage />;
   else if (path === "/education") content = <EducationMarketingPage />;
   else if (path === "/docs/education") content = <EducationGuidePage />;
   else if (path === "/docs") content = <DocsPage />;
@@ -189,6 +242,7 @@ function RootContent() {
     else if (path === "/ops") Content = OpsConsolePage;
     else if (path === "/ops/users") Content = OpsUsersPage;
     else if (path === "/ops/ai-verification") Content = AIVerificationPage;
+    else if (path === "/ops/compliance") Content = ComplianceAuditPage;
     else if (path === "/app/settings") Content = SettingsPage;
     else if (path === "/app/profile") Content = ProfilePage;
     else if (path === "/app/settings/appearance") Content = AppearanceSettingsPage;

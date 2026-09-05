@@ -4,7 +4,7 @@ import { PRIMARY_SITELINKS } from "./primarySitelinks.js";
 const PUBLIC_META = {
   "/": {
     title: "BragStack | Career Proof, Resume Builder & Interview Practice",
-    description: "BragStack turns everyday wins into reusable career proof for resumes, interviews, reviews, promotions, and your next opportunity.",
+    description: "BragStack helps people across industries turn everyday wins into reusable career proof for resumes, interviews, reviews, promotions, portfolios, certifications, and their next opportunity.",
   },
   "/login": {
     title: "Sign In to BragStack | Career Proof",
@@ -12,19 +12,23 @@ const PUBLIC_META = {
   },
   "/register": {
     title: "Sign up for BragStack | Start Free",
-    description: "Create a free BragStack account and start turning your accomplishments into career proof for resumes, interviews, reviews, and promotions.",
+    description: "Create a free BragStack account and start turning your accomplishments into career proof for resumes, interviews, reviews, promotions, portfolios, and career transitions.",
   },
   "/how-it-works": {
     title: "How BragStack Works | Capture, Prove & Reuse Career Evidence",
-    description: "See how BragStack helps you capture accomplishments, create Impact Receipts, reuse evidence for career moments, share selectively, and keep private work private.",
+    description: "See how BragStack helps people in any profession capture accomplishments, create Impact Receipts, reuse evidence for career moments, share selectively, and keep private work private.",
   },
   "/use-cases": {
     title: "BragStack Use Cases | Reviews, Promotions, Resumes & Interviews",
-    description: "Explore practical BragStack use cases for performance reviews, promotions, resumes, interviews, career changes, freelancers, founders, and education-to-career proof.",
+    description: "Explore BragStack use cases across professions for reviews, promotions, resumes, interviews, certifications, career changes, freelancers, founders, students, and education-to-career proof.",
   },
   "/contact": {
     title: "Contact BragStack | Support, Privacy, Security & Billing",
     description: "Contact BragStack for product support, general questions, privacy requests, security concerns, billing questions, or legal correspondence.",
+  },
+  "/support": {
+    title: "BragStack Support Hub | Product Help, Beta Access & Security",
+    description: "Get BragStack product and account help, troubleshoot issues, understand complimentary beta access, review NDA guidance, and reach support, billing, privacy, or security contacts.",
   },
   "/team": {
     title: "BragStack for Teams | Coming Soon",
@@ -48,7 +52,7 @@ const PUBLIC_META = {
   },
   "/nda-safety": {
     title: "NDA & Confidential Work Guidance | BragStack",
-    description: "Learn how to document professional accomplishments in BragStack without overriding NDAs, employer policies, client agreements, or confidentiality obligations.",
+    description: "Learn how people across healthcare, education, trades, service, sales, creative, public-sector, technology, and other work can document accomplishments without overriding NDAs, privacy duties, professional obligations, employer policies, or client agreements.",
   },
   "/education": {
     title: "BragStack Education | Turn Learning into Career Proof",
@@ -56,7 +60,7 @@ const PUBLIC_META = {
   },
   "/docs": {
     title: "BragStack Docs | How to Use Career Proof",
-    description: "Learn how to use BragStack, Impact Receipts, Resume Builder, Practice Interviewer, privacy controls, and career proof workflows.",
+    description: "Learn how people across professions can use BragStack, Impact Receipts, Resume Builder, Practice Interviewer, privacy controls, and career proof workflows.",
   },
   "/docs/education": {
     title: "BragStack Education Guide | Learning & Career Proof",
