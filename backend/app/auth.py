@@ -133,6 +133,10 @@ def serialize_user(user: dict) -> dict:
         "open_to_talk_url": user.get("open_to_talk_url", ""),
         "open_to_talk_note": user.get("open_to_talk_note", ""),
         "open_to_talk_types": user.get("open_to_talk_types", []),
+        "marketing_email_opt_in": bool(user.get("marketing_email_opt_in", False)),
+        "marketing_email_opt_in_at": user.get("marketing_email_opt_in_at"),
+        "marketing_email_opt_out_at": user.get("marketing_email_opt_out_at"),
+        "marketing_consent_version": user.get("marketing_consent_version", ""),
         "plan": get_plan_for_user(user),
         "entitlements": get_entitlements_for_user(user),
         "internal_roles": [
