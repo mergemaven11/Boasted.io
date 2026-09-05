@@ -39,17 +39,20 @@ export default function ComplianceAuditPanel() {
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
 
-  async function loadReceipts() {
-    try {
-      const [latest, historyResponse] = await Promise.all([getLatestComplianceAudit(), getComplianceAuditHistory(10)]);
-      setReceipt(latest || null);
-      setHistory(historyResponse?.receipts || []);
-    } catch (err) {
-      if (err.response?.status !== 404) setError(err.response?.data?.detail || "Compliance receipts could not be loaded.");
-    }
-  }
-
-  useEffect(() => { void loadReceipts(); }, []);
+  useEffect(() => {
+    let active = true;
+    Promise.all([getLatestComplianceAudit(), getComplianceAuditHistory(10)])
+      .then(([latest, historyResponse]) => {
+        if (!active) return;
+        setReceipt(latest || null);
+        setHistory(historyResponse?.receipts || []);
+      })
+      .catch((err) => {
+        if (!active || err.response?.status === 404) return;
+        setError(err.response?.data?.detail || "Compliance receipts could not be loaded.");
+      });
+    return () => { active = false; };
+  }, []);
 
   async function runAudit() {
     setRunning(true);
