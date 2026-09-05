@@ -13,7 +13,12 @@ from pymongo.errors import DuplicateKeyError
 
 from app.auth import get_current_user
 from app.database import stripe_webhook_events_collection, users_collection
-from app.plans import get_plan_for_user
+from app.plans import (
+    TEMPORARY_PRO_GIFT_CAMPAIGN,
+    TEMPORARY_PRO_GIFT_NOTICE,
+    get_plan_for_user,
+    has_temporary_pro_gift,
+)
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -259,20 +264,20 @@ def _find_user_for_invoice(invoice: dict) -> dict | None:
 
 
 def _subscription_status_payload(user: dict) -> dict:
-    """Handle subscription status payload.
-
-    Args:
-        user: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Return subscription state separately from temporary promotional access."""
+    promotional_access = has_temporary_pro_gift(user)
+    has_subscription = bool(user.get("stripe_subscription_id"))
     return {
         "plan": get_plan_for_user(user),
+        "persisted_plan": user.get("plan", "free"),
         "billing_status": user.get("billing_status", "free"),
         "cancel_at_period_end": bool(user.get("billing_cancel_at_period_end", False)),
         "current_period_end": user.get("billing_current_period_end"),
-        "has_subscription": bool(user.get("stripe_subscription_id")),
+        "has_subscription": has_subscription,
+        "temporary_pro_gift": promotional_access,
+        "access_source": "complimentary_pro" if promotional_access else ("subscription" if has_subscription else "plan"),
+        "promotional_campaign": TEMPORARY_PRO_GIFT_CAMPAIGN if promotional_access else None,
+        "promotional_notice": TEMPORARY_PRO_GIFT_NOTICE if promotional_access else None,
     }
 
 
@@ -305,6 +310,17 @@ async def _update_stripe_subscription(subscription_id: str, *, cancel_at_period_
 @router.post("/checkout-session")
 async def create_checkout_session(current_user: dict = Depends(get_current_user)):
     """Create a Stripe Checkout subscription session for BragStack Pro."""
+    if has_temporary_pro_gift(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "code": "complimentary_pro_active",
+                "message": "BragStack Pro is temporarily complimentary for this account, so a new paid checkout is not required right now.",
+                "campaign": TEMPORARY_PRO_GIFT_CAMPAIGN,
+                "notice": TEMPORARY_PRO_GIFT_NOTICE,
+            },
+        )
+
     _require_stripe_checkout_config()
 
     if get_plan_for_user(current_user) == "pro" and current_user.get("billing_status") in {
