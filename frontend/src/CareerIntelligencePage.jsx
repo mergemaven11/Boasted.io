@@ -36,7 +36,7 @@ function LoadingShell() {
         <div>
           <span className="ci-kicker"><BrainCircuit size={17} /> BragStack Career Intelligence™</span>
           <h1>Your career proof, interpreted.</h1>
-          <p>See what your work actually demonstrates, where your evidence is strongest, and which proof gaps are worth fixing next.</p>
+          <p>See what your body of work repeatedly demonstrates, how well each signal is supported, and what is emerging next.</p>
           <div className="ci-hero-actions">
             <a className="ci-primary" href="/app/accomplishments?create=1">Capture new proof <ArrowRight size={17} /></a>
             <a className="ci-secondary" href="/app/impact-receipts">View Impact Receipts</a>
@@ -45,10 +45,10 @@ function LoadingShell() {
         <aside className="ci-lead-signal">
           <span>Analyzing your proof</span>
           <strong>Building your combined career signal…</strong>
-          <p>Your saved accomplishments and Impact Receipts are being connected into one evidence-backed view.</p>
+          <p>Your accomplishments and Impact Receipts are being reconciled into distinct work demonstrations, durable skills, proof quality, and career themes.</p>
         </aside>
       </section>
-      <BragStackLoader message="Reading your career proof…" detail="Connecting accomplishments, skills, evidence, and Impact Receipts." />
+      <BragStackLoader message="Reading your career proof…" detail="Separating repetition, proof quality, themes, and recent growth." />
     </main>
   );
 }
@@ -92,7 +92,8 @@ function CareerIntelligencePage() {
         const accomplishments = payload?.summary?.accomplishments ?? 0;
         const receipts = payload?.summary?.impact_receipts ?? 0;
         const total = payload?.summary?.total_proof_records ?? accomplishments + receipts;
-        setRefreshMessage(`Career Intelligence re-ran across ${total} proof record${total === 1 ? "" : "s"}: ${accomplishments} accomplishment${accomplishments === 1 ? "" : "s"} + ${receipts} Impact Receipt${receipts === 1 ? "" : "s"}.`);
+        const demonstrations = payload?.summary?.distinct_demonstrations ?? total;
+        setRefreshMessage(`Career Intelligence re-ran across ${total} saved proof record${total === 1 ? "" : "s"}, representing ${demonstrations} distinct work demonstration${demonstrations === 1 ? "" : "s"}.`);
       }
     } catch (requestError) {
       console.error(requestError);
@@ -117,9 +118,7 @@ function CareerIntelligencePage() {
   const totalSkillPages = Math.max(1, Math.ceil(allSkills.length / SKILLS_PER_PAGE));
   const visibleSkills = allSkills.slice((skillPage - 1) * SKILLS_PER_PAGE, skillPage * SKILLS_PER_PAGE);
 
-  if (!data && !error) {
-    return <LoadingShell />;
-  }
+  if (!data && !error) return <LoadingShell />;
 
   if (error) {
     return (
@@ -139,17 +138,27 @@ function CareerIntelligencePage() {
     recommended_actions: actions = [],
     top_categories: categories = [],
     career_profile: careerProfile = {},
+    career_themes: careerThemes = [],
   } = data;
+
   const totalProofRecords = summary.total_proof_records ?? ((summary.accomplishments ?? 0) + (summary.impact_receipts ?? 0));
+  const distinctDemonstrations = summary.distinct_demonstrations ?? totalProofRecords;
   const profileSkills = Array.isArray(careerProfile.primary_skills) && careerProfile.primary_skills.length
     ? careerProfile.primary_skills
     : allSkills.slice(0, 4).map((skill) => skill.skill);
-  const profileHeadline = careerProfile.headline || profileSkills.slice(0, 3).join(" · ");
+  const profileThemes = Array.isArray(careerProfile.primary_themes) ? careerProfile.primary_themes : [];
+  const profileHeadline = careerProfile.headline || profileThemes.join(" · ") || profileSkills.slice(0, 3).join(" · ");
   const profileSummary = careerProfile.summary || (
     profileSkills.length
-      ? "These are the strongest signals across your saved proof, not simply the skills from your newest accomplishment."
+      ? "These are the strongest repeated signals across your saved proof, with proof quality and recency tracked separately."
       : "Add accomplishments and skills to start creating evidence-backed career intelligence."
   );
+  const recentGrowth = Array.isArray(careerProfile.recent_emerging_skills)
+    ? careerProfile.recent_emerging_skills
+    : [];
+  const themeRows = Array.isArray(careerThemes) && careerThemes.length
+    ? careerThemes
+    : categories.map(({ category, count }) => ({ theme: category, demonstrations: count }));
 
   return (
     <main className="ci-page">
@@ -157,7 +166,7 @@ function CareerIntelligencePage() {
         <div>
           <span className="ci-kicker"><BrainCircuit size={17} /> BragStack Career Intelligence™</span>
           <h1>Your career proof, interpreted.</h1>
-          <p>See what your work actually demonstrates, where your evidence is strongest, and which proof gaps are worth fixing next.</p>
+          <p>See what your body of work repeatedly demonstrates, how strongly each signal is supported, and what is emerging next.</p>
           <div className="ci-hero-actions">
             <a className="ci-primary" href="/app/accomplishments?create=1">Capture new proof <ArrowRight size={17} /></a>
             <button className="ci-secondary ci-refresh" type="button" disabled={isRefreshing} onClick={() => void loadIntelligence({ refresh: true })}>
@@ -167,15 +176,20 @@ function CareerIntelligencePage() {
           </div>
           {refreshMessage && <div className="ci-refresh-message" role="status">{refreshMessage}</div>}
         </div>
+
         <aside className="ci-lead-signal">
           <span>Combined career signal</span>
           {profileSkills.length ? (
             <>
               <strong>{profileHeadline}</strong>
               <p>
-                <b>{totalProofRecords} total proof record{totalProofRecords === 1 ? "" : "s"} analyzed.</b>{" "}
+                <b>{totalProofRecords} saved proof record{totalProofRecords === 1 ? "" : "s"} → {distinctDemonstrations} distinct demonstration{distinctDemonstrations === 1 ? "" : "s"}.</b>{" "}
                 {profileSummary}
               </p>
+              {careerProfile.maturity && <p><b>Profile maturity:</b> {titleCase(careerProfile.maturity)} evidence coverage.</p>}
+              {recentGrowth.length > 0 && (
+                <p><b>Recent growth:</b> {recentGrowth.join(" · ")}. These stay separate from durable strengths until they repeat across distinct work examples.</p>
+              )}
             </>
           ) : (
             <>
@@ -187,10 +201,30 @@ function CareerIntelligencePage() {
       </section>
 
       <section className="ci-metrics" aria-label="Career proof summary">
-        <article><ReceiptText size={20} /><span>Total proof analyzed</span><strong>{totalProofRecords}</strong><small>{summary.accomplishments ?? 0} accomplishments + {summary.impact_receipts ?? 0} receipts</small></article>
-        <article><Sparkles size={20} /><span>Impact Receipts</span><strong>{summary.impact_receipts ?? 0}</strong></article>
-        <article><TrendingUp size={20} /><span>Quantified results</span><strong>{summary.quantified_results ?? 0}</strong></article>
-        <article><CheckCircle2 size={20} /><span>Confirmed receipts</span><strong>{summary.confirmed_receipts ?? 0}</strong></article>
+        <article>
+          <ReceiptText size={20} />
+          <span>Total proof analyzed</span>
+          <strong>{totalProofRecords}</strong>
+          <small>{summary.accomplishments ?? 0} accomplishments + {summary.impact_receipts ?? 0} receipts</small>
+        </article>
+        <article>
+          <Sparkles size={20} />
+          <span>Distinct demonstrations</span>
+          <strong>{distinctDemonstrations}</strong>
+          <small>Linked receipts enrich proof without double-counting work</small>
+        </article>
+        <article>
+          <TrendingUp size={20} />
+          <span>Quantified coverage</span>
+          <strong>{summary.quantified_coverage_percent ?? 0}%</strong>
+          <small>{summary.quantified_results ?? 0} measurable demonstration{summary.quantified_results === 1 ? "" : "s"}</small>
+        </article>
+        <article>
+          <CheckCircle2 size={20} />
+          <span>Evidence-backed</span>
+          <strong>{summary.evidence_coverage_percent ?? 0}%</strong>
+          <small>{summary.confirmed_demonstrations ?? 0} confirmed demonstration{summary.confirmed_demonstrations === 1 ? "" : "s"}</small>
+        </article>
       </section>
 
       <section className="ci-grid">
@@ -208,11 +242,11 @@ function CareerIntelligencePage() {
                     <div className="ci-bar"><span style={{ width: `${Math.max(6, skill.evidence_points)}%` }} /></div>
                     <div className="ci-proof-facts">
                       <span>{skill.demonstrations} distinct demonstrations</span>
-                      <span>{skill.accomplishments ?? 0} accomplishments</span>
+                      <span>{titleCase(skill.support_level || "basic")} proof support</span>
+                      <span>{skill.quantified_examples ?? 0} quantified</span>
+                      <span>{skill.evidence_backed_demonstrations ?? 0} evidence-backed</span>
+                      <span>{skill.confirmed_demonstrations ?? 0} confirmed</span>
                       <span>{skill.impact_receipts ?? 0} receipts</span>
-                      <span>{skill.quantified_examples} quantified</span>
-                      <span>{skill.evidence_items} evidence</span>
-                      <span>{skill.confirmations} confirmed</span>
                     </div>
                   </div>
                 ))}
@@ -238,19 +272,34 @@ function CareerIntelligencePage() {
           </article>
 
           <article className="ci-panel">
-            <div className="ci-panel-heading"><div><span>Career breadth</span><h2>Top career areas</h2></div><Target size={22} /></div>
-            {categories.length ? <div className="ci-categories">{categories.map(({ category, count }) => <div key={category}><span>{category}</span><strong>{count}</strong></div>)}</div> : <p className="ci-muted">Career areas will appear as you capture accomplishments.</p>}
+            <div className="ci-panel-heading"><div><span>Career breadth</span><h2>Career themes</h2></div><Target size={22} /></div>
+            {themeRows.length ? (
+              <div className="ci-categories">
+                {themeRows.slice(0, 5).map((theme) => (
+                  <div key={theme.theme}>
+                    <span>{theme.theme}</span>
+                    <strong>{theme.demonstrations ?? 0}</strong>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="ci-muted">Career themes will appear as you capture accomplishments.</p>
+            )}
           </article>
         </aside>
       </section>
 
       <section className="ci-panel ci-gaps-panel">
         <div className="ci-panel-heading"><div><span>Evidence gaps</span><h2>Ways to strengthen your case</h2></div><BrainCircuit size={22} /></div>
-        {gaps.length ? <div className="ci-gap-grid">{gaps.map((gap) => <article key={gap.type}><strong>{gap.title}</strong><p>{gap.detail}</p><span>{gap.action}</span></article>)}</div> : <div className="ci-healthy"><CheckCircle2 size={22} /><div><strong>Your proof foundation looks healthy.</strong><p>Keep capturing fresh accomplishments and evidence as your work changes.</p></div></div>}
+        {gaps.length ? (
+          <div className="ci-gap-grid">{gaps.map((gap) => <article key={gap.type}><strong>{gap.title}</strong><p>{gap.detail}</p><span>{gap.action}</span></article>)}</div>
+        ) : (
+          <div className="ci-healthy"><CheckCircle2 size={22} /><div><strong>Your proof foundation looks healthy.</strong><p>Keep capturing fresh accomplishments and evidence as your work changes.</p></div></div>
+        )}
       </section>
 
       <p className="ci-methodology">
-        Career Intelligence analyzes every saved accomplishment and Impact Receipt. Compound pasted skill lists are normalized into individual skills, linked receipts enrich the same underlying demonstration instead of double-counting it, and recency only breaks close ranking ties rather than adding proof strength.
+        Career Intelligence separates durable signals from proof quality and recency. Repetition is measured across distinct work demonstrations; linked Impact Receipts enrich the original work instead of creating fake repetition, attachment volume cannot inflate breadth, and creating a receipt later does not make old work look newly demonstrated.
       </p>
     </main>
   );
