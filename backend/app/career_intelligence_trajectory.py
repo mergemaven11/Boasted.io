@@ -53,7 +53,7 @@ def _trajectory_reason(label: str, *, recent: int, historical: int) -> str:
     if label == "active":
         return "Repeated strength with at least one recent demonstration."
     if label == "historical-core":
-        return f"Repeated strength supported by {historical} historical demonstrations, with no recent example in the current window."
+        return f"Repeated strength supported by {historical} dated historical demonstrations, with no recent example in the current window."
     if label == "recent-emerging":
         return "Newly demonstrated skill; another distinct example would show whether it is becoming durable."
     if label == "undated":
@@ -123,7 +123,12 @@ def enrich_career_trajectory(
             if observed_at is not None
             and 0 <= (now - observed_at).days <= RECENT_WINDOW_DAYS
         )
-        historical = max(0, demonstrations - recent)
+        historical = sum(
+            1
+            for observed_at in dates
+            if observed_at is not None and (now - observed_at).days > RECENT_WINDOW_DAYS
+        )
+        undated = max(0, demonstrations - dated)
         label = _trajectory_label(
             demonstrations=demonstrations,
             recent=recent,
@@ -133,6 +138,7 @@ def enrich_career_trajectory(
         skill["trajectory"] = label
         skill["recent_demonstrations"] = recent
         skill["historical_demonstrations"] = historical
+        skill["undated_demonstrations"] = undated
         skill["trajectory_reason"] = _trajectory_reason(
             label,
             recent=recent,
