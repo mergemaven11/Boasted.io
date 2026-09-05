@@ -64,3 +64,9 @@ test("public NDA docs explicitly say private settings do not authorize prohibite
 test("public NDA docs preserve the public-source ceiling after sanitization", () => {
   assert.match(guidance, /keeping a public link does not authorize adding private context/);
 });
+
+test("public NDA docs keep legal permission separate from a successful product safety check", () => {
+  assert.match(guidance, /No obvious pattern detected/);
+  assert.match(guidance, /This is not legal advice/);
+  assert.match(guidance, /does not certify that a draft is “NDA compliant.”/);
+});
