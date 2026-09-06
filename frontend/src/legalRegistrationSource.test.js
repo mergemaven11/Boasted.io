@@ -16,10 +16,13 @@ test("registration visibly requires legal acceptance without an age gate", () =>
   assert.match(source, /records the current policy versions/i);
 });
 
-test("new OAuth sign-up is paused while existing OAuth login remains", () => {
+test("new OAuth sign-up is available only after legal acceptance", () => {
   const source = read("./AuthPage.jsx");
-  assert.match(source, /Temporarily paused for new accounts/);
-  assert.match(source, /required legal-consent step/);
+  assert.doesNotMatch(source, /Temporarily paused for new accounts/);
+  assert.match(source, /accepted_terms=true/);
+  assert.match(source, /accepted_privacy=true/);
+  assert.match(source, /Please accept the Terms and Privacy Policy before continuing with Google or GitHub/);
+  assert.match(source, /or sign up with/);
   assert.match(source, /Continue with Google/);
   assert.match(source, /Continue with GitHub/);
 });

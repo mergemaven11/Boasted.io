@@ -111,30 +111,38 @@ jobs:
         run: npm run build
 
   dependency-audit:
-    # Preserve the protected-branch context. This expensive job runs only when
-    # dependency manifests or CI workflow definitions changed.
+    # This context is required by the protected branch, so keep the job itself
+    # merge-safe on every PR. Expensive dependency audits only run when dependency
+    # manifests or CI workflow definitions changed.
     name: Dependency vulnerability audit
     needs: changes
-    if: needs.changes.outputs.dependencies == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: No dependency changes
+        if: needs.changes.outputs.dependencies != 'true'
+        run: echo "No dependency manifests changed; required audit context satisfied."
       - uses: actions/checkout@v4
+        if: needs.changes.outputs.dependencies == 'true'
       - uses: actions/setup-python@v5
+        if: needs.changes.outputs.dependencies == 'true'
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: backend/requirements.txt
       - name: Audit Python dependencies
+        if: needs.changes.outputs.dependencies == 'true'
         run: |
           python -m pip install pip-audit
           pip-audit -r backend/requirements.txt --ignore-vuln PYSEC-2026-1325
       - uses: actions/setup-node@v4
+        if: needs.changes.outputs.dependencies == 'true'
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - name: Audit frontend dependencies
+        if: needs.changes.outputs.dependencies == 'true'
         working-directory: frontend
         run: |
           npm ci
