@@ -222,7 +222,7 @@ def enrich_career_trajectory(
         "trajectory are separate dimensions. Current-core, active, historical-core, "
         "and recent-emerging labels describe when distinct demonstrations occurred "
         "without adding recency points. Linked receipts inherit their source work date, "
-        "so late documentation cannot create fake current momentum. BragStack does not "
+        "so late documentation cannot create fake current momentum. Boasted does not "
         "predict hiring or promotion outcomes."
     )
     return result

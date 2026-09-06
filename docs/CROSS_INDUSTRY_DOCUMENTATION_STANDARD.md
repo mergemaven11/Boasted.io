@@ -1,14 +1,14 @@
-# BragStack — Cross-Industry Documentation Standard
+# Boasted — Cross-Industry Documentation Standard
 
-BragStack is a career evidence system for people in **any profession**. Product documentation, legal/confidentiality guidance, customer education, demos, investor material, onboarding copy, examples, generated sample content, and public positioning must not treat software engineering, technology, or office-based knowledge work as the default user experience.
+Boasted is a career evidence system for people in **any profession**. Product documentation, legal/confidentiality guidance, customer education, demos, investor material, onboarding copy, examples, generated sample content, and public positioning must not treat software engineering, technology, or office-based knowledge work as the default user experience.
 
 ## Core rule
 
 **The evidence model is profession-neutral.**
 
-Every BragStack explanation should work for a nurse, teacher, warehouse lead, stylist, salesperson, mechanic, customer-service representative, hospitality worker, field technician, nonprofit coordinator, public-service worker, designer, manager, consultant, student, apprentice, developer, or another professional without requiring the reader to translate a software-specific example into their own work.
+Every Boasted explanation should work for a nurse, teacher, warehouse lead, stylist, salesperson, mechanic, customer-service representative, hospitality worker, field technician, nonprofit coordinator, public-service worker, designer, manager, consultant, student, apprentice, developer, or another professional without requiring the reader to translate a software-specific example into their own work.
 
-Technology is an important profession represented by BragStack. It is not the product's default profession.
+Technology is an important profession represented by Boasted. It is not the product's default profession.
 
 ## Example rotation
 
@@ -32,7 +32,7 @@ Representative groups include:
 - technology and engineering;
 - students, apprentices, certification candidates, and career changers.
 
-A single document does not need every profession, but the overall BragStack documentation set should visibly represent different work environments and career paths.
+A single document does not need every profession, but the overall Boasted documentation set should visibly represent different work environments and career paths.
 
 ## Profession-neutral evidence examples
 
@@ -72,11 +72,11 @@ Examples of restricted information can include:
 - proprietary recipes, formulas, methods, procedures, trade secrets, or manufacturing information;
 - source code, credentials, internal systems, incidents, architecture, or unreleased technical work.
 
-The safe pattern is universal: **capture the career signal, not the secret.** Users should generalize sensitive context, use references instead of copies when appropriate, and leave restricted material out when they do not have permission to store it in BragStack.
+The safe pattern is universal: **capture the career signal, not the secret.** Users should generalize sensitive context, use references instead of copies when appropriate, and leave restricted material out when they do not have permission to store it in Boasted.
 
 ## Product and investor positioning
 
-Avoid defining BragStack primarily as a tool for “knowledge workers,” “technical workers,” developers, or software teams unless a document is intentionally discussing that one segment.
+Avoid defining Boasted primarily as a tool for “knowledge workers,” “technical workers,” developers, or software teams unless a document is intentionally discussing that one segment.
 
 Preferred umbrella language:
 
@@ -95,13 +95,13 @@ Cross-profession fixtures should include both knowledge-work and non-desk roles.
 
 ## Review checklist
 
-Before publishing or merging a customer-facing or business-facing BragStack document, ask:
+Before publishing or merging a customer-facing or business-facing Boasted document, ask:
 
-1. Does this copy imply that a BragStack user is probably a software engineer?
+1. Does this copy imply that a Boasted user is probably a software engineer?
 2. Are the examples understandable to people outside technology and corporate office work?
 3. Does “evidence” include profession-appropriate forms of proof beyond tickets, commits, and dashboards?
 4. Does confidentiality guidance cover privacy and professional obligations outside technology?
 5. Could a frontline, care, service, trade, creative, public-sector, or education worker see themselves in the product?
 6. If one profession is emphasized, is that emphasis intentional for the document's specific purpose rather than an accidental default?
 
-If the answer reveals a technology-first default, revise the document before treating it as BragStack's canonical positioning.
+If the answer reveals a technology-first default, revise the document before treating it as Boasted's canonical positioning.

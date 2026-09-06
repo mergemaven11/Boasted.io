@@ -2,7 +2,7 @@
 
 The closure path removes the account record and user-owned product data while
 leaving narrowly scoped operational, billing, security, and legal records that
-may need to be retained under BragStack's published privacy policy.
+may need to be retained under Boasted's published privacy policy.
 """
 from __future__ import annotations
 
@@ -42,7 +42,7 @@ def _user_id_variants(user_id: str) -> list[object]:
 def purge_user_owned_data(db, user_id: str) -> dict[str, int]:
     """Delete user-owned documents from every non-retained collection.
 
-    BragStack's user-owned collections consistently carry a user ownership
+    Boasted's user-owned collections consistently carry a user ownership
     field. Scanning the database's current collection list makes closure cover
     newer product collections without requiring every feature to be hard-coded
     here, while the retained allow-list prevents deletion of records that may

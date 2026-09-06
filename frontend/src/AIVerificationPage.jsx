@@ -136,7 +136,7 @@ function AIVerificationPage() {
 
   return <main className="ai-verify-page">
     <header className="ai-verify-header">
-      <div><p>INTERNAL · RELEASE QUALITY</p><h1><BrainCircuit size={30} /> AI verification dashboard</h1><span>Track grounding, provenance, fabrication failures, and release readiness across BragStack smart features.</span></div>
+      <div><p>INTERNAL · RELEASE QUALITY</p><h1><BrainCircuit size={30} /> AI verification dashboard</h1><span>Track grounding, provenance, fabrication failures, and release readiness across Boasted smart features.</span></div>
       <div className="ai-verify-actions">
         <div>
           <button type="button" className="ai-run-checks" disabled={releaseRunning} onClick={() => void runReleaseChecks()}>{releaseRunning ? <RefreshCw className="ai-verify-spin" size={16} /> : <ShieldCheck size={16} />} {releaseRunning ? "Running checks…" : "Run release checks"}</button>

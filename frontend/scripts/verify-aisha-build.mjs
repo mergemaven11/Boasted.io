@@ -26,10 +26,10 @@ for (const file of textFiles) {
   if (!matchedFile && text.includes("bragstack-static-aj-v1")) matchedFile = file;
 }
 
-assert.ok(matchedFile, "Production bundle does not contain the BragStack static AJ interviewer marker");
+assert.ok(matchedFile, "Production bundle does not contain the Boasted static AJ interviewer marker");
 assert.match(bundle, /bragstack-static-aj-v1/, "AJ static interviewer engine marker missing from production bundle");
 assert.match(bundle, /aj-avatar-monogram/, "AJ monogram class missing from production bundle");
-assert.match(bundle, /BragStack Interviewer/, "AJ interviewer identity copy missing from production bundle");
+assert.match(bundle, /Boasted Interviewer/, "AJ interviewer identity copy missing from production bundle");
 assert.doesNotMatch(bundle, /bragstack-photo-v2|aisha-photo-avatar|aisha-jordan-interviewer/i, "Retired photographic interviewer leaked into production bundle");
 assert.doesNotMatch(bundle, /bragstack-vector-v1|aisha-mouth-opening|aisha-eyelids/, "Retired vector avatar renderer leaked into production bundle");
 

@@ -31,7 +31,7 @@ function chunk(items, size) {
 function PacketFooter({ page }) {
   return (
     <footer className="packet-page-footer">
-      <span>BragStack · Career Evidence System</span>
+      <span>Boasted · Career Evidence System</span>
       <span>Page {page}</span>
     </footer>
   );
@@ -44,7 +44,7 @@ function PacketHeader({ index, eyebrow, title }) {
         <p>{String(index).padStart(2, "0")} · {eyebrow}</p>
         <h2>{title}</h2>
       </div>
-      <div className="packet-page-header-mark">BRAGSTACK</div>
+      <div className="packet-page-header-mark">BOASTED</div>
     </header>
   );
 }
@@ -131,7 +131,7 @@ function InterviewPacketPages({ packet }) {
             title={pageIndex === 0 ? "Examples to bring into the room" : "Selected stories · continued"}
           />
           <p className="packet-page-lead">
-            These examples come directly from selected BragStack accomplishments. Missing details remain visibly missing so you can prepare them in your own words.
+            These examples come directly from selected Boasted accomplishments. Missing details remain visibly missing so you can prepare them in your own words.
           </p>
           {items.length ? (
             <div className="interview-story-stack">
@@ -192,7 +192,7 @@ function InterviewPacketPages({ packet }) {
         <div className="interview-prep-hero">
           <Sparkles size={22} />
           <p>
-            BragStack does not fill gaps with invented STAR details. These prompts point to what is missing from the record so you can prepare truthful context.
+            Boasted does not fill gaps with invented STAR details. These prompts point to what is missing from the record so you can prepare truthful context.
           </p>
         </div>
 

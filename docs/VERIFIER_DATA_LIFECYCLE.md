@@ -1,6 +1,6 @@
 # Verifier contact-data lifecycle
 
-BragStack's receipt-verification workflow accepts limited third-party contact data so a user can ask a collaborator, stakeholder, or organization representative to review an Impact Receipt. This runbook describes how that data is stored, minimized, migrated, and verified operationally.
+Boasted's receipt-verification workflow accepts limited third-party contact data so a user can ask a collaborator, stakeholder, or organization representative to review an Impact Receipt. This runbook describes how that data is stored, minimized, migrated, and verified operationally.
 
 ## Data model
 

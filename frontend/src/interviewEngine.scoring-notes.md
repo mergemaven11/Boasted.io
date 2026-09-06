@@ -1,4 +1,4 @@
-# BragStack Career Intelligence scoring calibration
+# Boasted Career Intelligence scoring calibration
 
 The practice interviewer uses behaviorally anchored evidence gates rather than rewarding superficial answer form.
 

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
-  <title id="title">BragStack — Turn your work into opportunities</title>
-  <desc id="desc">A BragStack social preview card with the blue and purple brandmark and career-proof messaging.</desc>
+  <title id="title">Boasted — Turn your work into opportunities</title>
+  <desc id="desc">A Boasted social preview card with the blue and purple brandmark and career-proof messaging.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
       <stop stop-color="#07101F"/>
@@ -30,7 +30,7 @@
     <path d="M41 39h26c9 0 14 4 14 10s-5 10-14 10H41V39Zm0 36h29c10 0 16 4 16 11s-6 11-16 11H41V75Z" fill="#07101F"/>
     <path d="M16 90 40 66l12 12 26-29H66V37h35v35H89V59L54 98 41 85l-15 15-10-10Z" fill="#EEF7FF"/>
   </g>
-  <text x="238" y="126" fill="#FFFFFF" font-family="Inter,Arial,sans-serif" font-size="42" font-weight="800" letter-spacing="-1">BragStack</text>
+  <text x="238" y="126" fill="#FFFFFF" font-family="Inter,Arial,sans-serif" font-size="42" font-weight="800" letter-spacing="-1">Boasted</text>
   <text x="238" y="162" fill="#8FA4C7" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="3">PROVE • GROW • GET HIRED</text>
   <text x="88" y="328" fill="url(#headline)" font-family="Inter,Arial,sans-serif" font-size="70" font-weight="850" letter-spacing="-3">Turn your work into opportunities.</text>
   <text x="88" y="391" fill="#B8C4DA" font-family="Inter,Arial,sans-serif" font-size="28">Capture accomplishments. Attach evidence. Build career proof.</text>
@@ -42,5 +42,5 @@
     <rect width="326" height="60" rx="30" fill="#101A2E" stroke="#2A4570"/>
     <text x="28" y="39" fill="#DDF4FF" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700">Evidence-backed proof</text>
   </g>
-  <text x="88" y="578" fill="#6F82A5" font-family="Inter,Arial,sans-serif" font-size="20">usebragstack.com</text>
+  <text x="88" y="578" fill="#6F82A5" font-family="Inter,Arial,sans-serif" font-size="20">boasted.io</text>
 </svg>

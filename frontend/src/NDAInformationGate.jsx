@@ -170,7 +170,7 @@ function NDAInformationGate() {
             <span className="nda-gate-icon"><ShieldCheck size={22} /></span>
             <div>
               <p className="nda-gate-eyebrow">NDA & confidentiality check</p>
-              <h2 id="nda-gate-title">Before BragStack sends or publishes this work information</h2>
+              <h2 id="nda-gate-title">Before Boasted sends or publishes this work information</h2>
             </div>
           </div>
           <button type="button" className="nda-gate-close" onClick={closeGate} aria-label="Close confidentiality check">
@@ -190,7 +190,7 @@ function NDAInformationGate() {
           <div className="nda-gate-warning nda-gate-local-scan blocker">
             <AlertTriangle size={19} />
             <div>
-              <strong>BragStack found a potential credential or secret pattern.</strong>
+              <strong>Boasted found a potential credential or secret pattern.</strong>
               <p>For safety, this submission cannot continue yet. Return to the draft and remove the sensitive material. The scanner does not send your draft anywhere.</p>
             </div>
           </div>
@@ -241,7 +241,7 @@ function NDAInformationGate() {
         </label>
 
         <p className="nda-gate-footnote">
-          BragStack does not interpret your agreement or decide what your employer or client permits.
+          Boasted does not interpret your agreement or decide what your employer or client permits.
           If you are unsure, stop and check the agreement or an authorized legal/security contact. {" "}
           <a href="/nda-safety" target="_blank" rel="noreferrer">Read NDA safety guidance</a>.
         </p>

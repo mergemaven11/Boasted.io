@@ -16,11 +16,11 @@ export default function LandingInterviewShowcase() {
   if (!target) return null;
 
   return createPortal(
-    <section className="landing-interview-showcase" aria-label="BragStack beta Practice Interviewer preview">
+    <section className="landing-interview-showcase" aria-label="Boasted beta Practice Interviewer preview">
       <div className="interview-showcase-copy">
         <span className="showcase-pro-label"><Sparkles size={14} /> BETA · COMPLIMENTARY PRO ACCESS</span>
         <h2>Practice the interview before it counts.</h2>
-        <p>Choose virtually any career and target role. BragStack asks realistic questions, coaches weak answers with follow-ups, and shows where your stories are strong—or missing the result.</p>
+        <p>Choose virtually any career and target role. Boasted asks realistic questions, coaches weak answers with follow-ups, and shows where your stories are strong—or missing the result.</p>
         <div className="showcase-benefits">
           <span><CheckCircle2 size={17} /> Career-aware questions for roles across industries</span>
           <span><CheckCircle2 size={17} /> Personalized questions from your Impact Receipts</span>
@@ -31,10 +31,10 @@ export default function LandingInterviewShowcase() {
         <small>Eligible beta accounts currently receive complimentary Pro feature access. No new paid checkout is required.</small>
       </div>
 
-      <div className="showcase-product-shot" aria-label="Illustrative BragStack interview room">
+      <div className="showcase-product-shot" aria-label="Illustrative Boasted interview room">
         <div className="showcase-window-bar"><span /><span /><span /><strong>Practice Interview · Registered Nurse</strong></div>
         <div className="showcase-video-area">
-          <div className="showcase-interviewer"><div>BS</div><span>BragStack Interviewer</span><strong>Listening</strong></div>
+          <div className="showcase-interviewer"><div>BS</div><span>Boasted Interviewer</span><strong>Listening</strong></div>
           <div className="showcase-self-view"><Camera size={20} /><span>You</span></div>
           <div className="showcase-call-controls"><span><Mic size={14} /> Mic</span><span><Camera size={14} /> Camera</span></div>
         </div>

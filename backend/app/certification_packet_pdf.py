@@ -101,8 +101,8 @@ def build_certification_packet_pdf(packet: dict[str, Any]) -> bytes:
         rightMargin=MARGIN_X,
         topMargin=MARGIN_TOP,
         bottomMargin=MARGIN_BOTTOM,
-        title=packet.get("title") or "BragStack Certification & Licensure Packet",
-        author="BragStack",
+        title=packet.get("title") or "Boasted Certification & Licensure Packet",
+        author="Boasted",
         subject="Evidence-backed certification and licensure packet",
     )
     story = []
@@ -111,9 +111,9 @@ def build_certification_packet_pdf(packet: dict[str, Any]) -> bytes:
     summary = packet.get("credential_evidence_summary", {})
 
     story.append(Spacer(1, 0.45 * inch))
-    story.append(Paragraph("BRAGSTACK · CAREER EVIDENCE SYSTEM", styles["cover_kicker"]))
+    story.append(Paragraph("BOASTED · CAREER EVIDENCE SYSTEM", styles["cover_kicker"]))
     story.append(Paragraph("Certification &amp; Licensure Packet", styles["cover_name"]))
-    story.append(Paragraph(escape(str(subject.get("name") or "BragStack Member")), styles["cover_role"]))
+    story.append(Paragraph(escape(str(subject.get("name") or "Boasted Member")), styles["cover_role"]))
     if subject.get("role"):
         story.append(Paragraph(escape(str(subject["role"])), styles["cover_role"]))
     story.append(Spacer(1, 0.22 * inch))
@@ -125,7 +125,7 @@ def build_certification_packet_pdf(packet: dict[str, Any]) -> bytes:
     story.append(Paragraph(escape(_period_display(packet.get("period", {}))), styles["cover_period"]))
     story.append(Spacer(1, 0.35 * inch))
     story.append(Paragraph(
-        "Evidence status reflects BragStack trust signals only. Self-added credentials are not presented as independently verified.",
+        "Evidence status reflects Boasted trust signals only. Self-added credentials are not presented as independently verified.",
         styles["body"],
     ))
     story.append(PageBreak())

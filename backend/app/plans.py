@@ -1,4 +1,4 @@
-"""Plan pricing, entitlement resolution, and usage enforcement for BragStack.
+"""Plan pricing, entitlement resolution, and usage enforcement for Boasted.
 
 This module is the central policy layer for mapping a user's plan to product
 features and usage limits. Route handlers should use these helpers instead of
@@ -14,7 +14,7 @@ from fastapi import HTTPException, status
 
 FREE_ENTRY_LIMIT = 5
 FREE_IMPACT_RECEIPT_LIMIT = 1
-INTERNAL_EMAIL_DOMAIN = "usebragstack.com"
+INTERNAL_EMAIL_DOMAIN = "boasted.io"
 
 # Temporary early-access gift. This intentionally changes effective access only;
 # it does not rewrite a user's persisted plan, create a Stripe subscription, or
@@ -25,10 +25,10 @@ TEMPORARY_PRO_GIFT_ENABLED = os.getenv(
 ).strip().lower() in {"1", "true", "yes", "on"}
 TEMPORARY_PRO_GIFT_CAMPAIGN = "early-access-pro-gift-v1"
 TEMPORARY_PRO_GIFT_NOTICE = (
-    "BragStack Pro is temporarily complimentary as an early-access gift. "
+    "Boasted Pro is temporarily complimentary as an early-access gift. "
     "This promotional access does not create a paid subscription, does not "
     "authorize recurring charges, and may be changed or ended in the future. "
-    "If paid Pro access is offered later, BragStack will require a separate "
+    "If paid Pro access is offered later, Boasted will require a separate "
     "purchase flow and billing consent before charging you."
 )
 
@@ -138,7 +138,7 @@ def normalize_plan(plan: str | None) -> str:
 
 
 def is_internal_user(user: dict) -> bool:
-    """Determine whether a user is a verified BragStack internal identity."""
+    """Determine whether a user is a verified Boasted internal identity."""
     email = (user.get("email") or "").strip().lower()
     if not email.endswith(f"@{INTERNAL_EMAIL_DOMAIN}"):
         return False
@@ -218,7 +218,7 @@ def require_feature(user: dict, feature_name: str) -> None:
         status_code=status.HTTP_403_FORBIDDEN,
         detail={
             "code": "paid_feature_required",
-            "message": "This feature is not included in your BragStack plan.",
+            "message": "This feature is not included in your Boasted plan.",
             "feature": feature_name,
             "plan": get_plan_for_user(user),
         },

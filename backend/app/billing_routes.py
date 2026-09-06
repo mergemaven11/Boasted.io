@@ -309,13 +309,13 @@ async def _update_stripe_subscription(subscription_id: str, *, cancel_at_period_
 
 @router.post("/checkout-session")
 async def create_checkout_session(current_user: dict = Depends(get_current_user)):
-    """Create a Stripe Checkout subscription session for BragStack Pro."""
+    """Create a Stripe Checkout subscription session for Boasted Pro."""
     if has_temporary_pro_gift(current_user):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail={
                 "code": "complimentary_pro_active",
-                "message": "BragStack Pro is temporarily complimentary for this account, so a new paid checkout is not required right now.",
+                "message": "Boasted Pro is temporarily complimentary for this account, so a new paid checkout is not required right now.",
                 "campaign": TEMPORARY_PRO_GIFT_CAMPAIGN,
                 "notice": TEMPORARY_PRO_GIFT_NOTICE,
             },
@@ -329,7 +329,7 @@ async def create_checkout_session(current_user: dict = Depends(get_current_user)
     }:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="This account already has an active BragStack Pro subscription.",
+            detail="This account already has an active Boasted Pro subscription.",
         )
 
     user_id = str(current_user["_id"])
@@ -444,7 +444,7 @@ async def resume_subscription(current_user: dict = Depends(get_current_user)):
 
 @router.post("/webhook")
 async def stripe_webhook(request: Request):
-    """Apply Stripe subscription lifecycle events to BragStack entitlements."""
+    """Apply Stripe subscription lifecycle events to Boasted entitlements."""
     payload = await request.body()
     signature = request.headers.get("stripe-signature", "")
     _verify_stripe_signature(payload, signature)

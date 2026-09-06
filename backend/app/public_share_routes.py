@@ -1,4 +1,4 @@
-"""Crawler-friendly social sharing for public BragStack Proof Portfolios."""
+"""Crawler-friendly social sharing for public Boasted Proof Portfolios."""
 from __future__ import annotations
 
 from html import escape
@@ -16,7 +16,7 @@ from app.public_slug_routes import get_user_by_public_slug, normalize_slug
 
 
 router = APIRouter(prefix="/public", tags=["public-share"])
-PUBLIC_FRONTEND_URL = os.getenv("FRONTEND_URL", "https://usebragstack.com").rstrip("/")
+PUBLIC_FRONTEND_URL = os.getenv("FRONTEND_URL", "https://boasted.io").rstrip("/")
 PUBLIC_API_URL = os.getenv("PUBLIC_API_URL", "https://api.usebragstack.com").rstrip("/")
 
 
@@ -48,7 +48,7 @@ def _share_metadata(slug: str) -> dict:
     user = get_user_by_public_slug(normalized)
     user_id = str(user["_id"])
     stats = _share_stats(user_id)
-    name = str(user.get("name") or "BragStack member").strip()[:100]
+    name = str(user.get("name") or "Boasted member").strip()[:100]
     headline = str(user.get("headline") or "Evidence-backed career impact").strip()[:180]
     canonical = f"{PUBLIC_FRONTEND_URL}/brag/{quote(normalized, safe='')}"
     image_url = f"{PUBLIC_API_URL}/public/brag/{quote(normalized, safe='')}/share-card.png"
@@ -58,7 +58,7 @@ def _share_metadata(slug: str) -> dict:
         proof_line = f"{_plural(stats['public_receipts'], 'Impact Receipt')} · {_plural(stats['public_entries'], 'selected accomplishment')}"
     else:
         proof_line = _plural(stats["public_entries"], "selected accomplishment")
-    description = f"{headline} · {proof_line}. View this evidence-backed Proof Portfolio on BragStack."
+    description = f"{headline} · {proof_line}. View this evidence-backed Proof Portfolio on Boasted."
     return {
         "slug": normalized,
         "name": name,
@@ -114,7 +114,7 @@ def _draw_badge(draw: ImageDraw.ImageDraw, xy: tuple[int, int], text: str, *, ve
 def public_portfolio_share(slug: str):
     """Return personalized Open Graph metadata, then send humans to the portfolio."""
     data = _share_metadata(slug)
-    title = f"{data['name']} — Proof Portfolio | BragStack"
+    title = f"{data['name']} — Proof Portfolio | Boasted"
     safe_title = escape(title, quote=True)
     safe_description = escape(data["description"], quote=True)
     safe_canonical = escape(data["canonical"], quote=True)
@@ -129,7 +129,7 @@ def public_portfolio_share(slug: str):
 <meta name="description" content="{safe_description}" />
 <link rel="canonical" href="{safe_canonical}" />
 <meta property="og:type" content="profile" />
-<meta property="og:site_name" content="BragStack" />
+<meta property="og:site_name" content="Boasted" />
 <meta property="og:title" content="{safe_title}" />
 <meta property="og:description" content="{safe_description}" />
 <meta property="og:url" content="{safe_canonical}" />
@@ -144,7 +144,7 @@ def public_portfolio_share(slug: str):
 </head>
 <body style="margin:0;background:#050816;color:#e2e8f0;font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh">
 <main style="max-width:620px;padding:32px;text-align:center">
-<p>Opening {escape(data['name'])}’s BragStack Proof Portfolio…</p>
+<p>Opening {escape(data['name'])}’s Boasted Proof Portfolio…</p>
 <p><a style="color:#7dd3fc" href="{safe_canonical}">Continue to the portfolio</a></p>
 </main>
 <script>window.location.replace({data['canonical']!r});</script>
@@ -184,7 +184,7 @@ def public_portfolio_share_card(slug: str):
     headline_font = _font(31)
     footer_font = _font(23, bold=True)
 
-    draw.text((104, 94), "BRAGSTACK  ·  PROOF PORTFOLIO", font=eyebrow_font, fill=(125, 211, 252))
+    draw.text((104, 94), "BOASTED  ·  PROOF PORTFOLIO", font=eyebrow_font, fill=(125, 211, 252))
     initial = (data["name"][:1] or "B").upper()
     draw.rounded_rectangle((104, 152, 188, 236), radius=24, fill=(58, 147, 186), outline=(125, 211, 252), width=2)
     initial_bbox = draw.textbbox((0, 0), initial, font=_font(42, bold=True))
@@ -210,7 +210,7 @@ def public_portfolio_share_card(slug: str):
     _draw_badge(draw, (badge_x, badge_y), _plural(data["public_entries"], "accomplishment"))
 
     draw.line((104, 492, 1096, 492), fill=(40, 66, 94), width=2)
-    draw.text((104, 520), "Evidence-backed career impact · usebragstack.com", font=footer_font, fill=(141, 168, 191))
+    draw.text((104, 520), "Evidence-backed career impact · boasted.io", font=footer_font, fill=(141, 168, 191))
     draw.text((1003, 516), "B", font=_font(36, bold=True), fill=(125, 211, 252))
 
     buffer = BytesIO()

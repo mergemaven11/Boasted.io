@@ -118,7 +118,7 @@ def _payload_text(suggestion: AISuggestion) -> str:
 
 
 def evaluate_suggestion(case: EvaluationCase, suggestion: AISuggestion) -> EvaluationResult:
-    """Evaluate one suggestion against deterministic BragStack gates.
+    """Evaluate one suggestion against deterministic Boasted gates.
 
     Args:
         case: Versioned fixture describing expected grounded behavior.

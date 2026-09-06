@@ -1,4 +1,4 @@
-"""Tests for the shared BragStack intelligence verification runtime."""
+"""Tests for the shared Boasted intelligence verification runtime."""
 from __future__ import annotations
 
 import pytest

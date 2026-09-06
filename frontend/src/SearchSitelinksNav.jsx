@@ -5,13 +5,13 @@ export default function SearchSitelinksNav() {
   return (
     <section className="search-sitelinks" aria-labelledby="search-sitelinks-title">
       <div className="search-sitelinks-heading">
-        <img className="search-sitelinks-logo" src="/bragstack-logo-192.png" alt="BragStack" width="48" height="48" />
+        <img className="search-sitelinks-logo" src="/bragstack-logo-192.png" alt="Boasted" width="48" height="48" />
         <div>
-          <p>EXPLORE BRAGSTACK</p>
+          <p>EXPLORE BOASTED</p>
           <h2 id="search-sitelinks-title">Career proof, resume building, and interview practice in one place.</h2>
         </div>
       </div>
-      <nav className="search-sitelinks-grid" aria-label="Popular BragStack pages">
+      <nav className="search-sitelinks-grid" aria-label="Popular Boasted pages">
         {PRIMARY_SITELINKS.map(([label, href, description]) => (
           <a href={href} key={href}>
             <strong>{label}</strong>

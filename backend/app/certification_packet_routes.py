@@ -163,7 +163,7 @@ def _build_certification_packet(
     if issuing_body_value:
         review_summary_parts.append(f"The named issuing or reviewing body is {issuing_body_value}.")
     review_summary_parts.append(
-        "Evidence status reflects BragStack trust signals and Verified Recognition only: self-added evidence is not presented as independently verified."
+        "Evidence status reflects Boasted trust signals and Verified Recognition only: self-added evidence is not presented as independently verified."
     )
 
     packet.update(

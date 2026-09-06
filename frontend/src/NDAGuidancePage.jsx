@@ -3,20 +3,20 @@ import "./LegalPages.css";
 function NDAGuidancePage() {
   return (
     <main className="legal-page">
-      <header className="legal-header"><a className="legal-brand" href="/">BragStack</a><nav aria-label="NDA guidance navigation"><a href="/docs">Docs</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/login">Sign in</a></nav></header>
+      <header className="legal-header"><a className="legal-brand" href="/">Boasted</a><nav aria-label="NDA guidance navigation"><a href="/docs">Docs</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/login">Sign in</a></nav></header>
       <article className="legal-card">
-        <p className="legal-eyebrow">BragStack Safety Guidance</p>
-        <h1>Using BragStack with NDAs and confidential work</h1>
-        <p className="legal-intro">BragStack can help people in any profession document career impact without turning confidential employer, client, patient, student, customer, constituent, or third-party information into public content. Your NDA, confidentiality agreement, professional duty, employer policy, client agreement, security rule, privacy obligation, or legal requirement always comes first.</p>
+        <p className="legal-eyebrow">Boasted Safety Guidance</p>
+        <h1>Using Boasted with NDAs and confidential work</h1>
+        <p className="legal-intro">Boasted can help people in any profession document career impact without turning confidential employer, client, patient, student, customer, constituent, or third-party information into public content. Your NDA, confidentiality agreement, professional duty, employer policy, client agreement, security rule, privacy obligation, or legal requirement always comes first.</p>
         <div className="legal-callout">Capture the career signal, not the secret. When work is confidential, generalize context, keep sensitive proof private, and do not upload material you are not authorized to store outside its original system.</div>
 
-        <section><h2>1. Your NDA still applies</h2><p>BragStack does not override any confidentiality agreement, employment policy, client contract, professional duty, privacy rule, security obligation, or law. You are responsible for understanding what you may store, reference, reuse, and share.</p></section>
+        <section><h2>1. Your NDA still applies</h2><p>Boasted does not override any confidentiality agreement, employment policy, client contract, professional duty, privacy rule, security obligation, or law. You are responsible for understanding what you may store, reference, reuse, and share.</p></section>
 
         <section><h2>2. Generalize sensitive context</h2><p>Prefer descriptions such as “enterprise customer,” “customer,” “client,” “patient-care workflow,” “student-support process,” “internal platform,” “internal operation,” “field-service assignment,” “regulated workload,” or “confidential project” instead of restricted names, case identifiers, addresses, account details, code names, internal URLs, repository names, unreleased products, private incidents, proprietary methods, architecture details, or other identifying information.</p></section>
 
         <section>
           <h2>3. Examples across different kinds of work</h2>
-          <p>The goal is the same in every profession: preserve what your work demonstrates without copying restricted information into BragStack.</p>
+          <p>The goal is the same in every profession: preserve what your work demonstrates without copying restricted information into Boasted.</p>
 
           <h3>Healthcare and care work</h3>
           <p><strong>Avoid:</strong> patient names, dates of birth, medical-record numbers, diagnoses, treatment details, photos, or other protected health information unless you are specifically authorized to use it.</p>
@@ -63,7 +63,7 @@ function NDAGuidancePage() {
 
         <section>
           <h2>6. Evidence can be a reference instead of a copy</h2>
-          <p>When appropriate, record a private reference without copying restricted content into BragStack.</p>
+          <p>When appropriate, record a private reference without copying restricted content into Boasted.</p>
           <p><strong>Possible references:</strong> “manager feedback,” “supervisor recognition,” “approved work order,” “internal project record,” “training completion,” “public portfolio item,” “customer commendation on file,” “school-approved summary,” “internal case record,” or “private code review.”</p>
           <p><strong>Public evidence:</strong> link only to material you are permitted to reuse and describe only what the source actually shows.</p>
           <p><strong>Private evidence:</strong> use a generalized reference such as “Private internal contribution” without copying restricted names, identifiers, screenshots, records, ticket text, source code, proprietary attachments, or sensitive content.</p>
@@ -84,14 +84,14 @@ function NDAGuidancePage() {
         </section>
 
         <section>
-          <h2>9. BragStack's NDA & confidential-work safety controls</h2>
-          <p>BragStack places a confidentiality check in front of protected Accomplishment and Impact Receipt writes and public-sharing actions. The user must review the warning and explicitly confirm that the information they are about to submit or publish does not contain material they are prohibited from storing or disclosing.</p>
+          <h2>9. Boasted's NDA & confidential-work safety controls</h2>
+          <p>Boasted places a confidentiality check in front of protected Accomplishment and Impact Receipt writes and public-sharing actions. The user must review the warning and explicitly confirm that the information they are about to submit or publish does not contain material they are prohibited from storing or disclosing.</p>
           <p>The check is intentionally conservative. It is a product safety control, not permission from an employer, client, contract, or lawyer.</p>
         </section>
 
         <section>
           <h2>10. The local safety scan</h2>
-          <p>Before a protected submission continues, BragStack scans draft text in the browser for obvious high-risk patterns. The scan is designed to flag potential credentials or secrets and to call attention to patterns that can indicate code blocks, logs or diagnostics, internal hosts, ticket-style identifiers, and other internal references.</p>
+          <p>Before a protected submission continues, Boasted scans draft text in the browser for obvious high-risk patterns. The scan is designed to flag potential credentials or secrets and to call attention to patterns that can indicate code blocks, logs or diagnostics, internal hosts, ticket-style identifiers, and other internal references.</p>
           <p><strong>Blocking examples:</strong> private-key material, bearer tokens, password or API-key assignments, provider access tokens, and signed access-token patterns. When a blocking credential pattern is detected, the protected action cannot continue until the material is removed.</p>
           <p><strong>Review examples:</strong> code-like blocks, stack traces, internal URLs or hosts, ticket-style identifiers, production logs, customer data references, and similar content. A warning does not mean the content is definitely confidential; it means the user should review and generalize it unless disclosure is authorized.</p>
           <div className="legal-callout">The local pattern scan is not a legal review, data-classification system, or guarantee. It can produce false positives and false negatives. “No obvious pattern detected” does not mean an NDA permits the content.</div>
@@ -99,13 +99,13 @@ function NDAGuidancePage() {
 
         <section>
           <h2>11. Confirmation is enforced again at the API</h2>
-          <p>After the user confirms the gate, BragStack creates a short-lived, one-time confidentiality attestation for that protected action. The protected write carries that attestation to the API, and the API rejects protected writes that are missing, expired, already used, or bound to a different action.</p>
-          <p>The attestation proves only that BragStack's safety checkpoint was completed. It does not prove that the underlying disclosure is legally permitted.</p>
+          <p>After the user confirms the gate, Boasted creates a short-lived, one-time confidentiality attestation for that protected action. The protected write carries that attestation to the API, and the API rejects protected writes that are missing, expired, already used, or bound to a different action.</p>
+          <p>The attestation proves only that Boasted's safety checkpoint was completed. It does not prove that the underlying disclosure is legally permitted.</p>
         </section>
 
         <section>
           <h2>12. Minimal safety receipts, not copies of your draft</h2>
-          <p>BragStack keeps minimal control metadata for confidentiality attestations so the safety mechanism can be audited. The audit record is designed around fields such as the protected action, safety-control version, status, timestamps, and request identifier.</p>
+          <p>Boasted keeps minimal control metadata for confidentiality attestations so the safety mechanism can be audited. The audit record is designed around fields such as the protected action, safety-control version, status, timestamps, and request identifier.</p>
           <p>The confidentiality audit receipt does not intentionally store the career draft or the plaintext one-time token. Operational access to these receipts is restricted to authorized internal roles.</p>
         </section>
 
@@ -118,8 +118,8 @@ function NDAGuidancePage() {
 
         <section>
           <h2>14. Private by default, with another check before disclosure</h2>
-          <p>Career evidence should remain private unless the user deliberately chooses to share it. BragStack's safety flow is designed to run another check before disclosure instead of treating a prior private save as permanent permission to publish later.</p>
-          <p>Making something private is useful risk reduction, but privacy settings do not make unauthorized third-party storage permissible. If the governing agreement, professional rule, workplace policy, school policy, healthcare policy, client requirement, agency rule, or law prohibits storing the material outside the original system, do not put the restricted material in BragStack.</p>
+          <p>Career evidence should remain private unless the user deliberately chooses to share it. Boasted's safety flow is designed to run another check before disclosure instead of treating a prior private save as permanent permission to publish later.</p>
+          <p>Making something private is useful risk reduction, but privacy settings do not make unauthorized third-party storage permissible. If the governing agreement, professional rule, workplace policy, school policy, healthcare policy, client requirement, agency rule, or law prohibits storing the material outside the original system, do not put the restricted material in Boasted.</p>
         </section>
 
         <section>
@@ -135,13 +135,13 @@ function NDAGuidancePage() {
 
         <section>
           <h2>17. What the safety helper cannot decide</h2>
-          <p>BragStack cannot determine whether a particular employer considers a project name confidential, whether a metric was approved for disclosure, whether a public source contains everything you are allowed to discuss, whether a professional privacy duty applies, whether an invention-assignment clause applies, or whether a specific disclosure is permitted under a contract or law.</p>
+          <p>Boasted cannot determine whether a particular employer considers a project name confidential, whether a metric was approved for disclosure, whether a public source contains everything you are allowed to discuss, whether a professional privacy duty applies, whether an invention-assignment clause applies, or whether a specific disclosure is permitted under a contract or law.</p>
           <p>Do not rely on the scanner, sanitizer, private setting, API attestation, audit receipt, or a successful submission as evidence that disclosure is authorized.</p>
         </section>
 
-        <section><h2>18. When not to store something</h2><p>If an agreement, professional rule, employer policy, school policy, healthcare policy, client requirement, agency rule, or law says information may not be stored in third-party systems, do not put that information in BragStack. Use a sanitized description or leave the restricted evidence out entirely.</p></section>
+        <section><h2>18. When not to store something</h2><p>If an agreement, professional rule, employer policy, school policy, healthcare policy, client requirement, agency rule, or law says information may not be stored in third-party systems, do not put that information in Boasted. Use a sanitized description or leave the restricted evidence out entirely.</p></section>
 
-        <section><h2>19. This is not legal advice</h2><p>BragStack does not review or interpret your NDA, employment agreement, professional obligations, privacy duties, or other restrictions and does not certify that a draft is “NDA compliant.” If you are unsure what is permitted, consult the governing agreement or policy, an authorized privacy/security/legal/compliance contact, your professional guidance where applicable, or qualified counsel. Product questions can be sent to <a href="mailto:Tobias.scott@usebragstack.com">Tobias.scott@usebragstack.com</a>.</p></section>
+        <section><h2>19. This is not legal advice</h2><p>Boasted does not review or interpret your NDA, employment agreement, professional obligations, privacy duties, or other restrictions and does not certify that a draft is “NDA compliant.” If you are unsure what is permitted, consult the governing agreement or policy, an authorized privacy/security/legal/compliance contact, your professional guidance where applicable, or qualified counsel. Product questions can be sent to <a href="mailto:Tobias.scott@boasted.io">Tobias.scott@boasted.io</a>.</p></section>
       </article>
     </main>
   );

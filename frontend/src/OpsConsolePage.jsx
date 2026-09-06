@@ -87,12 +87,12 @@ function buildOpsMessages({ service = {}, persisted = {}, audit = null, complian
     const codes = failure.violation_codes || [];
     messages.push({
       id: `intelligence:${failure.feature}:${failure.task}:${failure.created_at || index}`,
-      source: "BragStack Intelligence",
+      source: "Boasted Intelligence",
       category: feature,
       priority: "urgent",
       title: `${feature} result was withheld`,
       summary: codes.length ? `Safety verification found: ${codes.join(", ")}.` : "The shared intelligence engine reported a verification failure.",
-      meaning: "BragStack failed closed instead of showing a result that did not pass its evidence, provenance, or safety rules.",
+      meaning: "Boasted failed closed instead of showing a result that did not pass its evidence, provenance, or safety rules.",
       nextStep: "Open the Intelligence Verification report, review the violation code and affected feature, then reproduce and correct the invariant before release.",
       detail: `${failure.task || "unknown task"} · ${failure.model_id || "shared engine"}`,
       createdAt: failure.created_at,
@@ -148,7 +148,7 @@ function buildOpsMessages({ service = {}, persisted = {}, audit = null, complian
       priority: "urgent",
       title: "MongoDB health needs attention",
       summary: `The API reports MongoDB as ${service.mongo}. Production data operations may be affected.`,
-      meaning: "BragStack's API cannot confirm a healthy database connection. Reads or writes may fail until connectivity recovers.",
+      meaning: "Boasted's API cannot confirm a healthy database connection. Reads or writes may fail until connectivity recovers.",
       nextStep: "Refresh diagnostics once. If MongoDB is still degraded, check the database and Render service health before shipping more changes.",
       createdAt: new Date().toISOString(),
       syncRecommended: true,
@@ -163,7 +163,7 @@ function buildOpsMessages({ service = {}, persisted = {}, audit = null, complian
       category: "Server errors",
       priority: serverErrors >= 5 ? "urgent" : "warning",
       title: `${serverErrors} server error${serverErrors === 1 ? "" : "s"} in the retention window`,
-      summary: "BragStack has persisted 5xx responses that are worth reviewing before they become a user-facing pattern.",
+      summary: "Boasted has persisted 5xx responses that are worth reviewing before they become a user-facing pattern.",
       meaning: "At least one request failed because of a server-side problem, rather than a normal user validation error.",
       nextStep: "Review Recent 4xx / 5xx requests and Grouped backend exceptions below. Repeated paths or fingerprints deserve a code fix first.",
       createdAt: persisted.failures?.[0]?.created_at || persisted.failures?.[0]?.timestamp,
@@ -234,7 +234,7 @@ function buildOpsMessages({ service = {}, persisted = {}, audit = null, complian
       priority: "info",
       title: isInvite ? "User invitation sent" : isVerification ? "Verification email resent" : "Internal access updated",
       summary: isInvite
-        ? `An authorized operator invited ${event.target_email || "a new user"} to create a BragStack account.`
+        ? `An authorized operator invited ${event.target_email || "a new user"} to create a Boasted account.`
         : isVerification
           ? "An authorized operator resent an account verification email."
           : "An authorized operator changed internal role permissions. The detailed audit record remains below.",
@@ -242,7 +242,7 @@ function buildOpsMessages({ service = {}, persisted = {}, audit = null, complian
         ? "A registration invitation was sent. No account or password was created for the recipient."
         : isVerification
           ? "A user who already has an account was sent a new verification email."
-          : "Someone's internal BragStack permissions changed, which can affect access to Ops or administrative tools.",
+          : "Someone's internal Boasted permissions changed, which can affect access to Ops or administrative tools.",
       nextStep: isInvite
         ? "No action is needed unless the recipient says the invitation was not received."
         : isVerification
@@ -447,7 +447,7 @@ function RoleManager({ team, setTeam, audit, setAudit }) {
       <div className="ops-role-list">{roles.map((role) => <label key={`assign-${role}`}><input type="checkbox" checked={assignRoles.includes(role)} disabled={saving === "assign"} onChange={() => toggleAssignRole(role)} /><span>{role}</span></label>)}</div>
       <button type="submit" disabled={saving === "assign"}>{saving === "assign" ? "Assigning…" : "Assign access"}</button>
     </form>
-    <p className="ops-empty">The person must already have a verified BragStack account. If they do not, invite them first; an invitation alone never grants internal access.</p>
+    <p className="ops-empty">The person must already have a verified Boasted account. If they do not, invite them first; an invitation alone never grants internal access.</p>
     <div className="ops-team-grid">{(team?.members || []).map((member) => <article className="ops-team-card" key={member.id}>
       <div><strong>{member.name || member.email}</strong><small>{member.email}</small></div>
       {member.bootstrap_admin && <span className="ops-bootstrap-badge">Bootstrap admin</span>}
@@ -488,7 +488,7 @@ export default function OpsConsolePage() {
       const data = await loadDiagnostics();
       setAccess(data.nextAccess); setOverview(data.nextOverview); setObservability(data.nextObservability); setTeam(data.nextTeam); setAudit(data.nextAudit); setCompliance(data.nextCompliance); setIntelligence(data.nextIntelligence);
     } catch (err) {
-      setError(err.response?.status === 404 ? "This account is not authorized for the BragStack Ops Console." : "Ops diagnostics could not be loaded.");
+      setError(err.response?.status === 404 ? "This account is not authorized for the Boasted Ops Console." : "Ops diagnostics could not be loaded.");
     } finally {
       setLoading(false);
     }
@@ -503,7 +503,7 @@ export default function OpsConsolePage() {
         setAccess(data.nextAccess); setOverview(data.nextOverview); setObservability(data.nextObservability); setTeam(data.nextTeam); setAudit(data.nextAudit); setCompliance(data.nextCompliance); setIntelligence(data.nextIntelligence);
       } catch (err) {
         if (!active) return;
-        setError(err.response?.status === 404 ? "This account is not authorized for the BragStack Ops Console." : "Ops diagnostics could not be loaded.");
+        setError(err.response?.status === 404 ? "This account is not authorized for the Boasted Ops Console." : "Ops diagnostics could not be loaded.");
       } finally {
         if (active) setLoading(false);
       }
@@ -517,8 +517,8 @@ export default function OpsConsolePage() {
     catch (err) { setUserError(err.response?.data?.detail || "User diagnostics could not be loaded."); }
   }
 
-  if (loading) return <BragStackLoader compact message="Loading BragStack Ops…" detail="Checking governance reports, founder analytics, service health, telemetry, database state, and authorized diagnostics." />;
-  if (error) return <main className="ops-page"><section className="ops-denied"><h1>BragStack Ops</h1><p>{error}</p><a href="/app">Return to BragStack</a></section></main>;
+  if (loading) return <BragStackLoader compact message="Loading Boasted Ops…" detail="Checking governance reports, founder analytics, service health, telemetry, database state, and authorized diagnostics." />;
+  if (error) return <main className="ops-page"><section className="ops-denied"><h1>Boasted Ops</h1><p>{error}</p><a href="/app">Return to Boasted</a></section></main>;
 
   const service = overview?.service || {};
   const database = overview?.database || {};
@@ -528,7 +528,7 @@ export default function OpsConsolePage() {
   const isAdmin = (access?.roles || []).includes("admin");
 
   return <main className="ops-page">
-    <header className="ops-header"><div><p className="ops-kicker">INTERNAL · EXPLICIT ACCESS ONLY</p><h1>BragStack Ops Console</h1><p>Whole-business governance scanning, Legal/Business/Security/Safety reports, Ops Inbox alerts, founder analytics, application diagnostics, safe user-state debugging, and audited internal access management.</p></div><div className={`ops-env ${service.environment === "production" ? "production" : "nonprod"}`}>{String(service.environment || access?.environment || "unknown").toUpperCase()}</div></header>
+    <header className="ops-header"><div><p className="ops-kicker">INTERNAL · EXPLICIT ACCESS ONLY</p><h1>Boasted Ops Console</h1><p>Whole-business governance scanning, Legal/Business/Security/Safety reports, Ops Inbox alerts, founder analytics, application diagnostics, safe user-state debugging, and audited internal access management.</p></div><div className={`ops-env ${service.environment === "production" ? "production" : "nonprod"}`}>{String(service.environment || access?.environment || "unknown").toUpperCase()}</div></header>
     <div className="ops-toolbar"><span>Authorized roles: {(access?.roles || []).join(", ")}</span><button type="button" onClick={refreshDiagnostics}>Refresh Ops</button></div>
 
     <section className="ops-grid">

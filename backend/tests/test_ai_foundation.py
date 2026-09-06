@@ -1,4 +1,4 @@
-"""Regression tests for BragStack's AI evidence-assistance safety foundation."""
+"""Regression tests for Boasted's AI evidence-assistance safety foundation."""
 from app.ai.contracts import AISuggestion, EvidenceContext
 from app.ai.feature_flags import experimental_ai_enabled
 from app.ai.guards import validate_grounded_suggestion

@@ -7,7 +7,7 @@ const read = (path) => fs.readFileSync(new URL(path, import.meta.url), "utf8");
 test("registration visibly requires legal acceptance without an age gate", () => {
   const source = read("./AuthPage.jsx");
   assert.doesNotMatch(source, /age_18_or_older/);
-  assert.doesNotMatch(source, /BragStack is 18\+/);
+  assert.doesNotMatch(source, /Boasted is 18\+/);
   assert.doesNotMatch(source, /auth-age-gate/);
   assert.match(source, /accepted_terms/);
   assert.match(source, /accepted_privacy/);

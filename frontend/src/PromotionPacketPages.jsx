@@ -41,7 +41,7 @@ function chunk(items, size) {
 function PacketFooter({ page }) {
   return (
     <footer className="packet-page-footer">
-      <span>BragStack · Career Evidence System</span>
+      <span>Boasted · Career Evidence System</span>
       <span>Page {page}</span>
     </footer>
   );
@@ -54,7 +54,7 @@ function PacketHeader({ index, title, eyebrow }) {
         <p>{String(index).padStart(2, "0")} · {eyebrow}</p>
         <h2>{title}</h2>
       </div>
-      <div className="packet-page-header-mark">BRAGSTACK</div>
+      <div className="packet-page-header-mark">BOASTED</div>
     </header>
   );
 }
@@ -102,7 +102,7 @@ function PromotionCasePage({ packet, page }) {
       <div className="packet-document-note">
         <strong>No black-box readiness score</strong>
         <p>
-          BragStack organizes the case and the receipts. It does not decide whether
+          Boasted organizes the case and the receipts. It does not decide whether
           someone is ready for promotion, assign job level, or make an employment decision.
         </p>
       </div>
@@ -354,7 +354,7 @@ function ReceiptPages({ packet, startPage }) {
       <PacketHeader index={7} eyebrow="Impact Receipts" title={index === 0 ? "Receipts behind the case" : "Impact Receipts · continued"} />
       <p className="packet-page-lead">
         The promotion narrative stays traceable to the same contribution, result,
-        skill, evidence, credit, and confirmation records used elsewhere in BragStack.
+        skill, evidence, credit, and confirmation records used elsewhere in Boasted.
       </p>
       {items.length ? (
         <div className="packet-receipt-stack">
@@ -383,7 +383,7 @@ function EvidencePages({ packet, startPage }) {
               <span>{item.receipt_reference}</span>
               <span><strong>{item.title}</strong><small>{item.description}</small></span>
               <span>{formatLabel(item.type)}</span>
-              <span>{item.reference || "Stored in BragStack"}</span>
+              <span>{item.reference || "Stored in Boasted"}</span>
             </div>
           ))}
         </div>

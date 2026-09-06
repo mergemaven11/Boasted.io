@@ -63,7 +63,7 @@ test("Education removes the adult-only and middle-school roadmap framing", () =>
   assert.doesNotMatch(source, /UNDER CONSTRUCTION/);
 });
 
-test("Education feature buttons route into existing BragStack workflows", () => {
+test("Education feature buttons route into existing Boasted workflows", () => {
   const source = read("./ApplicationsHubPage.jsx");
   assert.match(source, /education_feature=coursework/);
   assert.match(source, /education_feature=academic-projects/);

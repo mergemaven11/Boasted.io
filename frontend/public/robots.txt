@@ -3,4 +3,4 @@ Allow: /
 Disallow: /app/
 Disallow: /upgrade
 
-Sitemap: https://usebragstack.com/sitemap.xml
+Sitemap: https://boasted.io/sitemap.xml

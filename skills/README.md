@@ -1,12 +1,12 @@
-# BragStack ChatGPT Skills
+# Boasted ChatGPT Skills
 
-Reusable workflows for ChatGPT/Codex work on BragStack. These skills follow the SKILL.md pattern described by OpenAI and the Agent Skills open standard.
+Reusable workflows for ChatGPT/Codex work on Boasted. These skills follow the SKILL.md pattern described by OpenAI and the Agent Skills open standard.
 
 ## Skills
 
 - `ui-regression-guard` — prevents mobile/tablet/desktop layout regressions and loading-state leaks.
 - `api-contract-quality` — keeps FastAPI behavior, schemas, auth boundaries, and tests aligned.
-- `security-privacy-review` — reviews changes against BragStack's privacy, evidence, and authorization rules.
+- `security-privacy-review` — reviews changes against Boasted's privacy, evidence, and authorization rules.
 - `product-discovery` — converts customer/product signals into evidence-backed feature decisions.
 - `career-proof-integrity` — prevents invented career claims, opaque employment scoring, and unsafe evidence exposure.
 - `release-readiness` — verifies CI, UX, observability, docs, and rollout safety before merge/release.

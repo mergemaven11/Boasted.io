@@ -1,6 +1,6 @@
 # GA4 attribution setup
 
-BragStack sends privacy-minimized campaign attribution on core funnel events. The code captures current-session `utm_*` values and preserves original acquisition values as `first_utm_*` event parameters.
+Boasted sends privacy-minimized campaign attribution on core funnel events. The code captures current-session `utm_*` values and preserves original acquisition values as `first_utm_*` event parameters.
 
 ## Core tracked events
 
@@ -16,7 +16,7 @@ Create each item below with **Scope = Event**.
 
 | Dimension name | Event parameter | Description |
 | --- | --- | --- |
-| First UTM Source | `first_utm_source` | Original campaign source that first brought the visitor to BragStack. |
+| First UTM Source | `first_utm_source` | Original campaign source that first brought the visitor to Boasted. |
 | First UTM Medium | `first_utm_medium` | Original campaign medium. |
 | First UTM Campaign | `first_utm_campaign` | Original campaign name. |
 | First UTM Campaign ID | `first_utm_id` | Original campaign ID, when supplied. |
@@ -33,14 +33,14 @@ Do not rename the **Event parameter** values. The display names can be changed l
 Example LinkedIn founder-launch URL:
 
 ```text
-https://usebragstack.com/?utm_source=linkedin&utm_medium=organic_social&utm_campaign=beta_launch&utm_content=founder_post
+https://boasted.io/?utm_source=linkedin&utm_medium=organic_social&utm_campaign=beta_launch&utm_content=founder_post
 ```
 
 Use stable lowercase values where possible so reporting does not fragment (`linkedin` vs `LinkedIn`, `organic_social` vs `social-organic`).
 
 ## Privacy guardrails
 
-BragStack only reads the explicit UTM allowlist. It does not intentionally send email addresses, names, accomplishment text, evidence content, or arbitrary query-string values to GA4. Keep campaign tags free of personal information.
+Boasted only reads the explicit UTM allowlist. It does not intentionally send email addresses, names, accomplishment text, evidence content, or arbitrary query-string values to GA4. Keep campaign tags free of personal information.
 
 ## Reporting
 

@@ -286,7 +286,7 @@ def apply_packet_platform(
         "department_label": _clean(department_label, 120),
         "reviewer_name": _clean(reviewer_name, 120),
         "review_cycle_label": _clean(review_cycle_label, 120),
-        "provenance": "BragStack · Career Evidence System",
+        "provenance": "Boasted · Career Evidence System",
     }
     _add_recognition(result)
     return result

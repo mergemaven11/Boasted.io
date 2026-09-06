@@ -1,9 +1,9 @@
 ---
 name: bragstack-ui-regression-guard
-description: Prevent BragStack UI regressions across mobile, tablet, desktop, loading, error, and authenticated states before merge.
+description: Prevent Boasted UI regressions across mobile, tablet, desktop, loading, error, and authenticated states before merge.
 ---
 
-# BragStack UI Regression Guard
+# Boasted UI Regression Guard
 
 ## Use this skill when
 
@@ -22,7 +22,7 @@ description: Prevent BragStack UI regressions across mobile, tablet, desktop, lo
 1. Identify every affected user state: signed out, signing in, loading, empty, populated, error, and signed in.
 2. Check responsive behavior at minimum at narrow phone, large phone, tablet portrait, tablet landscape, laptop, and wide desktop widths.
 3. Assert that no horizontal page overflow exists unless intentionally designed. Pay special attention to fixed widths, min-width, tables, dialogs, cards, sidebars, and long text.
-4. Verify BragStack-owned loading/error UI is shown instead of hosting-provider or raw infrastructure pages whenever the app can control the experience.
+4. Verify Boasted-owned loading/error UI is shown instead of hosting-provider or raw infrastructure pages whenever the app can control the experience.
 5. Test navigation, focus order, keyboard access, labels, contrast-sensitive states, reduced-motion behavior where relevant, and meaningful empty/error copy.
 6. Prefer resilient layout primitives: flexible grids, wrapping, max-width containers, minmax(), overflow handling, and content-driven sizing over breakpoint-specific hacks.
 7. Add or update automated coverage. Prefer Playwright for route-level behavior and screenshots; use component tests for isolated UI logic.

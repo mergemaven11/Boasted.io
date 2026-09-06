@@ -28,7 +28,7 @@ def _receipt_id(receipt: dict) -> str:
 def build_safe_generated_summary(*, target_role: str, receipts: list[dict], existing_resume_text: str, current_summary: str) -> str:
     """Return a summary that cannot turn a target role into employment history.
 
-    User-provided summaries are preserved exactly. When BragStack needs to
+    User-provided summaries are preserved exactly. When Boasted needs to
     generate a summary, it uses only skills present in selected Impact Receipts
     and phrases the target role as intent ("Targeting … roles") rather than a
     claim that the user already holds that title. Without source evidence, the
@@ -66,7 +66,7 @@ def verify_resume_analysis(
     """Verify generated resume content against only user-controlled sources.
 
     Imported resume content is treated as user-provided source text. Generated
-    Impact Receipt bullets must cite a selected receipt and pass BragStack's
+    Impact Receipt bullets must cite a selected receipt and pass Boasted's
     deterministic grounding guards. Skills may only come from the imported
     resume or selected receipts. A generated summary requires source evidence
     and may not introduce unsupported numbers/high-risk factual language.
@@ -138,7 +138,7 @@ def verify_resume_analysis(
             violations.append(
                 ResumeQualityViolation(
                     "generated_summary_without_evidence",
-                    "BragStack generated a resume summary without selected career evidence.",
+                    "Boasted generated a resume summary without selected career evidence.",
                 )
             )
         else:
@@ -180,7 +180,7 @@ def verify_resume_analysis(
         "target_role_not_claimed_as_history": not any(item.code == "target_role_presented_as_fact" for item in violations),
         "summary_requires_evidence": not any(item.code == "generated_summary_without_evidence" for item in violations),
         # Company and education fields are imported/manual only in the current
-        # builder; BragStack does not synthesize them from a job description.
+        # builder; Boasted does not synthesize them from a job description.
         "company_and_education_generation": True,
     }
     return {

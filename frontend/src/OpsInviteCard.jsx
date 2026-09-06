@@ -26,7 +26,7 @@ export default function OpsInviteCard({ compact = false, onSent }) {
   }
 
   return <section className={`ops-invite-card ${compact ? "compact" : ""}`} id="invite-user">
-    <div className="ops-invite-heading"><span><MailPlus size={18} /></span><div><p>INVITE A USER</p><h2>Send a BragStack invitation</h2><small>They receive a normal registration link. BragStack does not create a password or account on their behalf.</small></div></div>
+    <div className="ops-invite-heading"><span><MailPlus size={18} /></span><div><p>INVITE A USER</p><h2>Send a Boasted invitation</h2><small>They receive a normal registration link. Boasted does not create a password or account on their behalf.</small></div></div>
     <form onSubmit={submit} className="ops-invite-form">
       <label><span>Name <small>optional</small></span><input value={name} onChange={(event) => setName(event.target.value)} maxLength={80} placeholder="Jane Doe" /></label>
       <label><span>Email</span><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required placeholder="jane@example.com" /></label>

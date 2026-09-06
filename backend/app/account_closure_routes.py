@@ -22,7 +22,7 @@ def close_account(
     payload: CloseAccountRequest,
     current_user: dict = Depends(get_current_user),
 ):
-    """Close the current user's BragStack account.
+    """Close the current user's Boasted account.
 
     A paid subscription must have future renewal canceled before closure. Once
     cancel-at-period-end is recorded, the user may close immediately if they
@@ -50,6 +50,6 @@ def close_account(
         ) from exc
 
     return {
-        "message": "Your BragStack account has been closed.",
+        "message": "Your Boasted account has been closed.",
         "deleted_records": result["deleted_records"],
     }

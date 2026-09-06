@@ -5,7 +5,7 @@ from pymongo import ASCENDING, DESCENDING
 
 
 def ensure_core_indexes(db) -> dict[str, list[str]]:
-    """Create BragStack's core MongoDB indexes idempotently.
+    """Create Boasted's core MongoDB indexes idempotently.
 
     This function is intentionally not executed at import time. Operators run
     the companion script during deployment/maintenance so tests and local app

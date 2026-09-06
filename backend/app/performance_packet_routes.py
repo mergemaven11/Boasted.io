@@ -546,7 +546,7 @@ def _build_packet(
         "confirmed_assertions": confirmed_assertions,
     }
 
-    subject_name = _clean_string(current_user.get("name"), "BragStack Member")
+    subject_name = _clean_string(current_user.get("name"), "Boasted Member")
     subject_role = _clean_string(
         role_title,
         _clean_string(

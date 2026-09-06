@@ -225,7 +225,7 @@ def _footer(canvas, doc, packet: dict[str, Any]) -> None:
     canvas.line(MARGIN_X, 0.42 * inch, PAGE_WIDTH - MARGIN_X, 0.42 * inch)
     canvas.setFillColor(MUTED)
     canvas.setFont("Helvetica", 6.5)
-    canvas.drawString(MARGIN_X, 0.27 * inch, "BragStack · Career Evidence System")
+    canvas.drawString(MARGIN_X, 0.27 * inch, "Boasted · Career Evidence System")
     canvas.drawCentredString(PAGE_WIDTH / 2, 0.27 * inch, _period_display(packet.get("period", {}))[:70])
     canvas.drawRightString(PAGE_WIDTH - MARGIN_X, 0.27 * inch, f"Page {doc.page}")
     if packet.get("confidential"):
@@ -337,8 +337,8 @@ def build_promotion_packet_pdf(packet: dict[str, Any]) -> bytes:
         rightMargin=MARGIN_X,
         topMargin=0.58 * inch,
         bottomMargin=0.58 * inch,
-        title="BragStack Promotion Packet",
-        author="BragStack",
+        title="Boasted Promotion Packet",
+        author="Boasted",
         subject="Evidence-backed promotion packet",
     )
 
@@ -351,9 +351,9 @@ def build_promotion_packet_pdf(packet: dict[str, Any]) -> bytes:
 
     # Cover
     story.append(Spacer(1, 0.42 * inch))
-    story.append(Paragraph("BRAGSTACK · PROMOTION PACKET", styles["kicker"]))
+    story.append(Paragraph("BOASTED · PROMOTION PACKET", styles["kicker"]))
     story.append(Spacer(1, 0.28 * inch))
-    story.append(Paragraph(_safe(subject.get("name") or "BragStack Member"), styles["cover_name"]))
+    story.append(Paragraph(_safe(subject.get("name") or "Boasted Member"), styles["cover_name"]))
     story.append(Paragraph(_safe(subject.get("role") or "Professional"), styles["cover_role"]))
     if context.get("organization"):
         story.append(Paragraph(_safe(context.get("organization")), styles["body"]))
@@ -369,7 +369,7 @@ def build_promotion_packet_pdf(packet: dict[str, Any]) -> bytes:
     story.append(Spacer(1, 0.18 * inch))
     story.append(_metrics_table(scorecard, styles))
     story.append(Spacer(1, 0.28 * inch))
-    story.append(Paragraph("An evidence-backed progression dossier. BragStack presents documented work and proof; it does not assign promotion readiness or make an employment decision.", styles["small"]))
+    story.append(Paragraph("An evidence-backed progression dossier. Boasted presents documented work and proof; it does not assign promotion readiness or make an employment decision.", styles["small"]))
 
     # Case overview
     story.append(PageBreak())

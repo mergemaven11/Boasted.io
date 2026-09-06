@@ -7,11 +7,11 @@ function themeClass(packet) {
 }
 
 function PacketFooter({ page }) {
-  return <footer className="packet-page-footer"><span>BragStack · Career Evidence System</span><span>Page {page}</span></footer>;
+  return <footer className="packet-page-footer"><span>Boasted · Career Evidence System</span><span>Page {page}</span></footer>;
 }
 
 function PacketHeader({ index, eyebrow, title }) {
-  return <header className="packet-page-header"><div><p>{String(index).padStart(2, "0")} · {eyebrow}</p><h2>{title}</h2></div><div className="packet-page-header-mark">BRAGSTACK</div></header>;
+  return <header className="packet-page-header"><div><p>{String(index).padStart(2, "0")} · {eyebrow}</p><h2>{title}</h2></div><div className="packet-page-header-mark">BOASTED</div></header>;
 }
 
 function EmptyState({ children }) {
@@ -34,7 +34,7 @@ function GenericPacketPages({ packet }) {
         <article className="generic-purpose-card"><Sparkles size={20} /><span>USE THIS PACKET</span><p>{usageExample || "Use this packet to organize documented career proof for a specific professional or education moment."}</p></article>
         <article className="generic-purpose-card"><Target size={20} /><span>FOCUS</span>{focus.length ? <dl>{focus.map((item) => <div key={`${item.label}-${item.value}`}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl> : <p>Add target details in the form to make this packet more specific.</p>}</article>
       </div>
-      <section className="generic-summary-block"><span>EVIDENCE-BACKED SUMMARY</span><p>{packet?.review_summary || "This packet organizes the career proof currently saved in BragStack."}</p></section>
+      <section className="generic-summary-block"><span>EVIDENCE-BACKED SUMMARY</span><p>{packet?.review_summary || "This packet organizes the career proof currently saved in Boasted."}</p></section>
       {qualityMessage && <aside className="generic-strength-note"><strong>More proof makes this better.</strong><p>{qualityMessage}</p></aside>}
       <PacketFooter page={3} />
     </section>
@@ -51,7 +51,7 @@ function GenericPacketPages({ packet }) {
         <section><div className="generic-section-heading"><Sparkles size={18} /><div><span>DEMONSTRATED SKILLS</span><h3>Capabilities in your record</h3></div></div>{skills.length ? <div className="generic-skill-list">{skills.slice(0, 12).map((item) => <div key={item.skill}><span>{item.skill}</span><strong>{item.count}</strong></div>)}</div> : <EmptyState>Add skills to your accomplishments or Impact Receipts.</EmptyState>}</section>
         <section><div className="generic-section-heading"><Award size={18} /><div><span>IMPACT RECEIPTS</span><h3>Structured proof</h3></div></div>{receipts.length ? <div className="generic-receipt-list">{receipts.slice(0, 8).map((receipt) => <article key={receipt.id || receipt.reference}><strong>{receipt.accomplishment}</strong>{receipt.result && <p>{receipt.result}</p>}<small>{receipt.reference}{receipt.verified ? " · Verified Recognition attached" : ""}</small></article>)}</div> : <EmptyState>Create Impact Receipts to add contribution, result, skills, evidence, and recognition.</EmptyState>}</section>
       </div>
-      <div className="generic-export-note"><FileCheck2 size={18} /><p>This packet is generated from user-saved BragStack data. Review it before submitting it to an employer, school, licensing body, scholarship committee, client, or other third party.</p></div>
+      <div className="generic-export-note"><FileCheck2 size={18} /><p>This packet is generated from user-saved Boasted data. Review it before submitting it to an employer, school, licensing body, scholarship committee, client, or other third party.</p></div>
       <PacketFooter page={5} />
     </section>
 

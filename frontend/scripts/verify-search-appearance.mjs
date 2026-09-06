@@ -23,7 +23,7 @@ const sitemapUrls = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => m
 const duplicates = sitemapUrls.filter((url, index) => sitemapUrls.indexOf(url) !== index);
 
 assert.equal(duplicates.length, 0, `sitemap.xml contains duplicate URLs: ${duplicates.join(", ")}`);
-assert.ok(sitemapUrls.every((url) => url.startsWith("https://usebragstack.com/")), "sitemap URLs must use the canonical HTTPS origin");
+assert.ok(sitemapUrls.every((url) => url.startsWith("https://boasted.io/")), "sitemap URLs must use the canonical HTTPS origin");
 assert.ok(sitemapUrls.every((url) => !url.includes("#") && !url.includes("?")), "sitemap URLs must not contain fragments or query strings");
 
 assert.match(robots, /Sitemap:\s+https:\/\/usebragstack\.com\/sitemap\.xml/);
@@ -32,7 +32,7 @@ assert.doesNotMatch(robots, /Disallow:\s+\/login/);
 assert.doesNotMatch(robots, /Disallow:\s+\/register/);
 
 for (const path of publicSitelinks) {
-  const canonicalUrl = `https://usebragstack.com${path}`;
+  const canonicalUrl = `https://boasted.io${path}`;
   assert.ok(sitemap.includes(`<loc>${canonicalUrl}</loc>`), `${path} must be present in sitemap.xml`);
   assert.ok(sitelinksConfig.includes(`"${path}"`), `${path} must be represented in centralized sitelink metadata`);
 }

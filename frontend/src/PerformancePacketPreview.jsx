@@ -38,7 +38,7 @@ function RankedList({ title, items }) {
   const entries = Object.entries(items ?? {}).slice(0, 5); const highest = entries[0]?.[1] || 1;
   return <div className="packet-ranked-card"><p className="packet-section-kicker">{title}</p>{entries.length ? <div className="packet-ranked-list">{entries.map(([label, count]) => <div key={label}><div className="packet-ranked-copy"><span>{label}</span><strong>{count}</strong></div><div className="packet-ranked-track"><span style={{ width: `${Math.max(12, (count / highest) * 100)}%` }} /></div></div>)}</div> : <p className="packet-empty-copy">Add accomplishments and skills to build this view.</p>}</div>;
 }
-function PacketFooter({ page }) { return <footer className="packet-page-footer"><span>BragStack · Career Evidence System</span><span>Page {page}</span></footer>; }
+function PacketFooter({ page }) { return <footer className="packet-page-footer"><span>Boasted · Career Evidence System</span><span>Page {page}</span></footer>; }
 
 function PerformancePacketPreview({ packet, onBack, backLabel = "Back to reports", preferredFormat = "pdf" }) {
   const [downloadingFormat, setDownloadingFormat] = useState("");
@@ -74,7 +74,7 @@ function PerformancePacketPreview({ packet, onBack, backLabel = "Back to reports
     } catch (error) {
       console.error(error);
       if (error.response?.status === 401) { localStorage.removeItem("bragstack_token"); window.location.href = "/login"; return; }
-      setDownloadError(error.response?.status === 403 ? "Packet downloads are included with BragStack Pro and higher plans." : `The ${format.toUpperCase()} could not be generated. Try again or use Print as a fallback.`);
+      setDownloadError(error.response?.status === 403 ? "Packet downloads are included with Boasted Pro and higher plans." : `The ${format.toUpperCase()} could not be generated. Try again or use Print as a fallback.`);
     } finally { setDownloadingFormat(""); }
   }
 
@@ -106,11 +106,11 @@ function PerformancePacketPreview({ packet, onBack, backLabel = "Back to reports
       <div className="packet-paper-stack">
         <section className={`packet-sheet packet-cover ${themeClass}`} aria-label="Packet cover">
           <div className="packet-cover-topline">
-            <div className="packet-wordmark"><span className="packet-wordmark-mark">B</span><span>{branding.brand_name || "BRAGSTACK"}</span></div>
+            <div className="packet-wordmark"><span className="packet-wordmark-mark">B</span><span>{branding.brand_name || "BOASTED"}</span></div>
             <span className="packet-confidential">{packet?.confidential ? "Confidential · Professional development record" : "Professional development record"}</span>
           </div>
           <div className="packet-cover-main">
-            <p className="packet-document-type">{packetTitle}</p><h1>{subject.name || "BragStack Member"}</h1><h2>{subject.role || "Professional"}</h2>
+            <p className="packet-document-type">{packetTitle}</p><h1>{subject.name || "Boasted Member"}</h1><h2>{subject.role || "Professional"}</h2>
             {context.organization && <p className="packet-cover-context">{context.organization}</p>}
             {branding.department_label && <p className="packet-cover-context">{branding.department_label}</p>}
             {context.career_area && <p className="packet-cover-context">{context.career_area}</p>}
@@ -126,12 +126,12 @@ function PerformancePacketPreview({ packet, onBack, backLabel = "Back to reports
             {annotations.include_in_export !== false && annotations.packet_note && <aside className="packet-user-note packet-cover-note"><strong>User-authored context</strong><p>{annotations.packet_note}</p><small>{annotations.authorship}</small></aside>}
             {packet?.quality_message && <aside className="packet-user-note packet-cover-note"><strong>More proof makes this packet stronger</strong><p>{packet.quality_message}</p></aside>}
           </div>
-          <div className="packet-cover-bottom"><div><span>Prepared</span><strong>{generatedDate || "Today"}</strong></div><div className="packet-cover-proofline"><ShieldCheck size={16} /><span>Evidence-backed career record generated from BragStack</span></div></div>
+          <div className="packet-cover-bottom"><div><span>Prepared</span><strong>{generatedDate || "Today"}</strong></div><div className="packet-cover-proofline"><ShieldCheck size={16} /><span>Evidence-backed career record generated from Boasted</span></div></div>
           <PacketFooter page={1} />
         </section>
 
         <section className={`packet-sheet packet-scorecard-page ${themeClass}`} aria-label={scorecardLabel}>
-          <header className="packet-page-header"><div><p>01 · {scorecardLabel}</p><h2>{scorecardTitle}</h2></div><div className="packet-page-header-mark">BRAGSTACK</div></header>
+          <header className="packet-page-header"><div><p>01 · {scorecardLabel}</p><h2>{scorecardTitle}</h2></div><div className="packet-page-header-mark">BOASTED</div></header>
           <p className="packet-scorecard-intro">{scorecardIntro}</p>
           <section className="packet-stat-grid"><article><FileText size={19} /><span>{isInterview ? "Selected Stories" : "Accomplishments"}</span><strong>{scorecard.accomplishments ?? 0}</strong></article><article><Sparkles size={19} /><span>Impact Receipts</span><strong>{scorecard.impact_receipts ?? 0}</strong></article><article><ShieldCheck size={19} /><span>Evidence Items</span><strong>{scorecard.evidence_items ?? 0}</strong></article><article><Layers3 size={19} /><span>Skills Demonstrated</span><strong>{scorecard.skills_demonstrated ?? 0}</strong></article></section>
           <section className="packet-scorecard-section"><div className="packet-section-heading"><div><p className="packet-section-kicker">Evidence health</p><h3>{isInterview ? "Story coverage" : "Documentation coverage"}</h3></div><BarChart3 size={20} /></div><div className="packet-coverage-list"><CoverageRow label="Impact Receipt coverage" value={scorecard.receipt_coverage_percent} note="Structured proof coverage" /><CoverageRow label="Quantified result coverage" value={scorecard.quantified_result_coverage_percent} note="Records containing a measurable result" /><CoverageRow label="Evidence coverage" value={scorecard.evidence_coverage_percent} note="Records supported by evidence" /><CoverageRow label="Verified Recognition coverage" value={scorecard.verification_coverage_percent} note="Records with confirmed recognition" /></div><div className="packet-evidence-depth"><span>Evidence depth</span><strong>{scorecard.evidence_depth ?? 0}×</strong><p>Average supporting evidence items per Impact Receipt.</p></div></section>

@@ -1,10 +1,10 @@
 # Stripe webhook operations runbook
 
-This runbook describes safe operational checks for BragStack Stripe webhook delivery. Never paste Stripe secret keys, webhook signing secrets, raw customer payment data, or production credentials into issues, logs, or this repository.
+This runbook describes safe operational checks for Boasted Stripe webhook delivery. Never paste Stripe secret keys, webhook signing secrets, raw customer payment data, or production credentials into issues, logs, or this repository.
 
 ## Normal behavior
 
-- BragStack verifies the Stripe signature before parsing or claiming an event.
+- Boasted verifies the Stripe signature before parsing or claiming an event.
 - Each Stripe event ID is stored as the MongoDB `_id` in `stripe_webhook_events`.
 - A successfully handled event is marked `processed` and a later delivery of the same event returns a safe duplicate success without repeating the billing state change.
 - A handler exception releases the processing claim so Stripe can retry the event.
@@ -13,7 +13,7 @@ This runbook describes safe operational checks for BragStack Stripe webhook deli
 
 ## Georgia automatic-renewal compliance gate
 
-BragStack Pro is a recurring online subscription. The webhook state machine is only one part of the billing flow; it does **not** by itself satisfy customer disclosure/notice duties.
+Boasted Pro is a recurring online subscription. The webhook state machine is only one part of the billing flow; it does **not** by itself satisfy customer disclosure/notice duties.
 
 Before recurring billing is treated as production-ready for Georgia consumers, verify the complete flow against `docs/GEORGIA_INTERIM_LEGAL_COMPLIANCE_BASELINE.md`, including:
 
@@ -21,12 +21,12 @@ Before recurring billing is treated as production-ready for Georgia consumers, v
 - affirmative consent before charging;
 - a retainable acknowledgment containing renewal terms, cancellation policy, and cancellation instructions;
 - a simple, working electronic cancellation path;
-- a notice before or within three days after a recurring charge (where required and not opted out as permitted) stating that the subscription renews unless canceled, the renewal period/additional terms, an electronic cancellation method/link, and BragStack contact information;
+- a notice before or within three days after a recurring charge (where required and not opted out as permitted) stating that the subscription renews unless canceled, the renewal period/additional terms, an electronic cancellation method/link, and Boasted contact information;
 - a retainable notice of material subscription-term changes with cancellation instructions.
 
-**Important:** Do not assume Stripe's default receipt/invoice emails satisfy every Georgia requirement. Inspect the actual production messages. If a required element is missing, BragStack must send its own compliant notice or configure Stripe so the required information is present.
+**Important:** Do not assume Stripe's default receipt/invoice emails satisfy every Georgia requirement. Inspect the actual production messages. If a required element is missing, Boasted must send its own compliant notice or configure Stripe so the required information is present.
 
-Operationally retain enough non-sensitive evidence to show the subscription state, cancellation state, relevant billing event, and delivery of any BragStack-controlled legal notice. Do not retain full payment-card data.
+Operationally retain enough non-sensitive evidence to show the subscription state, cancellation state, relevant billing event, and delivery of any Boasted-controlled legal notice. Do not retain full payment-card data.
 
 Primary Georgia reference: O.C.G.A. § 10-1-439.9. Federal online negative-option requirements under ROSCA also require clear material terms, express informed consent, and a simple cancellation mechanism.
 
@@ -53,7 +53,7 @@ Do not delete a `processed` ledger record merely to force a replay. If reconcili
 
 If billing state appears wrong:
 
-- verify the customer/subscription IDs map to the intended BragStack user;
+- verify the customer/subscription IDs map to the intended Boasted user;
 - compare the relevant Stripe event timestamps and types;
 - confirm webhook signature failures are not occurring;
 - confirm the event ledger is writable and MongoDB is healthy;

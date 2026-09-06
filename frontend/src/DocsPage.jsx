@@ -25,8 +25,8 @@ const sections = [
     id: "getting-started",
     icon: BookOpen,
     title: "Start here",
-    blurb: "The simplest way to understand BragStack.",
-    text: "BragStack helps you remember meaningful work, turn it into career proof, and reuse that proof when you need it.",
+    blurb: "The simplest way to understand Boasted.",
+    text: "Boasted helps you remember meaningful work, turn it into career proof, and reuse that proof when you need it.",
     bullets: [
       "Capture an accomplishment while the details are still fresh.",
       "Write down what you personally did and what changed afterward.",
@@ -100,7 +100,7 @@ const sections = [
     bullets: [
       "Choose a receipt that the verifier actually has enough context to review.",
       "Send a private confirmation request.",
-      "The verifier can review the claim without creating a BragStack account.",
+      "The verifier can review the claim without creating a Boasted account.",
       "They can confirm or decline the specific claim.",
       "Their email address is kept private and is not displayed on your public profile.",
     ],
@@ -110,7 +110,7 @@ const sections = [
     icon: FileText,
     title: "Resume Builder",
     blurb: "Build a focused resume from proof you already captured.",
-    text: "Give BragStack the job you want, choose the proof that fits, and turn your real accomplishments into a stronger resume draft.",
+    text: "Give Boasted the job you want, choose the proof that fits, and turn your real accomplishments into a stronger resume draft.",
     bullets: [
       "Paste the target role and job description.",
       "Choose accomplishments that genuinely support that opportunity.",
@@ -122,7 +122,7 @@ const sections = [
   {
     id: "career-intelligence",
     icon: BrainCircuit,
-    title: "BragStack Career Intelligence™",
+    title: "Boasted Career Intelligence™",
     blurb: "Plain-language guidance about the strength of your career story.",
     text: "Career Intelligence helps you understand whether an accomplishment or answer clearly shows the skill, result, or experience you are trying to communicate.",
     bullets: [
@@ -194,7 +194,7 @@ const sections = [
     icon: BriefcaseBusiness,
     title: "Reviews, promotions & career packets",
     blurb: "Use proof captured all year instead of rebuilding your story from memory.",
-    text: "BragStack can help you gather the work that shows how your scope, skills, and impact changed over time.",
+    text: "Boasted can help you gather the work that shows how your scope, skills, and impact changed over time.",
     bullets: [
       "Look for repeated ownership, leadership, reliability, and results.",
       "Pull together examples from across the review period.",
@@ -208,7 +208,7 @@ const sections = [
     icon: FileText,
     title: "Public Proof Profile",
     blurb: "Share selected proof without exposing your private workspace.",
-    text: "Your public profile is a curated career story. It is not a copy of everything you save in BragStack.",
+    text: "Your public profile is a curated career story. It is not a copy of everything you save in Boasted.",
     bullets: [
       "Publish only the proof you intentionally want other people to see.",
       "Use it as a portfolio-style view for recruiters, hiring managers, clients, or collaborators.",
@@ -221,7 +221,7 @@ const sections = [
     icon: CreditCard,
     title: "Billing & Pro",
     blurb: "Paid access without billing jargon.",
-    text: "Some BragStack features are available through Pro. Your account shows the plan and access available to you.",
+    text: "Some Boasted features are available through Pro. Your account shows the plan and access available to you.",
     bullets: [
       "Free access covers the core career-proof workflow where offered.",
       "Pro is currently listed at $9/month where offered.",
@@ -234,7 +234,7 @@ const sections = [
     icon: Plug,
     title: "Connections & sign-in",
     blurb: "Use connected accounts without losing control of what you share.",
-    text: "Connected accounts can make sign-in easier or help bring useful information into BragStack. Connecting an account does not automatically publish your work.",
+    text: "Connected accounts can make sign-in easier or help bring useful information into Boasted. Connecting an account does not automatically publish your work.",
     bullets: [
       "Use Google, GitHub, or email/password where available.",
       "Review imported or suggested information before treating it as career proof.",
@@ -247,7 +247,7 @@ const sections = [
     icon: ShieldCheck,
     title: "Privacy & NDA safety",
     blurb: "Keep the career value. Leave the secrets behind.",
-    text: "BragStack gives you control over what you save and share, but you are still responsible for following employer policy, client agreements, NDAs, and applicable law.",
+    text: "Boasted gives you control over what you save and share, but you are still responsible for following employer policy, client agreements, NDAs, and applicable law.",
     bullets: [
       "Keep your workspace private by default.",
       "Share only what you mean to share.",
@@ -349,13 +349,13 @@ export default function DocsPage() {
 
   return <main className="docs-page">
     <header className="docs-topbar">
-      <a className="docs-brand" href="/"><img src="/brandmark.svg" alt=""/><span><strong>BragStack</strong><small>Help Center</small></span></a>
+      <a className="docs-brand" href="/"><img src="/brandmark.svg" alt=""/><span><strong>Boasted</strong><small>Help Center</small></span></a>
       <nav aria-label="Documentation header"><a href="/">Product</a><a href="/#pricing">Pricing</a><a href="/security">Security</a><a href="/nda-safety">NDA guidance</a><a href="/privacy">Privacy</a><a href="/login">Sign in</a></nav>
     </header>
 
     <div className="docs-shell">
       <aside className="docs-sidebar" aria-label="Documentation sections">
-        <p>Learn BragStack</p>
+        <p>Learn Boasted</p>
         <a href="#getting-started"><BookOpen size={16}/>Start Here</a>
         <a href="#example-registered-nurse"><HeartPulse size={16}/>Nursing Example</a>
         <a href="#feature-guide"><BriefcaseBusiness size={16}/>All Features</a>
@@ -375,7 +375,7 @@ export default function DocsPage() {
 
       <article className="docs-content">
         <section className="docs-hero">
-          <p className="docs-kicker">BRAGSTACK HELP CENTER</p>
+          <p className="docs-kicker">BOASTED HELP CENTER</p>
           <h1>Career proof, explained simply.</h1>
           <p>No technical background needed. Learn what each feature does, when to use it, and how your work can move from a memory to a resume, interview story, review, promotion packet, or portfolio.</p>
           <label className="docs-search">
@@ -387,7 +387,7 @@ export default function DocsPage() {
         </section>
 
         {!q && <>
-          <section className="docs-journey" aria-label="How BragStack works">
+          <section className="docs-journey" aria-label="How Boasted works">
             <div className="docs-journey-heading"><span>THE BIG PICTURE</span><h2>One career-proof loop</h2><p>Capture once. Reuse when it matters.</p></div>
             <div className="docs-flow">{journey.map((step, index) => <div className={`docs-flow-step step-${index + 1}`} key={step.title}><span>{index + 1}</span><div><strong>{step.title}</strong><small>{step.detail}</small></div>{index < journey.length - 1 && <ArrowRight className="docs-flow-arrow" size={18}/>}</div>)}</div>
           </section>
@@ -418,8 +418,8 @@ export default function DocsPage() {
               <div className="docs-faq-grid">
                 <article><strong>Is my work public?</strong><p>No. Your workspace is private by default. You decide what to share.</p></article>
                 <article><strong>Do I need numbers for everything?</strong><p>No. Use numbers when you genuinely have them. Clear qualitative outcomes still matter.</p></article>
-                <article><strong>Will BragStack invent experience for me?</strong><p>It should build from the proof and information you provide. Review anything you plan to use before sending or publishing it.</p></article>
-                <article><strong>Can non-technical jobs use BragStack?</strong><p>Absolutely. Customer service, healthcare, education, operations, sales, trades, administration, and many other careers create valuable proof every day.</p></article>
+                <article><strong>Will Boasted invent experience for me?</strong><p>It should build from the proof and information you provide. Review anything you plan to use before sending or publishing it.</p></article>
+                <article><strong>Can non-technical jobs use Boasted?</strong><p>Absolutely. Customer service, healthcare, education, operations, sales, trades, administration, and many other careers create valuable proof every day.</p></article>
                 <article><strong>Does interview feedback mean I will pass or fail a real interview?</strong><p>No. It is practice coaching designed to help you make your answers clearer and stronger.</p></article>
                 <article><strong>What if my best work is confidential?</strong><p>Keep the secret parts out. Save a safe summary of the problem, your contribution, and the result instead.</p></article>
                 <article><strong>Do I have to ask someone to verify every receipt?</strong><p>No. Verification is optional. Use it when an appropriate person can genuinely confirm a specific claim.</p></article>
@@ -430,7 +430,7 @@ export default function DocsPage() {
             </section>
             <section className="docs-section" id="contact">
               <div className="docs-section-title"><FileText size={21}/><div><h2>Contact & support</h2><span>Need a human?</span></div></div>
-              <p>For account, billing, product, documentation, privacy, deletion, or security questions, contact <a href="mailto:Tobias.scott@usebragstack.com">Tobias.scott@usebragstack.com</a>. Do not email passwords, access tokens, API keys, or confidential evidence.</p>
+              <p>For account, billing, product, documentation, privacy, deletion, or security questions, contact <a href="mailto:Tobias.scott@boasted.io">Tobias.scott@boasted.io</a>. Do not email passwords, access tokens, API keys, or confidential evidence.</p>
             </section>
           </>}
         </div>

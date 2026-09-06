@@ -68,7 +68,7 @@ function MajorExplorerPanel() {
       <div>
         <p className="applications-kicker"><Compass size={15} /> Major Explorer</p>
         <h2 id="major-explorer-title">Not sure what to major in? Explore directions from your real evidence.</h2>
-        <p>BragStack looks for patterns in the coursework, projects, activities, skills, and accomplishments you actually saved, then suggests academic directions worth investigating.</p>
+        <p>Boasted looks for patterns in the coursework, projects, activities, skills, and accomplishments you actually saved, then suggests academic directions worth investigating.</p>
       </div>
       <div className="major-explorer-trust"><ShieldCheck size={19} /><span><strong>No “best major” verdict.</strong><small>No fit percentage · no admissions odds · no career-success prediction</small></span></div>
     </div>
@@ -77,7 +77,7 @@ function MajorExplorerPanel() {
       <ShieldCheck size={21} />
       <div>
         <strong>{disclaimer.title || "Major Explorer is for exploration, not a decision about your future."}</strong>
-        <p>{disclaimer.scope || "Recommendations may be incomplete because they reflect only the information available in BragStack."}</p>
+        <p>{disclaimer.scope || "Recommendations may be incomplete because they reflect only the information available in Boasted."}</p>
         <p>{disclaimer.not_advice || "This is an educational decision-support tool, not academic, career, financial, legal, licensing, or professional advice."}</p>
         <p>{disclaimer.no_guarantees || "It does not predict or guarantee admission, scholarships, graduation, employment, salary, licensing, or career success."}</p>
         <p>{disclaimer.verify_requirements || "Verify program requirements with the relevant institution or authority."}</p>
@@ -103,7 +103,7 @@ function MajorExplorerPanel() {
 
       <div className="major-explorer-source-note">
         <Sparkles size={17} />
-        <p><strong>Evidence source:</strong> this version uses saved BragStack proof only. Self-reported interests are not mixed into demonstrated evidence, so the product does not pretend that “I like this” and “I have demonstrated this” are the same thing.</p>
+        <p><strong>Evidence source:</strong> this version uses saved Boasted proof only. Self-reported interests are not mixed into demonstrated evidence, so the product does not pretend that “I like this” and “I have demonstrated this” are the same thing.</p>
       </div>
 
       {recommendations.length === 0 ? <div className="major-explorer-empty">

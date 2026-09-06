@@ -147,7 +147,7 @@ Atlanta, GA | tobias@example.com
 SUMMARY
 Platform engineer focused on automation.
 PROJECTS
-BragStack career platform
+Boasted career platform
 Built interview and resume tooling with Python and React.
 EDUCATION
 Example University — Computer Science
@@ -155,7 +155,7 @@ Example University — Computer Science
     assert parsed["header_lines"][0] == "Tobias Scott"
     assert "projects" in parsed["sections_found"]
     assert "education" in parsed["sections_found"]
-    assert "BragStack career platform" in parsed["sections"]["projects"]
+    assert "Boasted career platform" in parsed["sections"]["projects"]
     assert any("Example University" in line for line in parsed["sections"]["education"])
 
 

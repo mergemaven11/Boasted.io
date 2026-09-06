@@ -1,6 +1,6 @@
 """Deterministic application intelligence for student and early-career evidence.
 
-This module ranks a user's own BragStack accomplishments for application use.
+This module ranks a user's own Boasted accomplishments for application use.
 It never predicts admission, scholarship, hiring, or selection outcomes.
 """
 from __future__ import annotations

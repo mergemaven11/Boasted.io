@@ -1,6 +1,6 @@
-# BragStack V1 Release Notes
+# Boasted V1 Release Notes
 
-BragStack V1 turns accomplishment tracking into a complete career-proof workflow.
+Boasted V1 turns accomplishment tracking into a complete career-proof workflow.
 
 ## Included in V1
 

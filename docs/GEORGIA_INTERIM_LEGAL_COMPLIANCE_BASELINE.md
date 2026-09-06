@@ -1,14 +1,14 @@
-# BragStack — Georgia interim legal/compliance baseline
+# Boasted — Georgia interim legal/compliance baseline
 
 **Effective working date:** September 4, 2026  
-**Owner:** BragStack  
+**Owner:** Boasted  
 **Status:** Temporary operating baseline pending review by a licensed attorney.
 
 > This document is an engineering/operations risk-reduction checklist, not legal advice and not a substitute for counsel. It is deliberately conservative. If this document conflicts with advice from qualified counsel, a court order, a regulator, or a newer law, follow the controlling authority and update this file.
 
 ## 1. Operating rule: product behavior must match what we tell customers
 
-Do not publish a legal, privacy, security, billing, AI, verification, or marketing statement unless the product actually behaves that way. Georgia's Fair Business Practices Act makes unfair or deceptive acts or practices in consumer transactions unlawful. For BragStack this means, at minimum:
+Do not publish a legal, privacy, security, billing, AI, verification, or marketing statement unless the product actually behaves that way. Georgia's Fair Business Practices Act makes unfair or deceptive acts or practices in consumer transactions unlawful. For Boasted this means, at minimum:
 
 - do not promise jobs, interviews, promotions, compensation, accuracy, verification, security, uptime, or other outcomes we cannot guarantee;
 - do not describe an AI output as verified fact merely because it was generated from user data;
@@ -20,7 +20,7 @@ Do not publish a legal, privacy, security, billing, AI, verification, or marketi
 
 ## 2. Online subscriptions / automatic renewal — immediate production checklist
 
-BragStack Pro is currently marketed as a recurring online subscription. Georgia's Online Automatic Renewal Transparency law, O.C.G.A. §§ 10-1-439.5 through 10-1-439.13, applies to online automatic-renewal and continuous-service offers covered by the statute.
+Boasted Pro is currently marketed as a recurring online subscription. Georgia's Online Automatic Renewal Transparency law, O.C.G.A. §§ 10-1-439.5 through 10-1-439.13, applies to online automatic-renewal and continuous-service offers covered by the statute.
 
 Before allowing a Georgia consumer to complete a recurring subscription, verify all of the following in the actual purchase flow:
 
@@ -28,12 +28,12 @@ Before allowing a Georgia consumer to complete a recurring subscription, verify 
 - [ ] The renewal terms are visually close to the place where the consumer gives consent.
 - [ ] The consumer affirmatively consents before the payment method is charged.
 - [ ] The customer receives a retainable acknowledgment containing the renewal terms, cancellation policy, and how to cancel.
-- [ ] Cancellation is reasonably accessible and actually works; BragStack currently has a first-party cancellation endpoint and should keep the UI path easy to find.
-- [ ] Before or within three days after a recurring charge, unless the customer opted out of that notice where the statute allows, the customer receives a clear notice stating that the subscription renews automatically unless canceled, the renewal period/additional terms, an electronic cancellation link or accessible electronic cancellation method, and BragStack contact information.
+- [ ] Cancellation is reasonably accessible and actually works; Boasted currently has a first-party cancellation endpoint and should keep the UI path easy to find.
+- [ ] Before or within three days after a recurring charge, unless the customer opted out of that notice where the statute allows, the customer receives a clear notice stating that the subscription renews automatically unless canceled, the renewal period/additional terms, an electronic cancellation link or accessible electronic cancellation method, and Boasted contact information.
 - [ ] A material subscription-term change is accompanied by clear notice and cancellation information in a form the customer can retain.
 - [ ] We retain operational evidence sufficient to show what subscription terms were presented and that the customer consented.
 
-**Do not assume Stripe alone satisfies every Georgia notice requirement.** Confirm the exact production Checkout page, Stripe/customer emails, and BragStack cancellation flow. If Stripe's post-charge/renewal communications do not contain all required content, BragStack must send its own compliant notice.
+**Do not assume Stripe alone satisfies every Georgia notice requirement.** Confirm the exact production Checkout page, Stripe/customer emails, and Boasted cancellation flow. If Stripe's post-charge/renewal communications do not contain all required content, Boasted must send its own compliant notice.
 
 **Primary Georgia authority:** O.C.G.A. § 10-1-439.9. Good-faith compliance is specifically addressed in O.C.G.A. § 10-1-439.13.
 
@@ -45,7 +45,7 @@ The federal Restore Online Shoppers' Confidence Act (ROSCA), 15 U.S.C. §§ 8401
 
 ### Longer-term contracts
 
-BragStack's current monthly plan is different from a service contract of 12 months or longer. If BragStack later sells annual, multi-year, enterprise, or other long-duration automatically renewing contracts, counsel must review O.C.G.A. Title 13, Chapter 12 and any additional notice requirements before launch.
+Boasted's current monthly plan is different from a service contract of 12 months or longer. If Boasted later sells annual, multi-year, enterprise, or other long-duration automatically renewing contracts, counsel must review O.C.G.A. Title 13, Chapter 12 and any additional notice requirements before launch.
 
 ## 3. Billing records to keep
 
@@ -56,7 +56,7 @@ Keep a limited, secure compliance record without storing full card numbers or un
 - date/time subscription was created;
 - the checkout/legal-copy version presented at purchase where technically feasible;
 - the event proving successful payment/activation;
-- renewal-notice delivery record where BragStack sends the notice;
+- renewal-notice delivery record where Boasted sends the notice;
 - cancellation request timestamp and effective cancellation state;
 - material plan-change notices;
 - refund/chargeback support records needed to resolve the matter.
@@ -70,14 +70,14 @@ A major research trap exists here. SB 111 was introduced under the title **"Geor
 Therefore:
 
 - **Do not tell customers that SB 111 created current Georgia access/deletion/opt-out rights.**
-- Continue honoring the access, correction, export, and deletion choices BragStack voluntarily offers and any rights required by other applicable jurisdictions.
-- Counsel must later perform a multi-state privacy analysis based on where BragStack users live, not only where BragStack operates.
+- Continue honoring the access, correction, export, and deletion choices Boasted voluntarily offers and any rights required by other applicable jurisdictions.
+- Counsel must later perform a multi-state privacy analysis based on where Boasted users live, not only where Boasted operates.
 
 This point should be re-checked at lawyer review because privacy laws change quickly.
 
 ## 5. Data minimization and third-party data
 
-BragStack stores career evidence and can receive third-party verifier contact information. Use the smallest amount of data needed for the feature.
+Boasted stores career evidence and can receive third-party verifier contact information. Use the smallest amount of data needed for the feature.
 
 - Keep private career workspace content private by default.
 - Do not use verifier contact data for marketing, unrelated outreach, retaliation, or enrichment.
@@ -102,7 +102,7 @@ Operationally:
 
 ## 7. Georgia data-breach response
 
-If BragStack discovers unauthorized acquisition of unencrypted personal information covered by Georgia's breach law, escalate immediately. Do not wait for perfect certainty before opening the incident process.
+If Boasted discovers unauthorized acquisition of unencrypted personal information covered by Georgia's breach law, escalate immediately. Do not wait for perfect certainty before opening the incident process.
 
 Georgia's O.C.G.A. § 10-1-912 generally requires covered data collectors/information brokers to notify affected Georgia residents in the most expedient time possible and without unreasonable delay, subject to permitted law-enforcement delay and time needed to determine scope and restore integrity. A business maintaining computerized personal information for another owner must notify that owner within **24 hours after discovery** when the statute's conditions are met. If a breach requires notice to more than 10,000 Georgia residents at one time, additional consumer-reporting-agency notice is required.
 
@@ -131,7 +131,7 @@ The acceptable-use policy should continue prohibiting unauthorized access, crede
 
 ## 10. Confidential employer/client information and trade secrets
 
-BragStack must not imply that using the product overrides an NDA, employer policy, confidentiality clause, client agreement, export-control obligation, or other legal duty.
+Boasted must not imply that using the product overrides an NDA, employer policy, confidentiality clause, client agreement, export-control obligation, or other legal duty.
 
 Customer-facing guidance should consistently say:
 
@@ -155,9 +155,9 @@ For current AI-assisted features:
 
 Georgia SB 540 became Act 518 on May 11, 2026 and has an **effective date of July 1, 2027**. It concerns disclosures and protections for conversational AI services, including provisions involving minors, privacy tools, and self-harm protocols.
 
-It is not yet effective as of this document's date, but BragStack has conversational career/interview AI features. Before July 1, 2027:
+It is not yet effective as of this document's date, but Boasted has conversational career/interview AI features. Before July 1, 2027:
 
-- [ ] have counsel determine whether each BragStack AI surface falls within the statute's definitions/exceptions;
+- [ ] have counsel determine whether each Boasted AI surface falls within the statute's definitions/exceptions;
 - [ ] decide and technically enforce an age policy rather than relying only on vague eligibility language;
 - [ ] implement any required AI disclosure, privacy-tool, minor-protection, and safety-protocol controls that apply;
 - [ ] update Terms, Privacy, UI, and model governance documentation together.
@@ -166,7 +166,7 @@ It is not yet effective as of this document's date, but BragStack has conversati
 
 ## 13. Customer privacy requests — interim operating procedure
 
-Even when a specific Georgia comprehensive privacy right is not the source of the request, BragStack's existing public Privacy Policy offers access/export/correction/deletion request channels. Honor those published commitments consistently.
+Even when a specific Georgia comprehensive privacy right is not the source of the request, Boasted's existing public Privacy Policy offers access/export/correction/deletion request channels. Honor those published commitments consistently.
 
 For every request:
 
@@ -217,9 +217,9 @@ Take this list and the current production app to counsel:
 4. Review Privacy Policy against the real data map and every production processor.
 5. Run a multi-state privacy/consumer-law analysis based on actual user locations (for example CA, CO, CT, DE, FL, IA, IN, KY, MD, MN, MT, NE, NH, NJ, OR, RI, TN, TX, UT, VA and newer state regimes as applicable at that time).
 6. Review children/minors policy and Georgia Act 518 / SB 540 before its July 1, 2027 effective date.
-7. Review AI features for employment/hiring-law risk if BragStack later sells evaluation, screening, ranking, or decision tools to employers.
+7. Review AI features for employment/hiring-law risk if Boasted later sells evaluation, screening, ranking, or decision tools to employers.
 8. Review data-processing/vendor agreements, breach clauses, cross-border transfers, and DPA needs.
-9. Review open-source/software licenses, BragStack trademarks/branding, user-content license, and third-party content/evidence handling.
+9. Review open-source/software licenses, Boasted trademarks/branding, user-content license, and third-party content/evidence handling.
 10. Review tax nexus/sales tax, entity/DBA registrations, accessibility, insurance, and B2B enterprise contract needs.
 
 ## 17. Sources checked for this interim baseline

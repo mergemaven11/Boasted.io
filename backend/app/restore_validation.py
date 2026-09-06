@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
-# These collections are expected to exist in every current BragStack production
+# These collections are expected to exist in every current Boasted production
 # restore. MongoDB creates other application collections lazily on first write,
 # so their absence is valid when the feature has not stored data yet.
 REQUIRED_COLLECTIONS = {
@@ -45,7 +45,7 @@ def _fail(result: RestoreValidationResult, check: str, message: str) -> None:
 
 
 def validate_restored_database(db: Any) -> RestoreValidationResult:
-    """Validate an isolated restored BragStack database using read-only checks."""
+    """Validate an isolated restored Boasted database using read-only checks."""
     result = RestoreValidationResult(passed=True)
 
     available = set(db.list_collection_names())

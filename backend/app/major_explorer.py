@@ -1,4 +1,4 @@
-"""Evidence-backed major exploration built on BragStack Career Intelligence v5.
+"""Evidence-backed major exploration built on Boasted Career Intelligence v5.
 
 Major Explorer is intentionally a decision-support tool, not a decision-maker.
 It surfaces academic directions worth exploring from the user's own saved proof.
@@ -516,7 +516,7 @@ def build_major_explorer(
 
     disclaimer = {
         "title": "Major Explorer is for exploration, not a decision about your future.",
-        "scope": "Recommendations reflect only the information and evidence currently available in BragStack and may be incomplete.",
+        "scope": "Recommendations reflect only the information and evidence currently available in Boasted and may be incomplete.",
         "not_advice": "Major Explorer is an educational decision-support tool, not academic, career, financial, legal, licensing, or professional advice.",
         "no_guarantees": "It does not predict or guarantee admission, scholarships, academic performance, graduation, employment, salary, licensing, or career success.",
         "verify_requirements": "Verify prerequisites, accreditation, transfer rules, program availability, costs, graduation requirements, and licensing requirements with the relevant institution or authority.",

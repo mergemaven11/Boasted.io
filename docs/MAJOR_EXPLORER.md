@@ -1,12 +1,12 @@
-# BragStack Major Explorer v1
+# Boasted Major Explorer v1
 
-Major Explorer is an Education Intelligence feature that uses a user's own BragStack evidence to surface academic directions worth **exploring**. It is not an aptitude test, admissions predictor, career-success predictor, or automated academic decision-maker.
+Major Explorer is an Education Intelligence feature that uses a user's own Boasted evidence to surface academic directions worth **exploring**. It is not an aptitude test, admissions predictor, career-success predictor, or automated academic decision-maker.
 
 ## Product purpose
 
 Major Explorer answers a narrow question:
 
-> Based on the real experiences and skills currently documented in BragStack, which majors may be worth investigating next, and what small experiments could reduce uncertainty?
+> Based on the real experiences and skills currently documented in Boasted, which majors may be worth investigating next, and what small experiments could reduce uncertainty?
 
 It does **not** answer:
 
@@ -21,12 +21,12 @@ The Major Explorer UI must display a visible disclaimer before or alongside reco
 Required meaning:
 
 - Major Explorer is an educational exploration and decision-support tool, not academic, career, financial, legal, licensing, or professional advice.
-- Recommendations reflect only the information and evidence currently available in BragStack and may be incomplete.
+- Recommendations reflect only the information and evidence currently available in Boasted and may be incomplete.
 - Major Explorer does not predict or guarantee admission, scholarships, academic performance, graduation, employment, salary, licensing, or career success.
 - Users must verify prerequisites, accreditation, transfer rules, program availability, costs, graduation requirements, and licensing requirements with the relevant institution or authority.
 - The user remains responsible for education decisions and should consider a qualified academic or career advisor for consequential choices.
 
-These disclaimers are risk-reduction controls. They do not guarantee legal compliance or immunity from claims, and final public language should be reviewed by qualified counsel as part of BragStack's legal process.
+These disclaimers are risk-reduction controls. They do not guarantee legal compliance or immunity from claims, and final public language should be reviewed by qualified counsel as part of Boasted's legal process.
 
 ## No fake precision
 
@@ -50,7 +50,7 @@ Those labels describe evidence alignment only. They are not predictions of aptit
 
 ## Evidence vs. interest
 
-Major Explorer v1 uses saved BragStack proof only. It does not currently mix self-reported interests into demonstrated evidence.
+Major Explorer v1 uses saved Boasted proof only. It does not currently mix self-reported interests into demonstrated evidence.
 
 This distinction is intentional:
 
@@ -106,7 +106,7 @@ A failed verification returns an error instead of serving potentially misleading
 
 ## Legal review follow-up
 
-Before BragStack relies on Major Explorer as a broadly marketed education-decision product, qualified counsel should review at least:
+Before Boasted relies on Major Explorer as a broadly marketed education-decision product, qualified counsel should review at least:
 
 - the final disclaimer and Terms language;
 - consumer-protection and advertising claims;

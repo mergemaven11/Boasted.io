@@ -29,13 +29,13 @@ class MemoryStorage {
 }
 
 function setUrl(path) {
-  globalThis.window.location = new URL(path, "https://usebragstack.com");
+  globalThis.window.location = new URL(path, "https://boasted.io");
 }
 
 function installBrowserFakes() {
   const scripts = [];
   globalThis.window = {
-    location: new URL("https://usebragstack.com/"),
+    location: new URL("https://boasted.io/"),
     localStorage: new MemoryStorage(),
     sessionStorage: new MemoryStorage(),
   };
@@ -60,12 +60,12 @@ function installBrowserFakes() {
   };
 }
 
-describe("BragStack analytics", () => {
+describe("Boasted analytics", () => {
   beforeEach(() => {
     installBrowserFakes();
   });
 
-  it("loads the BragStack GA4 tag and configures the measurement ID once", () => {
+  it("loads the Boasted GA4 tag and configures the measurement ID once", () => {
     initializeAnalytics();
     initializeAnalytics();
 

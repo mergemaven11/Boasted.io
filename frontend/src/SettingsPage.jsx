@@ -105,7 +105,7 @@ export default function SettingsPage() {
       <header className="settings-header">
         <p>ACCOUNT</p>
         <h1>Settings</h1>
-        <span>Manage your profile, integrations, public appearance, privacy, and BragStack account.</span>
+        <span>Manage your profile, integrations, public appearance, privacy, and Boasted account.</span>
       </header>
 
       {notice && <div className="settings-success" role="status">✓ {notice}</div>}
@@ -135,7 +135,7 @@ export default function SettingsPage() {
           <div className="settings-card-icon"><GraduationCap size={22} /></div>
           <div>
             <div className="settings-card-title"><h2>Help & tutorial</h2><ChevronRight size={19} /></div>
-            <p>Restart the guided BragStack tour whenever you want a refresher.</p>
+            <p>Restart the guided Boasted tour whenever you want a refresher.</p>
           </div>
         </button>
       </section>
@@ -144,7 +144,7 @@ export default function SettingsPage() {
         <div>
           <p>DANGER ZONE</p>
           <h2 id="close-account-heading">Close account</h2>
-          <span>Permanently close your BragStack account and remove your user-owned workspace data.</span>
+          <span>Permanently close your Boasted account and remove your user-owned workspace data.</span>
         </div>
         <button className="settings-close-account-button" type="button" onClick={openCloseDialog}>
           <Trash2 size={18} />
@@ -175,7 +175,7 @@ export default function SettingsPage() {
             <p className="settings-close-eyebrow">CLOSE ACCOUNT</p>
             <h2 id="settings-close-title">Are you sure?</h2>
             <p id="settings-close-description">
-              This permanently deletes your BragStack account and user-owned workspace data. This cannot be undone.
+              This permanently deletes your Boasted account and user-owned workspace data. This cannot be undone.
             </p>
             <ul>
               <li>Your profile, accomplishments, Impact Receipts, saved resumes, shares, and other user-owned product data will be removed.</li>

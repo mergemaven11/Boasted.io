@@ -1,4 +1,4 @@
-"""Safe, audited invitations sent by authorized BragStack operators."""
+"""Safe, audited invitations sent by authorized Boasted operators."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/ops/user-invites", tags=["ops"])
 
 
 class UserInviteRequest(BaseModel):
-    """A human-approved invitation to create a normal BragStack account."""
+    """A human-approved invitation to create a normal Boasted account."""
 
     email: EmailStr
     name: str = Field(default="", max_length=80)
@@ -32,9 +32,9 @@ def _invitation_html(*, name: str, register_url: str) -> str:
 <div style="font-weight:900;font-size:22px;color:#f8fafc;">Brag<span style="color:#93c5fd;">Stack</span></div>
 <div style="margin:24px 0 10px;color:#93c5fd;font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;">Invitation</div>
 <h1 style="margin:0 0 14px;color:#f8fafc;font-size:30px;line-height:1.15;">Build your career proof.</h1>
-<p style="margin:0 0 18px;color:#cbd5e1;font-size:16px;line-height:1.65;">Hi {safe_name}, you’ve been invited to BragStack — a workspace for capturing accomplishments, Impact Receipts, and evidence-backed career proof.</p>
+<p style="margin:0 0 18px;color:#cbd5e1;font-size:16px;line-height:1.65;">Hi {safe_name}, you’ve been invited to Boasted — a workspace for capturing accomplishments, Impact Receipts, and evidence-backed career proof.</p>
 <p style="margin:0 0 24px;color:#94a3b8;font-size:14px;line-height:1.6;">This invitation does not create an account or password for you. You choose your own credentials during normal registration.</p>
-<a href="{safe_url}" style="display:inline-block;padding:14px 22px;border-radius:14px;background:#2563eb;color:white;text-decoration:none;font-weight:900;">Create your BragStack account</a>
+<a href="{safe_url}" style="display:inline-block;padding:14px 22px;border-radius:14px;background:#2563eb;color:white;text-decoration:none;font-weight:900;">Create your Boasted account</a>
 <p style="margin:24px 0 0;color:#64748b;font-size:12px;line-height:1.55;">If you weren’t expecting this invitation, you can ignore it. No account has been created for you.</p>
 </td></tr></table></td></tr></table></body></html>"""
 
@@ -56,7 +56,7 @@ async def send_user_invite(
     register_url = f"{FRONTEND_URL}/register?email={quote(email)}"
     await _send_email(
         email,
-        "You’re invited to BragStack",
+        "You’re invited to Boasted",
         _invitation_html(name=payload.name, register_url=register_url),
         EMAIL_VERIFICATION_FROM,
     )

@@ -1,9 +1,9 @@
 ---
 name: bragstack-api-contract-quality
-description: Keep BragStack FastAPI endpoints, schemas, authorization boundaries, persistence behavior, and tests aligned as the API evolves.
+description: Keep Boasted FastAPI endpoints, schemas, authorization boundaries, persistence behavior, and tests aligned as the API evolves.
 ---
 
-# BragStack API Contract Quality
+# Boasted API Contract Quality
 
 ## Use this skill when
 

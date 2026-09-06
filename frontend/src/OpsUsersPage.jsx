@@ -81,7 +81,7 @@ export default function OpsUsersPage() {
       const [nextAccess, nextData] = await Promise.all([getOpsAccess(), getOpsUserDirectory(params)]);
       setAccess(nextAccess); setData(nextData); setExpandedId("");
     } catch (err) {
-      setError(err.response?.status === 403 ? "This account is not authorized for BragStack Ops." : "User directory could not be loaded.");
+      setError(err.response?.status === 403 ? "This account is not authorized for Boasted Ops." : "User directory could not be loaded.");
     } finally { setLoading(false); }
   }
 
@@ -98,7 +98,7 @@ export default function OpsUsersPage() {
         setData(nextData);
       } catch (err) {
         if (!active) return;
-        setError(err.response?.status === 403 ? "This account is not authorized for BragStack Ops." : "User directory could not be loaded.");
+        setError(err.response?.status === 403 ? "This account is not authorized for Boasted Ops." : "User directory could not be loaded.");
       } finally {
         if (active) setLoading(false);
       }
@@ -124,7 +124,7 @@ export default function OpsUsersPage() {
   }
 
   async function resendVerification(user) {
-    const confirmed = window.confirm(`Send a new BragStack verification email to ${user.email}?`);
+    const confirmed = window.confirm(`Send a new Boasted verification email to ${user.email}?`);
     if (!confirmed) return;
 
     setSendingId(user.id); setActionMessage(""); setActionError("");

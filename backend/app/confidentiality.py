@@ -13,7 +13,7 @@ from app.database import confidentiality_attestations_collection
 
 
 CONFIDENTIALITY_ATTESTATION_VERSION = "2026-09-05.v2"
-CONFIDENTIALITY_ATTESTATION_HEADER = "X-BragStack-Confidentiality-Attestation"
+CONFIDENTIALITY_ATTESTATION_HEADER = "X-Boasted-Confidentiality-Attestation"
 ATTESTATION_TTL_SECONDS = 120
 ATTESTATION_AUDIT_RETENTION_DAYS = 90
 

@@ -532,7 +532,7 @@ def _build_ats_scan(*, imported: dict, coverage: int, bullets: list[dict], skill
         "strengths": strengths[:6],
         "improvements": improvements[:6],
         "high_score": overall >= 75,
-        "disclaimer": "BragStack ATS Scan is a compatibility analysis, not a prediction of an employer's hiring decision or a reproduction of every ATS configuration.",
+        "disclaimer": "Boasted ATS Scan is a compatibility analysis, not a prediction of an employer's hiring decision or a reproduction of every ATS configuration.",
     }
 
 

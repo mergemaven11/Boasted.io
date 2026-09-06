@@ -439,7 +439,7 @@ function App() {
     <main className="page">
       <section className="hero">
         <div className="hero-copy">
-          <div className="badge">BragStack</div>
+          <div className="badge">Boasted</div>
 
           <h1>
             Turn daily work into
@@ -491,8 +491,8 @@ function App() {
 
           <h2>
             {currentUser?.name
-              ? `${currentUser.name}'s BragStack`
-              : "Your BragStack"}
+              ? `${currentUser.name}'s Boasted`
+              : "Your Boasted"}
           </h2>
 
           <p className="profile-headline">
@@ -553,7 +553,7 @@ function App() {
       {isOffline && (
         <section className="notice">
           <strong>Connection problem</strong>
-          <span>BragStack could not load all dashboard data.</span>
+          <span>Boasted could not load all dashboard data.</span>
         </section>
       )}
 

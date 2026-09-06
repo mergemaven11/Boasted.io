@@ -22,8 +22,8 @@ class ModelLicenseRecord:
         attribution_notice: Required attribution or notice text, when applicable.
         runtime: Runtime selected or proposed for model execution.
         hardware_envelope: Documented CPU, GPU, memory, or platform expectations.
-        intended_task: BragStack task for which the model is being evaluated.
-        evaluation_status: Current BragStack-specific evaluation state.
+        intended_task: Boasted task for which the model is being evaluated.
+        evaluation_status: Current Boasted-specific evaluation state.
         known_limitations: Known model, runtime, or task limitations.
     """
 
@@ -85,6 +85,6 @@ class ProductionLicenseGate:
 
         Returns:
             True only when no licensing metadata violations are present. This
-            result does not replace BragStack's separate model-evaluation gate.
+            result does not replace Boasted's separate model-evaluation gate.
         """
         return not cls.violations(record)

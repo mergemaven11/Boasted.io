@@ -29,7 +29,7 @@ from app.plans import PLAN_PRICING, get_entitlements_for_user, get_plan_for_user
 router = APIRouter(prefix="/ops", tags=["ops"])
 
 INTERNAL_ROLES = {"support", "ops", "security", "admin"}
-OWNER_BOOTSTRAP_ADMINS = {"tobias.scott@usebragstack.com"}
+OWNER_BOOTSTRAP_ADMINS = {"tobias.scott@boasted.io"}
 BOOTSTRAP_ADMINS = OWNER_BOOTSTRAP_ADMINS | {
     email.strip().lower()
     for email in os.getenv("OPS_ADMIN_EMAILS", "").split(",")
@@ -500,7 +500,7 @@ def assign_internal_roles(
     if target is None:
         raise HTTPException(
             status_code=404,
-            detail="No BragStack account exists for this email yet. Invite them first, then assign access after they register and verify.",
+            detail="No Boasted account exists for this email yet. Invite them first, then assign access after they register and verify.",
         )
     if not _user_is_verified(target):
         raise HTTPException(status_code=409, detail="Verify this account before granting internal access.")
@@ -535,7 +535,7 @@ def update_internal_roles(
     previous_roles = sorted({str(role).strip().lower() for role in target.get("internal_roles", [])} & INTERNAL_ROLES)
 
     if _would_remove_last_admin(target, next_roles):
-        raise HTTPException(status_code=409, detail="At least one BragStack admin must remain assigned.")
+        raise HTTPException(status_code=409, detail="At least one Boasted admin must remain assigned.")
 
     users_collection.update_one({"_id": target["_id"]}, {"$set": {"internal_roles": next_roles}})
     _audit_role_change(actor=current_user, target=target, previous_roles=previous_roles, next_roles=next_roles)

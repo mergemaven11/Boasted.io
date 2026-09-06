@@ -108,6 +108,6 @@ def test_close_account_endpoint_deletes_account_and_workspace(monkeypatch):
         _clear_override()
 
     assert response.status_code == 200
-    assert response.json()["message"] == "Your BragStack account has been closed."
+    assert response.json()["message"] == "Your Boasted account has been closed."
     assert mock_db["users"].find_one({"_id": user["_id"]}) is None
     assert mock_db["entries"].count_documents({"user_id": user_id}) == 0

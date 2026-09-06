@@ -87,7 +87,7 @@ const EDUCATION_FEATURE_PRESETS = {
     label: "Experience Translator",
     entry_type: "College / University",
     category: "Academic Achievement",
-    helper: "Start with what you actually did in class, research, clubs, service, or training. BragStack can reuse that evidence later in career tools without inventing experience.",
+    helper: "Start with what you actually did in class, research, clubs, service, or training. Boasted can reuse that evidence later in career tools without inventing experience.",
   },
 };
 
@@ -179,7 +179,7 @@ function AccomplishmentsPage() {
         window.location.assign("/login");
         return;
       }
-      setError("BragStack could not load your accomplishments.");
+      setError("Boasted could not load your accomplishments.");
     } finally {
       setIsLoading(false);
     }

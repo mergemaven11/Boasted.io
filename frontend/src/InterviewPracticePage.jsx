@@ -16,7 +16,7 @@ import "./InterviewPracticePage.css";
 
 const HISTORY_KEY = "bragstack_interview_history_v1";
 const INTRO_SEGMENTS = [
-  "Hi, I’m Aisha Jordan. Welcome to your BragStack practice interview.",
+  "Hi, I’m Aisha Jordan. Welcome to your Boasted practice interview.",
   "Here’s how this works. I’ll ask one question at a time. After I finish speaking, your response timer will begin and I’ll start listening.",
   "Answer naturally, just like you would in a real interview. I’ll evaluate what you said, and if an important detail is missing, I may ask one short follow-up.",
   "When your time ends, you’ll hear a soft chime and I’ll let you know. At the end, you’ll get your score, strengths, and specific ways to improve.",
@@ -754,7 +754,7 @@ export default function InterviewPracticePage() {
 
   if (stage === "setup") return (
     <main className="interview-practice-page">
-      <header className="interview-page-header"><div><span className="interview-pro-badge"><Sparkles size={14} /> BRAGSTACK CAREER INTELLIGENCE™</span><h1>Practice Interview with Aisha Jordan</h1><p>Aisha Jordan greets you, asks each question out loud, starts your timer only after the question finishes, listens to your response, and gives specific coaching.</p></div><div className="zero-cost-card"><strong>BragStack Intelligence</strong><span>Evidence-aware coaching personalized to your target role</span></div></header>
+      <header className="interview-page-header"><div><span className="interview-pro-badge"><Sparkles size={14} /> BOASTED CAREER INTELLIGENCE™</span><h1>Practice Interview with Aisha Jordan</h1><p>Aisha Jordan greets you, asks each question out loud, starts your timer only after the question finishes, listens to your response, and gives specific coaching.</p></div><div className="zero-cost-card"><strong>Boasted Intelligence</strong><span>Evidence-aware coaching personalized to your target role</span></div></header>
       <section className="interview-setup-grid">
         <form className="interview-setup-card" onSubmit={startInterview}>
           <div className="section-kicker">BUILD YOUR INTERVIEW</div>
@@ -772,7 +772,7 @@ export default function InterviewPracticePage() {
           <label className="receipt-personalization"><input type="checkbox" name="useReceipts" checked={setup.useReceipts} onChange={updateSetup} /><span><strong>Personalize with my career proof</strong><small>{receipts.length ? `${receipts.length} Impact Receipt${receipts.length === 1 ? "" : "s"} available` : "No Impact Receipts loaded yet — the interview still works normally."}</small></span></label>
           <button className="start-interview-button" type="submit">Start practice interview <ChevronRight size={18} /></button>
         </form>
-        <aside className="interview-preview-card"><div className="preview-interviewer-window"><div className="interviewer-avatar">AJ</div><div><span>Aisha Jordan</span><strong>BragStack Virtual Interviewer</strong></div></div><div className="preview-question-card"><span>REAL INTERVIEW COACHING</span><p>Follow-ups target the missing part of your answer instead of simply repeating the original question.</p></div><div className="preview-capabilities"><div><CheckCircle2 size={17} /><span>Automatic greeting + spoken questions</span></div><div><CheckCircle2 size={17} /><span>1, 3, or 5 minute response timer</span></div><div><CheckCircle2 size={17} /><span>Specific strengths + improvements</span></div><div><CheckCircle2 size={17} /><span>Professional-language red flag warnings</span></div><div><CheckCircle2 size={17} /><span>1–5 star final interview rating</span></div></div></aside>
+        <aside className="interview-preview-card"><div className="preview-interviewer-window"><div className="interviewer-avatar">AJ</div><div><span>Aisha Jordan</span><strong>Boasted Virtual Interviewer</strong></div></div><div className="preview-question-card"><span>REAL INTERVIEW COACHING</span><p>Follow-ups target the missing part of your answer instead of simply repeating the original question.</p></div><div className="preview-capabilities"><div><CheckCircle2 size={17} /><span>Automatic greeting + spoken questions</span></div><div><CheckCircle2 size={17} /><span>1, 3, or 5 minute response timer</span></div><div><CheckCircle2 size={17} /><span>Specific strengths + improvements</span></div><div><CheckCircle2 size={17} /><span>Professional-language red flag warnings</span></div><div><CheckCircle2 size={17} /><span>1–5 star final interview rating</span></div></div></aside>
       </section>
     </main>
   );
@@ -791,7 +791,7 @@ export default function InterviewPracticePage() {
     <header className="interview-room-header"><div><span>{plan.roleTitle}</span><strong>Practice Interview with Aisha Jordan</strong></div><div className="question-progress"><span>Question {questionIndex + 1} of {plan.questions.length}</span><div><i style={{ width: `${((questionIndex + 1) / plan.questions.length) * 100}%` }} /></div></div></header>
     <section className="interview-room-grid">
       <div className="interview-video-stage">
-        <div className="virtual-interviewer animated-interviewer-host"><AnimatedInterviewerAvatar state={avatarState} name="Aisha Jordan" /><div className="animated-avatar-caption" aria-hidden="true"><strong>Aisha Jordan</strong><span>BragStack Virtual Interviewer</span></div></div>
+        <div className="virtual-interviewer animated-interviewer-host"><AnimatedInterviewerAvatar state={avatarState} name="Aisha Jordan" /><div className="animated-avatar-caption" aria-hidden="true"><strong>Aisha Jordan</strong><span>Boasted Virtual Interviewer</span></div></div>
         <div className="candidate-video-tile">{cameraStream ? <video ref={videoRef} autoPlay muted playsInline /> : <div className="camera-placeholder"><CameraOff size={28} /><span>Your camera is off</span></div>}<div className="candidate-video-label">You</div></div>
         <div className="video-controls">{cameraStream ? <button type="button" onClick={disableCamera}><CameraOff size={17} /> Camera off</button> : <button type="button" onClick={enableCamera} disabled={!capabilities.camera}><Camera size={17} /> Enable camera</button>}<button type="button" onClick={() => { void replayQuestion(); }} disabled={!capabilities.speechSynthesis || sequenceBusyRef.current}><Volume2 size={17} /> Replay question</button></div>
         {cameraError && <p className="camera-error">{cameraError}</p>}

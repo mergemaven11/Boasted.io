@@ -1,4 +1,4 @@
-"""Internal quality telemetry for BragStack smart features.
+"""Internal quality telemetry for Boasted smart features.
 
 Only aggregate/sanitized verification metadata is stored here. Resume text,
 job descriptions, private evidence, model prompts, and model output bodies are
