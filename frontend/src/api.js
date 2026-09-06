@@ -36,6 +36,24 @@ function getPacketPayload(startDate, endDate, options = {}) {
     ...(options.issuingBody ? { issuing_body: options.issuingBody } : {}),
     ...(options.reviewType ? { review_type: options.reviewType } : {}),
     ...(options.requirementNotes ? { requirement_notes: options.requirementNotes } : {}),
+    ...(options.programName ? { program_name: options.programName } : {}),
+    ...(options.institutionName ? { institution_name: options.institutionName } : {}),
+    ...(options.applicationType ? { application_type: options.applicationType } : {}),
+    ...(options.applicationDeadline ? { application_deadline: options.applicationDeadline } : {}),
+    ...(options.applicationPrompt ? { application_prompt: options.applicationPrompt } : {}),
+    ...(options.scholarshipName ? { scholarship_name: options.scholarshipName } : {}),
+    ...(options.sponsorName ? { sponsor_name: options.sponsorName } : {}),
+    ...(options.awardFocus ? { award_focus: options.awardFocus } : {}),
+    ...(options.scholarshipDeadline ? { scholarship_deadline: options.scholarshipDeadline } : {}),
+    ...(options.essayPrompt ? { essay_prompt: options.essayPrompt } : {}),
+    ...(options.portfolioTitle ? { portfolio_title: options.portfolioTitle } : {}),
+    ...(options.portfolioAudience ? { portfolio_audience: options.portfolioAudience } : {}),
+    ...(options.portfolioFocus ? { portfolio_focus: options.portfolioFocus } : {}),
+    ...(options.projectNotes ? { project_notes: options.projectNotes } : {}),
+    ...(options.targetIndustry ? { target_industry: options.targetIndustry } : {}),
+    ...(options.transitionGoal ? { transition_goal: options.transitionGoal } : {}),
+    ...(options.transferableSkillsFocus ? { transferable_skills_focus: options.transferableSkillsFocus } : {}),
+    ...(options.transitionNotes ? { transition_notes: options.transitionNotes } : {}),
     ...(options.signatureEntryIds?.length ? { signature_entry_ids: options.signatureEntryIds } : {}),
     ...(Array.isArray(options.sections) ? { sections: options.sections } : {}),
     ...(options.packetNote ? { packet_note: options.packetNote } : {}),
@@ -62,6 +80,10 @@ function packetOptionsFromPacket(packet) {
   const target = packet?.target ?? {};
   const interviewPreferences = packet?.interview_preferences ?? {};
   const credentialReview = packet?.credential_review ?? {};
+  const application = packet?.application_context ?? {};
+  const scholarship = packet?.scholarship_context ?? {};
+  const portfolio = packet?.portfolio_context ?? {};
+  const transition = packet?.transition_context ?? {};
   const render = packet?.render_config ?? {};
   const annotations = packet?.annotations ?? {};
   const branding = packet?.branding ?? {};
@@ -71,7 +93,7 @@ function packetOptionsFromPacket(packet) {
     careerArea: context.career_area,
     roleTitle: subject.role,
     organization: context.organization,
-    targetRole: target.role,
+    targetRole: target.role || transition.target_role,
     targetLevel: target.level,
     targetOrganization: target.organization,
     selectedEntryIds: interviewPreferences.selected_entry_ids,
@@ -80,6 +102,24 @@ function packetOptionsFromPacket(packet) {
     issuingBody: credentialReview.issuing_body,
     reviewType: credentialReview.review_type,
     requirementNotes: credentialReview.requirement_notes,
+    programName: application.program_name,
+    institutionName: application.institution_name,
+    applicationType: application.application_type,
+    applicationDeadline: application.application_deadline,
+    applicationPrompt: application.application_prompt,
+    scholarshipName: scholarship.scholarship_name,
+    sponsorName: scholarship.sponsor_name,
+    awardFocus: scholarship.award_focus,
+    scholarshipDeadline: scholarship.scholarship_deadline,
+    essayPrompt: scholarship.essay_prompt,
+    portfolioTitle: portfolio.portfolio_title,
+    portfolioAudience: portfolio.portfolio_audience,
+    portfolioFocus: portfolio.portfolio_focus,
+    projectNotes: portfolio.project_notes,
+    targetIndustry: transition.target_industry,
+    transitionGoal: transition.transition_goal,
+    transferableSkillsFocus: transition.transferable_skills_focus,
+    transitionNotes: transition.transition_notes,
     signatureEntryIds: render.signature_entry_ids,
     sections: render.sections,
     theme: render.theme,
@@ -94,7 +134,7 @@ function packetOptionsFromPacket(packet) {
   };
 }
 
-async function downloadPacketPdf(path, packet, fallbackFilename) {
+async function downloadPacketFile(path, packet, fallbackFilename) {
   const options = packetOptionsFromPacket(packet);
   const response = await api.post(
     path,
@@ -210,24 +250,30 @@ export async function requestExecutiveExport(goalIds, purpose) { const response 
 export async function getCustomCareerReport(startDate, endDate) { const response = await api.get("/reports/custom", { params: { start_date: startDate, end_date: endDate } }); return response.data; }
 
 export async function getPerformancePacket(startDate, endDate, options = {}) {
-  const path = options.packetType === "promotion"
-    ? "/packets/promotion"
-    : options.packetType === "interview"
-      ? "/packets/interview"
-      : options.packetType === "certification"
-        ? "/packets/certification"
-        : "/packets/performance-review-v12";
-  const response = await api.post(path, getPacketPayload(startDate, endDate, options));
+  const packetType = options.packetType || "performance-review";
+  const response = await api.post(
+    `/packets/catalog/${encodeURIComponent(packetType)}`,
+    getPacketPayload(startDate, endDate, options),
+  );
   return response.data;
 }
-export async function getPromotionPacket(startDate, endDate, options = {}) { const response = await api.post("/packets/promotion", getPacketPayload(startDate, endDate, options)); return response.data; }
-export async function getInterviewPacket(startDate, endDate, options = {}) { const response = await api.post("/packets/interview", getPacketPayload(startDate, endDate, options)); return response.data; }
-export async function getCertificationPacket(startDate, endDate, options = {}) { const response = await api.post("/packets/certification", getPacketPayload(startDate, endDate, options)); return response.data; }
+export async function getPromotionPacket(startDate, endDate, options = {}) { return getPerformancePacket(startDate, endDate, { ...options, packetType: "promotion" }); }
+export async function getInterviewPacket(startDate, endDate, options = {}) { return getPerformancePacket(startDate, endDate, { ...options, packetType: "interview" }); }
+export async function getCertificationPacket(startDate, endDate, options = {}) { return getPerformancePacket(startDate, endDate, { ...options, packetType: "certification" }); }
 
-export async function downloadPerformancePacketPdf(packet) { return downloadPacketPdf("/packets/performance-review-v12.pdf", packet, "bragstack-performance-review.pdf"); }
-export async function downloadPromotionPacketPdf(packet) { return downloadPacketPdf("/packets/promotion.pdf", packet, "bragstack-promotion-packet.pdf"); }
-export async function downloadInterviewPacketPdf(packet) { return downloadPacketPdf("/packets/interview.pdf", packet, "bragstack-interview-packet.pdf"); }
-export async function downloadCertificationPacketPdf(packet) { return downloadPacketPdf("/packets/certification.pdf", packet, "bragstack-certification-licensure-packet.pdf"); }
+export async function downloadCareerPacket(packet, format = "pdf") {
+  const safeFormat = format === "docx" ? "docx" : "pdf";
+  const packetType = packet?.kind || "performance-review";
+  return downloadPacketFile(
+    `/packets/catalog/${encodeURIComponent(packetType)}.${safeFormat}`,
+    packet,
+    `bragstack-${packetType}.${safeFormat}`,
+  );
+}
+export async function downloadPerformancePacketPdf(packet) { return downloadCareerPacket(packet, "pdf"); }
+export async function downloadPromotionPacketPdf(packet) { return downloadCareerPacket(packet, "pdf"); }
+export async function downloadInterviewPacketPdf(packet) { return downloadCareerPacket(packet, "pdf"); }
+export async function downloadCertificationPacketPdf(packet) { return downloadCareerPacket(packet, "pdf"); }
 
 export async function getPacketExportHistory(limit = 20) { const response = await api.get("/packets/export-history", { params: { limit } }); return response.data; }
 
