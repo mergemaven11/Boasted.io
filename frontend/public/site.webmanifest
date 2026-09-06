@@ -1,7 +1,7 @@
 {
-  "name": "BragStack",
-  "short_name": "BragStack",
-  "description": "Turn everyday work into evidence-backed career proof for resumes, reviews, promotions, interviews, and job searches.",
+  "name": "Boasted",
+  "short_name": "Boasted",
+  "description": "Turn meaningful work into evidence-backed career proof for resumes, reviews, promotions, interviews, and job searches.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -9,8 +9,14 @@
   "theme_color": "#070b14",
   "icons": [
     {
-      "src": "/bragstack-logo-192.png",
+      "src": "/boasted-icon-192.png",
       "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/boasted-icon-512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
