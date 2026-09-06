@@ -3,8 +3,9 @@ import {
   ArrowRight,
   BrainCircuit,
   CheckCircle2,
+  FileText,
   Gauge,
-  Lightbulb,
+  MessageSquare,
   ReceiptText,
   RefreshCw,
   Sparkles,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import BragStackLoader from "./BragStackLoader.jsx";
 import "./CareerIntelligencePage.css";
+import "./CareerIntelligenceActions.css";
 
 const SKILLS_PER_PAGE = 6;
 
@@ -29,6 +31,51 @@ function SignalBadge({ signal }) {
   return <span className={`ci-signal ci-signal-${signal}`}>{titleCase(signal)}</span>;
 }
 
+function UseYourProof() {
+  const actions = [
+    {
+      icon: FileText,
+      title: "Build a résumé",
+      text: "Turn saved work into an ATS-friendly résumé without starting from a blank page.",
+      href: "/app/resume-builder",
+      cta: "Build résumé",
+    },
+    {
+      icon: Sparkles,
+      title: "Prepare a review",
+      text: "Pull your strongest wins into a performance-review packet while the details are still accurate.",
+      href: "/app/reports?packet=performance-review",
+      cta: "Create review",
+    },
+    {
+      icon: MessageSquare,
+      title: "Practice an interview",
+      text: "Turn real accomplishments into interview stories you can explain clearly and confidently.",
+      href: "/app/interview-practice",
+      cta: "Practice",
+    },
+  ];
+
+  return (
+    <section className="ci-use-proof" aria-label="Use your career proof">
+      <div className="ci-use-proof-heading">
+        <span>Use your proof</span>
+        <strong>Put what you already documented to work.</strong>
+      </div>
+      <div className="ci-use-proof-grid">
+        {actions.map(({ icon: Icon, title, text, href, cta }) => (
+          <a className="ci-use-proof-card" href={href} key={title}>
+            <Icon size={19} />
+            <strong>{title}</strong>
+            <p>{text}</p>
+            <span>{cta} <ArrowRight size={14} /></span>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function LoadingShell() {
   return (
     <main className="ci-page">
@@ -36,7 +83,7 @@ function LoadingShell() {
         <div>
           <span className="ci-kicker"><BrainCircuit size={17} /> Boasted Career Intelligence™</span>
           <h1>Your career proof, interpreted.</h1>
-          <p>See what your body of work repeatedly demonstrates, how well each signal is supported, and what is emerging next.</p>
+          <p>See what your work proves you&apos;re good at, where you&apos;re growing, and what to strengthen next.</p>
           <div className="ci-hero-actions">
             <a className="ci-primary" href="/app/accomplishments?create=1">Capture new proof <ArrowRight size={17} /></a>
             <a className="ci-secondary" href="/app/impact-receipts">View Impact Receipts</a>
@@ -44,8 +91,8 @@ function LoadingShell() {
         </div>
         <aside className="ci-lead-signal">
           <span>Analyzing your proof</span>
-          <strong>Building your combined career signal…</strong>
-          <p>Your accomplishments and Impact Receipts are being reconciled into distinct work demonstrations, durable skills, proof quality, and career themes.</p>
+          <strong>Finding your strongest patterns…</strong>
+          <p>Boasted is separating repeated strengths from newer skills and proof quality.</p>
         </aside>
       </section>
       <BragStackLoader message="Reading your career proof…" detail="Separating repetition, proof quality, themes, and recent growth." />
@@ -93,7 +140,7 @@ function CareerIntelligencePage() {
         const receipts = payload?.summary?.impact_receipts ?? 0;
         const total = payload?.summary?.total_proof_records ?? accomplishments + receipts;
         const demonstrations = payload?.summary?.distinct_demonstrations ?? total;
-        setRefreshMessage(`Career Intelligence re-ran across ${total} saved proof record${total === 1 ? "" : "s"}, representing ${demonstrations} distinct work demonstration${demonstrations === 1 ? "" : "s"}.`);
+        setRefreshMessage(`Updated from ${total} saved proof record${total === 1 ? "" : "s"} across ${demonstrations} distinct work demonstration${demonstrations === 1 ? "" : "s"}.`);
       }
     } catch (requestError) {
       console.error(requestError);
@@ -135,7 +182,6 @@ function CareerIntelligencePage() {
   const {
     summary = {},
     gaps = [],
-    recommended_actions: actions = [],
     top_categories: categories = [],
     career_profile: careerProfile = {},
     career_themes: careerThemes = [],
@@ -148,11 +194,6 @@ function CareerIntelligencePage() {
     : allSkills.slice(0, 4).map((skill) => skill.skill);
   const profileThemes = Array.isArray(careerProfile.primary_themes) ? careerProfile.primary_themes : [];
   const profileHeadline = careerProfile.headline || profileThemes.join(" · ") || profileSkills.slice(0, 3).join(" · ");
-  const profileSummary = careerProfile.summary || (
-    profileSkills.length
-      ? "These are the strongest repeated signals across your saved proof, with proof quality and recency tracked separately."
-      : "Add accomplishments and skills to start creating evidence-backed career intelligence."
-  );
   const recentGrowth = Array.isArray(careerProfile.recent_emerging_skills)
     ? careerProfile.recent_emerging_skills
     : [];
@@ -163,10 +204,10 @@ function CareerIntelligencePage() {
   return (
     <main className="ci-page">
       <section className="ci-hero">
-        <div>
+        <div className="ci-hero-main">
           <span className="ci-kicker"><BrainCircuit size={17} /> Boasted Career Intelligence™</span>
           <h1>Your career proof, interpreted.</h1>
-          <p>See what your body of work repeatedly demonstrates, how strongly each signal is supported, and what is emerging next.</p>
+          <p>See what your work proves you&apos;re good at, where you&apos;re growing, and what to strengthen next.</p>
           <div className="ci-hero-actions">
             <a className="ci-primary" href="/app/accomplishments?create=1">Capture new proof <ArrowRight size={17} /></a>
             <button className="ci-secondary ci-refresh" type="button" disabled={isRefreshing} onClick={() => void loadIntelligence({ refresh: true })}>
@@ -175,6 +216,7 @@ function CareerIntelligencePage() {
             <a className="ci-secondary" href="/app/impact-receipts">View Impact Receipts</a>
           </div>
           {refreshMessage && <div className="ci-refresh-message" role="status">{refreshMessage}</div>}
+          <UseYourProof />
         </div>
 
         <aside className="ci-lead-signal">
@@ -182,19 +224,13 @@ function CareerIntelligencePage() {
           {profileSkills.length ? (
             <>
               <strong>{profileHeadline}</strong>
-              <p>
-                <b>{totalProofRecords} saved proof record{totalProofRecords === 1 ? "" : "s"} → {distinctDemonstrations} distinct demonstration{distinctDemonstrations === 1 ? "" : "s"}.</b>{" "}
-                {profileSummary}
-              </p>
-              {careerProfile.maturity && <p><b>Profile maturity:</b> {titleCase(careerProfile.maturity)} evidence coverage.</p>}
-              {recentGrowth.length > 0 && (
-                <p><b>Recent growth:</b> {recentGrowth.join(" · ")}. These stay separate from durable strengths until they repeat across distinct work examples.</p>
-              )}
+              {careerProfile.maturity && <p><b>Proof strength:</b> {titleCase(careerProfile.maturity)}</p>}
+              {recentGrowth.length > 0 && <p><b>Growing now:</b> {recentGrowth.slice(0, 4).join(" · ")}</p>}
             </>
           ) : (
             <>
               <strong>Build your signal</strong>
-              <p>{profileSummary}</p>
+              <p>Add accomplishments and skills to reveal your strongest patterns.</p>
             </>
           )}
         </aside>
@@ -267,11 +303,6 @@ function CareerIntelligencePage() {
 
         <aside className="ci-side-stack">
           <article className="ci-panel">
-            <div className="ci-panel-heading"><div><span>Next moves</span><h2>Recommended actions</h2></div><Lightbulb size={22} /></div>
-            <ol className="ci-actions">{actions.map((action, index) => <li key={action}><span>{index + 1}</span><p>{action}</p></li>)}</ol>
-          </article>
-
-          <article className="ci-panel">
             <div className="ci-panel-heading"><div><span>Career breadth</span><h2>Career themes</h2></div><Target size={22} /></div>
             {themeRows.length ? (
               <div className="ci-categories">
@@ -299,7 +330,7 @@ function CareerIntelligencePage() {
       </section>
 
       <p className="ci-methodology">
-        Career Intelligence separates durable signals from proof quality and recency. Repetition is measured across distinct work demonstrations; linked Impact Receipts enrich the original work instead of creating fake repetition, attachment volume cannot inflate breadth, and creating a receipt later does not make old work look newly demonstrated.
+        Career Intelligence separates repeated strengths, proof quality, and recent growth so one item cannot make a skill look stronger than it really is.
       </p>
     </main>
   );
