@@ -105,6 +105,7 @@ jobs:
           npm run test:safety
           npm run test:seo
           npm run test:settings
+          npm run test:layout
       - name: Lint
         run: npm run lint
       - name: Build
