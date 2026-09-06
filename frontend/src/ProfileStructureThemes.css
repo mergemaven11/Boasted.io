@@ -1,160 +1,189 @@
-/* Professional public-profile structure library.
-   Color palettes remain independent; layout controls composition and typography. */
-.proof-portfolio {
-  --profile-surface: color-mix(in srgb, var(--theme-bg) 92%, white);
-  --profile-line: color-mix(in srgb, var(--theme-accent) 20%, #94a3b8);
-  --profile-muted: #aab5c7;
+/* 12 distinct flower profile templates.
+   Layout changes composition; the saved profile palette always controls color. */
+.proof-portfolio{
+  --profile-surface:color-mix(in srgb,var(--theme-bg) 84%,white 7%);
+  --profile-surface-2:color-mix(in srgb,var(--theme-bg) 74%,white 11%);
+  --profile-line:color-mix(in srgb,var(--theme-accent) 30%,transparent);
+  --profile-muted:#9aa8bb;
+  background:
+    radial-gradient(circle at 8% 2%,color-mix(in srgb,var(--theme-accent) 16%,transparent),transparent 30%),
+    radial-gradient(circle at 92% 12%,color-mix(in srgb,var(--theme-accent-2) 14%,transparent),transparent 34%),
+    var(--theme-bg)!important;
 }
-.proof-portfolio .portfolio-avatar { overflow:hidden; }
-.proof-portfolio .portfolio-avatar img { display:block; width:100%; height:100%; object-fit:cover; }
-.proof-portfolio .portfolio-section,
-.proof-portfolio .portfolio-proof-passport,
-.proof-portfolio .portfolio-impact-card,
-.proof-portfolio .portfolio-work-card {
-  border-color: var(--profile-line);
-  box-shadow: none;
-}
-.proof-portfolio .portfolio-impact-card,
-.proof-portfolio .portfolio-work-card,
-.proof-portfolio .portfolio-proof-passport {
-  border-radius: 10px;
-}
-.portfolio-career-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
-.portfolio-career-column { display:grid; align-content:start; gap:0; }
-.portfolio-career-item { position:relative; padding:22px 0 22px 28px; border-left:1px solid var(--profile-line); }
-.portfolio-career-item::before { content:""; position:absolute; left:-5px; top:29px; width:9px; height:9px; border-radius:50%; background:var(--theme-accent); }
-.portfolio-career-item + .portfolio-career-item { border-top:1px solid color-mix(in srgb,var(--profile-line) 60%,transparent); }
-.portfolio-career-meta { display:flex; flex-wrap:wrap; gap:8px 14px; margin-bottom:8px; color:var(--profile-muted); font-size:.82rem; font-weight:700; }
-.portfolio-career-item h3 { margin:0; color:#f8fafc; font-size:1.18rem; }
-.portfolio-career-item h3 span { color:var(--profile-muted); font-weight:500; }
-.portfolio-career-item p { margin:10px 0 0; color:#cbd5e1; line-height:1.7; white-space:pre-line; }
-.portfolio-career-item a { display:inline-flex; align-items:center; gap:6px; margin-top:12px; color:var(--theme-accent); font-weight:800; }
+.proof-portfolio *{min-width:0}
+.proof-portfolio .portfolio-avatar{overflow:hidden}
+.proof-portfolio .portfolio-avatar img{display:block;width:100%;height:100%;object-fit:cover}
+.proof-portfolio .portfolio-section,.proof-portfolio .portfolio-proof-passport,.proof-portfolio .portfolio-impact-card,.proof-portfolio .portfolio-work-card{border-color:var(--profile-line);box-shadow:none}
+.proof-portfolio .portfolio-impact-card,.proof-portfolio .portfolio-work-card,.proof-portfolio .portfolio-proof-passport{background:var(--profile-surface)}
+.portfolio-career-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.portfolio-career-column{display:grid;align-content:start;gap:0}
+.portfolio-career-item{position:relative;padding:22px 0 22px 28px;border-left:1px solid var(--profile-line)}
+.portfolio-career-item::before{content:"";position:absolute;left:-5px;top:29px;width:9px;height:9px;border-radius:50%;background:var(--theme-accent)}
+.portfolio-career-item+.portfolio-career-item{border-top:1px solid color-mix(in srgb,var(--profile-line) 60%,transparent)}
+.portfolio-career-meta{display:flex;flex-wrap:wrap;gap:8px 14px;margin-bottom:8px;color:var(--profile-muted);font-size:.82rem;font-weight:700}
+.portfolio-career-item h3{margin:0;color:#f8fafc;font-size:1.18rem}
+.portfolio-career-item h3 span{color:var(--profile-muted);font-weight:500}
+.portfolio-career-item p{margin:10px 0 0;color:#cbd5e1;line-height:1.7;white-space:pre-line}
+.portfolio-career-item a{display:inline-flex;align-items:center;gap:6px;margin-top:12px;color:var(--theme-accent);font-weight:800}
 
-/* Editorial: quiet, publication-like hierarchy. */
-.proof-portfolio[data-layout="editorial"] .proof-profile-inner { max-width:1120px; }
-.proof-portfolio[data-layout="editorial"] .portfolio-hero { grid-template-columns:minmax(0,1.65fr) minmax(280px,.65fr); padding-top:70px; border-top:1px solid var(--profile-line); }
-.proof-portfolio[data-layout="editorial"] .portfolio-identity h1,
-.proof-portfolio[data-layout="editorial"] .portfolio-section h2 { font-family:Georgia,"Times New Roman",serif; font-weight:500; letter-spacing:-.04em; }
-.proof-portfolio[data-layout="editorial"] .portfolio-identity h1 { font-size:clamp(3.8rem,9vw,8rem); }
-.proof-portfolio[data-layout="editorial"] .portfolio-avatar { border-radius:50%; }
-.proof-portfolio[data-layout="editorial"] .portfolio-impact-grid,
-.proof-portfolio[data-layout="editorial"] .portfolio-work-grid { grid-template-columns:1fr 1fr; }
-.proof-portfolio[data-layout="editorial"] .portfolio-section { border-radius:0; border-left:0; border-right:0; background:transparent; }
+/* DAHLIA — editorial magazine */
+.proof-portfolio[data-layout="editorial"] .proof-profile-inner{max-width:1120px}
+.proof-portfolio[data-layout="editorial"] .portfolio-hero{grid-template-columns:minmax(0,1.72fr) minmax(250px,.58fr);gap:48px;padding:76px 8px 58px;border-radius:0;border-width:1px 0;background:transparent}
+.proof-portfolio[data-layout="editorial"] .portfolio-identity h1,.proof-portfolio[data-layout="editorial"] .portfolio-section h2{font-family:Georgia,"Times New Roman",serif;font-weight:500;letter-spacing:-.045em}
+.proof-portfolio[data-layout="editorial"] .portfolio-identity h1{font-size:clamp(4rem,9vw,8rem);line-height:.9}
+.proof-portfolio[data-layout="editorial"] .portfolio-avatar{border-radius:50%}
+.proof-portfolio[data-layout="editorial"] .portfolio-proof-passport{align-self:end;border:0;border-left:3px solid var(--theme-accent);border-radius:0;padding:20px 0 20px 24px;background:transparent}
+.proof-portfolio[data-layout="editorial"] .portfolio-section{border-radius:0;border-left:0;border-right:0;background:transparent}
+.proof-portfolio[data-layout="editorial"] .portfolio-impact-grid,.proof-portfolio[data-layout="editorial"] .portfolio-work-grid{grid-template-columns:1.3fr .7fr}
+.proof-portfolio[data-layout="editorial"] .portfolio-impact-card.featured{grid-column:1/-1}
 
-/* Executive sidebar: résumé-inspired, high-information composition. */
-.proof-portfolio[data-layout="executive-sidebar"] .proof-profile-inner { max-width:1180px; display:grid; grid-template-columns:300px minmax(0,1fr); }
-.proof-portfolio[data-layout="executive-sidebar"] .portfolio-topbar,
-.proof-portfolio[data-layout="executive-sidebar"] .portfolio-footer { grid-column:1/-1; }
-.proof-portfolio[data-layout="executive-sidebar"] .portfolio-hero { grid-column:1/-1; grid-template-columns:300px minmax(0,1fr); gap:0; padding:0; overflow:hidden; }
-.proof-portfolio[data-layout="executive-sidebar"] .portfolio-identity { padding:48px 30px; background:color-mix(in srgb,var(--theme-accent) 18%,var(--theme-bg)); }
-.proof-portfolio[data-layout="executive-sidebar"] .portfolio-identity h1 { font-size:clamp(2.5rem,5vw,4.8rem); }
-.proof-portfolio[data-layout="executive-sidebar"] .portfolio-proof-passport { border:0; border-radius:0; padding:48px; background:var(--profile-surface); }
-.proof-portfolio[data-layout="executive-sidebar"] .portfolio-skills-section,
-.proof-portfolio[data-layout="executive-sidebar"] .portfolio-career-section { grid-column:1; margin-right:20px; }
-.proof-portfolio[data-layout="executive-sidebar"] .portfolio-featured-impact,
-.proof-portfolio[data-layout="executive-sidebar"] .portfolio-work-section,
-.proof-portfolio[data-layout="executive-sidebar"] .portfolio-contact-section { grid-column:2; }
-.proof-portfolio[data-layout="executive-sidebar"] .portfolio-career-grid { grid-template-columns:1fr; }
+/* MAGNOLIA — executive sidebar résumé */
+.proof-portfolio[data-layout="executive-sidebar"] .proof-profile-inner{max-width:1180px;display:grid;grid-template-columns:290px minmax(0,1fr);column-gap:20px}
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-topbar,.proof-portfolio[data-layout="executive-sidebar"] .portfolio-footer{grid-column:1/-1}
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-hero{grid-column:1/-1;grid-template-columns:290px minmax(0,1fr);gap:0;padding:0;overflow:hidden;border-radius:24px}
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-identity{padding:44px 28px;background:linear-gradient(180deg,color-mix(in srgb,var(--theme-accent) 27%,var(--theme-bg)),color-mix(in srgb,var(--theme-accent-2) 12%,var(--theme-bg)))}
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-identity h1{font-size:clamp(2.4rem,5vw,4.6rem)}
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-avatar{width:90px;height:90px;border-radius:50%}
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-proof-passport{border:0;border-radius:0;padding:44px;background:var(--profile-surface)}
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-skills-section,.proof-portfolio[data-layout="executive-sidebar"] .portfolio-career-section{grid-column:1;margin-top:20px;padding:24px 18px;border-radius:18px;background:color-mix(in srgb,var(--theme-accent) 7%,var(--theme-bg))}
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-featured-impact,.proof-portfolio[data-layout="executive-sidebar"] .portfolio-work-section,.proof-portfolio[data-layout="executive-sidebar"] .portfolio-contact-section{grid-column:2}
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-career-grid{grid-template-columns:1fr}
 
-/* Timeline: makes career progression the visual spine. */
-.proof-portfolio[data-layout="career-timeline"] .portfolio-hero { border-bottom:1px solid var(--profile-line); }
-.proof-portfolio[data-layout="career-timeline"] .portfolio-career-grid { grid-template-columns:1fr; max-width:880px; }
-.proof-portfolio[data-layout="career-timeline"] .portfolio-career-item { padding-left:42px; }
-.proof-portfolio[data-layout="career-timeline"] .portfolio-career-item::before { left:-8px; width:15px; height:15px; box-shadow:0 0 0 6px color-mix(in srgb,var(--theme-accent) 16%,transparent); }
-.proof-portfolio[data-layout="career-timeline"] .portfolio-impact-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
-.proof-portfolio[data-layout="career-timeline"] .portfolio-impact-card.featured { grid-column:span 2; }
+/* IRIS — career timeline */
+.proof-portfolio[data-layout="career-timeline"] .proof-profile-inner{max-width:1040px;display:flex;flex-direction:column}
+.proof-portfolio[data-layout="career-timeline"] .portfolio-topbar{order:0}.proof-portfolio[data-layout="career-timeline"] .portfolio-hero{order:1}.proof-portfolio[data-layout="career-timeline"] .portfolio-career-section{order:2}.proof-portfolio[data-layout="career-timeline"] .portfolio-featured-impact{order:3}.proof-portfolio[data-layout="career-timeline"] .portfolio-skills-section{order:4}.proof-portfolio[data-layout="career-timeline"] .portfolio-work-section{order:5}.proof-portfolio[data-layout="career-timeline"] .portfolio-contact-section{order:6}.proof-portfolio[data-layout="career-timeline"] .portfolio-footer{order:7}
+.proof-portfolio[data-layout="career-timeline"] .portfolio-hero{border-radius:18px;border-bottom:1px solid var(--profile-line)}
+.proof-portfolio[data-layout="career-timeline"] .portfolio-career-grid{grid-template-columns:1fr;max-width:860px;margin:auto}
+.proof-portfolio[data-layout="career-timeline"] .portfolio-career-item{padding:30px 0 30px 52px;border-left:3px solid color-mix(in srgb,var(--theme-accent) 58%,transparent)}
+.proof-portfolio[data-layout="career-timeline"] .portfolio-career-item::before{left:-10px;width:17px;height:17px;box-shadow:0 0 0 7px color-mix(in srgb,var(--theme-accent) 16%,transparent)}
+.proof-portfolio[data-layout="career-timeline"] .portfolio-impact-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.proof-portfolio[data-layout="career-timeline"] .portfolio-impact-card.featured{grid-column:span 2}
 
-/* Studio split: bold first impression without novelty UI. */
-.proof-portfolio[data-layout="studio-split"] .portfolio-hero { min-height:620px; align-items:stretch; padding:0; overflow:hidden; }
-.proof-portfolio[data-layout="studio-split"] .portfolio-identity { display:flex; flex-direction:column; justify-content:center; padding:clamp(36px,7vw,88px); background:#f5f2ea; color:#111827; }
-.proof-portfolio[data-layout="studio-split"] .portfolio-identity h1,
-.proof-portfolio[data-layout="studio-split"] .portfolio-identity .proof-headline { color:#111827; }
-.proof-portfolio[data-layout="studio-split"] .portfolio-identity .proof-bio,
-.proof-portfolio[data-layout="studio-split"] .portfolio-identity .proof-location { color:#475569; }
-.proof-portfolio[data-layout="studio-split"] .portfolio-proof-passport { border:0; border-radius:0; display:flex; flex-direction:column; justify-content:center; padding:clamp(36px,6vw,72px); background:linear-gradient(145deg,var(--theme-bg),color-mix(in srgb,var(--theme-accent) 18%,var(--theme-bg))); }
-.proof-portfolio[data-layout="studio-split"] .portfolio-avatar { width:96px; height:96px; border-radius:50%; }
-.proof-portfolio[data-layout="studio-split"] .portfolio-section { border-radius:4px; }
+/* PEONY — creative split-screen studio */
+.proof-portfolio[data-layout="studio-split"] .proof-profile-inner{max-width:1240px}
+.proof-portfolio[data-layout="studio-split"] .portfolio-hero{min-height:610px;grid-template-columns:1.08fr .92fr;gap:0;align-items:stretch;padding:0;overflow:hidden;border-radius:30px}
+.proof-portfolio[data-layout="studio-split"] .portfolio-identity{display:flex;flex-direction:column;justify-content:center;padding:clamp(38px,7vw,86px);background:linear-gradient(145deg,color-mix(in srgb,var(--theme-accent) 30%,var(--theme-bg)),color-mix(in srgb,var(--theme-accent-2) 14%,var(--theme-bg)))}
+.proof-portfolio[data-layout="studio-split"] .portfolio-proof-passport{border:0;border-radius:0;display:flex;flex-direction:column;justify-content:center;padding:clamp(38px,6vw,72px);background:color-mix(in srgb,var(--theme-bg) 83%,white 7%)}
+.proof-portfolio[data-layout="studio-split"] .portfolio-avatar{width:104px;height:104px;border-radius:50%}
+.proof-portfolio[data-layout="studio-split"] .portfolio-section{border-radius:8px}
+.proof-portfolio[data-layout="studio-split"] .portfolio-work-grid{grid-template-columns:1.25fr .75fr}
+.proof-portfolio[data-layout="studio-split"] .portfolio-work-card:nth-child(3n){grid-column:1/-1}
 
-@media(max-width:860px){
-  .portfolio-career-grid { grid-template-columns:1fr; }
-  .proof-portfolio[data-layout="executive-sidebar"] .proof-profile-inner { display:block; }
-  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-hero { grid-template-columns:1fr; }
-  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-skills-section,
-  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-career-section { margin-right:0; }
-  .proof-portfolio[data-layout="career-timeline"] .portfolio-impact-grid { grid-template-columns:1fr; }
-  .proof-portfolio[data-layout="career-timeline"] .portfolio-impact-card.featured { grid-column:auto; }
-}
-@media(max-width:620px){
-  .proof-portfolio[data-layout="editorial"] .portfolio-impact-grid,
-  .proof-portfolio[data-layout="editorial"] .portfolio-work-grid { grid-template-columns:1fr; }
-  .proof-portfolio[data-layout="studio-split"] .portfolio-hero { min-height:0; }
-}
-
-/* Minimal Column */
-.proof-portfolio[data-layout="minimal-column"] .proof-profile-inner{max-width:860px}
-.proof-portfolio[data-layout="minimal-column"] .portfolio-hero{grid-template-columns:1fr;text-align:center;padding:80px 24px}
+/* CAMELLIA — minimal reading column */
+.proof-portfolio[data-layout="minimal-column"] .proof-profile-inner{max-width:820px}
+.proof-portfolio[data-layout="minimal-column"] .portfolio-hero{grid-template-columns:1fr;text-align:center;padding:88px 28px 58px;border-radius:0;border-width:0 0 1px;background:transparent}
 .proof-portfolio[data-layout="minimal-column"] .portfolio-avatar,.proof-portfolio[data-layout="minimal-column"] .proof-actions{margin-left:auto;margin-right:auto}
-.proof-portfolio[data-layout="minimal-column"] .portfolio-proof-passport{margin-top:28px;text-align:left}
+.proof-portfolio[data-layout="minimal-column"] .portfolio-proof-passport{margin-top:30px;text-align:left;display:grid;grid-template-columns:.72fr 1.28fr;align-items:center;border-radius:18px}
+.proof-portfolio[data-layout="minimal-column"] .portfolio-section{background:transparent;border-radius:0;border-left:0;border-right:0;padding-left:0;padding-right:0}
 .proof-portfolio[data-layout="minimal-column"] .portfolio-impact-grid,.proof-portfolio[data-layout="minimal-column"] .portfolio-work-grid,.proof-portfolio[data-layout="minimal-column"] .portfolio-career-grid{grid-template-columns:1fr}
+.proof-portfolio[data-layout="minimal-column"] .portfolio-impact-card,.proof-portfolio[data-layout="minimal-column"] .portfolio-work-card{border-radius:16px}
 
-/* Portfolio Grid */
-.proof-portfolio[data-layout="portfolio-grid"] .portfolio-hero{grid-template-columns:1fr 1fr}
-.proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-grid,.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-.proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-card.featured{grid-column:span 2;grid-row:span 2}
-.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-card{min-height:360px;display:flex;flex-direction:column}
+/* LOTUS — modular portfolio mosaic */
+.proof-portfolio[data-layout="portfolio-grid"] .proof-profile-inner{max-width:1260px}
+.proof-portfolio[data-layout="portfolio-grid"] .portfolio-hero{grid-template-columns:1fr 1fr;border-radius:24px}
+.proof-portfolio[data-layout="portfolio-grid"] .portfolio-featured-impact,.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-section{background:transparent;border:0;padding-left:0;padding-right:0}
+.proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-grid,.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-flow:dense}
+.proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-card.featured{grid-column:span 2;grid-row:span 2;min-height:420px}
+.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-card{min-height:340px;display:flex;flex-direction:column}
+.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-card:nth-child(4n+1){grid-column:span 2}
 .proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-card .proof-chips{margin-top:auto}
 
-/* Case Study */
-.proof-portfolio[data-layout="case-study"] .proof-profile-inner{max-width:1040px}
-.proof-portfolio[data-layout="case-study"] .portfolio-hero{grid-template-columns:1fr;padding:96px 0 64px;border-bottom:1px solid var(--profile-line)}
-.proof-portfolio[data-layout="case-study"] .portfolio-proof-passport{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+/* HIBISCUS — outcome-led case studies */
+.proof-portfolio[data-layout="case-study"] .proof-profile-inner{max-width:1040px;display:flex;flex-direction:column}
+.proof-portfolio[data-layout="case-study"] .portfolio-topbar{order:0}.proof-portfolio[data-layout="case-study"] .portfolio-hero{order:1}.proof-portfolio[data-layout="case-study"] .portfolio-featured-impact{order:2}.proof-portfolio[data-layout="case-study"] .portfolio-career-section{order:3}.proof-portfolio[data-layout="case-study"] .portfolio-work-section{order:4}.proof-portfolio[data-layout="case-study"] .portfolio-skills-section{order:5}.proof-portfolio[data-layout="case-study"] .portfolio-contact-section{order:6}.proof-portfolio[data-layout="case-study"] .portfolio-footer{order:7}
+.proof-portfolio[data-layout="case-study"] .portfolio-hero{grid-template-columns:1fr;padding:92px 0 58px;border:0;border-bottom:1px solid var(--profile-line);border-radius:0;background:transparent}
+.proof-portfolio[data-layout="case-study"] .portfolio-proof-passport{display:grid;grid-template-columns:.8fr 1.2fr;gap:24px;margin-top:26px}
 .proof-portfolio[data-layout="case-study"] .portfolio-impact-grid,.proof-portfolio[data-layout="case-study"] .portfolio-work-grid{grid-template-columns:1fr}
-.proof-portfolio[data-layout="case-study"] .portfolio-impact-card,.proof-portfolio[data-layout="case-study"] .portfolio-work-card{padding:clamp(28px,5vw,58px)}
-.proof-portfolio[data-layout="case-study"] .portfolio-work-card-head{max-width:720px}
+.proof-portfolio[data-layout="case-study"] .portfolio-impact-card,.proof-portfolio[data-layout="case-study"] .portfolio-work-card{padding:clamp(30px,5vw,60px);border-radius:22px}
+.proof-portfolio[data-layout="case-study"] .portfolio-impact-card.featured{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(220px,.75fr);column-gap:34px}
+.proof-portfolio[data-layout="case-study"] .portfolio-metric strong{font-size:clamp(3.2rem,8vw,6.5rem)}
 
-/* Modern Résumé */
-.proof-portfolio[data-layout="modern-resume"] .portfolio-hero{grid-template-columns:2fr 1fr;border-radius:0;border-top:6px solid var(--theme-accent)}
+/* POPPY — modern résumé */
+.proof-portfolio[data-layout="modern-resume"] .proof-profile-inner{max-width:1140px;display:grid;grid-template-columns:260px minmax(0,1fr);gap:18px}
+.proof-portfolio[data-layout="modern-resume"] .portfolio-topbar,.proof-portfolio[data-layout="modern-resume"] .portfolio-hero,.proof-portfolio[data-layout="modern-resume"] .portfolio-footer{grid-column:1/-1}
+.proof-portfolio[data-layout="modern-resume"] .portfolio-hero{grid-template-columns:2fr 1fr;border-radius:0;border-top:7px solid var(--theme-accent);background:var(--profile-surface)}
+.proof-portfolio[data-layout="modern-resume"] .portfolio-skills-section{grid-column:1;padding:24px 18px;border-radius:0;background:color-mix(in srgb,var(--theme-accent) 7%,var(--theme-bg))}
+.proof-portfolio[data-layout="modern-resume"] .portfolio-career-section,.proof-portfolio[data-layout="modern-resume"] .portfolio-featured-impact,.proof-portfolio[data-layout="modern-resume"] .portfolio-work-section,.proof-portfolio[data-layout="modern-resume"] .portfolio-contact-section{grid-column:2}
 .proof-portfolio[data-layout="modern-resume"] .portfolio-career-grid{grid-template-columns:1fr}
 .proof-portfolio[data-layout="modern-resume"] .portfolio-work-grid{grid-template-columns:1fr 1fr}
 .proof-portfolio[data-layout="modern-resume"] .portfolio-section{border-radius:0;border-left-width:4px}
-.proof-portfolio[data-layout="modern-resume"] .portfolio-section-heading{border-bottom:2px solid var(--profile-line);padding-bottom:18px}
+.proof-portfolio[data-layout="modern-resume"] .portfolio-section-heading{border-bottom:2px solid var(--profile-line);padding-bottom:16px}
 
-/* Command Center */
+/* PROTEA — technical command center */
 .proof-portfolio[data-layout="command-center"]{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
-.proof-portfolio[data-layout="command-center"] .proof-profile-inner{max-width:1260px}
-.proof-portfolio[data-layout="command-center"] .portfolio-hero{border-radius:4px;border-color:var(--theme-accent)}
-.proof-portfolio[data-layout="command-center"] .portfolio-section,.proof-portfolio[data-layout="command-center"] .portfolio-impact-card,.proof-portfolio[data-layout="command-center"] .portfolio-work-card{border-radius:3px;background:color-mix(in srgb,var(--theme-bg) 94%,#0f172a)}
-.proof-portfolio[data-layout="command-center"] .portfolio-section-heading{border-bottom:1px dashed var(--profile-line)}
-.proof-portfolio[data-layout="command-center"] .portfolio-impact-grid,.proof-portfolio[data-layout="command-center"] .portfolio-work-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.proof-portfolio[data-layout="command-center"] .proof-profile-inner{max-width:1280px}
+.proof-portfolio[data-layout="command-center"] .portfolio-hero{border-radius:5px;border-color:var(--theme-accent);background:linear-gradient(135deg,color-mix(in srgb,var(--theme-accent) 10%,var(--theme-bg)),var(--theme-bg))}
+.proof-portfolio[data-layout="command-center"] .portfolio-section,.proof-portfolio[data-layout="command-center"] .portfolio-impact-card,.proof-portfolio[data-layout="command-center"] .portfolio-work-card{border-radius:3px;background:color-mix(in srgb,var(--theme-bg) 90%,var(--theme-accent) 5%)}
+.proof-portfolio[data-layout="command-center"] .portfolio-section-heading{border-bottom:1px dashed var(--theme-accent);padding-bottom:14px}
+.proof-portfolio[data-layout="command-center"] .portfolio-impact-grid,.proof-portfolio[data-layout="command-center"] .portfolio-work-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.proof-portfolio[data-layout="command-center"] .portfolio-proof-number{border:1px solid var(--profile-line);padding:14px;border-radius:2px}
 
-/* Academic */
-.proof-portfolio[data-layout="academic"]{--profile-muted:#475569;background:#f6f7f8!important;color:#172033}
-.proof-portfolio[data-layout="academic"] .proof-profile-inner{max-width:1000px}
-.proof-portfolio[data-layout="academic"] .portfolio-hero,.proof-portfolio[data-layout="academic"] .portfolio-section,.proof-portfolio[data-layout="academic"] .portfolio-impact-card,.proof-portfolio[data-layout="academic"] .portfolio-work-card,.proof-portfolio[data-layout="academic"] .portfolio-proof-passport{background:#fff;color:#172033;border-color:#cbd5e1;border-radius:0}
-.proof-portfolio[data-layout="academic"] h1,.proof-portfolio[data-layout="academic"] h2,.proof-portfolio[data-layout="academic"] h3{font-family:Georgia,"Times New Roman",serif;color:#172033}
-.proof-portfolio[data-layout="academic"] p{color:#334155}
-.proof-portfolio[data-layout="academic"] .portfolio-career-grid{grid-template-columns:1fr}
+/* JASMINE — academic / scholarly CV */
+.proof-portfolio[data-layout="academic"] .proof-profile-inner{max-width:980px}
+.proof-portfolio[data-layout="academic"] .portfolio-topbar{border-bottom:2px solid var(--theme-accent)}
+.proof-portfolio[data-layout="academic"] .portfolio-hero,.proof-portfolio[data-layout="academic"] .portfolio-section,.proof-portfolio[data-layout="academic"] .portfolio-impact-card,.proof-portfolio[data-layout="academic"] .portfolio-work-card,.proof-portfolio[data-layout="academic"] .portfolio-proof-passport{border-radius:0;background:color-mix(in srgb,var(--theme-bg) 88%,white 6%)}
+.proof-portfolio[data-layout="academic"] .portfolio-hero{grid-template-columns:1fr;padding:54px 0 34px;border-width:0 0 1px;background:transparent}
+.proof-portfolio[data-layout="academic"] h1,.proof-portfolio[data-layout="academic"] h2,.proof-portfolio[data-layout="academic"] h3{font-family:Georgia,"Times New Roman",serif}
+.proof-portfolio[data-layout="academic"] .portfolio-career-grid,.proof-portfolio[data-layout="academic"] .portfolio-work-grid,.proof-portfolio[data-layout="academic"] .portfolio-impact-grid{grid-template-columns:1fr}
+.proof-portfolio[data-layout="academic"] .portfolio-career-item{border-left:0;padding-left:0}
+.proof-portfolio[data-layout="academic"] .portfolio-career-item::before{display:none}
+.proof-portfolio[data-layout="academic"] .portfolio-career-item+.portfolio-career-item{border-top:1px solid var(--profile-line)}
 
-/* Founder */
-.proof-portfolio[data-layout="founder"] .portfolio-hero{min-height:560px;align-items:center;background:linear-gradient(135deg,color-mix(in srgb,var(--theme-accent) 12%,var(--theme-bg)),var(--theme-bg))}
-.proof-portfolio[data-layout="founder"] .portfolio-identity h1{font-size:clamp(3.5rem,8vw,7.2rem)}
+/* MARIGOLD — founder / leadership traction */
+.proof-portfolio[data-layout="founder"] .proof-profile-inner{max-width:1220px;display:flex;flex-direction:column}
+.proof-portfolio[data-layout="founder"] .portfolio-topbar{order:0}.proof-portfolio[data-layout="founder"] .portfolio-hero{order:1}.proof-portfolio[data-layout="founder"] .portfolio-featured-impact{order:2}.proof-portfolio[data-layout="founder"] .portfolio-work-section{order:3}.proof-portfolio[data-layout="founder"] .portfolio-career-section{order:4}.proof-portfolio[data-layout="founder"] .portfolio-skills-section{order:5}.proof-portfolio[data-layout="founder"] .portfolio-contact-section{order:6}.proof-portfolio[data-layout="founder"] .portfolio-footer{order:7}
+.proof-portfolio[data-layout="founder"] .portfolio-hero{min-height:560px;align-items:center;background:linear-gradient(135deg,color-mix(in srgb,var(--theme-accent) 18%,var(--theme-bg)),color-mix(in srgb,var(--theme-accent-2) 9%,var(--theme-bg)));border-radius:30px}
+.proof-portfolio[data-layout="founder"] .portfolio-identity h1{font-size:clamp(3.6rem,8vw,7.4rem);line-height:.92}
 .proof-portfolio[data-layout="founder"] .portfolio-proof-number strong{font-size:clamp(4rem,8vw,7rem)}
 .proof-portfolio[data-layout="founder"] .portfolio-impact-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 .proof-portfolio[data-layout="founder"] .portfolio-impact-card.featured{grid-column:span 2}
+.proof-portfolio[data-layout="founder"] .portfolio-work-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 
-/* Compact */
+/* LAVENDER — compact professional card */
 .proof-portfolio[data-layout="compact"] .proof-profile-inner{max-width:920px}
-.proof-portfolio[data-layout="compact"] .portfolio-hero{padding:30px;gap:24px}
-.proof-portfolio[data-layout="compact"] .portfolio-identity h1{font-size:clamp(2.4rem,6vw,4.4rem)}
-.proof-portfolio[data-layout="compact"] .portfolio-section{padding:26px;margin-top:14px}
-.proof-portfolio[data-layout="compact"] .portfolio-impact-grid,.proof-portfolio[data-layout="compact"] .portfolio-work-grid{grid-template-columns:1fr 1fr;gap:12px}
-.proof-portfolio[data-layout="compact"] .portfolio-impact-card,.proof-portfolio[data-layout="compact"] .portfolio-work-card{padding:18px}
+.proof-portfolio[data-layout="compact"] .portfolio-topbar{padding-top:16px;padding-bottom:16px}
+.proof-portfolio[data-layout="compact"] .portfolio-hero{padding:28px;gap:22px;border-radius:18px;background:linear-gradient(135deg,color-mix(in srgb,var(--theme-accent) 8%,var(--theme-bg)),var(--profile-surface))}
+.proof-portfolio[data-layout="compact"] .portfolio-identity h1{font-size:clamp(2.4rem,6vw,4.3rem)}
+.proof-portfolio[data-layout="compact"] .portfolio-avatar{width:72px;height:72px}
+.proof-portfolio[data-layout="compact"] .portfolio-section{padding:24px;margin-top:12px;border-radius:14px}
+.proof-portfolio[data-layout="compact"] .portfolio-impact-grid,.proof-portfolio[data-layout="compact"] .portfolio-work-grid{grid-template-columns:1fr 1fr;gap:10px}
+.proof-portfolio[data-layout="compact"] .portfolio-impact-card,.proof-portfolio[data-layout="compact"] .portfolio-work-card{padding:16px;border-radius:12px}
+.proof-portfolio[data-layout="compact"] .portfolio-section-heading{margin-bottom:14px}
 
-@media(max-width:860px){
- .proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-grid,.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-grid,.proof-portfolio[data-layout="command-center"] .portfolio-impact-grid,.proof-portfolio[data-layout="command-center"] .portfolio-work-grid,.proof-portfolio[data-layout="founder"] .portfolio-impact-grid{grid-template-columns:1fr}
- .proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-card.featured,.proof-portfolio[data-layout="founder"] .portfolio-impact-card.featured{grid-column:auto;grid-row:auto}
+/* Tablet */
+@media(max-width:980px){
+  .proof-portfolio[data-layout="executive-sidebar"] .proof-profile-inner,.proof-portfolio[data-layout="modern-resume"] .proof-profile-inner{display:block}
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-hero{grid-template-columns:260px minmax(0,1fr)}
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-skills-section,.proof-portfolio[data-layout="executive-sidebar"] .portfolio-career-section{margin-right:0}
+  .proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-grid,.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-grid,.proof-portfolio[data-layout="command-center"] .portfolio-impact-grid,.proof-portfolio[data-layout="command-center"] .portfolio-work-grid,.proof-portfolio[data-layout="founder"] .portfolio-impact-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-card.featured,.proof-portfolio[data-layout="founder"] .portfolio-impact-card.featured{grid-column:span 2;grid-row:auto}
+  .proof-portfolio[data-layout="modern-resume"] .portfolio-skills-section,.proof-portfolio[data-layout="modern-resume"] .portfolio-career-section,.proof-portfolio[data-layout="modern-resume"] .portfolio-featured-impact,.proof-portfolio[data-layout="modern-resume"] .portfolio-work-section,.proof-portfolio[data-layout="modern-resume"] .portfolio-contact-section{grid-column:auto}
 }
-@media(max-width:620px){
- .proof-portfolio[data-layout="modern-resume"] .portfolio-hero,.proof-portfolio[data-layout="portfolio-grid"] .portfolio-hero{grid-template-columns:1fr}
- .proof-portfolio[data-layout="modern-resume"] .portfolio-work-grid,.proof-portfolio[data-layout="compact"] .portfolio-impact-grid,.proof-portfolio[data-layout="compact"] .portfolio-work-grid{grid-template-columns:1fr}
+
+/* Phone and narrow tablet */
+@media(max-width:760px){
+  .portfolio-career-grid{grid-template-columns:1fr}
+  .proof-portfolio[data-layout="editorial"] .portfolio-hero,.proof-portfolio[data-layout="executive-sidebar"] .portfolio-hero,.proof-portfolio[data-layout="studio-split"] .portfolio-hero,.proof-portfolio[data-layout="portfolio-grid"] .portfolio-hero,.proof-portfolio[data-layout="modern-resume"] .portfolio-hero{grid-template-columns:1fr}
+  .proof-portfolio[data-layout="editorial"] .portfolio-hero{gap:26px;padding-top:46px}
+  .proof-portfolio[data-layout="editorial"] .portfolio-proof-passport{border-left:0;border-top:3px solid var(--theme-accent);padding:22px 0 0}
+  .proof-portfolio[data-layout="editorial"] .portfolio-impact-grid,.proof-portfolio[data-layout="editorial"] .portfolio-work-grid{grid-template-columns:1fr}
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-identity,.proof-portfolio[data-layout="executive-sidebar"] .portfolio-proof-passport{padding:30px 24px}
+  .proof-portfolio[data-layout="studio-split"] .portfolio-hero{min-height:0}.proof-portfolio[data-layout="studio-split"] .portfolio-identity,.proof-portfolio[data-layout="studio-split"] .portfolio-proof-passport{padding:34px 24px}.proof-portfolio[data-layout="studio-split"] .portfolio-work-grid{grid-template-columns:1fr}.proof-portfolio[data-layout="studio-split"] .portfolio-work-card:nth-child(3n){grid-column:auto}
+  .proof-portfolio[data-layout="minimal-column"] .portfolio-proof-passport{grid-template-columns:1fr;text-align:center}
+  .proof-portfolio[data-layout="career-timeline"] .portfolio-impact-grid,.proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-grid,.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-grid,.proof-portfolio[data-layout="command-center"] .portfolio-impact-grid,.proof-portfolio[data-layout="command-center"] .portfolio-work-grid,.proof-portfolio[data-layout="founder"] .portfolio-impact-grid,.proof-portfolio[data-layout="founder"] .portfolio-work-grid{grid-template-columns:1fr}
+  .proof-portfolio[data-layout="career-timeline"] .portfolio-impact-card.featured,.proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-card.featured,.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-card:nth-child(4n+1),.proof-portfolio[data-layout="founder"] .portfolio-impact-card.featured{grid-column:auto;grid-row:auto}
+  .proof-portfolio[data-layout="case-study"] .portfolio-impact-card.featured{display:block}.proof-portfolio[data-layout="case-study"] .portfolio-proof-passport{grid-template-columns:1fr}
+  .proof-portfolio[data-layout="modern-resume"] .portfolio-work-grid,.proof-portfolio[data-layout="compact"] .portfolio-impact-grid,.proof-portfolio[data-layout="compact"] .portfolio-work-grid{grid-template-columns:1fr}
+  .proof-portfolio[data-layout="founder"] .portfolio-hero{min-height:0}
+}
+
+/* Small phones */
+@media(max-width:520px){
+  .proof-portfolio .portfolio-section,.proof-portfolio .portfolio-impact-card,.proof-portfolio .portfolio-work-card,.proof-portfolio .portfolio-proof-passport{overflow-wrap:anywhere}
+  .proof-portfolio[data-layout="editorial"] .portfolio-identity h1{font-size:clamp(3rem,17vw,4.5rem)}
+  .proof-portfolio[data-layout="career-timeline"] .portfolio-career-item{padding-left:34px}
+  .proof-portfolio[data-layout="studio-split"] .portfolio-avatar{width:82px;height:82px}
+  .proof-portfolio[data-layout="case-study"] .portfolio-impact-card,.proof-portfolio[data-layout="case-study"] .portfolio-work-card{padding:24px 18px}
+  .proof-portfolio[data-layout="founder"] .portfolio-identity h1{font-size:clamp(3rem,16vw,4.7rem)}
+  .proof-portfolio[data-layout="compact"] .portfolio-hero,.proof-portfolio[data-layout="compact"] .portfolio-section{padding:18px}
 }
