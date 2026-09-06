@@ -15,6 +15,7 @@ import {
 import { useEffect, useState } from "react";
 import BragStackLoader from "./BragStackLoader.jsx";
 import { getEducationToolkit } from "./educationToolkitApi.js";
+import "./EducationToolkitPanel.css";
 
 function supportLabel(level) {
   if (level === "well-supported") return "Evidence + confirmation";
