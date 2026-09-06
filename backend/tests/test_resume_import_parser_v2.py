@@ -1,4 +1,5 @@
 """Regression coverage for the confidence-aware resume parser."""
+from app.resume_import_fast_routes import ResumeSaveRequestV2
 from app.resume_import_parser_v2 import parse_existing_resume_text
 
 
@@ -92,3 +93,25 @@ State University | B.S. Computer Science | Expected 2027
     assert "publications" in parsed["sections_found"]
     assert parsed["experience"] == []
     assert parsed["parse_quality"]["recognized_section_count"] >= 4
+
+
+def test_v2_save_payload_keeps_optional_sections_and_template_choice():
+    payload = ResumeSaveRequestV2(
+        title="Master Resume",
+        template_id="academic-burgundy",
+        supporting_sections={
+            "education": ["State University"],
+            "projects": ["Incident Tracker"],
+            "certifications": ["AWS Certified Cloud Practitioner"],
+            "leadership": ["President, Computing Club"],
+            "volunteer": ["Volunteer Mentor"],
+            "awards": ["Customer Hero Award"],
+            "publications": ["Accessibility research presentation"],
+            "languages": ["English", "Spanish"],
+        },
+    )
+
+    dumped = payload.supporting_sections.model_dump()
+    assert dumped["certifications"] == ["AWS Certified Cloud Practitioner"]
+    assert dumped["publications"] == ["Accessibility research presentation"]
+    assert payload.template_id == "academic-burgundy"
