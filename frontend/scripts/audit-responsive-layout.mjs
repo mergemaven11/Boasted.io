@@ -25,6 +25,10 @@ const ROUTES = [
   { path: "/app/accomplishments" },
   { path: "/app/impact-receipts" },
   { path: "/app/profile" },
+  { path: "/app/settings" },
+  { path: "/app/settings/appearance" },
+  { path: "/app/settings/billing" },
+  { path: "/app/intelligence" },
 ];
 
 const proUser = {
@@ -41,6 +45,7 @@ const proUser = {
     advanced_reports: true,
     interview_practice: true,
     impact_receipts: true,
+    executive_command_center: true,
   },
 };
 
