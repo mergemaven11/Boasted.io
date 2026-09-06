@@ -48,7 +48,7 @@ PROFILE_THEMES = {
     "research",
 }
 HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
-PROFILE_LAYOUTS = {"editorial", "executive-sidebar", "career-timeline", "studio-split"}
+PROFILE_LAYOUTS = {"editorial", "executive-sidebar", "career-timeline", "studio-split", "minimal-column", "portfolio-grid", "case-study", "modern-resume", "command-center", "academic", "founder", "compact"}
 PROFILE_TEXT_FIELDS = {"name", "headline", "bio", "location", "github_url", "portfolio_url", "resume_url"}
 PROFILE_COLOR_FIELDS = {"profile_primary_color", "profile_secondary_color", "profile_background_color"}
 
