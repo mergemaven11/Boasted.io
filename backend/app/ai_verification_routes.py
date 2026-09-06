@@ -7,15 +7,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.ai.evaluation import EVAL_SUITE_VERSION
-from app.ai.feature_flags import experimental_ai_enabled
-from app.ai.release_evaluation import (
+from app.ai.expanded_release_evaluation import (
     AISHA_CASE_RULES,
     AISHA_RELEASE_SUITE_VERSION,
-    release_evaluation_summary,
     record_aisha_release_case,
     run_compliance_release_evaluation,
-    run_resume_release_evaluation,
 )
+from app.ai.feature_flags import experimental_ai_enabled
+from app.ai.release_evaluation import release_evaluation_summary, run_resume_release_evaluation
 from app.ai.verification import RELEASE_THRESHOLDS, SMART_FEATURES, build_verification_summary
 from app.ops_routes import require_internal_role
 
@@ -31,7 +30,7 @@ class AishaReleaseCasePayload(BaseModel):
 class AishaReleaseBatchPayload(BaseModel):
     """Complete current-version Aisha calibration batch."""
     suite_version: str = Field(min_length=1, max_length=120)
-    cases: list[AishaReleaseCasePayload] = Field(min_length=1, max_length=12)
+    cases: list[AishaReleaseCasePayload] = Field(min_length=1, max_length=64)
 
 
 @router.get("/summary")
