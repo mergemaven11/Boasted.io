@@ -40,7 +40,7 @@ def test_newer_profile_themes_are_part_of_the_persistence_contract():
 
 
 def test_professional_profile_layouts_are_persisted():
-    assert PROFILE_LAYOUTS == {"editorial", "executive-sidebar", "career-timeline", "studio-split"}
+    assert PROFILE_LAYOUTS == {"editorial", "executive-sidebar", "career-timeline", "studio-split", "minimal-column", "portfolio-grid", "case-study", "modern-resume", "command-center", "academic", "founder", "compact"}
     for layout_id in PROFILE_LAYOUTS:
         payload = ProfileUpdateRequest(profile_layout=layout_id)
         assert payload.profile_layout == layout_id
