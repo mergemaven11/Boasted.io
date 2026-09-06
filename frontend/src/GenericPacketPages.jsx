@@ -1,4 +1,5 @@
 import { Award, BadgeCheck, FileCheck2, Sparkles, Target } from "lucide-react";
+import PacketReviewerPage from "./PacketReviewerPage.jsx";
 import "./GenericPacketPages.css";
 
 function themeClass(packet) {
@@ -53,6 +54,8 @@ function GenericPacketPages({ packet }) {
       <div className="generic-export-note"><FileCheck2 size={18} /><p>This packet is generated from user-saved BragStack data. Review it before submitting it to an employer, school, licensing body, scholarship committee, client, or other third party.</p></div>
       <PacketFooter page={5} />
     </section>
+
+    <PacketReviewerPage packet={packet} page={6} index={5} />
   </>;
 }
 
