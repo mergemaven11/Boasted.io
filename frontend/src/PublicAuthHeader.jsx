@@ -17,19 +17,8 @@ export default function PublicAuthHeader() {
   }
 
   return (
-    <header className="public-auth-header" aria-label="Boasted public navigation">
-      <a className="public-auth-brand" href="/">Boasted</a>
-
-      <nav className="public-auth-links" aria-label="Public site navigation">
-        <a href="/#how-it-works">How it works</a>
-        <a href="/#product">Product</a>
-        <a href="/#pricing">Pricing</a>
-      </nav>
-
-      <div className="public-auth-actions">
-        <a className="public-auth-button public-auth-button-secondary" href="/docs">Docs</a>
-        <a className="public-auth-button public-auth-button-primary" href="/register">Start free</a>
-      </div>
-    </header>
+    <div className="public-auth-register-actions" aria-label="Return to Boasted">
+      <a className="public-auth-button public-auth-button-primary" href="/">Return</a>
+    </div>
   );
 }
