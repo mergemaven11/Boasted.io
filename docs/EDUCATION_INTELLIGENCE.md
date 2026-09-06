@@ -1,6 +1,6 @@
-# Boasted Education Intelligence v1
+# Boasted Education Intelligence v2
 
-Education Intelligence is the deterministic evidence-ranking layer underneath the customer-facing **Education** workspace. Education is broader than an application tool: users can build a record of real learning and early-career wins over time, understand what their saved record already shows, and reuse the strongest relevant examples when an opportunity appears.
+Education Intelligence is the deterministic, evidence-backed layer underneath the customer-facing **Education** workspace. In v2, Education is no longer just a launcher into unrelated pages: each feature card opens a dedicated working view built from the member's saved education evidence, with the canonical Boasted workflow available as the next action when appropriate.
 
 The authenticated route remains `/app/applications` for compatibility, but the customer-facing product name is **Education**.
 
@@ -10,59 +10,143 @@ Public surfaces:
 - Customer Education guide: `/docs/education`
 - Authenticated Education workspace: `/app/applications`
 
+## Core architecture
+
+Education v2 has three cooperating engines/surfaces:
+
+1. **Education Toolkit v2** — dedicated tools for the feature cards shown in the Education hub.
+2. **Major Explorer** — evidence-alignment exploration for possible majors, with its own strict no-prediction safeguards.
+3. **Application Intelligence** — evidence shortlisting for Scholarships, Programs, Internships, and Essay Stories.
+
+All three use the same underlying member-owned accomplishment and Impact Receipt records. Education does not create a second hidden student database.
+
 ## Account eligibility
 
-Boasted no longer uses an Education-specific 18+ gate or age-confirmation checkbox. Account eligibility is governed by the current Terms and applicable law. Registration requires affirmative Terms and Privacy Policy acceptance, and the backend records the applicable versions and server-side acceptance timestamps.
+Boasted does not use an Education-specific 18+ gate or age-confirmation checkbox. Account eligibility is governed by the current Terms and applicable law. Registration requires affirmative Terms and Privacy Policy acceptance, and the backend records the applicable versions and server-side acceptance timestamps.
 
-This product change is not a legal conclusion that every youth-facing requirement has been completed. See `ACCOUNT_ELIGIBILITY_AND_EDUCATION.md` for the current product-policy baseline and unresolved legal-review items.
+This product behavior is not a legal conclusion that every youth-facing requirement has been completed. See `ACCOUNT_ELIGIBILITY_AND_EDUCATION.md` for the current product-policy baseline and unresolved legal-review items.
 
-## Product focus
-
-The current Education experience is designed around evidence from:
-
-- college and university learning;
-- trade and technical education;
-- certifications, licenses, bootcamps, and continuing education;
-- coursework, labs, capstones, research, and academic projects;
-- scholarships, honors, awards, and meaningful academic milestones;
-- internships, service, leadership, organizations, and practical experience;
-- group projects where the user's own contribution should be clear;
-- career-transition learning and professional development.
-
-There is no dedicated Middle School product mode, route, entry type, or coming-soon banner in the current Education experience.
-
-## Education feature hub
-
-The Education route is a launcher into the rest of Boasted rather than a disconnected data silo.
+## Education Toolkit v2
 
 ### Build your education record
 
-- My Education
-- Coursework
-- Academic Projects
-- Certifications & Training
-- Academic Achievements
-- Group Project Contributions
-- Graduation Progress
-- Experience Translator
+These cards now open a dedicated analysis/capture view before sending the member to the canonical accomplishment editor:
 
-These capture buttons reuse the existing accomplishment evidence model with education-specific presets.
+- **My Education** — reviews education/program milestones and prompts for the school/program context, what was completed or learned, and useful dates/scope/proof.
+- **Coursework** — prioritizes saved course/lab/assignment evidence and asks what the member personally created, analyzed, solved, presented, or learned.
+- **Academic Projects** — highlights capstones, research, labs, presentations, builds, and projects, including contribution boundaries and artifact/proof readiness.
+- **Certifications & Training** — organizes credentials and training while prompting for issuer, date/renewal context, and what knowledge or hands-on skill was actually demonstrated.
+- **Academic Achievements** — captures awards, honors, scholarships, competitions, and recognition with emphasis on what the member did to earn the result.
+- **Group Project Contributions** — separates the team deliverable from the member's personal ownership, decisions, research, build work, organization, or presentation.
+- **Graduation Progress** — records meaningful requirements, practicums, capstones, and milestones without predicting graduation.
+- **Experience Translator** — translates real class, research, club, service, training, and project work into transferable career language without inventing a job title or responsibility.
 
 ### Turn education into career proof
 
-- Education Impact Receipts
-- Skills from Education
-- Career Match & Skill Gaps
-- Résumé Builder
-- Interview Prep
-- Academic Portfolio
-- Career Path Explorer
+- **Major Explorer** — remains its own evidence-backed tool and deliberately avoids a fake "best major" score.
+- **Education Impact Receipts** — identifies which education records are already supported and which would benefit from safe evidence, measurable scope, or legitimate confirmation.
+- **Skills from Education** — extracts skill signals only when saved education records contain supporting evidence and returns the IDs/titles of the supporting records.
+- **Career Match & Skill Gaps** — connects demonstrated skill signals to broad work directions and treats gaps as documentation gaps, never proof that a member lacks a skill.
+- **Résumé Builder** — identifies education records best prepared for résumé reuse, then opens the canonical Résumé Builder for reconstruction/editing/export.
+- **Interview Prep** — surfaces records with the context/action/result/learning detail needed for truthful interview stories, then opens the canonical practice experience.
+- **Academic Portfolio** — shows portfolio-ready education records and their current public/private state without changing visibility automatically.
+- **Career Path Explorer** — presents broad directions supported by demonstrated skill signals, with official public-data provenance and no fit percentage, aptitude claim, or employment prediction.
 
-These buttons route into existing Boasted tools so the same underlying evidence can be reused instead of copied into a second education-only database.
+## Toolkit API
+
+Authenticated endpoint:
+
+`GET /career-intelligence/education-toolkit/{tool_id}`
+
+Supported `tool_id` values:
+
+- `education-profile`
+- `coursework`
+- `academic-projects`
+- `certifications`
+- `academic-achievements`
+- `group-projects`
+- `graduation-progress`
+- `experience-translator`
+- `impact-receipts`
+- `education-skills`
+- `career-match`
+- `resume-builder`
+- `interview-prep`
+- `academic-portfolio`
+- `career-paths`
+
+Major Explorer intentionally remains at `GET /career-intelligence/major-explorer` because it has a separate recommendation schema and verification gate.
+
+## Toolkit response contract
+
+A verified Education Toolkit response contains:
+
+- `tool` — tool ID, title, mode, smart prompts, and next actions;
+- `summary` — bounded counts derived from the member's records;
+- `recommended_evidence` — at most eight member-owned education records, each with support/missing-detail flags;
+- `gaps` — documentation-strengthening prompts, not student deficits;
+- `skill_signals` — demonstrated skills with supporting entry IDs when the selected tool needs them;
+- `career_directions` — broad evidence-connected directions for career tools only;
+- `sources` — official public reference/provenance metadata;
+- `methodology` — version and non-prediction invariants;
+- `intelligence_runtime` — shared verification-runtime metadata added only after the response passes reconciliation checks.
+
+## Verification rules
+
+Education Toolkit v2 fails closed when its output does not reconcile to saved proof. The verifier requires that:
+
+- every recommended `entry_id` belongs to the authenticated member's loaded records;
+- every skill signal points only to known member entries;
+- recommendation counts stay within the eight-record workspace limit and the available record count;
+- support levels come only from the known `saved-record`, `supported`, and `well-supported` vocabulary;
+- the methodology version and evidence mode are exact and auditable;
+- `fit_percentage`, `best_major_claim`, `best_career_claim`, `admissions_prediction`, `scholarship_prediction`, `graduation_prediction`, `employment_prediction`, `salary_prediction`, and `employment_decision` all remain false.
+
+If those invariants fail, the shared intelligence runtime records privacy-safe verification metadata and withholds the result instead of displaying questionable guidance.
+
+## Skill-signal semantics
+
+Education Toolkit v2 uses a small, auditable internal alias taxonomy to find skills demonstrated in the member's saved text/tags. Examples include research, data analysis, programming, communication, collaboration, leadership, project management, design, teaching/mentoring, service/support, technical problem solving, and documentation.
+
+A skill signal means:
+
+> One or more saved education records contain evidence that is relevant to this skill label.
+
+It does **not** mean:
+
+- the member has mastered the skill;
+- the member holds a professional credential;
+- the member is qualified for every job that mentions the skill;
+- an employer would rate the member at a particular level.
+
+The UI therefore shows the supporting records and uses `emerging`/`supported` evidence language rather than a personal proficiency percentage.
+
+## Career-direction semantics
+
+Career directions are broad internal exploration groupings such as Technology & data, Research & engineering, Business & operations, Education & community impact, Health & human services, and Communication & design.
+
+They appear only when at least one demonstrated skill signal overlaps the grouping. Ordering is based on the count of distinct demonstrated skill signals, not on a hidden aptitude score.
+
+Every career direction is labeled as an exploration aid. It is not a "best career" verdict, employment probability, salary estimate, licensing conclusion, or professional advice.
+
+## Official public reference sources
+
+Education v2 maintains an explicit source registry rather than quietly scraping third-party sites. Current approved source families are:
+
+- **O*NET 31.0 Database** — occupation/skill/knowledge/work-activity and education/training taxonomy; the downloadable database is CC BY 4.0 with O*NET's stated attribution/trademark requirements.
+- **NCES 2020 CIP-SOC Crosswalk** — official relationship between instructional programs and occupations for education/career exploration.
+- **BLS OEWS May 2025** — occupation-level employment and wage estimates for labor-market context, never personal salary prediction.
+- **U.S. Department of Education College Scorecard** — optional institution/field-of-study aggregate context with required cohort/representation caveats.
+- **CareerOneStop Web API** — optional future live enrichment for skills gaps, occupations, training, salaries, and tools/technology; token required.
+
+See `EDUCATION_DATA_SOURCES.md` for source URLs, licensing notes, limitations, attribution rules, and runtime policy.
+
+The v2 runtime does **not** require a live call to any of these public sources in order to analyze the member's private evidence. This keeps the Education workspace available during external outages and makes personal recommendations reproducible/auditable.
 
 ## Application tools
 
-The current Education Intelligence engine can organize a user's saved material for:
+Application Intelligence continues to organize saved material for:
 
 - scholarships;
 - selective, enrichment, honors, research, and special programs;
@@ -73,82 +157,43 @@ The current Education Intelligence engine can organize a user's saved material f
 
 Looks for evidence of leadership, service, academics, initiative, persistence, measurable contribution, and supporting proof.
 
-### Special program
+### Programs
 
-Looks for subject depth, curiosity, initiative, collaboration, growth, and relevant project/research/competition evidence. The customer-facing label is **Programs**.
+Looks for subject depth, curiosity, initiative, collaboration, growth, and relevant project/research/competition evidence.
 
-### Internship
+### Internships
 
-Looks for demonstrated skills, responsibility, results, teamwork, initiative, and evidence that can support an application or résumé. The customer-facing label is **Internships**.
+Looks for demonstrated skills, responsibility, results, teamwork, initiative, and evidence that can support an application or résumé.
 
-### Essay prep
+### Essay Stories
 
-Surfaces real stories containing reflection, growth, curiosity, challenge, identity/values, and contribution. The user remains the author. Boasted should help the user remember and organize a story, not manufacture one. The customer-facing label is **Essay Stories**.
+Surfaces real stories containing reflection, growth, curiosity, challenge, identity/values, and contribution. The member remains the author. Boasted helps the member remember and organize a story; it does not manufacture one.
 
-## Core trust rule
+## Major Explorer
 
-The engine does **not** predict admission, scholarship, hiring, or selection outcomes. It does **not** invent activities, awards, roles, metrics, schools, programs, grades, credentials, projects, dates, or life stories.
+Major Explorer remains deliberately non-predictive. It can rank evidence-aligned majors for **exploration only** and must always expose what it does not know plus concrete low-risk next experiments. It cannot expose fit percentages, admissions odds, a "best major" claim, graduation predictions, salary predictions, or career-success predictions.
 
-Education Intelligence should help a user answer:
-
-> Which real things I already did are useful for this goal?
-
-It should not claim to answer:
-
-> What are my odds of getting in?
-
-or:
-
-> What activity should I manufacture to improve a score?
-
-## Next steps, not admissions optimization
-
-The engine may identify dimensions that the saved record does not clearly show. The UI presents these as **Next steps**.
-
-A gap is a documentation signal, not an instruction to fabricate an activity. If research is absent, for example, the product may remind the user to capture real research already completed or simply note that the dimension is not represented. It must not imply that a specific activity guarantees acceptance or selection.
-
-## Current public reference data
-
-The v1 reference metadata is informed by current public Common App materials for the 2026–2027 application season for product research and future planning.
-
-- Common App first-year preparation materials describe activity details such as years of participation, hours per week, weeks per year, position/leadership, and a brief activity description.
-- Academic honors are tracked separately from activities.
-- Common App publishes first-year essay prompts by season. Boasted stores only a compact theme map (identity, challenge, belief, gratitude, growth, curiosity, open topic), not copies of application essays or student submissions.
-
-References:
-
-- https://www.commonapp.org/apply/first-year-students/
-- https://www.commonapp.org/apply/fy-toolkit/
-- https://www.commonapp.org/apply/essay-prompts/
-
-Requirements vary by college, scholarship, internship, and special program. Reference metadata must never become a hard eligibility rule unless a specific official program requirement is provided and versioned.
-
-## Verification rules
-
-Every Education Intelligence response must reconcile to the user's saved records:
-
-- recommended entry IDs must exist in the user's accomplishment set;
-- recommendation count cannot exceed the available accomplishments or the eight-item workspace limit;
-- only known fit-strength labels are allowed;
-- `acceptance_prediction`, `scholarship_prediction`, and `employment_decision` remain false;
-- recommendation telemetry stores operational verification metadata, not raw private accomplishment content.
+See `MAJOR_EXPLORER.md` for its separate methodology and safeguards.
 
 ## Privacy and evidence rules
 
-- Education records are private unless the user explicitly makes an accomplishment public.
+- Education records are private unless the member explicitly makes an accomplishment public.
+- Academic Portfolio analysis may report visibility state but never changes it.
 - Users should not be encouraged to store protected student records, school-system credentials, secrets, or information they are not permitted to retain.
 - Confirmation should come only from someone who genuinely has enough context to confirm the specific accomplishment or contribution.
-- Education Intelligence must not turn a lack of third-party confirmation into a negative score.
-- Generated education or career wording must remain grounded in saved evidence and must not invent grades, credentials, dates, projects, achievements, or metrics.
+- A lack of third-party confirmation is not a negative student score.
+- Generated education/career wording must remain grounded in saved evidence and must not invent grades, credentials, dates, projects, achievements, responsibilities, or metrics.
+- Public datasets are context, not proof of a member's personal history.
 
-## Future strategy
+## Future adapters
 
-Prefer small, versioned, auditable reference profiles over large scraped datasets. Useful future additions include:
+Preferred future additions are server-side, source-versioned adapters rather than browser scraping:
 
-- program-specific requirement templates supplied from official sources;
-- scholarship rubric templates when the sponsor publishes them;
-- internship competency maps derived from a specific posting the user provides;
-- annual Common App reference updates;
-- structured activity-duration and academic-year fields that improve reuse without changing historical evidence.
+- O*NET occupation detail and task/skill enrichment;
+- CareerOneStop role-to-role skills gaps and training options when a server-side token is configured;
+- BLS OEWS geography-aware wage/employment context with source period shown;
+- College Scorecard institution/program context with cohort limitations surfaced alongside the data;
+- annual/versioned CIP-SOC and Common App reference updates;
+- user-provided job postings mapped against demonstrated evidence rather than generic hiring predictions.
 
-Do not scrape or train on private student essays, admissions decisions, or application records by default.
+Any live adapter must degrade safely when unavailable and must never be allowed to overwrite the member's saved proof.
