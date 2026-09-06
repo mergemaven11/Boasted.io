@@ -182,6 +182,14 @@ def test_catalog_packet_generation_contains_saved_proof(packet_catalog_context, 
     assert packet["quality_message"] == catalog_routes.QUALITY_MESSAGE
     assert packet["usage_example"]
     assert packet["signature_accomplishments"]
+    assert len(packet["reviewer_guide"]["criteria"]) == 6
+    assert packet["reviewer_guide"]["feedback_sections"] == [
+        "Strengths / what stands out",
+        "Corrections or factual changes",
+        "Questions / clarification needed",
+        "Recommended next steps",
+    ]
+    assert "do not automatically change" in packet["reviewer_guide"]["source_record_notice"]
 
 
 @pytest.mark.parametrize("packet_type", PACKET_TYPES)
@@ -199,6 +207,9 @@ def test_catalog_pdf_download_is_nonblank_and_contains_packet_content(packet_cat
     assert catalog_routes.PACKET_SPECS[packet_type]["title"] in text
     assert "Impact Receipts" in text
     assert "Automated a recurring support validation workflow" in text
+    assert "REVIEWER WORKSHEET" in text
+    assert "Corrections or factual changes" in text
+    assert "not automatic edits" in text
 
 
 @pytest.mark.parametrize("packet_type", PACKET_TYPES)
@@ -216,3 +227,6 @@ def test_catalog_docx_download_is_nonblank_and_contains_packet_content(packet_ca
     assert catalog_routes.PACKET_SPECS[packet_type]["title"] in text
     assert "Impact Receipts" in text
     assert "Automated a recurring support validation workflow" in text
+    assert "REVIEWER WORKSHEET" in text
+    assert "Corrections or factual changes" in text
+    assert "not automatic edits" in text

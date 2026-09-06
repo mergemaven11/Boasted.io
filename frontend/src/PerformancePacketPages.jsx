@@ -14,6 +14,7 @@ import {
   UsersRound,
 } from "lucide-react";
 
+import PacketReviewerPage from "./PacketReviewerPage.jsx";
 import "./PerformancePacketPages.css";
 
 function formatShortDate(value) {
@@ -64,9 +65,18 @@ function SkillsPage({ packet, page }) {
   return <section className={`packet-sheet packet-document-page ${themeClass(packet)}`}><PacketHeader index={5} eyebrow="Skills & Growth" title="Capabilities demonstrated in real work" /><p className="packet-page-lead">Frequency reflects how often a capability appears in documented work—not a proficiency score.</p>{skills.length ? <div className="packet-skill-evidence-list">{skills.slice(0, 12).map((item, index) => <article key={item.skill}><div className="packet-skill-rank">{index + 1}</div><div className="packet-skill-main"><div><strong>{item.skill}</strong><span>{item.count} documented use{item.count === 1 ? "" : "s"}</span></div><div className="packet-skill-track"><span style={{ width: `${Math.max(8, (item.count / maxCount) * 100)}%` }} /></div></div><div className="packet-skill-dates"><span>First shown</span><strong>{formatShortDate(item.first_seen)}</strong><span>Most recent</span><strong>{formatShortDate(item.last_seen)}</strong></div></article>)}</div> : <EmptyState>Add skills to accomplishments or Impact Receipts to build capability evidence.</EmptyState>}<div className="packet-growth-callout"><Sparkles size={19} /><div><strong>Career-neutral by design</strong><p>Clinical, instructional, interpersonal, operational, technical, creative, sales, trade, management, and other capabilities use the same evidence model.</p></div></div><PacketFooter page={page} /></section>;
 }
 
-function ContributionPage({ packet, page }) {
-  const contributions = packet?.contribution_records ?? []; const confirmed = packet?.scorecard?.confirmed_assertions ?? 0;
-  return <section className={`packet-sheet packet-document-page ${themeClass(packet)}`}><PacketHeader index={6} eyebrow="Contribution & Verified Recognition" title="What you moved forward and who recognized it" /><div className="packet-contribution-summary"><div><UsersRound size={21} /><strong>{contributions.length}</strong><span>contribution records</span></div><div><BadgeCheck size={21} /><strong>{confirmed}</strong><span>confirmed recognitions</span></div></div>{contributions.length ? <div className="packet-contribution-list">{contributions.slice(0, 8).map((item) => <article key={item.reference}><div className="packet-contribution-topline"><span>{item.reference}</span>{item.verified && <span className="packet-verified-chip"><BadgeCheck size={12} /> Recognized</span>}</div><h3>{item.accomplishment}</h3>{item.contribution && <p><strong>Contribution:</strong> {item.contribution}</p>}{item.result && <p><strong>Result:</strong> {item.result}</p>}{item.recognition?.length > 0 && <div className="packet-recognition-list">{item.recognition.map((recognition, index) => <span key={`${item.reference}-${recognition.label}-${index}`}>{recognition.label}{recognition.name ? ` · ${recognition.name}` : ""}</span>)}</div>}<ItemNote packet={packet} itemKey={item.reference} /></article>)}</div> : <EmptyState>Create Impact Receipts to document the contribution behind each result.</EmptyState>}<PacketFooter page={page} /></section>;
+function ContributionPages({ packet, startPage }) {
+  const contributions = packet?.contribution_records ?? [];
+  const confirmed = packet?.scorecard?.confirmed_assertions ?? 0;
+  const pages = chunk(contributions, 4);
+  return pages.map((items, pageIndex) => (
+    <section key={`contribution-${pageIndex}`} className={`packet-sheet packet-document-page ${themeClass(packet)}`}>
+      <PacketHeader index={6} eyebrow="Contribution & Verified Recognition" title={pageIndex ? "Contribution & recognition · continued" : "What you moved forward and who recognized it"} />
+      {pageIndex === 0 && <div className="packet-contribution-summary"><div><UsersRound size={21} /><strong>{contributions.length}</strong><span>contribution records</span></div><div><BadgeCheck size={21} /><strong>{confirmed}</strong><span>confirmed recognitions</span></div></div>}
+      {items.length ? <div className="packet-contribution-list">{items.map((item) => <article key={item.reference}><div className="packet-contribution-topline"><span>{item.reference}</span>{item.verified && <span className="packet-verified-chip"><BadgeCheck size={12} /> Recognized</span>}</div><h3>{item.accomplishment}</h3>{item.contribution && <p><strong>Contribution:</strong> {item.contribution}</p>}{item.result && <p><strong>Result:</strong> {item.result}</p>}{item.recognition?.length > 0 && <div className="packet-recognition-list">{item.recognition.map((recognition, index) => <span key={`${item.reference}-${recognition.label}-${index}`}>{recognition.label}{recognition.name ? ` · ${recognition.name}` : ""}</span>)}</div>}<ItemNote packet={packet} itemKey={item.reference} /></article>)}</div> : <EmptyState>Create Impact Receipts to document the contribution behind each result.</EmptyState>}
+      <PacketFooter page={startPage + pageIndex} />
+    </section>
+  ));
 }
 
 function ReceiptPages({ packet, startPage }) {
@@ -92,10 +102,11 @@ function PerformancePacketPages({ packet }) {
   if (enabled.has("signature-accomplishments")) { nodes.push(<SignaturePage key="signatures" packet={packet} page={page} />); page += 1; }
   if (enabled.has("measurable-results")) { nodes.push(<ResultsPage key="results" packet={packet} page={page} />); page += 1; }
   if (enabled.has("skills-growth")) { nodes.push(<SkillsPage key="skills" packet={packet} page={page} />); page += 1; }
-  if (enabled.has("contribution-recognition")) { nodes.push(<ContributionPage key="contribution" packet={packet} page={page} />); page += 1; }
+  if (enabled.has("contribution-recognition")) { const count = Math.max(1, Math.ceil((packet?.contribution_records?.length ?? 0) / 4)); nodes.push(<ContributionPages key="contribution" packet={packet} startPage={page} />); page += count; }
   if (enabled.has("impact-receipts")) { const count = Math.max(1, Math.ceil((packet?.receipt_records?.length ?? 0) / 2)); nodes.push(<ReceiptPages key="receipts" packet={packet} startPage={page} />); page += count; }
   if (enabled.has("evidence-index")) { const count = Math.max(1, Math.ceil((packet?.evidence_index?.length ?? 0) / 10)); nodes.push(<EvidencePages key="evidence" packet={packet} startPage={page} />); page += count; }
-  if (enabled.has("review-summary")) nodes.push(<SummaryPage key="summary" packet={packet} page={page} />);
+  if (enabled.has("review-summary")) { nodes.push(<SummaryPage key="summary" packet={packet} page={page} />); page += 1; }
+  nodes.push(<PacketReviewerPage key="reviewer" packet={packet} page={page} index={10} />);
   return <>{nodes}</>;
 }
 
