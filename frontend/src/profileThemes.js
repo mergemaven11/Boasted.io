@@ -35,6 +35,14 @@ export const PROFILE_LAYOUTS = [
   { id: "executive-sidebar", name: "Executive Sidebar", description: "Résumé-inspired structure with a strong professional rail." },
   { id: "career-timeline", name: "Career Timeline", description: "A chronological story built around progression and proof." },
   { id: "studio-split", name: "Studio Split", description: "A bold split hero for creative and product-focused work." },
+  { id: "minimal-column", name: "Minimal Column", description: "A calm, focused single-column profile with generous rhythm." },
+  { id: "portfolio-grid", name: "Portfolio Grid", description: "Project-forward composition for makers and multidisciplinary work." },
+  { id: "case-study", name: "Case Study", description: "Long-form storytelling that leads with evidence and outcomes." },
+  { id: "modern-resume", name: "Modern Résumé", description: "Clean two-column career summary designed for fast scanning." },
+  { id: "command-center", name: "Command Center", description: "Dense, technical presentation for engineering and operations." },
+  { id: "academic", name: "Academic", description: "Research-oriented structure for publications, teaching, and expertise." },
+  { id: "founder", name: "Founder", description: "Vision-led profile balancing leadership, products, and measurable traction." },
+  { id: "compact", name: "Compact", description: "A concise professional card for quick introductions and sharing." },
 ];
 
 export function getProfileLayout(id = "editorial") {
