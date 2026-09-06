@@ -32,6 +32,12 @@ test("packet catalog exposes the full set of career and education packet choices
   assert.match(pageCss, /@media\(max-width:720px\)/);
 });
 
+test("packet catalog keeps CTA below variable-length example copy without overlap", () => {
+  assert.match(pageCss, /\.packet-catalog-card\{[^}]*display:flex;[^}]*flex-direction:column/);
+  assert.match(pageCss, /\.packet-catalog-card>b\{[^}]*position:static;[^}]*margin-top:auto;[^}]*padding-top:16px/);
+  assert.doesNotMatch(pageCss, /\.packet-catalog-card>b\{[^}]*position:absolute/);
+});
+
 test("packet forms expose type-specific fields and PDF DOCX choices", () => {
   assert.match(builder, /Program name/);
   assert.match(builder, /Scholarship \/ award name/);
