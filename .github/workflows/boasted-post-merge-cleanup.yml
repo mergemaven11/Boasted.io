@@ -1,0 +1,57 @@
+name: Boasted post-merge cleanup
+
+on:
+  push:
+    branches: [fix/boasted-visible-filenames]
+    paths:
+      - .github/workflows/boasted-post-merge-cleanup.yml
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/boasted-visible-filenames
+          fetch-depth: 0
+      - name: Replace remaining customer-visible BragStack filenames
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          replacements = {
+              Path('frontend/src/api.js'): [
+                  ('`bragstack-${packetType}.${safeFormat}`', '`boasted-${packetType}.${safeFormat}`'),
+              ],
+              Path('frontend/src/ReportsPage.jsx'): [
+                  ('`bragstack-${periodName}-report.md`', '`boasted-${periodName}-report.md`'),
+              ],
+              Path('backend/app/packet_document_exports.py'): [
+                  ('"bragstack-member"', '"boasted-member"'),
+                  ('return f"bragstack-{_slug(subject)}-{_slug(kind)}.{ext}"', 'return f"boasted-{_slug(subject)}-{_slug(kind)}.{ext}"'),
+              ],
+          }
+
+          for path, pairs in replacements.items():
+              text = path.read_text()
+              for old, new in pairs:
+                  if old not in text:
+                      raise SystemExit(f'Expected cleanup target missing in {path}: {old}')
+                  text = text.replace(old, new)
+              path.write_text(text)
+              print(f'updated {path}')
+
+          Path('.github/workflows/boasted-post-merge-cleanup.yml').unlink()
+          PY
+      - name: Commit cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Fix remaining Boasted customer-visible filenames" || exit 0
+          git push origin HEAD:fix/boasted-visible-filenames
