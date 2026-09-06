@@ -39,11 +39,13 @@ export default function ResumeBuilderEnhancedPage() {
       setPaperBannerTarget((current) => current === banner ? current : banner);
 
       if (paper) {
-        for (const templateClass of Array.from(paper.classList).filter((value) => value.startsWith("resume-template-"))) {
-          paper.classList.remove(templateClass);
+        const templateClasses = Array.from(paper.classList).filter((value) => value.startsWith("resume-template-"));
+        const alreadyApplied = templateClasses.length === 1 && templateClasses[0] === selectedTemplate.className;
+        if (!alreadyApplied) {
+          templateClasses.forEach((templateClass) => paper.classList.remove(templateClass));
+          paper.classList.add(selectedTemplate.className);
         }
-        paper.classList.add(selectedTemplate.className);
-        paper.dataset.resumeTemplate = selectedTemplate.id;
+        if (paper.dataset.resumeTemplate !== selectedTemplate.id) paper.dataset.resumeTemplate = selectedTemplate.id;
       }
     };
 
@@ -52,6 +54,21 @@ export default function ResumeBuilderEnhancedPage() {
     observer.observe(host, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
     return () => observer.disconnect();
   }, [selectedTemplate]);
+
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return undefined;
+    const clearStaleSectionSnapshot = (event) => {
+      if (!event.target.closest(".resume-v2-saved-item")) return;
+      try {
+        sessionStorage.removeItem("boasted_resume_supporting_sections_v1");
+      } catch {
+        // No-op when storage is unavailable.
+      }
+    };
+    host.addEventListener("click", clearStaleSectionSnapshot, true);
+    return () => host.removeEventListener("click", clearStaleSectionSnapshot, true);
+  }, []);
 
   function chooseTemplate(templateId) {
     setSelectedTemplateId(templateId);
