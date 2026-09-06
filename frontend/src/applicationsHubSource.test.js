@@ -88,7 +88,7 @@ test("Education keeps the existing authenticated route while using the product l
 test("Career analytics and Career packets have distinct navigation destinations", () => {
   const sidebar = read("./AppSidebar.jsx");
   assert.match(sidebar, /href: "\/app\/reports", label: "Career analytics"/);
-  assert.match(sidebar, /href: "\/app\/reports\?packet=performance-review", label: "Career packets"/);
+  assert.match(sidebar, /href: "\/app\/reports\?packets=1", label: "Career packets"/);
   assert.match(sidebar, /search === target\.search/);
   assert.match(sidebar, /hash === target\.hash/);
   assert.doesNotMatch(sidebar, /\/app\/reports#packet-builder/);
