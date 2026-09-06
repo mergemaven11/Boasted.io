@@ -55,6 +55,19 @@ app = FastAPI(
     version="1.0.0",
 )
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+cors_origins = list(
+    dict.fromkeys(
+        [
+            frontend_url,
+            "https://boasted.io",
+            "https://www.boasted.io",
+            "https://usebragstack.com",
+            "https://www.usebragstack.com",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+        ]
+    )
+)
 mongo_admin = mongo_client.admin
 
 
@@ -177,7 +190,7 @@ async def add_security_headers_and_telemetry(request: Request, call_next):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url, "http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=cors_origins,
     allow_origin_regex=r"https://.*\.app\.github\.dev",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
