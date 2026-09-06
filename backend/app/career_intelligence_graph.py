@@ -534,12 +534,12 @@ def enrich_career_graph(
     methodology["graph_version"] = GRAPH_VERSION
     methodology["skill_normalization"] = "exact-curated-aliases-only"
     methodology["description"] = (
-        "Signals summarize user-owned proof. BragStack separates durability, proof "
+        "Signals summarize user-owned proof. Boasted separates durability, proof "
         "support, and temporal trajectory; normalizes only exact curated skill aliases; "
         "and builds a deterministic career graph from distinct demonstrations, "
         "co-demonstrated skills, and curated skill-to-domain relationships. Unknown "
         "skills are preserved rather than fuzzy-matched. Linked receipts remain tied "
-        "to the underlying work, and BragStack does not predict hiring or promotion outcomes."
+        "to the underlying work, and Boasted does not predict hiring or promotion outcomes."
     )
     return result
 

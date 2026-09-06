@@ -70,7 +70,7 @@ def build_verified_resume(payload: ResumeBuildRequest, current_user: dict = Depe
             status_code=422,
             detail={
                 "code": "resume_suggestion_verification_failed",
-                "message": "BragStack withheld generated resume suggestions because they could not be verified against your source evidence.",
+                "message": "Boasted withheld generated resume suggestions because they could not be verified against your source evidence.",
                 "violation_codes": violation_codes,
             },
         )

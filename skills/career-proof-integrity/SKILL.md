@@ -1,9 +1,9 @@
 ---
 name: bragstack-career-proof-integrity
-description: Preserve factual, user-controlled career evidence when generating summaries, packets, recommendations, and AI-assisted content in BragStack.
+description: Preserve factual, user-controlled career evidence when generating summaries, packets, recommendations, and AI-assisted content in Boasted.
 ---
 
-# BragStack Career-Proof Integrity
+# Boasted Career-Proof Integrity
 
 ## Use this skill when
 
@@ -17,7 +17,7 @@ description: Preserve factual, user-controlled career evidence when generating s
 3. Preserve shared credit. Do not rewrite team outcomes as sole individual ownership unless the evidence explicitly supports that claim.
 4. When information is missing, ask for it or mark the gap. Do not fill a gap with a plausible guess.
 5. Keep private evidence references out of public profiles, exports, and shared packets unless the user explicitly includes them.
-6. Avoid opaque employment-decision scoring. BragStack may surface completeness, missing evidence, or preparation gaps, but must not present an unexplained hiring/promotion verdict as fact.
+6. Avoid opaque employment-decision scoring. Boasted may surface completeness, missing evidence, or preparation gaps, but must not present an unexplained hiring/promotion verdict as fact.
 7. Make transformations traceable: generated bullets or summaries should remain derivable from stored accomplishment/result/evidence fields.
 8. When compressing text, preserve qualifiers and uncertainty rather than upgrading claims.
 9. For public/share surfaces, re-check every field against visibility and user intent.

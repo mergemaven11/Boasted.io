@@ -35,7 +35,7 @@ def test_root_returns_health_message():
     response = client.get("/")
 
     assert response.status_code == 200
-    assert response.json() == {"message": "BragStack API is running"}
+    assert response.json() == {"message": "Boasted API is running"}
 
 
 @pytest.mark.parametrize(

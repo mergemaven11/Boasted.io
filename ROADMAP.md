@@ -1,13 +1,13 @@
-# BragStack — Brand Reshape Sprint Roadmap
+# Boasted — Brand Reshape Sprint Roadmap
 
 **Sprint:** September 3–11, 2026  
-**Goal:** Reshape BragStack from a useful career tracker into a clear, trustworthy **career evidence network**: capture the work, prove the impact, package the story, and make it easy for the right people to engage.
+**Goal:** Reshape Boasted from a useful career tracker into a clear, trustworthy **career evidence network**: capture the work, prove the impact, package the story, and make it easy for the right people to engage.
 
 ## North-star positioning
 
 > **Your work deserves receipts.**
 
-BragStack should own the evidence layer of a person's career. It is not another social feed and it is not an HR surveillance product. It is the portable record of what someone did, what they contributed, what changed, and what supports the claim.
+Boasted should own the evidence layer of a person's career. It is not another social feed and it is not an HR surveillance product. It is the portable record of what someone did, what they contributed, what changed, and what supports the claim.
 
 ### Product story
 
@@ -37,12 +37,12 @@ BragStack should own the evidence layer of a person's career. It is not another 
 
 - [ ] Audit current landing page, navigation, profile, reports, packets, résumé builder, pricing, and onboarding against the new positioning.
 - [ ] Inventory open PRs and avoid mixing the rebrand with unrelated unfinished work.
-- [ ] Define canonical terminology: **BragStack**, **Impact Receipt**, **Proof Profile**, **Career Evidence**, **Professional Packet**.
+- [ ] Define canonical terminology: **Boasted**, **Impact Receipt**, **Proof Profile**, **Career Evidence**, **Professional Packet**.
 - [ ] Define the one-sentence pitch and homepage hierarchy.
 - [ ] Capture before screenshots / baseline UX notes for the key public and authenticated flows.
 - [ ] Add regression checklist for auth, privacy, packet generation, PDF export, profile visibility, and mobile navigation.
 
-**Exit:** one product story, one vocabulary, no ambiguity about what BragStack is becoming.
+**Exit:** one product story, one vocabulary, no ambiguity about what Boasted is becoming.
 
 ---
 
@@ -76,7 +76,7 @@ BragStack should own the evidence layer of a person's career. It is not another 
 - [ ] Design packet/profile expiration and revocation model; implement the safest achievable slice this sprint.
 - [ ] Keep private evidence metadata and sensitive workplace material out of public payloads by default.
 
-**Exit:** a user can confidently send their BragStack profile to a recruiter, hiring manager, interviewer, client, or collaborator.
+**Exit:** a user can confidently send their Boasted profile to a recruiter, hiring manager, interviewer, client, or collaborator.
 
 ---
 
@@ -92,7 +92,7 @@ BragStack should own the evidence layer of a person's career. It is not another 
 - [ ] Start with a low-cost implementation path: external booking link and/or controlled availability blocks before building full scheduling infrastructure.
 - [ ] Add abuse/privacy controls: disable instantly, no private calendar details, bounded visitor inputs, and clear ownership of contact preferences.
 
-**Exit:** interest in someone's proof can turn into a conversation without BragStack becoming a calendar product.
+**Exit:** interest in someone's proof can turn into a conversation without Boasted becoming a calendar product.
 
 ---
 
@@ -107,7 +107,7 @@ BragStack should own the evidence layer of a person's career. It is not another 
 - [ ] Add share-ready packet metadata and clear privacy warnings.
 - [ ] Ensure PDFs and public views use consistent terminology and visual identity.
 
-**Exit:** BragStack feels like one product rather than a collection of career utilities.
+**Exit:** Boasted feels like one product rather than a collection of career utilities.
 
 ---
 
@@ -144,7 +144,7 @@ BragStack should own the evidence layer of a person's career. It is not another 
 
 ## AI / ML Evidence Assistant
 
-AI is an **assistive evidence layer**, never the source of truth. BragStack should remain useful when AI is disabled or unavailable.
+AI is an **assistive evidence layer**, never the source of truth. Boasted should remain useful when AI is disabled or unavailable.
 
 ### Non-negotiable evidence rule
 
@@ -177,7 +177,7 @@ AI must never invent metrics, verification, employers, dates, outcomes, credenti
 
 ### Free/open-weight and licensing strategy
 
-Early development should favor local/self-hostable inference where practical so BragStack does not inherit a mandatory per-request AI bill.
+Early development should favor local/self-hostable inference where practical so Boasted does not inherit a mandatory per-request AI bill.
 
 For every model considered for production, record:
 
@@ -187,7 +187,7 @@ For every model considered for production, record:
 - commercial-use, modification, and redistribution rights;
 - attribution/notice requirements;
 - runtime requirements and expected hardware envelope;
-- intended BragStack task;
+- intended Boasted task;
 - evaluation result and known limitations.
 
 Prefer models with clear commercially usable permissive terms such as Apache-2.0 or MIT **after model-by-model review**. A permissively licensed runtime does not make the model weights permissively licensed; both must pass the licensing gate independently. Models with unclear, research-only, noncommercial, use-restricted, or incompatible terms do not ship.
@@ -281,7 +281,7 @@ Exact pricing remains separate from entitlement design.
 
 The sprint is complete when a new visitor can answer these questions without explanation:
 
-1. **What is BragStack?** A career evidence system / network for portable proof of real work.
+1. **What is Boasted?** A career evidence system / network for portable proof of real work.
 2. **Why is it different?** It structures accomplishments into evidence-aware Impact Receipts instead of relying on self-promotional posts or annual memory.
 3. **What can I do with it?** Capture, prove, package, share, and use that proof to create opportunities.
 4. **Can I trust it with workplace information?** Private by default, explicit sharing, no invented verification, and no surveillance model.

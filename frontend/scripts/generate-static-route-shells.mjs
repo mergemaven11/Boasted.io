@@ -7,7 +7,7 @@ const FRONTEND_DIR = path.resolve(SCRIPT_DIR, "..");
 const DIST_DIR = path.join(FRONTEND_DIR, "dist");
 const INDEX_FILE = path.join(DIST_DIR, "index.html");
 const SITEMAP_FILE = path.join(FRONTEND_DIR, "public", "sitemap.xml");
-const SITE_ORIGIN = "https://usebragstack.com";
+const SITE_ORIGIN = "https://boasted.io";
 
 const REQUIRED_CLIENT_ROUTES = [
   "/privacy",

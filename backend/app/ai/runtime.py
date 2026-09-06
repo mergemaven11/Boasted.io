@@ -1,4 +1,4 @@
-"""Shared verification runtime for every BragStack intelligence surface."""
+"""Shared verification runtime for every Boasted intelligence surface."""
 from __future__ import annotations
 
 from collections.abc import Iterable

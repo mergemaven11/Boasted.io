@@ -357,7 +357,7 @@ def _build_career_profile(
     if not skills:
         summary = (
             "Add specific skills to accomplishments and Impact Receipts so "
-            "BragStack can connect your proof into a combined career profile."
+            "Boasted can connect your proof into a combined career profile."
         )
     elif repeated:
         repeated_names = ", ".join(skill["skill"] for skill in repeated[:3])
@@ -366,7 +366,7 @@ def _build_career_profile(
             f"{'' if total_proof_records == 1 else 's'} representing "
             f"{distinct_demonstrations} distinct demonstration"
             f"{'' if distinct_demonstrations == 1 else 's'}, your most durable "
-            f"signals include {repeated_names}. BragStack ranks repeated work "
+            f"signals include {repeated_names}. Boasted ranks repeated work "
             "before emerging signals and tracks recent growth separately."
         )
     else:
@@ -374,7 +374,7 @@ def _build_career_profile(
             f"Across {total_proof_records} saved proof record"
             f"{'' if total_proof_records == 1 else 's'} representing "
             f"{distinct_demonstrations} distinct demonstration"
-            f"{'' if distinct_demonstrations == 1 else 's'}, BragStack sees "
+            f"{'' if distinct_demonstrations == 1 else 's'}, Boasted sees "
             "promising emerging signals but not enough repeated demonstrations "
             "yet to call one a durable core strength."
         )
@@ -450,7 +450,7 @@ def _recommendations(skills: list[dict], gaps: list[dict]) -> list[str]:
         if recent_emerging:
             action = (
                 f"If {recent_emerging['skill']} is becoming a recurring part of "
-                "your work, capture the next distinct example so BragStack can "
+                "your work, capture the next distinct example so Boasted can "
                 "measure whether it is becoming established."
             )
             if action not in recommendations:
@@ -802,7 +802,7 @@ def build_career_intelligence(
                 "title": "Tag demonstrated skills",
                 "detail": "Your accomplishments do not yet expose reusable skill signals.",
                 "action": (
-                    "Add specific skills to accomplishments so BragStack can connect "
+                    "Add specific skills to accomplishments so Boasted can connect "
                     "work to capabilities."
                 ),
             }
@@ -876,7 +876,7 @@ def build_career_intelligence(
                 "measurable outcomes, evidence-backed demonstrations, and confirmations. "
                 "Linked receipts enrich their source work without creating fake repetition, "
                 "and receipt creation dates do not make older work look newly demonstrated. "
-                "BragStack does not predict hiring or promotion outcomes."
+                "Boasted does not predict hiring or promotion outcomes."
             ),
         },
     }

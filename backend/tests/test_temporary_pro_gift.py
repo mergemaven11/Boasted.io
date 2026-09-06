@@ -60,7 +60,7 @@ def test_team_and_internal_access_are_not_downgraded(monkeypatch):
     team_user = {**_free_user(), "plan": "team"}
     internal_user = {
         **_free_user(),
-        "email": "staff@usebragstack.com",
+        "email": "staff@boasted.io",
         "email_verification_required": False,
     }
 

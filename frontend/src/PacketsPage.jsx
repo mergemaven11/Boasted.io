@@ -124,14 +124,14 @@ function PacketsPage() {
   return <main className="packets-page">
     <header className="packets-hero">
       <div className="packets-hero-icon"><Sparkles size={24} /></div>
-      <div><span>BRAGSTACK PRO · CAREER PACKETS</span><h1>Choose the packet for the moment you’re preparing for.</h1><p>Each packet uses your saved BragStack proof, then asks for the specific context that belongs in that kind of document.</p></div>
+      <div><span>BOASTED PRO · CAREER PACKETS</span><h1>Choose the packet for the moment you’re preparing for.</h1><p>Each packet uses your saved Boasted proof, then asks for the specific context that belongs in that kind of document.</p></div>
     </header>
 
     {error && <div className="packets-error">{String(error)}</div>}
 
     <section className="packets-proof-note">
       <Sparkles size={20} />
-      <div><strong>The more data you submit, the more useful these packets become.</strong><p>Accomplishments, Impact Receipts, evidence, skills, verified recognition, and measurable results give BragStack more factual material to organize. Packets do not invent missing achievements or outcomes.</p></div>
+      <div><strong>The more data you submit, the more useful these packets become.</strong><p>Accomplishments, Impact Receipts, evidence, skills, verified recognition, and measurable results give Boasted more factual material to organize. Packets do not invent missing achievements or outcomes.</p></div>
       <div className="packets-proof-count"><b>{proofCount}</b><span>saved proof signals</span></div>
     </section>
 

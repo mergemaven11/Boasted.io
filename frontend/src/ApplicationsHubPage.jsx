@@ -80,7 +80,7 @@ const EDUCATION_FEATURES = [
     group: "record",
     title: "Experience Translator",
     icon: Sparkles,
-    blurb: "Capture what you actually did in class, research, clubs, service, or training so BragStack can reuse it as career evidence.",
+    blurb: "Capture what you actually did in class, research, clubs, service, or training so Boasted can reuse it as career evidence.",
     href: "/app/accomplishments?create=1&education_feature=experience-translator",
   },
   {
@@ -296,14 +296,14 @@ function ApplicationsHubPage() {
 
   async function copyShortlist() {
     if (!selectedEvidence.length) return;
-    const heading = `${activeWorkflow.title} — my BragStack wins`;
+    const heading = `${activeWorkflow.title} — my Boasted wins`;
     const lines = selectedEvidence.flatMap((item, index) => [
       `${index + 1}. ${item.title} — ${item.category} · ${item.entry_type}`,
       `   ${item.fit_reasons.join("; ")}`,
     ]);
     const footer = applicationType === "essay-prep"
       ? "\nUse these as story ideas only. Write the essay in your own voice and keep every claim accurate."
-      : "\nCheck the real requirements before submitting anything. BragStack helps you organize your story; it does not predict who gets selected.";
+      : "\nCheck the real requirements before submitting anything. Boasted helps you organize your story; it does not predict who gets selected.";
     try {
       await navigator.clipboard.writeText([heading, ...lines, footer].join("\n"));
       setNotice(applicationType === "essay-prep" ? "Story ideas copied" : "Your wins were copied");
@@ -377,7 +377,7 @@ function ApplicationsHubPage() {
             {selectedEvidence.length > 0 && <ol>{selectedEvidence.map((item) => <li key={item.entry_id}>{item.title}</li>)}</ol>}
             <button type="button" disabled={!selectedEvidence.length} onClick={() => void copyShortlist()}>{applicationType === "essay-prep" ? "Copy my story ideas" : "Copy my wins"}</button>
             {applicationType === "internship" && <a className="application-secondary-action" href="/app/resume-builder">Turn these into a resume <ChevronRight size={15} /></a>}
-            <small>{notice || (applicationType === "essay-prep" ? "BragStack helps you remember the story. You stay the writer." : "These are starting points from your own record—not a prediction of who will choose you.")}</small>
+            <small>{notice || (applicationType === "essay-prep" ? "Boasted helps you remember the story. You stay the writer." : "These are starting points from your own record—not a prediction of who will choose you.")}</small>
           </section>
 
           <section className="application-gaps-card">

@@ -7,7 +7,7 @@ import {
   isConfidentialityProtectedRequest,
 } from "./ndaSafety.js";
 
-const CONFIDENTIALITY_ATTESTATION_HEADER = "X-BragStack-Confidentiality-Attestation";
+const CONFIDENTIALITY_ATTESTATION_HEADER = "X-Boasted-Confidentiality-Attestation";
 
 function getDefaultApiBaseUrl() {
   if (window.location.hostname.endsWith(".app.github.dev")) return "/api";

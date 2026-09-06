@@ -10,7 +10,7 @@ export default function BragStackLoader({
       <div className="bragstack-loader-card">
         <div className="bragstack-loader-mark" aria-hidden="true"><span>B</span></div>
         <div className="bragstack-loader-copy">
-          <strong>BragStack</strong>
+          <strong>Boasted</strong>
           <h1>{message}</h1>
           <p>{detail}</p>
         </div>

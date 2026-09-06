@@ -1,4 +1,4 @@
-"""Deterministic release evaluations for BragStack smart features.
+"""Deterministic release evaluations for Boasted smart features.
 
 These checks execute the same production verification code used by customer
 workflows. Only pass/fail metadata and machine-readable case identifiers are

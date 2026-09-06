@@ -157,7 +157,7 @@ def _draw_footer(canvas, doc, packet: dict[str, Any]) -> None:
     canvas.line(MARGIN_X, 0.42 * inch, PAGE_WIDTH - MARGIN_X, 0.42 * inch)
     canvas.setFont("Helvetica", 6.6)
     canvas.setFillColor(MUTED)
-    canvas.drawString(MARGIN_X, 0.27 * inch, "BragStack · Career Evidence System")
+    canvas.drawString(MARGIN_X, 0.27 * inch, "Boasted · Career Evidence System")
     canvas.drawCentredString(PAGE_WIDTH / 2, 0.27 * inch, _period_display(packet.get("period", {}))[:72])
     canvas.drawRightString(PAGE_WIDTH - MARGIN_X, 0.27 * inch, f"Page {doc.page}")
     if packet.get("confidential"):
@@ -237,7 +237,7 @@ def _story_block(item: dict[str, Any], styles: dict[str, ParagraphStyle], number
                     )
                 )
             else:
-                detail_parts.append(Paragraph(escape(f"{label} · {reference or 'Stored in BragStack'}"), styles["small"]))
+                detail_parts.append(Paragraph(escape(f"{label} · {reference or 'Stored in Boasted'}"), styles["small"]))
 
     rows.append([detail_parts, ""])
     table = Table(rows, colWidths=[CONTENT_WIDTH - 1.05 * inch, 1.05 * inch])
@@ -277,8 +277,8 @@ def build_interview_packet_pdf(packet: dict[str, Any]) -> bytes:
         rightMargin=MARGIN_X,
         topMargin=MARGIN_TOP,
         bottomMargin=MARGIN_BOTTOM,
-        title=packet.get("title") or "BragStack Interview Packet",
-        author="BragStack",
+        title=packet.get("title") or "Boasted Interview Packet",
+        author="Boasted",
         subject="Evidence-backed interview preparation packet",
     )
 
@@ -289,8 +289,8 @@ def build_interview_packet_pdf(packet: dict[str, Any]) -> bytes:
     story: list = []
 
     story.append(Spacer(1, 0.72 * inch))
-    story.append(Paragraph("BRAGSTACK · INTERVIEW PACKET", styles["kicker"]))
-    story.append(Paragraph(_safe(subject.get("name") or "BragStack Member"), styles["cover_name"]))
+    story.append(Paragraph("BOASTED · INTERVIEW PACKET", styles["kicker"]))
+    story.append(Paragraph(_safe(subject.get("name") or "Boasted Member"), styles["cover_name"]))
     story.append(Paragraph(_safe(subject.get("role") or "Professional"), styles["subhead"]))
     target_text = " · ".join(value for value in [_clean(target.get("role")), _clean(target.get("organization"))] if value)
     if target_text:
@@ -356,7 +356,7 @@ def build_interview_packet_pdf(packet: dict[str, Any]) -> bytes:
     story.append(Paragraph("INTERVIEW NOTE", styles["label"]))
     story.append(
         Paragraph(
-            "BragStack organizes documented work; it does not invent missing STAR details, claims, metrics, or evidence. Use the prompts above to add only facts you can support.",
+            "Boasted organizes documented work; it does not invent missing STAR details, claims, metrics, or evidence. Use the prompts above to add only facts you can support.",
             styles["body"],
         )
     )

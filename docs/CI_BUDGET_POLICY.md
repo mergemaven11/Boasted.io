@@ -1,6 +1,6 @@
 # Shared CI Budget Policy
 
-BragStack and Variant Vault share one GitHub Actions budget.
+Boasted and Variant Vault share one GitHub Actions budget.
 
 ## Monthly operating target
 

@@ -46,7 +46,7 @@ const featureCards = [
     color: "orange",
     what: "Ask someone who knows the work to confirm an Impact Receipt.",
     when: "When a collaborator, manager, stakeholder, or organization can independently confirm the contribution and result.",
-    result: "Optional third-party confirmation without requiring the verifier to create a BragStack account.",
+    result: "Optional third-party confirmation without requiring the verifier to create a Boasted account.",
   },
   {
     icon: FileText,
@@ -152,13 +152,13 @@ function GoalGuide() {
 }
 
 export default function DocsFeatureWalkthroughs() {
-  return <section className="docs-feature-walkthroughs" aria-label="How BragStack career tools work">
+  return <section className="docs-feature-walkthroughs" aria-label="How Boasted career tools work">
     <FeatureGuide/>
     <GoalGuide/>
 
     <div className="docs-walkthrough-heading">
       <span>SEE IT BEFORE YOU TRY IT</span>
-      <h2>Simple walkthroughs of the main BragStack features.</h2>
+      <h2>Simple walkthroughs of the main Boasted features.</h2>
       <p>Each example shows the basic idea: what you put in, what you see, and how the feature can help you move forward.</p>
     </div>
 
@@ -176,7 +176,7 @@ export default function DocsFeatureWalkthroughs() {
         <div className="docs-proof-note"><ShieldCheck size={16}/><span>Keep confidential material out. A useful career summary is better than copying sensitive company information into your personal workspace.</span></div>
       </div>
 
-      <div className="docs-receipt-shot" role="img" aria-label="Example BragStack Impact Receipt">
+      <div className="docs-receipt-shot" role="img" aria-label="Example Boasted Impact Receipt">
         <div className="receipt-shot-top"><div><ReceiptText size={15}/><span>Impact Receipt</span></div><b>Private</b></div>
         <div className="receipt-shot-body">
           <div className="receipt-field purple"><small>WHAT HAPPENED</small><strong>Reduced repeat deployment failures</strong><p>Production deployments were repeatedly failing and creating support escalations.</p></div>
@@ -195,16 +195,16 @@ export default function DocsFeatureWalkthroughs() {
           <li><b>Choose an Impact Receipt.</b> Pick a claim that another person genuinely knows enough about to review.</li>
           <li><b>Choose the verifier.</b> This could be a collaborator, manager, stakeholder, or organization.</li>
           <li><b>Send the request.</b> They receive a private link to review the claim.</li>
-          <li><b>They confirm or decline.</b> A verifier does not need a BragStack account to respond.</li>
+          <li><b>They confirm or decline.</b> A verifier does not need a Boasted account to respond.</li>
           <li><b>Keep the boundary clear.</b> Confirmation supports the specific claim; it does not turn every detail in your workspace into public proof.</li>
         </ol>
-        <div className="docs-proof-note"><ShieldCheck size={16}/><span>The verifier's email remains private and is not displayed on your public BragStack profile.</span></div>
+        <div className="docs-proof-note"><ShieldCheck size={16}/><span>The verifier's email remains private and is not displayed on your public Boasted profile.</span></div>
       </div>
-      <div className="docs-verification-shot" role="img" aria-label="Example BragStack receipt verification request">
+      <div className="docs-verification-shot" role="img" aria-label="Example Boasted receipt verification request">
         <div className="verification-shot-top"><div><ShieldCheck size={15}/><span>Request confirmation</span></div><b>Optional</b></div>
         <div className="verification-shot-receipt"><small>IMPACT RECEIPT</small><strong>Reduced repeat deployment failures</strong><p>I diagnosed a recurring configuration issue, tested a safer change, and helped roll it out.</p></div>
         <div className="verification-shot-person"><div className="verification-shot-avatar">JL</div><div><strong>Jordan Lee</strong><span>Manager / stakeholder</span></div><em>Private email</em></div>
-        <div className="verification-shot-status"><CheckCircle2 size={14}/><div><strong>Request ready to send</strong><span>No BragStack account required for the verifier</span></div></div>
+        <div className="verification-shot-status"><CheckCircle2 size={14}/><div><strong>Request ready to send</strong><span>No Boasted account required for the verifier</span></div></div>
       </div>
     </article>
 
@@ -215,14 +215,14 @@ export default function DocsFeatureWalkthroughs() {
         <ol>
           <li><b>Choose the role.</b> Add the job you are preparing for and, if you want, the job description.</li>
           <li><b>Answer one question at a time.</b> Speak naturally or type your answer.</li>
-          <li><b>Read the feedback.</b> BragStack points out what came across clearly and what still needs work.</li>
+          <li><b>Read the feedback.</b> Boasted points out what came across clearly and what still needs work.</li>
           <li><b>Use the follow-up.</b> If your answer is vague, the next prompt helps you add the missing detail.</li>
           <li><b>Try again.</b> The goal is not a perfect script. It is a stronger, clearer version of your real story.</li>
         </ol>
         <div className="docs-proof-note"><Target size={16}/><span>Interview feedback is coaching, not a hiring prediction. Use it to practice and improve, not as a guarantee of what an employer will decide.</span></div>
       </div>
 
-      <div className="docs-interview-shot" role="img" aria-label="Example BragStack practice interview with Aisha">
+      <div className="docs-interview-shot" role="img" aria-label="Example Boasted practice interview with Aisha">
         <div className="interview-shot-top"><span>Practice Interviewer</span><small>Question 3 of 8</small></div>
         <div className="interview-shot-person"><div className="interviewer-avatar">AJ</div><div><b>Aisha Jordan</b><span>Virtual interviewer</span></div><em>Listening…</em></div>
         <div className="interview-shot-question"><small>BEHAVIORAL · PROBLEM SOLVING</small><strong>Tell me about a time you had to solve a complex problem with incomplete information.</strong><p>Tip: Be specific and show what changed because of your work.</p></div>
@@ -236,7 +236,7 @@ export default function DocsFeatureWalkthroughs() {
         <h3 id="scoring-heading">What the colors mean.</h3>
         <p>The colors are there to make coaching easier to scan. They help you see which parts of an answer are ready and which parts deserve another try.</p>
         <div className="docs-score-bands">{feedbackColors.map((band)=><article className={`score-band ${band.tone}`} key={band.label}><div><span>{band.label}</span></div><p>{band.detail}</p></article>)}</div>
-        <div className="docs-scoring-note"><Target size={17}/><p><b>One simple rule:</b> a weak interview should look weak. BragStack only highlights a strength when the answer actually demonstrates one.</p></div>
+        <div className="docs-scoring-note"><Target size={17}/><p><b>One simple rule:</b> a weak interview should look weak. Boasted only highlights a strength when the answer actually demonstrates one.</p></div>
       </div>
 
       <div className="docs-feedback-mockup" role="img" aria-label="Example weak interview feedback showing needs-detail feedback across all dimensions">
@@ -254,12 +254,12 @@ export default function DocsFeatureWalkthroughs() {
           <li><b>Paste the job you want.</b> This gives the resume a clear target.</li>
           <li><b>Choose the proof that fits.</b> Use accomplishments that genuinely support the role.</li>
           <li><b>Build the draft.</b> Your saved work becomes concise resume language.</li>
-          <li><b>Review the gaps.</b> If the job asks for something you have not shown, BragStack calls it out instead of pretending it is there.</li>
+          <li><b>Review the gaps.</b> If the job asks for something you have not shown, Boasted calls it out instead of pretending it is there.</li>
           <li><b>Edit before applying.</b> Make sure the final resume is accurate, readable, and sounds like you.</li>
         </ol>
         <div className="docs-proof-note"><ShieldCheck size={16}/><span>A strong match can help you prepare, but it is not a promise that an employer will interview or hire you.</span></div>
       </div>
-      <div className="docs-resume-shot" role="img" aria-label="Example BragStack evidence-backed resume builder result">
+      <div className="docs-resume-shot" role="img" aria-label="Example Boasted evidence-backed resume builder result">
         <div className="resume-shot-top"><span><Sparkles size={14}/> Resume · Customer Experience</span><b>Strong fit</b></div>
         <div className="resume-shot-body"><div className="resume-shot-paper"><h4>MAYA JOHNSON</h4><small>Senior Customer Experience Specialist</small><hr/><b>EXPERIENCE & IMPACT</b><p>• Resolved <mark>complex billing cases</mark> without escalation by identifying root causes and coordinating corrections.</p><p>• Earned <mark>positive customer feedback</mark> while handling high-friction conversations.</p><p>• Supported <mark>peer coaching</mark>, sharing useful resolution patterns with teammates.</p><b>CORE SKILLS</b><p>Customer retention · De-escalation · Billing resolution · Peer coaching</p></div><aside><strong>Strong</strong><span>role fit</span><p><CheckCircle2 size={13}/> Relevant proof</p><p><CheckCircle2 size={13}/> Clear structure</p><div><b>Evidence gap</b><small>Workforce scheduling</small></div></aside></div>
       </div>
@@ -301,7 +301,7 @@ export default function DocsFeatureWalkthroughs() {
           <li><b>Review the final artifact.</b> Tailor it to the audience and keep confidential details out.</li>
         </ol>
       </div>
-      <div className="docs-analytics-shot" role="img" aria-label="Example BragStack career analytics and packet options">
+      <div className="docs-analytics-shot" role="img" aria-label="Example Boasted career analytics and packet options">
         <div className="analytics-shot-top"><div><BriefcaseBusiness size={15}/><span>Career Analytics</span></div><b>Proof, visualized</b></div>
         <div className="analytics-shot-metrics"><article><strong>18</strong><span>Accomplishments</span></article><article><strong>9</strong><span>Impact Receipts</span></article><article><strong>12</strong><span>Evidence items</span></article></div>
         <div className="analytics-shot-skills"><small>REPEATED SKILL THEMES</small><div><span>Customer judgment</span><i><u style={{width:"82%"}}/></i></div><div><span>Problem solving</span><i><u style={{width:"70%"}}/></i></div><div><span>Peer coaching</span><i><u style={{width:"56%"}}/></i></div></div>
@@ -320,7 +320,7 @@ export default function DocsFeatureWalkthroughs() {
           <li><b>Publish intentionally.</b> Private proof stays private unless you deliberately share it.</li>
           <li><b>Review it like a portfolio.</b> Make sure the public story is clear, current, and something you are comfortable having reshared.</li>
         </ol>
-        <div className="docs-proof-note"><ShieldCheck size={16}/><span>Public means public. Only publish proof you are authorized and comfortable to share outside BragStack.</span></div>
+        <div className="docs-proof-note"><ShieldCheck size={16}/><span>Public means public. Only publish proof you are authorized and comfortable to share outside Boasted.</span></div>
       </div>
       <div className="docs-profile-shot" role="img" aria-label="Example public proof profile">
         <div className="profile-shot-header"><div className="profile-shot-avatar">MJ</div><div><strong>Maya Johnson</strong><span>Customer Experience · Problem Solver · Peer Coach</span></div><b>Public profile</b></div>
@@ -338,8 +338,8 @@ export default function DocsFeatureWalkthroughs() {
       <div className="docs-evidence-example"><span>Instead of saving:</span><strong>“Customer X's private account details showed…”</strong><ArrowRight size={16}/><span>Save:</span><strong>“Resolved a complex billing issue by identifying the root cause and coordinating a correction.”</strong></div>
     </section>
 
-    <section className="docs-trust-boundary" aria-label="What BragStack does and does not do">
-      <div><ShieldCheck size={19}/><strong>BragStack helps organize and explain your real career proof.</strong></div>
+    <section className="docs-trust-boundary" aria-label="What Boasted does and does not do">
+      <div><ShieldCheck size={19}/><strong>Boasted helps organize and explain your real career proof.</strong></div>
       <p>It should not invent experience, guarantee an interview, guarantee a promotion, or automatically make your private work public. You stay responsible for reviewing what you save, generate, and share.</p>
     </section>
   </section>;

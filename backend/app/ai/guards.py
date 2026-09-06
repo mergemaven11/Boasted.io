@@ -77,7 +77,7 @@ def validate_grounded_suggestion(
 
     This guard is deliberately conservative. It does not attempt semantic fact
     checking; it blocks obvious classes of unsupported claims before a model
-    output can be surfaced as a BragStack suggestion.
+    output can be surfaced as a Boasted suggestion.
 
     Args:
         suggestion: Unaccepted AI suggestion to validate before it is surfaced.

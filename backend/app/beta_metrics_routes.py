@@ -176,6 +176,6 @@ def aggregate_beta_metrics(current_user: dict = Depends(get_current_user)):
         "average_would_miss_score": round(sum(miss_scores) / len(miss_scores), 2) if miss_scores else 0,
         "pull_signal": {
             "strong": bool(feedback_rows) and pct(strong_miss, len(miss_scores)) >= 40,
-            "definition": "At least 40% of respondents rate missing BragStack a 4 or 5 out of 5.",
+            "definition": "At least 40% of respondents rate missing Boasted a 4 or 5 out of 5.",
         },
     }

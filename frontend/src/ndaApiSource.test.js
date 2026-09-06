@@ -27,7 +27,7 @@ test("attestation mint uses bare axios to avoid recursively invoking the protect
 
 
 test("protected write carries the server one-time attestation header", () => {
-  assert.match(api, /X-BragStack-Confidentiality-Attestation/);
+  assert.match(api, /X-Boasted-Confidentiality-Attestation/);
   assert.match(api, /config\.headers\[CONFIDENTIALITY_ATTESTATION_HEADER\] = serverToken/);
 });
 

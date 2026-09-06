@@ -1,4 +1,4 @@
-# BragStack NDA & Confidentiality Safety Workflow
+# Boasted NDA & Confidentiality Safety Workflow
 
 **Internal engineering document**
 
@@ -6,7 +6,7 @@ Status: end-to-end confidentiality gate, API attestation enforcement, and minima
 
 ## Purpose
 
-BragStack helps users capture career evidence without encouraging them to copy confidential employer, client, patient, student, customer, constituent, or other restricted information into the product.
+Boasted helps users capture career evidence without encouraging them to copy confidential employer, client, patient, student, customer, constituent, or other restricted information into the product.
 
 The NDA/confidentiality system is a defense-in-depth safety control. It does **not** interpret contracts, decide whether disclosure is legally permitted, classify every possible secret, or certify that a record is “NDA compliant.”
 
@@ -52,7 +52,7 @@ flowchart TD
     N --> O[Consume browser attestation]
     O --> P[POST /confidentiality/attestations]
     P --> Q[Server mints action-bound one-time token]
-    Q --> R[Protected request carries X-BragStack-Confidentiality-Attestation]
+    Q --> R[Protected request carries X-Boasted-Confidentiality-Attestation]
     R --> S[Backend atomically validates + consumes token]
     S --> T{Valid?}
     T -- No --> U[428 Precondition Required]
@@ -112,7 +112,7 @@ Warnings are intentionally conservative. They do not prove that content is confi
 
 When no blocking finding remains, the user must confirm that the material they are about to store or publish does not contain confidential, proprietary, restricted, or other information they are prohibited from storing or disclosing.
 
-The dialog links to `/nda-safety` and explicitly says BragStack does not interpret the user’s agreement.
+The dialog links to `/nda-safety` and explicitly says Boasted does not interpret the user’s agreement.
 
 ## 4. One-time browser attestation
 
@@ -132,7 +132,7 @@ For a protected write:
 2. consume the one-time browser confidentiality attestation;
 3. if present, mint a server token with `POST /confidentiality/attestations`;
 4. send only control metadata to the mint endpoint: version, HTTP method, path, and `confirmed: true`;
-5. attach the returned token to `X-BragStack-Confidentiality-Attestation`; and
+5. attach the returned token to `X-Boasted-Confidentiality-Attestation`; and
 6. continue the original protected write.
 
 The mint request uses bare `axios.post`, not the configured protected API instance, so it does not recursively trigger the protected-write interceptor.
@@ -236,7 +236,7 @@ A public repository change, award, release note, campaign, documentation page, r
 
 ## 12. CORS and request IDs
 
-`backend/app/main.py` allows `X-BragStack-Confidentiality-Attestation` through CORS.
+`backend/app/main.py` allows `X-Boasted-Confidentiality-Attestation` through CORS.
 
 Request middleware assigns `request.state.request_id` before route dependencies run so successful attestation consumption can be correlated to a sanitized operational request record without copying the protected content into the attestation audit.
 
@@ -287,7 +287,7 @@ When changing this system:
 7. Re-run the safety suite, full backend suite, lint, build, and dependency audit.
 8. Update `/nda-safety` when user-visible behavior changes.
 9. Update this document whenever an enforcement boundary changes.
-10. Do not claim BragStack verifies legal NDA compliance.
+10. Do not claim Boasted verifies legal NDA compliance.
 
 ## 15. Known limitations
 

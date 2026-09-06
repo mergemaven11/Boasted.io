@@ -1,8 +1,8 @@
 # Changelog
 
-All notable changes to BragStack are documented here.
+All notable changes to Boasted are documented here.
 
-This changelog tracks **merged, shipped repository changes only**. Open or draft pull requests are not listed as released work. Entries are grouped by date and by impact using a Keep a Changelog-style structure. The exhaustive event-level history, including the direct-commit era before pull requests, is maintained in the internal **BragStack — Changelog** Google Sheet.
+This changelog tracks **merged, shipped repository changes only**. Open or draft pull requests are not listed as released work. Entries are grouped by date and by impact using a Keep a Changelog-style structure. The exhaustive event-level history, including the direct-commit era before pull requests, is maintained in the internal **Boasted — Changelog** Google Sheet.
 
 ## [Unreleased]
 
@@ -27,17 +27,17 @@ This changelog tracks **merged, shipped repository changes only**. Open or draft
 - Added an internal user accounts directory to the Ops Console with safe account search/filtering, plan and verification visibility, public profile links, audited resend-verification support actions, and no exposure of passwords, auth tokens, payment details, or private accomplishment content. (#173)
 - Added persistent operational observability with sanitized Mongo-backed request traces, 14-day TTL retention, exception grouping, slow/failure views, and restricted Ops access. Request bodies, auth headers, query strings, tokens, exception messages, and raw user content are intentionally excluded. (#167)
 - Added audited Ops team and role management with backend-enforced `support`, `ops`, `security`, and `admin` roles, last-admin protection, bootstrap-admin support, and persistent role-change audit records. (#165)
-- Added the first usable BragStack Ops Console with backend-enforced RBAC, safe request telemetry, service/database diagnostics, bounded user lookup, and explicit redaction of sensitive authentication and career data. (#163)
-- Added a reusable branded BragStack loading system with reduced-motion support and route/app initialization coverage. (#162)
+- Added the first usable Boasted Ops Console with backend-enforced RBAC, safe request telemetry, service/database diagnostics, bounded user lookup, and explicit redaction of sensitive authentication and career data. (#163)
+- Added a reusable branded Boasted loading system with reduced-motion support and route/app initialization coverage. (#162)
 - Added production bundle-budget regression checks so code-splitting and startup bundle size are continuously guarded in CI. (#157)
 - Added production SEO/search quality gates covering sitemap consistency, canonical URLs, site navigation signals, metadata, private-route noindex behavior, and regression checks. (#155)
 
 ### Changed
-- Improved Aisha interview presentation and ATS Scan behavior: route-level speech teardown, responsive interviewer states, evidence-first resume parsing, a BragStack-specific ATS compatibility score with explainable breakdown, and stronger parser fallbacks. ATS Scan remains explicitly non-predictive. (#176)
+- Improved Aisha interview presentation and ATS Scan behavior: route-level speech teardown, responsive interviewer states, evidence-first resume parsing, a Boasted-specific ATS compatibility score with explainable breakdown, and stronger parser fallbacks. ATS Scan remains explicitly non-predictive. (#176)
 - Finished the branded loading rollout across Pro Career, Appearance Settings, and Ops initial-load states while preserving action-specific progress states. (#175)
 - Modernized public product/SEO landing pages with clearer hierarchy, responsive navigation, stronger internal linking, canonical metadata, and accessible navigation semantics. (#154)
 - Expanded branded loading states across Dashboard, Accomplishments, Impact Receipts, Profile, Billing, Upgrade, and public receipt-verification flows. (#166, #168, #164)
-- Improved login and account-flow cold-start handling so users remain on BragStack’s branded auth UI while the Render API wakes, with readiness checks shared across password, OAuth, email-verification, and reset flows. (#172)
+- Improved login and account-flow cold-start handling so users remain on Boasted’s branded auth UI while the Render API wakes, with readiness checks shared across password, OAuth, email-verification, and reset flows. (#172)
 - Improved authentication UX and transactional email branding for account verification, password reset, and Impact Receipt verification, including safer HTML escaping and clearer expiry/security copy. (#171)
 - Moved product CSS and analytics work off the public critical startup path to improve first-load performance while keeping functionality intact. (#161, #159)
 - Added route-level code splitting so authenticated/heavy product surfaces no longer inflate public-page startup unnecessarily. (#156)
@@ -69,7 +69,7 @@ This changelog tracks **merged, shipped repository changes only**. Open or draft
 - Fixed dark-mode contrast and readability on Settings → Plan & billing. (#146)
 
 ### Security
-- Hardened BragStack application security with API security headers, HSTS on HTTPS, narrower CORS rules, password byte-length protection, JWT lifecycle claims and IDs, dependency vulnerability auditing, safer authenticated search handling, and dedicated Security CI. (#151)
+- Hardened Boasted application security with API security headers, HSTS on HTTPS, narrower CORS rules, password byte-length protection, JWT lifecycle claims and IDs, dependency vulnerability auditing, safer authenticated search handling, and dedicated Security CI. (#151)
 
 ## 2026-08-24
 
@@ -82,7 +82,7 @@ This changelog tracks **merged, shipped repository changes only**. Open or draft
 ### Changed
 - Hardened Resume Builder provenance and ATS claims so manual edits require source review and matching remains evidence-aware rather than overstating parser certainty. (#99)
 - Iterated heavily on Aisha’s interview room, browser speech behavior, sequencing, device responsiveness, and catalog-backed question flow. (#104, #110, #111, #112, #114, #115, #116, #117, #118, #119, #120, #122, #124, #126, #129)
-- Expanded BragStack customer documentation and searchability. (#121)
+- Expanded Boasted customer documentation and searchability. (#121)
 
 ### Security
 - Hardened auth recovery against account-enumeration side channels. (#92)
@@ -94,7 +94,7 @@ This changelog tracks **merged, shipped repository changes only**. Open or draft
 - Added Google and GitHub OAuth, Stripe Checkout/subscription lifecycle handling, Free/Pro server-side entitlements, password reset, and email verification for password signups. (#40, #41, #43, #44)
 - Added customer-facing Privacy Policy, Terms, NDA/confidential-work guidance, Docs, SEO/search discovery assets, and expanded legal/product documentation. (#45, #46, #49, #55, #56)
 - Added profile editing, saved profile images, and career-inspired Proof Profile themes with private appearance settings. (#57, #58, #60, #61)
-- Added Google Analytics 4 and role-based BragStack contact routing. (#62, #65)
+- Added Google Analytics 4 and role-based Boasted contact routing. (#62, #65)
 
 ### Changed
 - Redesigned the authenticated dashboard, auth pages, landing experience, mobile navigation, branding, and public profile presentation. (#42, #50, #51, #52, #53, #54, #59, #63, #69, #75, #80)
@@ -125,7 +125,7 @@ This changelog tracks **merged, shipped repository changes only**. Open or draft
 ## 2026-08-17
 
 ### Changed
-- Polished BragStack for the V1 release with portable/searchable reports, cleanup of duplicated models, V1 product documentation, and an explicit separation between shipped product and post-V1 roadmap work. (#9)
+- Polished Boasted for the V1 release with portable/searchable reports, cleanup of duplicated models, V1 product documentation, and an explicit separation between shipped product and post-V1 roadmap work. (#9)
 
 ## 2026-08-07
 
@@ -141,12 +141,12 @@ This changelog tracks **merged, shipped repository changes only**. Open or draft
 
 ### Added
 - Added JWT authentication and private entry ownership, frontend login/register, protected dashboard behavior, and authenticated API access. (#1)
-- Added public BragStack sharing APIs, slug-scoped public profiles, weekly/tag/category summaries, and frontend public-profile integration. (#2, #5, #6)
+- Added public Boasted sharing APIs, slug-scoped public profiles, weekly/tag/category summaries, and frontend public-profile integration. (#2, #5, #6)
 - Added the initial backend test suite and GitHub Actions CI workflow. (#3, #4)
 
 ## 2026-05-26 to 2026-06-09 — repository foundation
 
-Before the pull-request workflow began, the repository established the original BragStack MVP through direct commits: entry update and weekly reporting, skill/category summaries, keyword search, pagination, resume-bullet generation, a React dashboard, entry edit/delete, public brag metadata/page support, and the first JWT/private-ownership and frontend-auth implementation. The repository root commit is dated **2026-05-26**.
+Before the pull-request workflow began, the repository established the original Boasted MVP through direct commits: entry update and weekly reporting, skill/category summaries, keyword search, pagination, resume-bullet generation, a React dashboard, entry edit/delete, public brag metadata/page support, and the first JWT/private-ownership and frontend-auth implementation. The repository root commit is dated **2026-05-26**.
 
 ---
 

@@ -1,13 +1,13 @@
 > [!IMPORTANT]
 > **Proprietary software — copying prohibited.** This source is public for portfolio review and evaluation only. Copying, modification, redistribution, commercial use, rehosting, derivative works, and AI/ML training use are prohibited without prior written permission. See [LICENSE](LICENSE).
 
-# BragStack
+# Boasted
 
 > **Your work deserves receipts. Capture what you did. Prove the impact. Build the packet.**
 
-BragStack is a **career evidence system for people in any profession**. It helps people turn day-to-day work into portable proof they can reuse for reviews, promotions, interviews, résumés, portfolios, client conversations, and career transitions.
+Boasted is a **career evidence system for people in any profession**. It helps people turn day-to-day work into portable proof they can reuse for reviews, promotions, interviews, résumés, portfolios, client conversations, and career transitions.
 
-BragStack is intentionally not built around one profession. A teacher, nurse, warehouse lead, stylist, salesperson, mechanic, nonprofit coordinator, designer, student, manager, developer, or public-service worker should all be able to use the same core model:
+Boasted is intentionally not built around one profession. A teacher, nurse, warehouse lead, stylist, salesperson, mechanic, nonprofit coordinator, designer, student, manager, developer, or public-service worker should all be able to use the same core model:
 
 ```text
 Accomplishment
@@ -37,17 +37,17 @@ No profession-specific field is required for the core evidence model.
 
 ---
 
-## Why BragStack exists
+## Why Boasted exists
 
 Important work is easy to forget and surprisingly hard to reconstruct later.
 
-BragStack lets users record accomplishments while they are fresh, turn meaningful wins into structured **Impact Receipts**, and assemble that evidence into professional artifacts when an opportunity appears.
+Boasted lets users record accomplishments while they are fresh, turn meaningful wins into structured **Impact Receipts**, and assemble that evidence into professional artifacts when an opportunity appears.
 
 Instead of saying:
 
 > “I know I did a lot this year…”
 
-BragStack helps a user show:
+Boasted helps a user show:
 
 - what happened
 - what they personally contributed
@@ -61,7 +61,7 @@ BragStack helps a user show:
 
 ## Impact Receipts
 
-An **Impact Receipt** is BragStack's structured proof record.
+An **Impact Receipt** is Boasted's structured proof record.
 
 It can contain:
 
@@ -148,7 +148,7 @@ The same structure works for clinical care, teaching, sales, operations, trades,
 
 ### Performance Review Packet
 
-A Pro-grade, paper-first professional dossier generated from real BragStack evidence.
+A Pro-grade, paper-first professional dossier generated from real Boasted evidence.
 
 Includes:
 
@@ -179,7 +179,7 @@ Includes:
 - evidence gaps / ways to strengthen the case
 - direct PDF export
 
-BragStack does **not** assign an opaque promotion-readiness score or make an employment decision.
+Boasted does **not** assign an opaque promotion-readiness score or make an employment decision.
 
 ### Interview Packet
 
@@ -198,14 +198,14 @@ It is designed to:
 
 ## Trust and privacy principles
 
-BragStack is built around a few non-negotiable rules:
+Boasted is built around a few non-negotiable rules:
 
 1. **Users control their career proof.**
 2. **Sensitive workplace evidence stays private by default.**
 3. **Imported activity should require user approval.**
 4. **Shared work deserves shared credit.**
 5. **Verification must clearly state what was actually confirmed.**
-6. **BragStack should complement existing HR systems, not require replacing them.**
+6. **Boasted should complement existing HR systems, not require replacing them.**
 7. **Career visibility should not become workplace surveillance.**
 8. **Generated packets must not invent facts, scores, outcomes, or evidence.**
 
@@ -213,7 +213,7 @@ BragStack is built around a few non-negotiable rules:
 
 ## Plans foundation
 
-BragStack currently has entitlement foundations for:
+Boasted currently has entitlement foundations for:
 
 - **Free** — core career proof
 - **Pro** — advanced reports, packets, PDF export, integrations foundation
@@ -366,7 +366,7 @@ Current post-V1 directions include:
 
 ## Vision
 
-**BragStack is a portable record of real work.**
+**Boasted is a portable record of real work.**
 
 What happened. What you contributed. What changed. What proves it. What you learned. And how that evidence can move with you throughout your career.
 

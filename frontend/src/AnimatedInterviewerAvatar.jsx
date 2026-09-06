@@ -17,12 +17,12 @@ export default function AnimatedInterviewerAvatar({ state = "idle", name = "Aish
       className={`aisha-avatar-shell state-${safeState}`}
       data-avatar-engine="bragstack-static-aj-v1"
       data-interviewer-state={safeState}
-      aria-label={`${displayName}, BragStack Interviewer — ${STATE_COPY[safeState]}`}
+      aria-label={`${displayName}, Boasted Interviewer — ${STATE_COPY[safeState]}`}
     >
       <div className="aj-avatar-content">
         <div className="aj-avatar-monogram" aria-hidden="true">AJ</div>
         <div className="aj-avatar-identity">
-          <span>Aisha Jordan · BragStack Interviewer</span>
+          <span>Aisha Jordan · Boasted Interviewer</span>
         </div>
         <div className={`aj-avatar-state state-${safeState}`} aria-live="polite">
           <span className="aj-avatar-state-dot" aria-hidden="true" />

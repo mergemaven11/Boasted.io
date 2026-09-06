@@ -14,7 +14,7 @@ def test_internal_users_keep_interview_practice_access():
     """Verify internal users keep interview practice access."""
     user = {
         "plan": "free",
-        "email": "staff@usebragstack.com",
+        "email": "staff@boasted.io",
         "email_verification_required": False,
     }
     assert get_entitlements_for_user(user)["interview_practice"] is True

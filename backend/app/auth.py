@@ -1,4 +1,4 @@
-"""Authentication, JWT, and current-user helpers for BragStack."""
+"""Authentication, JWT, and current-user helpers for Boasted."""
 
 import os
 import secrets
@@ -38,7 +38,7 @@ def _password_fits_bcrypt(password: str) -> bool:
 
 
 def hash_password(password: str) -> str:
-    """Hash a BragStack password with the configured bcrypt context.
+    """Hash a Boasted password with the configured bcrypt context.
 
     Args:
         password: Plain-text password supplied during account creation or
@@ -76,7 +76,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(data: dict) -> str:
-    """Create a signed BragStack access token with standard timing claims.
+    """Create a signed Boasted access token with standard timing claims.
 
     Args:
         data: Claims to include in the token, typically including the user's

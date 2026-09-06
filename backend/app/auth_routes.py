@@ -17,7 +17,7 @@ from app.email_templates import build_email_verification_html, build_password_re
 router = APIRouter(prefix="/auth", tags=["auth"])
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
-PASSWORD_RESET_FROM = os.getenv("PASSWORD_RESET_FROM", "BragStack <noreply@usebragstack.com>")
+PASSWORD_RESET_FROM = os.getenv("PASSWORD_RESET_FROM", "Boasted <noreply@boasted.io>")
 EMAIL_VERIFICATION_FROM = os.getenv("EMAIL_VERIFICATION_FROM", PASSWORD_RESET_FROM)
 TERMS_VERSION = "2026-09-05"
 PRIVACY_VERSION = "2026-09-05"
@@ -177,11 +177,11 @@ async def _send_email(to_email, subject, html, from_value):
 
 
 async def _send_verification_email(email, url):
-    await _send_email(email, "Verify your BragStack email", build_email_verification_html(url), EMAIL_VERIFICATION_FROM)
+    await _send_email(email, "Verify your Boasted email", build_email_verification_html(url), EMAIL_VERIFICATION_FROM)
 
 
 async def _send_password_reset_email(email, url):
-    await _send_email(email, "Reset your BragStack password", build_password_reset_html(url), PASSWORD_RESET_FROM)
+    await _send_email(email, "Reset your Boasted password", build_password_reset_html(url), PASSWORD_RESET_FROM)
 
 
 def _issue_verification_token(user):
@@ -203,7 +203,7 @@ async def register_user(payload: RegisterRequest):
     if not payload.accepted_terms or not payload.accepted_privacy:
         raise HTTPException(
             status_code=422,
-            detail="You must accept the Terms and Privacy Policy to create a BragStack account.",
+            detail="You must accept the Terms and Privacy Policy to create a Boasted account.",
         )
 
     email = payload.email.lower().strip()

@@ -67,7 +67,7 @@ export default function PacketHistoryPanel({ refreshKey = 0, compact = false }) 
   return (
     <section className={`packet-history-panel ${compact ? "compact" : ""}`} aria-label="Packet history">
       <div className="packet-history-heading">
-        <div><span>PACKET HISTORY</span><h2>Your generated packets</h2><p>BragStack stores metadata only here—never packet bodies, evidence contents, or private notes.</p></div>
+        <div><span>PACKET HISTORY</span><h2>Your generated packets</h2><p>Boasted stores metadata only here—never packet bodies, evidence contents, or private notes.</p></div>
         <button type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} className={loading ? "packet-history-spin" : ""} /> Refresh</button>
       </div>
 

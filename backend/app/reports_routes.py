@@ -390,7 +390,7 @@ def _build_performance_packet(
             "title": "Performance Review Packet",
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "subject": {
-                "name": str(current_user.get("name") or "BragStack Member"),
+                "name": str(current_user.get("name") or "Boasted Member"),
                 "role": str(
                     current_user.get("headline")
                     or current_user.get("role_title")

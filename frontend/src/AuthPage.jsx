@@ -104,7 +104,7 @@ function AuthPage({ mode = "login", onLogin }) {
       void (async () => {
         try {
           const ready = await ensureApiReady();
-          if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
+          if (!ready) throw new Error("Boasted is taking longer than expected to start. Please try again.");
           const response = await fetch(`${apiBaseUrl}/auth/email-verification/confirm`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -146,7 +146,7 @@ function AuthPage({ mode = "login", onLogin }) {
 
     try {
       const ready = await ensureApiReady();
-      if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
+      if (!ready) throw new Error("Boasted is taking longer than expected to start. Please try again.");
 
       if (isRegister) {
         const response = await fetch(`${apiBaseUrl}/auth/register`, {
@@ -188,7 +188,7 @@ function AuthPage({ mode = "login", onLogin }) {
     setVerificationMessage("");
     try {
       const ready = await ensureApiReady();
-      if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
+      if (!ready) throw new Error("Boasted is taking longer than expected to start. Please try again.");
       const response = await fetch(`${apiBaseUrl}/auth/email-verification/resend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -215,7 +215,7 @@ function AuthPage({ mode = "login", onLogin }) {
     const slowTimer = window.setTimeout(() => setOauthIsTakingLonger(true), 4000);
     try {
       const ready = await ensureApiReady();
-      if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
+      if (!ready) throw new Error("Boasted is taking longer than expected to start. Please try again.");
       const consentQuery = isRegister ? "?accepted_terms=true&accepted_privacy=true" : "";
       window.location.assign(`${apiBaseUrl}/auth/${provider}/login${consentQuery}`);
     } catch (error) {
@@ -233,7 +233,7 @@ function AuthPage({ mode = "login", onLogin }) {
     setResetMessage("");
     try {
       const ready = await ensureApiReady();
-      if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
+      if (!ready) throw new Error("Boasted is taking longer than expected to start. Please try again.");
       const response = await fetch(`${apiBaseUrl}/auth/password-reset/request`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -257,7 +257,7 @@ function AuthPage({ mode = "login", onLogin }) {
     setResetSubmitting(true);
     try {
       const ready = await ensureApiReady();
-      if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
+      if (!ready) throw new Error("Boasted is taking longer than expected to start. Please try again.");
       const response = await fetch(`${apiBaseUrl}/auth/password-reset/confirm`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -285,7 +285,7 @@ function AuthPage({ mode = "login", onLogin }) {
     <main className="auth-page">
       <section className="auth-shell">
         <div className="auth-copy">
-          <p className="mini-label">BragStack</p>
+          <p className="mini-label">Boasted</p>
           <h1>Save your wins before<span> they disappear.</span></h1>
           <p>Track technical work, turn progress into resume bullets, and build a private career proof system you can reuse for reviews, interviews, raises, and job searches.</p>
           <div className="auth-proof-list"><span>Private by default</span><span>Resume-ready proof</span><span>Weekly summaries</span></div>
@@ -294,10 +294,10 @@ function AuthPage({ mode = "login", onLogin }) {
         <form className="auth-card" onSubmit={handleSubmit} aria-busy={isSubmitting}>
           <div className="auth-icon">{isRegister ? <UserPlus size={24} /> : <Sparkles size={24} />}</div>
           <p className="mini-label">{isRegister ? "Create account" : "Welcome back"}</p>
-          <h2>{isRegister ? "Start your BragStack" : "Log in to BragStack"}</h2>
+          <h2>{isRegister ? "Start your Boasted" : "Log in to Boasted"}</h2>
           <p className="auth-muted">{isRegister ? "Create your private workspace for career and education proof." : "Open your dashboard and keep building your proof."}</p>
 
-          {isVerifying && <div className="auth-reset-panel"><strong>Verifying your email…</strong><p>One moment while BragStack confirms your account.</p></div>}
+          {isVerifying && <div className="auth-reset-panel"><strong>Verifying your email…</strong><p>One moment while Boasted confirms your account.</p></div>}
           {errorMessage && <div className="auth-error">{errorMessage}</div>}
 
           {verificationMessage && (
@@ -315,21 +315,21 @@ function AuthPage({ mode = "login", onLogin }) {
             <div className="auth-legal-consent">
               <label><input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} /> <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms and Conditions</a>.</span></label>
               <label><input type="checkbox" checked={acceptedPrivacy} onChange={(event) => setAcceptedPrivacy(event.target.checked)} /> <span>I have read the <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.</span></label>
-              <p>BragStack records the current policy versions and the time these required agreements are accepted on your account.</p>
+              <p>Boasted records the current policy versions and the time these required agreements are accepted on your account.</p>
             </div>
           )}
 
           {!isRegister && <button type="button" className="auth-forgot-link" onClick={() => setShowReset((current) => !current)}>Forgot password?</button>}
 
           <button className="btn primary auth-submit" disabled={isSubmitting || isVerifying || Boolean(connectingProvider) || (isRegister && (!acceptedTerms || !acceptedPrivacy))}>{submitLabel}</button>
-          {isSlowSubmit && <p className="auth-submit-status" role="status">Securely connecting to BragStack…</p>}
+          {isSlowSubmit && <p className="auth-submit-status" role="status">Securely connecting to Boasted…</p>}
 
           {showReset && !isRegister && (
             <div className="auth-reset-panel">
               {resetToken ? (
                 <><strong>Choose a new password</strong><p>This reset link can be used once and expires after 30 minutes.</p><div className="auth-reset-stack"><input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="New password" minLength={8} /><input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Confirm new password" minLength={8} /><button type="button" onClick={handleResetConfirm} disabled={resetSubmitting || !newPassword || !confirmPassword}>{resetSubmitting ? "Updating..." : "Update password"}</button></div></>
               ) : (
-                <><strong>Reset your password</strong><p>Enter the email address on your BragStack account.</p><div className="auth-reset-row"><input type="email" value={resetEmail} onChange={(event) => setResetEmail(event.target.value)} placeholder="you@example.com" /><button type="button" onClick={handleResetRequest} disabled={resetSubmitting || !resetEmail}>{resetSubmitting ? "Sending..." : "Send link"}</button></div></>
+                <><strong>Reset your password</strong><p>Enter the email address on your Boasted account.</p><div className="auth-reset-row"><input type="email" value={resetEmail} onChange={(event) => setResetEmail(event.target.value)} placeholder="you@example.com" /><button type="button" onClick={handleResetRequest} disabled={resetSubmitting || !resetEmail}>{resetSubmitting ? "Sending..." : "Send link"}</button></div></>
               )}
               {resetMessage && <small>{resetMessage}</small>}
             </div>
@@ -355,11 +355,11 @@ function AuthPage({ mode = "login", onLogin }) {
               <GitHubMark />
               <span>{connectingProvider === "github" ? "Connecting to GitHub..." : "Continue with GitHub"}</span>
             </button>
-            {connectingProvider && oauthIsTakingLonger && <p className="auth-oauth-status" role="status">BragStack is waking up. We’ll continue automatically as soon as it’s ready.</p>}
+            {connectingProvider && oauthIsTakingLonger && <p className="auth-oauth-status" role="status">Boasted is waking up. We’ll continue automatically as soon as it’s ready.</p>}
           </div>
           {isRegister && !acceptedTerms && !acceptedPrivacy && <p className="auth-submit-status">Accept the Terms and Privacy Policy above to enable Google or GitHub sign-up.</p>}
 
-          <p className="auth-switch">{isRegister ? "Already have an account?" : "New to BragStack?"} <a href={isRegister ? "/login" : "/register"}>{isRegister ? "Log in" : "Create one"}</a></p>
+          <p className="auth-switch">{isRegister ? "Already have an account?" : "New to Boasted?"} <a href={isRegister ? "/login" : "/register"}>{isRegister ? "Log in" : "Create one"}</a></p>
         </form>
       </section>
     </main>

@@ -51,7 +51,7 @@ function NDASafetyPanel({ findings = [], onMakeSafe }) {
 
       {(blocking.length > 0 || warnings.length > 0) && (
         <p className="nda-safety-boundary">
-          BragStack cannot interpret an employment agreement or decide what your employer or client permits. When unsure, generalize the career signal or leave restricted material out. <a href="/nda-safety" target="_blank" rel="noreferrer">Read the NDA safety guide</a>.
+          Boasted cannot interpret an employment agreement or decide what your employer or client permits. When unsure, generalize the career signal or leave restricted material out. <a href="/nda-safety" target="_blank" rel="noreferrer">Read the NDA safety guide</a>.
         </p>
       )}
 

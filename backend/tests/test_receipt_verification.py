@@ -116,7 +116,7 @@ def test_public_link_exposes_claim_and_optional_message_but_not_verifier_email(v
     assert data["verifier_name"] == "Jane"
     assert data["message"] == "Please review."
     assert "email" not in data
-    assert "BragStack records your attestation" in data["statement"]
+    assert "Boasted records your attestation" in data["statement"]
 
 
 def test_confirm_minimizes_attestation_and_deletes_pending_contact_payload(verification_context):

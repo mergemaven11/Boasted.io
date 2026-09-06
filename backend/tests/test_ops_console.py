@@ -11,7 +11,7 @@ from app.ops_debug import clear_for_tests
 client = TestClient(main.app)
 
 
-def _user(email="engineer@usebragstack.com", roles=None):
+def _user(email="engineer@boasted.io", roles=None):
     """Handle user.
 
     Args:
@@ -84,7 +84,7 @@ def test_unverified_account_cannot_use_internal_role():
 
 def test_owner_email_is_bootstrap_admin():
     """Verify the founder owner account retains a bootstrap recovery admin role."""
-    _override_user(_user(email="tobias.scott@usebragstack.com", roles=[]))
+    _override_user(_user(email="tobias.scott@boasted.io", roles=[]))
     response = client.get("/ops/access")
     assert response.status_code == 200
     assert "admin" in response.json()["roles"]
@@ -166,8 +166,8 @@ def test_admin_can_update_user_roles_and_audit(monkeypatch):
     Args:
         monkeypatch: Function argument.
     """
-    actor = _user(email="admin@usebragstack.com", roles=["admin"])
-    target = _user(email="support@usebragstack.com", roles=["support"])
+    actor = _user(email="admin@boasted.io", roles=["admin"])
+    target = _user(email="support@boasted.io", roles=["support"])
     _override_user(actor)
 
     monkeypatch.setattr(ops_routes.users_collection, "find_one", lambda query: target)
@@ -178,15 +178,15 @@ def test_admin_can_update_user_roles_and_audit(monkeypatch):
     response = client.patch(f"/ops/team/{target['_id']}/roles", json={"roles": ["ops", "security"]})
     assert response.status_code == 200
     assert response.json()["roles"] == ["ops", "security"]
-    assert recorded[0]["actor_email"] == "admin@usebragstack.com"
-    assert recorded[0]["target_email"] == "support@usebragstack.com"
+    assert recorded[0]["actor_email"] == "admin@boasted.io"
+    assert recorded[0]["target_email"] == "support@boasted.io"
     assert recorded[0]["previous_roles"] == ["support"]
     assert recorded[0]["next_roles"] == ["ops", "security"]
 
 
 def test_admin_can_assign_verified_account_by_email(monkeypatch):
     """Verify an admin can explicitly grant access to an existing verified account."""
-    actor = _user(email="admin@usebragstack.com", roles=["admin"])
+    actor = _user(email="admin@boasted.io", roles=["admin"])
     target = _user(email="trusted-counsel@example.com", roles=[])
     _override_user(actor)
     monkeypatch.setattr(ops_routes.users_collection, "find_one", lambda query: target)
@@ -203,7 +203,7 @@ def test_admin_can_assign_verified_account_by_email(monkeypatch):
 
 def test_admin_cannot_assign_unverified_account(monkeypatch):
     """Verify unverified accounts cannot be granted internal access."""
-    actor = _user(email="admin@usebragstack.com", roles=["admin"])
+    actor = _user(email="admin@boasted.io", roles=["admin"])
     target = _user(email="pending@example.com", roles=[])
     target["email_verification_required"] = True
     target["email_verified_at"] = None
@@ -222,7 +222,7 @@ def test_last_database_admin_cannot_be_removed_without_bootstrap(monkeypatch):
         monkeypatch: Function argument.
     """
     _override_user(_user(roles=["admin"]))
-    target = _user(email="lastadmin@usebragstack.com", roles=["admin"])
+    target = _user(email="lastadmin@boasted.io", roles=["admin"])
     monkeypatch.setattr(ops_routes, "BOOTSTRAP_ADMINS", set())
     monkeypatch.setattr(ops_routes.users_collection, "find_one", lambda query: target)
     monkeypatch.setattr(ops_routes.users_collection, "count_documents", lambda query: 1)
@@ -238,9 +238,9 @@ def test_bootstrap_admin_role_cannot_be_effectively_removed(monkeypatch):
     Args:
         monkeypatch: Function argument.
     """
-    actor = _user(email="bootstrap@usebragstack.com", roles=[])
-    target = _user(email="bootstrap@usebragstack.com", roles=["admin"])
-    monkeypatch.setattr(ops_routes, "BOOTSTRAP_ADMINS", {"bootstrap@usebragstack.com"})
+    actor = _user(email="bootstrap@boasted.io", roles=[])
+    target = _user(email="bootstrap@boasted.io", roles=["admin"])
+    monkeypatch.setattr(ops_routes, "BOOTSTRAP_ADMINS", {"bootstrap@boasted.io"})
     _override_user(actor)
     monkeypatch.setattr(ops_routes.users_collection, "find_one", lambda query: target)
     monkeypatch.setattr(ops_routes.users_collection, "update_one", lambda query, update: None)
@@ -258,7 +258,7 @@ def test_support_can_resend_verification_email_and_action_is_audited(monkeypatch
     Args:
         monkeypatch: Function argument.
     """
-    actor = _user(email="support@usebragstack.com", roles=["support"])
+    actor = _user(email="support@boasted.io", roles=["support"])
     target = _user(email="member@example.com", roles=[])
     target["email_verification_required"] = True
     _override_user(actor)
@@ -285,7 +285,7 @@ def test_support_can_resend_verification_email_and_action_is_audited(monkeypatch
     assert response.json()["email"] == "member@example.com"
     assert sent == [("member@example.com", f"{ops_user_routes.FRONTEND_URL}/login#verify_token=fresh-token")]
     assert recorded[0]["event"] == "verification_email_resent"
-    assert recorded[0]["actor_email"] == "support@usebragstack.com"
+    assert recorded[0]["actor_email"] == "support@boasted.io"
     assert recorded[0]["target_email"] == "member@example.com"
 
 
@@ -295,7 +295,7 @@ def test_verification_resend_rejects_already_verified_account(monkeypatch):
     Args:
         monkeypatch: Function argument.
     """
-    actor = _user(email="support@usebragstack.com", roles=["support"])
+    actor = _user(email="support@boasted.io", roles=["support"])
     target = _user(email="member@example.com", roles=[])
     target["email_verified_at"] = "2026-08-26T20:00:00+00:00"
     _override_user(actor)

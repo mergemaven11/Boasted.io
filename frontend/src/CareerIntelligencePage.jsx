@@ -34,7 +34,7 @@ function LoadingShell() {
     <main className="ci-page">
       <section className="ci-hero">
         <div>
-          <span className="ci-kicker"><BrainCircuit size={17} /> BragStack Career Intelligence™</span>
+          <span className="ci-kicker"><BrainCircuit size={17} /> Boasted Career Intelligence™</span>
           <h1>Your career proof, interpreted.</h1>
           <p>See what your body of work repeatedly demonstrates, how well each signal is supported, and what is emerging next.</p>
           <div className="ci-hero-actions">
@@ -164,7 +164,7 @@ function CareerIntelligencePage() {
     <main className="ci-page">
       <section className="ci-hero">
         <div>
-          <span className="ci-kicker"><BrainCircuit size={17} /> BragStack Career Intelligence™</span>
+          <span className="ci-kicker"><BrainCircuit size={17} /> Boasted Career Intelligence™</span>
           <h1>Your career proof, interpreted.</h1>
           <p>See what your body of work repeatedly demonstrates, how strongly each signal is supported, and what is emerging next.</p>
           <div className="ci-hero-actions">

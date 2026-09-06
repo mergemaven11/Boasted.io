@@ -13,7 +13,7 @@ import "./CertificationPacketPages.css";
 function PacketFooter({ page }) {
   return (
     <footer className="packet-page-footer">
-      <span>BragStack · Career Evidence System</span>
+      <span>Boasted · Career Evidence System</span>
       <span>Page {page}</span>
     </footer>
   );
@@ -26,7 +26,7 @@ function PacketHeader({ index, eyebrow, title }) {
         <p>{String(index).padStart(2, "0")} · {eyebrow}</p>
         <h2>{title}</h2>
       </div>
-      <div className="packet-page-header-mark">BRAGSTACK</div>
+      <div className="packet-page-header-mark">BOASTED</div>
     </header>
   );
 }
@@ -77,7 +77,7 @@ function CertificationPacketPages({ packet }) {
         <div className="credential-trust-note">
           <ShieldCheck size={20} />
           <p>
-            Evidence labels describe the trust signals attached inside BragStack. A self-added certificate or license is not presented as independently verified merely because a file or reference exists.
+            Evidence labels describe the trust signals attached inside Boasted. A self-added certificate or license is not presented as independently verified merely because a file or reference exists.
           </p>
         </div>
 

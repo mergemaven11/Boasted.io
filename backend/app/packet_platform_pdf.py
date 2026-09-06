@@ -252,7 +252,7 @@ def _draw_footer(canvas, doc, packet: dict[str, Any], theme: dict) -> None:
     canvas.line(MARGIN_X, 0.42 * inch, PAGE_WIDTH - MARGIN_X, 0.42 * inch)
     canvas.setFont("Helvetica", 6.4)
     canvas.setFillColor(theme["muted"])
-    provenance = packet.get("branding", {}).get("provenance") or "BragStack · Career Evidence System"
+    provenance = packet.get("branding", {}).get("provenance") or "Boasted · Career Evidence System"
     canvas.drawString(MARGIN_X, 0.27 * inch, provenance[:70])
     canvas.drawCentredString(PAGE_WIDTH / 2, 0.27 * inch, _period(packet)[:62])
     canvas.drawRightString(PAGE_WIDTH - MARGIN_X, 0.27 * inch, f"Page {doc.page}")
@@ -287,20 +287,20 @@ def build_platform_packet_pdf(packet: dict[str, Any]) -> bytes:
         rightMargin=MARGIN_X,
         topMargin=0.58 * inch,
         bottomMargin=0.58 * inch,
-        title=packet.get("title") or "BragStack Performance Review Packet",
-        author="BragStack",
+        title=packet.get("title") or "Boasted Performance Review Packet",
+        author="Boasted",
         subject="Configurable evidence-backed career packet",
     )
     story: list = []
 
     # Required cover
     story.append(Spacer(1, 0.4 * inch))
-    brand = _clean(branding.get("brand_name")) or "BRAGSTACK"
+    brand = _clean(branding.get("brand_name")) or "BOASTED"
     story.append(Paragraph(_safe(f"{brand} · PERFORMANCE REVIEW PACKET"), styles["kicker"]))
     story.append(Spacer(1, 0.22 * inch))
     subject = packet.get("subject", {})
     context = packet.get("context", {})
-    story.append(Paragraph(_safe(subject.get("name") or "BragStack Member"), styles["cover"]))
+    story.append(Paragraph(_safe(subject.get("name") or "Boasted Member"), styles["cover"]))
     story.append(Paragraph(_safe(subject.get("role") or "Professional"), styles["cover_role"]))
     for line in [context.get("organization"), branding.get("department_label"), context.get("career_area")]:
         if _clean(line):
@@ -421,7 +421,7 @@ def build_platform_packet_pdf(packet: dict[str, Any]) -> bytes:
             story.append(Spacer(1, 6))
             story.append(Paragraph(_safe(f"Evidence · {len(evidence)} item{'s' if len(evidence) != 1 else ''}"), styles["kicker"]))
             for evidence_item in evidence:
-                story.append(Paragraph(_safe(f"{evidence_item.get('title') or 'Evidence item'} · {evidence_item.get('type') or 'other'} · {evidence_item.get('reference') or 'Stored in BragStack'}"), styles["small"]))
+                story.append(Paragraph(_safe(f"{evidence_item.get('title') or 'Evidence item'} · {evidence_item.get('type') or 'other'} · {evidence_item.get('reference') or 'Stored in Boasted'}"), styles["small"]))
             _annotation(story, packet, str(receipt.get("id")), styles)
 
     if "evidence-index" in sections:
@@ -433,7 +433,7 @@ def build_platform_packet_pdf(packet: dict[str, Any]) -> bytes:
                 Paragraph(_safe(item.get("receipt_reference")), styles["small"]),
                 Paragraph(_safe(item.get("title")), styles["small"]),
                 Paragraph(_safe(item.get("type")), styles["small"]),
-                Paragraph(_safe(item.get("reference") or "Stored in BragStack"), styles["small"]),
+                Paragraph(_safe(item.get("reference") or "Stored in Boasted"), styles["small"]),
             ])
         story.append(_simple_table(rows, [1.0 * inch, 2.3 * inch, 1.1 * inch, CONTENT_WIDTH - 4.4 * inch], styles, theme))
 

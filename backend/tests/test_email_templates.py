@@ -8,21 +8,21 @@ from app.email_templates import (
 
 def test_account_verification_email_is_branded_and_has_secure_cta():
     """Verify account verification email is branded and has secure cta."""
-    html = build_email_verification_html("https://usebragstack.com/login#verify_token=abc123")
+    html = build_email_verification_html("https://boasted.io/login#verify_token=abc123")
 
-    assert "BragStack" in html
+    assert "Boasted" in html
     assert "Career proof, organized" in html
     assert "Verify email" in html
     assert "24 hours" in html
-    assert "https://usebragstack.com/login#verify_token=abc123" in html
-    assert "usebragstack.com" in html
+    assert "https://boasted.io/login#verify_token=abc123" in html
+    assert "boasted.io" in html
 
 
 def test_password_reset_email_is_branded_and_has_expiry_guidance():
     """Verify password reset email is branded and has expiry guidance."""
-    html = build_password_reset_html("https://usebragstack.com/login#reset_token=abc123")
+    html = build_password_reset_html("https://boasted.io/login#reset_token=abc123")
 
-    assert "BragStack" in html
+    assert "Boasted" in html
     assert "Choose a new password" in html
     assert "30 minutes" in html
     assert "current password remains unchanged" in html
@@ -35,17 +35,17 @@ def test_receipt_verification_email_is_branded_escapes_content_and_discloses_pri
         verifier_name="Manager <b>Jane</b>",
         accomplishment="Reduced <unsafe> incidents by 30%",
         message="Please confirm <img src=x onerror=alert(1)>",
-        url="https://usebragstack.com/verify-receipt?token=abc&next=<bad>",
+        url="https://boasted.io/verify-receipt?token=abc&next=<bad>",
     )
 
     assert "Impact Receipt" in html
     assert "Review &amp; respond" in html
-    assert "No BragStack account" in html
+    assert "No Boasted account" in html
     assert "7 days" in html
     assert "provided your contact details" in html
     assert "scheduled for automatic deletion" in html
     assert "minimum attestation details" in html
-    assert "https://usebragstack.com/privacy" in html
+    assert "https://boasted.io/privacy" in html
     assert "<script>" not in html
     assert "<unsafe>" not in html
     assert "<img src=x" not in html

@@ -48,7 +48,7 @@ def _promotion_summary(packet: dict, target_role: str, target_level: str) -> str
         )
 
     parts.append(
-        "BragStack does not assign promotion readiness or make an employment decision; "
+        "Boasted does not assign promotion readiness or make an employment decision; "
         "the packet presents the documented case and the underlying proof."
     )
     return " ".join(parts)
@@ -71,7 +71,7 @@ def _strengthening_actions(scorecard: dict) -> list[dict]:
     if scorecard.get("evidence_coverage_percent", 0) < 70:
         actions.append({"area": "Supporting evidence", "action": "Attach artifacts, feedback, documents, certificates, links, or other proof to the strongest receipts.", "why": "Evidence gives reviewers a traceable basis for the promotion case."})
     if scorecard.get("verification_coverage_percent", 0) < 50:
-        actions.append({"area": "Verified Recognition", "action": "Request confirmation or recognition on a few of the most important accomplishments when appropriate.", "why": "A small number of independent confirmations can strengthen credibility without turning BragStack into surveillance."})
+        actions.append({"area": "Verified Recognition", "action": "Request confirmation or recognition on a few of the most important accomplishments when appropriate.", "why": "A small number of independent confirmations can strengthen credibility without turning Boasted into surveillance."})
     if not actions:
         actions.append({"area": "Case quality", "action": "The evidence foundation is strong. Focus the conversation on increased scope, sustained impact, and the responsibilities expected in the target role or level.", "why": "Strong documentation is most useful when it is connected to the actual progression expectations of the organization or profession."})
     return actions

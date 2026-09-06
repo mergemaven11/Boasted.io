@@ -1,11 +1,11 @@
-# BragStack account eligibility and Education policy
+# Boasted account eligibility and Education policy
 
 **Effective:** September 5, 2026  
 **Status:** Product-policy baseline pending qualified legal review.
 
-BragStack no longer uses a product-specific **18+ confirmation checkbox** or an age-specific Education mode. Account eligibility is governed by the current Terms and applicable law.
+Boasted no longer uses a product-specific **18+ confirmation checkbox** or an age-specific Education mode. Account eligibility is governed by the current Terms and applicable law.
 
-This change does **not** mean BragStack has completed every legal, privacy, safety, student-data, or jurisdiction-specific review that could apply to younger users. Do not treat removal of the old age gate as a legal conclusion or certification.
+This change does **not** mean Boasted has completed every legal, privacy, safety, student-data, or jurisdiction-specific review that could apply to younger users. Do not treat removal of the old age gate as a legal conclusion or certification.
 
 ## Registration controls
 
@@ -49,7 +49,7 @@ There is no dedicated Middle School product mode, route, entry type, signup bran
 
 ## Legal-review items that remain open
 
-Before BragStack intentionally markets to, designs specifically for, or creates dedicated experiences for children or younger teens, require documented review of at least:
+Before Boasted intentionally markets to, designs specifically for, or creates dedicated experiences for children or younger teens, require documented review of at least:
 
 - age and contractual-capacity requirements by launch jurisdiction;
 - parental/guardian notice and consent where applicable;

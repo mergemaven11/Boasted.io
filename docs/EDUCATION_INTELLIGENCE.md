@@ -1,4 +1,4 @@
-# BragStack Education Intelligence v1
+# Boasted Education Intelligence v1
 
 Education Intelligence is the deterministic evidence-ranking layer underneath the customer-facing **Education** workspace. Education is broader than an application tool: users can build a record of real learning and early-career wins over time, understand what their saved record already shows, and reuse the strongest relevant examples when an opportunity appears.
 
@@ -12,7 +12,7 @@ Public surfaces:
 
 ## Account eligibility
 
-BragStack no longer uses an Education-specific 18+ gate or age-confirmation checkbox. Account eligibility is governed by the current Terms and applicable law. Registration requires affirmative Terms and Privacy Policy acceptance, and the backend records the applicable versions and server-side acceptance timestamps.
+Boasted no longer uses an Education-specific 18+ gate or age-confirmation checkbox. Account eligibility is governed by the current Terms and applicable law. Registration requires affirmative Terms and Privacy Policy acceptance, and the backend records the applicable versions and server-side acceptance timestamps.
 
 This product change is not a legal conclusion that every youth-facing requirement has been completed. See `ACCOUNT_ELIGIBILITY_AND_EDUCATION.md` for the current product-policy baseline and unresolved legal-review items.
 
@@ -33,7 +33,7 @@ There is no dedicated Middle School product mode, route, entry type, or coming-s
 
 ## Education feature hub
 
-The Education route is a launcher into the rest of BragStack rather than a disconnected data silo.
+The Education route is a launcher into the rest of Boasted rather than a disconnected data silo.
 
 ### Build your education record
 
@@ -58,7 +58,7 @@ These capture buttons reuse the existing accomplishment evidence model with educ
 - Academic Portfolio
 - Career Path Explorer
 
-These buttons route into existing BragStack tools so the same underlying evidence can be reused instead of copied into a second education-only database.
+These buttons route into existing Boasted tools so the same underlying evidence can be reused instead of copied into a second education-only database.
 
 ## Application tools
 
@@ -83,7 +83,7 @@ Looks for demonstrated skills, responsibility, results, teamwork, initiative, an
 
 ### Essay prep
 
-Surfaces real stories containing reflection, growth, curiosity, challenge, identity/values, and contribution. The user remains the author. BragStack should help the user remember and organize a story, not manufacture one. The customer-facing label is **Essay Stories**.
+Surfaces real stories containing reflection, growth, curiosity, challenge, identity/values, and contribution. The user remains the author. Boasted should help the user remember and organize a story, not manufacture one. The customer-facing label is **Essay Stories**.
 
 ## Core trust rule
 
@@ -113,7 +113,7 @@ The v1 reference metadata is informed by current public Common App materials for
 
 - Common App first-year preparation materials describe activity details such as years of participation, hours per week, weeks per year, position/leadership, and a brief activity description.
 - Academic honors are tracked separately from activities.
-- Common App publishes first-year essay prompts by season. BragStack stores only a compact theme map (identity, challenge, belief, gratitude, growth, curiosity, open topic), not copies of application essays or student submissions.
+- Common App publishes first-year essay prompts by season. Boasted stores only a compact theme map (identity, challenge, belief, gratitude, growth, curiosity, open topic), not copies of application essays or student submissions.
 
 References:
 

@@ -1,12 +1,12 @@
-# BragStack AI / Smart-Feature Verification Release Gate
+# Boasted AI / Smart-Feature Verification Release Gate
 
 **Status:** Required before open sign-ups  
-**Owner:** BragStack Engineering / Operations  
+**Owner:** Boasted Engineering / Operations  
 **Policy version:** `open-signup-ai-gate-v1`
 
 ## Purpose
 
-BragStack uses deterministic analysis today and may add model-backed assistance over time. No smart feature is allowed to manufacture career facts, and a feature is not considered verified merely because its UI looks good or its happy-path demo works.
+Boasted uses deterministic analysis today and may add model-backed assistance over time. No smart feature is allowed to manufacture career facts, and a feature is not considered verified merely because its UI looks good or its happy-path demo works.
 
 The internal **Ops → AI Verification** dashboard is the operational source for measured verification status. A feature with no verification samples is displayed as **NOT VERIFIED**, never as passing.
 
@@ -34,7 +34,7 @@ The customer resume build path is fail-closed. Generated suggestions are withhel
 3. **High-risk factual language** — generated claims about verification, credentials, employers, dates, or other career facts require source support.
 4. **Skill provenance** — a suggested skill must exist in the imported resume or selected Impact Receipts. Job-description terms alone are not proof.
 5. **Target-role truthfulness** — a target role is intent, not employment history. Generated copy uses language such as `Targeting <role> roles` rather than claiming the user already holds that title.
-6. **Summary evidence** — BragStack does not generate a professional summary when it has no user-controlled source evidence.
+6. **Summary evidence** — Boasted does not generate a professional summary when it has no user-controlled source evidence.
 7. **Company and education fields** — current resume generation does not synthesize employer or education records.
 
 ### Open-signup threshold

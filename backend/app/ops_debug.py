@@ -1,4 +1,4 @@
-"""In-memory request telemetry helpers for BragStack operations debugging.
+"""In-memory request telemetry helpers for Boasted operations debugging.
 
 The bounded event buffer is intended for lightweight operational visibility and
 test diagnostics. It is process-local and should not be treated as a durable

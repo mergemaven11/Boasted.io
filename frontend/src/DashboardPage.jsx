@@ -46,7 +46,7 @@ function DashboardPage() {
           window.location.assign("/login");
           return;
         }
-        if (active) setError("BragStack could not load your career command center.");
+        if (active) setError("Boasted could not load your career command center.");
       } finally {
         if (active) setLoading(false);
       }
@@ -105,7 +105,7 @@ function DashboardPage() {
             </div>
 
             {entries.length === 0 ? (
-              <div className="command-empty"><h3>Your proof library starts here.</h3><p>Capture one accomplishment and BragStack will begin turning your work into career evidence.</p><a href="/app/accomplishments?create=1">Create accomplishment</a></div>
+              <div className="command-empty"><h3>Your proof library starts here.</h3><p>Capture one accomplishment and Boasted will begin turning your work into career evidence.</p><a href="/app/accomplishments?create=1">Create accomplishment</a></div>
             ) : (
               <div className="command-entry-list">
                 {entries.map((entry) => (

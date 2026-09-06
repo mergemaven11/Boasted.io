@@ -60,7 +60,7 @@ def test_share_page_uses_personalized_public_counts_and_escapes_profile_text(sha
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")
     html = response.text
-    assert "Tee &lt;script&gt;alert(1)&lt;/script&gt; — Proof Portfolio | BragStack" in html
+    assert "Tee &lt;script&gt;alert(1)&lt;/script&gt; — Proof Portfolio | Boasted" in html
     assert "Platform Engineer &amp; Product Builder" in html
     assert "1 verified impact" in html
     assert "2 selected accomplishments" in html

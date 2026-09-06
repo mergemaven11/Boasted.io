@@ -1,14 +1,14 @@
 export const SEO_SITELINK_META = {
-  "/how-it-works": "How BragStack Works | Career Proof System",
-  "/pricing": "Pricing | BragStack",
-  "/resume-accomplishments": "Resume Builder | BragStack",
-  "/career-portfolio": "Career Portfolio | BragStack",
-  "/performance-reviews": "Performance Reviews | BragStack",
-  "/promotion-packet": "Promotion Packet | BragStack",
-  "/interview-preparation": "Practice Interviewer | BragStack",
-  "/impact-receipts": "Impact Receipts | BragStack",
-  "/career-analytics": "Career Analytics | BragStack",
-  "/public-proof-profiles": "Public Proof Profiles | BragStack",
+  "/how-it-works": "How Boasted Works | Career Proof System",
+  "/pricing": "Pricing | Boasted",
+  "/resume-accomplishments": "Resume Builder | Boasted",
+  "/career-portfolio": "Career Portfolio | Boasted",
+  "/performance-reviews": "Performance Reviews | Boasted",
+  "/promotion-packet": "Promotion Packet | Boasted",
+  "/interview-preparation": "Practice Interviewer | Boasted",
+  "/impact-receipts": "Impact Receipts | Boasted",
+  "/career-analytics": "Career Analytics | Boasted",
+  "/public-proof-profiles": "Public Proof Profiles | Boasted",
 };
 
 export function getSeoSitelinkTitle(path, fallback) {

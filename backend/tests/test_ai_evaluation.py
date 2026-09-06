@@ -1,4 +1,4 @@
-"""Tests for the versioned BragStack AI evaluation harness."""
+"""Tests for the versioned Boasted AI evaluation harness."""
 from __future__ import annotations
 
 import json

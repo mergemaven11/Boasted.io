@@ -39,30 +39,30 @@ const goals = [
 
 export default function EducationMarketingPage() {
   useEffect(() => {
-    document.title = "BragStack Education | Turn learning into career proof";
+    document.title = "Boasted Education | Turn learning into career proof";
     let meta = document.querySelector('meta[name="description"]');
     if (!meta) {
       meta = document.createElement("meta");
       meta.setAttribute("name", "description");
       document.head.appendChild(meta);
     }
-    meta.setAttribute("content", "BragStack Education helps college, university, trade, technical, certification, bootcamp, and continuing-education learners turn real coursework, projects, training, and achievements into reusable career proof.");
+    meta.setAttribute("content", "Boasted Education helps college, university, trade, technical, certification, bootcamp, and continuing-education learners turn real coursework, projects, training, and achievements into reusable career proof.");
   }, []);
 
   return <main className="education-marketing">
     <header className="education-nav">
-      <a className="education-brand" href="/">BragStack</a>
+      <a className="education-brand" href="/">Boasted</a>
       <nav aria-label="Education navigation">
         <a href="#journey">Education journey</a>
         <a href="#goals">What it helps with</a>
         <a href="/docs/education">Education guide</a>
       </nav>
-      <div className="education-nav-actions"><a href="/login">Log in</a><a className="education-primary" href="/register">Start my BragStack</a></div>
+      <div className="education-nav-actions"><a href="/login">Log in</a><a className="education-primary" href="/register">Start my Boasted</a></div>
     </header>
 
     <section className="education-hero">
       <div>
-        <p className="education-eyebrow"><Sparkles size={16}/> BRAGSTACK EDUCATION</p>
+        <p className="education-eyebrow"><Sparkles size={16}/> BOASTED EDUCATION</p>
         <h1>Your grades are only part of your story.<span> Keep the proof, too.</span></h1>
         <p className="education-lede">Coursework. Projects. Research. Certifications. Service. Internships. Training. Leadership. The things you learn when something is hard. Give those moments a place to live so future-you does not have to reconstruct years of growth from memory.</p>
         <div className="education-actions"><a className="education-primary" href="/register">Start building my story <ArrowRight size={18}/></a><a className="education-secondary" href="/docs/education">See how Education works</a></div>
@@ -79,7 +79,7 @@ export default function EducationMarketingPage() {
     </section>
 
     <section className="education-section" id="journey">
-      <div className="education-heading"><p>THE EDUCATION JOURNEY</p><h2>Capture the story while you are living it.</h2><span>BragStack Education is a running record of what you are learning, doing, improving, and achieving across college, technical training, certifications, continuing education, and the transition into work.</span></div>
+      <div className="education-heading"><p>THE EDUCATION JOURNEY</p><h2>Capture the story while you are living it.</h2><span>Boasted Education is a running record of what you are learning, doing, improving, and achieving across college, technical training, certifications, continuing education, and the transition into work.</span></div>
       <div className="education-stage-grid">{stages.map((stage, index) => <article key={stage.title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{stage.title}</h3><p>{stage.text}</p></article>)}</div>
     </section>
 
@@ -103,12 +103,12 @@ export default function EducationMarketingPage() {
     </section>
 
     <section className="education-trust">
-      <div><p>BUILT TO SUPPORT YOUR STORY, NOT SCORE IT</p><h2>You are more than a number.</h2><p>BragStack does not calculate admissions odds, scholarship odds, rankings, or a made-up “potential” score. It organizes the story you actually created and leaves decisions to the real people and programs involved.</p></div>
+      <div><p>BUILT TO SUPPORT YOUR STORY, NOT SCORE IT</p><h2>You are more than a number.</h2><p>Boasted does not calculate admissions odds, scholarship odds, rankings, or a made-up “potential” score. It organizes the story you actually created and leaves decisions to the real people and programs involved.</p></div>
       <div className="education-trust-list"><span><LockKeyhole size={17}/> Private by default</span><span><Check size={17}/> Real accomplishments only</span><span><Check size={17}/> Evidence can follow you into your career</span><span><Check size={17}/> You stay the author of your essays and story</span></div>
     </section>
 
     <section className="education-cta">
-      <GraduationCap size={30}/><h2>Your future self should not have to remember everything.</h2><p>Start with one thing you learned, built, completed, or contributed that you are proud of.</p><div><a className="education-primary" href="/register">Start my BragStack <ArrowRight size={18}/></a><a className="education-secondary" href="/docs/education">Read the Education guide</a></div><small>Account eligibility is governed by the BragStack Terms and applicable law.</small>
+      <GraduationCap size={30}/><h2>Your future self should not have to remember everything.</h2><p>Start with one thing you learned, built, completed, or contributed that you are proud of.</p><div><a className="education-primary" href="/register">Start my Boasted <ArrowRight size={18}/></a><a className="education-secondary" href="/docs/education">Read the Education guide</a></div><small>Account eligibility is governed by the Boasted Terms and applicable law.</small>
     </section>
   </main>;
 }

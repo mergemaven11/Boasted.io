@@ -4,9 +4,9 @@ import "./LandingResumeShowcase.css";
 export default function LandingResumeShowcase() {
   return <section className="landing-resume-showcase">
     <div className="landing-resume-copy">
-      <span>BRAGSTACK PRO · RESUME BUILDER</span>
+      <span>BOASTED PRO · RESUME BUILDER</span>
       <h2>Your work already happened. Your resume should prove it.</h2>
-      <p>Paste the job description and BragStack turns your saved Impact Receipts into evidence-backed, ATS-friendly resume content — while showing what the job asks for that your proof does not cover yet.</p>
+      <p>Paste the job description and Boasted turns your saved Impact Receipts into evidence-backed, ATS-friendly resume content — while showing what the job asks for that your proof does not cover yet.</p>
       <div className="landing-resume-points"><div><ShieldCheck size={18} />Built from career proof you recorded</div><div><Target size={18} />Matched to the job you actually want</div><div><FileText size={18} />ATS-friendly, editable resume draft</div></div>
       <a href="/register">Build my evidence-backed resume</a>
     </div>

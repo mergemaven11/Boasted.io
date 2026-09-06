@@ -1,4 +1,4 @@
-"""Expanded BragStack packet catalog with themed PDF and DOCX exports."""
+"""Expanded Boasted packet catalog with themed PDF and DOCX exports."""
 from __future__ import annotations
 
 import io
@@ -48,7 +48,7 @@ PACKET_SPECS: dict[str, dict[str, str]] = {
         "example": "Use it when asking for a promotion, title change, level increase, or advancement review.",
         "scorecard_label": "Promotion Evidence Scorecard",
         "scorecard_title": "The proof behind the progression case",
-        "scorecard_intro": "A transparent view of documented impact supporting a progression conversation. BragStack does not calculate promotion readiness.",
+        "scorecard_intro": "A transparent view of documented impact supporting a progression conversation. Boasted does not calculate promotion readiness.",
         "highlight_label": "Promotion evidence highlight",
     },
     "interview": {
@@ -88,7 +88,7 @@ PACKET_SPECS: dict[str, dict[str, str]] = {
         "example": "Use it for a recruiter portfolio, client pitch, creative review, project showcase, or professional website companion.",
         "scorecard_label": "Portfolio Evidence Scorecard",
         "scorecard_title": "Your selected proof at a glance",
-        "scorecard_intro": "A professional showcase of documented projects, outcomes, skills, evidence, and recognition from your BragStack record.",
+        "scorecard_intro": "A professional showcase of documented projects, outcomes, skills, evidence, and recognition from your Boasted record.",
         "highlight_label": "Featured project or accomplishment",
     },
     "career-transition": {
@@ -96,7 +96,7 @@ PACKET_SPECS: dict[str, dict[str, str]] = {
         "example": "Use it when changing industries, returning to work, moving from school to work, or repositioning transferable skills.",
         "scorecard_label": "Transferable Evidence Scorecard",
         "scorecard_title": "What your existing proof can demonstrate",
-        "scorecard_intro": "A factual bridge from documented work to a new career context. BragStack does not predict hiring outcomes or claim undocumented experience.",
+        "scorecard_intro": "A factual bridge from documented work to a new career context. Boasted does not predict hiring outcomes or claim undocumented experience.",
         "highlight_label": "Transferable accomplishment",
     },
 }
@@ -266,7 +266,7 @@ def _focus_fields(packet_type: str, payload: PacketCatalogRequest) -> list[dict[
 def _generic_summary(packet_type: str, packet: dict[str, Any], payload: PacketCatalogRequest) -> str:
     subject = packet.get("subject") or {}
     scorecard = packet.get("scorecard") or {}
-    name = _clean_string(subject.get("name"), "This BragStack member")
+    name = _clean_string(subject.get("name"), "This Boasted member")
     count = int(scorecard.get("accomplishments") or 0)
     proof = int(scorecard.get("impact_receipts") or 0)
     evidence = int(scorecard.get("evidence_items") or 0)
@@ -283,7 +283,7 @@ def _generic_summary(packet_type: str, packet: dict[str, Any], payload: PacketCa
     elif packet_type == "portfolio":
         focus = _clean_string(payload.portfolio_focus)
         middle = "The saved proof is organized as a professional portfolio and project showcase" + (f" with emphasis on {focus}." if focus else ".")
-        ending = "Only documented BragStack material is presented; missing achievements or project outcomes are not invented."
+        ending = "Only documented Boasted material is presented; missing achievements or project outcomes are not invented."
     else:
         target = " / ".join(value for value in [_clean_string(payload.target_role), _clean_string(payload.target_industry)] if value)
         middle = f"The saved proof is organized to explain transferable experience for {target}." if target else "The saved proof is organized to explain transferable experience for a career transition."

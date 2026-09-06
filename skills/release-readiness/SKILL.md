@@ -1,9 +1,9 @@
 ---
 name: bragstack-release-readiness
-description: Verify BragStack changes are safe to merge and release across CI, UX, security, observability, documentation, and rollback concerns.
+description: Verify Boasted changes are safe to merge and release across CI, UX, security, observability, documentation, and rollback concerns.
 ---
 
-# BragStack Release Readiness
+# Boasted Release Readiness
 
 ## Use this skill when
 
@@ -15,7 +15,7 @@ description: Verify BragStack changes are safe to merge and release across CI, U
 
 1. Confirm the exact PR head SHA and ensure reviews/tests refer to that revision.
 2. Verify required CI on that head: backend, frontend, security, and any feature-specific workflow.
-3. Apply the relevant BragStack skills for the changed area: UI regression, API contract, security/privacy, and career-proof integrity.
+3. Apply the relevant Boasted skills for the changed area: UI regression, API contract, security/privacy, and career-proof integrity.
 4. Test the changed user journey end-to-end, including loading, empty, error, retry, and success states.
 5. Check responsive behavior for user-facing UI and verify no known high-severity accessibility regression.
 6. Confirm migrations/index changes are safe and backward-compatible where applicable. Avoid deployments that require fragile manual ordering unless documented.

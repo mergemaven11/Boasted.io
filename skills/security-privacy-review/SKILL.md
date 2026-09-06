@@ -1,9 +1,9 @@
 ---
 name: bragstack-security-privacy-review
-description: Review BragStack changes for application-security, authorization, privacy, evidence-sharing, and data-minimization risks.
+description: Review Boasted changes for application-security, authorization, privacy, evidence-sharing, and data-minimization risks.
 ---
 
-# BragStack Security & Privacy Review
+# Boasted Security & Privacy Review
 
 ## Use this skill when
 

@@ -1,7 +1,7 @@
-"""Internal legal/compliance readiness auditing for BragStack Ops.
+"""Internal legal/compliance readiness auditing for Boasted Ops.
 
 This module is intentionally conservative. It records evidence and gaps; it does
-not certify that BragStack is legally compliant and must not be presented as a
+not certify that Boasted is legally compliant and must not be presented as a
 substitute for qualified legal or tax advice.
 """
 from __future__ import annotations
@@ -192,7 +192,7 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         summary=(
             "A legal-entity formation signal is present. Formation documents still belong in the controlled data room."
             if entity_formed
-            else "No BragStack legal-entity formation evidence is configured. This is a business-readiness gap, not a finding that the public beta must be taken offline."
+            else "No Boasted legal-entity formation evidence is configured. This is a business-readiness gap, not a finding that the public beta must be taken offline."
         ),
         evidence=[f"BRAGSTACK_LEGAL_ENTITY_FORMED={entity_formed}"],
         next_action=(
@@ -361,7 +361,7 @@ def evaluate_controls(facts: dict[str, Any]) -> list[dict[str, Any]]:
         title="Younger-user and COPPA applicability assessment",
         status="counsel_review",
         severity="high",
-        summary="Account eligibility is not the same thing as a completed minors/privacy applicability analysis. BragStack should not infer COPPA compliance from the absence of a dedicated child experience.",
+        summary="Account eligibility is not the same thing as a completed minors/privacy applicability analysis. Boasted should not infer COPPA compliance from the absence of a dedicated child experience.",
         evidence=["Requires audience, actual-knowledge, feature, data-flow, and jurisdiction facts."],
         next_action="Before intentionally targeting children/younger teens, have counsel evaluate COPPA plus applicable state minor/student/AI rules and define age-assurance/parental controls where required.",
         source_keys=["ftc_coppa"],

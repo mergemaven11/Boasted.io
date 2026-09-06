@@ -1,9 +1,9 @@
 ---
 name: bragstack-product-discovery
-description: Turn BragStack customer signals, analytics, bugs, and product ideas into evidence-backed improvements and small testable feature bets.
+description: Turn Boasted customer signals, analytics, bugs, and product ideas into evidence-backed improvements and small testable feature bets.
 ---
 
-# BragStack Product Discovery
+# Boasted Product Discovery
 
 ## Use this skill when
 
@@ -18,8 +18,8 @@ description: Turn BragStack customer signals, analytics, bugs, and product ideas
 2. Gather evidence from actual signals available: support reports, analytics, user feedback, failed flows, search behavior, drop-off, existing issues, and product constraints.
 3. Separate problem evidence from solution enthusiasm. Do not treat a requested feature as proof that the proposed implementation is right.
 4. Define the desired outcome and a measurable success signal. Prefer activation, completion, retention, time-to-value, evidence quality, or reduced failure/support burden over vanity metrics.
-5. Generate at least two solution shapes: a small/low-cost improvement and a broader bet. Reuse existing BragStack primitives before inventing parallel systems.
-6. Check the proposal against BragStack's trust principles: user control, private-by-default evidence, shared credit, explicit verification, no surveillance, and no invented employment claims.
+5. Generate at least two solution shapes: a small/low-cost improvement and a broader bet. Reuse existing Boasted primitives before inventing parallel systems.
+6. Check the proposal against Boasted's trust principles: user control, private-by-default evidence, shared credit, explicit verification, no surveillance, and no invented employment claims.
 7. Design the smallest reversible experiment that can validate the riskiest assumption.
 8. Specify instrumentation before launch: entry point, completion event, failure event, abandonment point, and a privacy-safe property set.
 9. Define rollout/rollback criteria and what would cause the idea to be stopped or reshaped.
@@ -40,6 +40,6 @@ description: Turn BragStack customer signals, analytics, bugs, and product ideas
 
 - problem is real enough to justify work
 - success is measurable
-- feature does not duplicate an existing BragStack primitive
+- feature does not duplicate an existing Boasted primitive
 - privacy/trust model remains intact
 - experiment is reversible where practical

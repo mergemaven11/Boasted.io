@@ -136,7 +136,7 @@ def _find_or_create_oauth_user(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=(
-                "To create a new BragStack account with Google or GitHub, start from Create Account "
+                "To create a new Boasted account with Google or GitHub, start from Create Account "
                 "and accept the current Terms and Privacy Policy first."
             ),
         )
@@ -336,7 +336,7 @@ async def github_callback(request: Request, code: str, state: str | None = None)
     _validate_state(request, "github", state)
     registration_consented = _registration_consent_matches(request, "github", state)
 
-    headers = {"Accept": "application/json", "User-Agent": "BragStack"}
+    headers = {"Accept": "application/json", "User-Agent": "Boasted"}
     async with httpx.AsyncClient(timeout=15.0, headers=headers) as client:
         token_response = await client.post(
             GITHUB_TOKEN_URL,

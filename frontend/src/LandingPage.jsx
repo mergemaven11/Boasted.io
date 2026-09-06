@@ -67,7 +67,7 @@ const plans = [
     badge: "Coming soon",
     features: ["Everything in Pro", "Shared review templates", "Optional manager confirmation", "Review-cycle packets", "Bounded organization analytics", "Centralized billing"],
     cta: "Join Team waitlist",
-    href: "mailto:hello@bragstack.app?subject=BragStack%20Team%20waitlist",
+    href: "mailto:hello@boasted.io?subject=Boasted%20Team%20waitlist",
   },
   {
     name: "Enterprise",
@@ -75,7 +75,7 @@ const plans = [
     tagline: "Governance for larger organizations",
     features: ["Everything in Team", "Enterprise identity roadmap", "Audit and governance controls", "Retention controls", "Admin policy controls", "Custom integrations and support"],
     cta: "Contact us",
-    href: "mailto:hello@bragstack.app?subject=BragStack%20Enterprise",
+    href: "mailto:hello@boasted.io?subject=Boasted%20Enterprise",
   },
 ];
 
@@ -84,7 +84,7 @@ const productDetails = [
     id: "product-impact-receipts",
     icon: ReceiptText,
     title: "Impact Receipts",
-    description: "BragStack's signature evidence object: what happened, what you contributed, the result, supporting evidence, skills, measurable outcomes when you have them, and shared credit. Unsupported details stay unsupported instead of being invented.",
+    description: "Boasted's signature evidence object: what happened, what you contributed, the result, supporting evidence, skills, measurable outcomes when you have them, and shared credit. Unsupported details stay unsupported instead of being invented.",
   },
   {
     id: "product-public-profiles",
@@ -102,7 +102,7 @@ const productDetails = [
     id: "product-career-analytics",
     icon: BarChart3,
     title: "Career Analytics",
-    description: "See patterns across the evidence you captured: recurring skills, categories of impact, activity over time, and evidence coverage. BragStack does not turn those patterns into an employee score.",
+    description: "See patterns across the evidence you captured: recurring skills, categories of impact, activity over time, and evidence coverage. Boasted does not turn those patterns into an employee score.",
   },
   {
     id: "product-open-to-talk",
@@ -144,7 +144,7 @@ function LandingPage() {
   return (
     <main className="landing-page">
       <header className="landing-nav">
-        <a className="landing-logo" href="/">BragStack</a>
+        <a className="landing-logo" href="/">Boasted</a>
         <nav className="landing-nav-links" aria-label="Main navigation">
           <a href="#how-it-works">How it works</a>
           <a href="#product">Product</a>
@@ -158,13 +158,13 @@ function LandingPage() {
 
       <section className="landing-hero">
         <div className="landing-hero-copy">
-          <div className="landing-eyebrow"><ShieldCheck size={15} />NEW BRAGSTACK · CAREER EVIDENCE, NOT JUST CLAIMS</div>
+          <div className="landing-eyebrow"><ShieldCheck size={15} />NEW BOASTED · CAREER EVIDENCE, NOT JUST CLAIMS</div>
           <h1>Your work deserves<span> receipts.</span></h1>
           <p className="landing-hero-description">
-            BragStack helps you capture wins, attach evidence, and turn important work into Impact Receipts. Reuse that proof for performance reviews, promotions, résumés, interviews, and a selective public Proof Profile.
+            Boasted helps you capture wins, attach evidence, and turn important work into Impact Receipts. Reuse that proof for performance reviews, promotions, résumés, interviews, and a selective public Proof Profile.
           </p>
           <div className="landing-hero-actions">
-            <a className="landing-btn" href="/register">Start my BragStack <ArrowRight size={18} /></a>
+            <a className="landing-btn" href="/register">Start my Boasted <ArrowRight size={18} /></a>
             <a className="landing-btn landing-btn-secondary" href="#product">See what&apos;s new</a>
           </div>
           <p className="landing-trust-line">Impact Receipts <span>•</span> Proof Profiles <span>•</span> Professional Packets <span>•</span> Open to Talk</p>
@@ -192,7 +192,7 @@ function LandingPage() {
           <h2>Capture → Prove → Package → Share → Connect</h2>
           <span>Capture the work once, keep the evidence under your control, then reuse the right proof when a career moment needs it.</span>
         </div>
-        <div className="career-flow" aria-label="BragStack evidence workflow">
+        <div className="career-flow" aria-label="Boasted evidence workflow">
           <span>Capture</span><ArrowRight size={18} /><span>Prove</span><ArrowRight size={18} /><span>Package</span><ArrowRight size={18} /><span>Share</span><ArrowRight size={18} /><span>Connect</span>
         </div>
         <div className="premium-workflow-grid">{workflowSteps.map((step) => <article className="workflow-card premium-workflow-card" key={step.number}><span className="workflow-number">{step.number}</span><h3>{step.title}</h3><p>{step.description}</p></article>)}</div>
@@ -201,7 +201,7 @@ function LandingPage() {
       <section className="landing-problem-section">
         <div className="landing-section-heading">
           <p>WHY IT EXISTS</p><h2>Your career is happening faster than your memory can track it.</h2>
-          <span>Projects ship. Praise disappears into chat. Metrics move. Teams change. BragStack gives the evidence somewhere durable to live before the context disappears.</span>
+          <span>Projects ship. Praise disappears into chat. Metrics move. Teams change. Boasted gives the evidence somewhere durable to live before the context disappears.</span>
         </div>
         <div className="problem-card-grid">
           <article className="problem-card"><span>01</span><h3>Capture while it is fresh</h3><p>Keep the situation, contribution, result, skills, and source evidence connected.</p></article>
@@ -211,12 +211,12 @@ function LandingPage() {
       </section>
 
       <section className="landing-use-cases" id="product">
-        <div className="landing-section-heading"><p>WHAT&apos;S NEW IN BRAGSTACK</p><h2>One place for your career evidence.</h2><span>Impact Receipts are the core. Proof Profiles, Professional Packets, Career Analytics, and Open to Talk help you use that evidence when it matters.</span></div>
+        <div className="landing-section-heading"><p>WHAT&apos;S NEW IN BOASTED</p><h2>One place for your career evidence.</h2><span>Impact Receipts are the core. Proof Profiles, Professional Packets, Career Analytics, and Open to Talk help you use that evidence when it matters.</span></div>
         <div className="use-case-grid">{productDetails.map(({ icon: Icon, ...item }) => <article className="use-case-card" id={item.id} key={item.id}><div className="use-case-icon"><Icon size={21} /></div><h3>{item.title}</h3><p>{item.description}</p></article>)}</div>
       </section>
 
       <section className="landing-use-cases" id="use-cases">
-        <div className="landing-section-heading"><p>BUILT FOR REAL CAREER MOMENTS</p><h2>Useful whenever progress needs to be proven.</h2><span>BragStack is not a social feed or a workplace surveillance system. It is your portable evidence record for the moments when your work needs to speak clearly.</span></div>
+        <div className="landing-section-heading"><p>BUILT FOR REAL CAREER MOMENTS</p><h2>Useful whenever progress needs to be proven.</h2><span>Boasted is not a social feed or a workplace surveillance system. It is your portable evidence record for the moments when your work needs to speak clearly.</span></div>
         <div className="use-case-grid">{useCases.map(({ icon: Icon, title, description }) => <article className="use-case-card" key={title}><div className="use-case-icon"><Icon size={21} /></div><h3>{title}</h3><p>{description}</p></article>)}</div>
       </section>
 
@@ -226,7 +226,7 @@ function LandingPage() {
       </section>
 
       <section className="landing-use-cases" id="solutions">
-        <div className="landing-section-heading"><p>SOLUTIONS</p><h2>Package the same proof for the conversation in front of you.</h2><span>The evidence remains yours; BragStack changes how selected evidence is organized for each career moment.</span></div>
+        <div className="landing-section-heading"><p>SOLUTIONS</p><h2>Package the same proof for the conversation in front of you.</h2><span>The evidence remains yours; Boasted changes how selected evidence is organized for each career moment.</span></div>
         <div className="use-case-grid">{solutionDetails.map((item) => <article className="use-case-card" id={item.id} key={item.id}><div className="use-case-icon"><Target size={21} /></div><h3>{item.title}</h3><p>{item.description}</p></article>)}</div>
       </section>
 
@@ -234,38 +234,38 @@ function LandingPage() {
         <div className="landing-feature-copy">
           <p className="landing-mini-label">TRUST MODEL</p>
           <h2>Your work record belongs to you.</h2>
-          <p>BragStack starts private and makes sharing selective. It is designed to help people document and use their own evidence, not to turn daily work into an employer surveillance stream.</p>
+          <p>Boasted starts private and makes sharing selective. It is designed to help people document and use their own evidence, not to turn daily work into an employer surveillance stream.</p>
           <div className="landing-feature-list">
             <div><ShieldCheck size={17} /> Private account data and private proof stay behind authentication.</div>
             <div><ShieldCheck size={17} /> Public profiles expose only content the user intentionally publishes.</div>
-            <div><ShieldCheck size={17} /> BragStack does not invent verification, metrics, credentials, outcomes, or employment claims.</div>
+            <div><ShieldCheck size={17} /> Boasted does not invent verification, metrics, credentials, outcomes, or employment claims.</div>
             <div><ShieldCheck size={17} /> Team and enterprise analytics remain separated from individual evidence ownership and avoid employee scoring.</div>
             <div><ShieldCheck size={17} /> Open to Talk is opt-in and does not require exposing private calendar details.</div>
           </div>
         </div>
         <div className="feature-dashboard-preview">
           <div className="feature-preview-header"><div><span>Default visibility</span><strong>Private</strong></div><div><span>Sharing</span><strong>Selective</strong></div></div>
-          <div className="feature-preview-entry"><div><span className="feature-preview-badge">Design principle</span><small>Employee first</small></div><h3>No surveillance. No manufactured proof.</h3><p>BragStack helps people capture, support, package, and selectively share evidence they control. Organization features must not weaken that ownership model.</p><div className="feature-preview-tags"><span>Private by default</span><span>No scoring</span><span>User controlled</span></div></div>
+          <div className="feature-preview-entry"><div><span className="feature-preview-badge">Design principle</span><small>Employee first</small></div><h3>No surveillance. No manufactured proof.</h3><p>Boasted helps people capture, support, package, and selectively share evidence they control. Organization features must not weaken that ownership model.</p><div className="feature-preview-tags"><span>Private by default</span><span>No scoring</span><span>User controlled</span></div></div>
         </div>
       </section>
 
       <section className="landing-pricing" id="pricing">
-        <div className="landing-section-heading"><p>PRICING</p><h2>Everyone gets Pro for now.</h2><span>BragStack Pro is temporarily complimentary as an early-access gift. No payment method is required and receiving the gift does not create a paid subscription or authorize future recurring charges.</span></div>
+        <div className="landing-section-heading"><p>PRICING</p><h2>Everyone gets Pro for now.</h2><span>Boasted Pro is temporarily complimentary as an early-access gift. No payment method is required and receiving the gift does not create a paid subscription or authorize future recurring charges.</span></div>
         <div className="pricing-grid pricing-grid-four">{plans.map((plan) => <article className={`pricing-card ${plan.featured ? "pricing-card-featured pricing-card-pro" : ""}`} key={plan.name}>{plan.badge && <div className="pricing-popular-label">{plan.badge}</div>}<div className="pricing-card-header"><div><p>{plan.name}</p><h3>{plan.price}{plan.suffix && <span>{plan.suffix}</span>}</h3></div></div><p className="pricing-tagline">{plan.tagline}</p><ul>{plan.features.map((feature) => <li key={feature}><Check size={17} />{feature}</li>)}</ul><a className={`landing-btn pricing-button ${plan.featured ? "" : "landing-btn-secondary"}`} href={plan.href}>{plan.cta}{plan.featured && <ArrowRight size={17} />}</a></article>)}</div>
-        <div className="pricing-conversion-note"><Zap size={20} /><div><strong>Temporary gift, not automatic billing.</strong><span>Complimentary Pro access may change or end later. If paid Pro is offered again, BragStack will require a separate checkout and billing consent before charging you. Existing paid subscriptions remain governed by their current billing terms.</span></div></div>
+        <div className="pricing-conversion-note"><Zap size={20} /><div><strong>Temporary gift, not automatic billing.</strong><span>Complimentary Pro access may change or end later. If paid Pro is offered again, Boasted will require a separate checkout and billing consent before charging you. Existing paid subscriptions remain governed by their current billing terms.</span></div></div>
       </section>
 
-      <section className="landing-final-cta"><div><p>YOUR WORK IS ALREADY HAPPENING.</p><h2>Give the proof somewhere to live.</h2><span>Capture it now, keep it under your control, and have the right evidence ready when the next review, interview, promotion, client, or opportunity arrives.</span></div><a className="landing-btn landing-final-button" href="/register">Build my BragStack <ArrowRight size={18} /></a></section>
+      <section className="landing-final-cta"><div><p>YOUR WORK IS ALREADY HAPPENING.</p><h2>Give the proof somewhere to live.</h2><span>Capture it now, keep it under your control, and have the right evidence ready when the next review, interview, promotion, client, or opportunity arrives.</span></div><a className="landing-btn landing-final-button" href="/register">Build my Boasted <ArrowRight size={18} /></a></section>
 
       <footer className="mega-footer">
-        <div className="mega-footer-brand"><a className="landing-logo" href="/">BragStack</a><p>The evidence layer for professional growth.</p><a className="footer-cta" href="/register">Start building proof <ArrowRight size={15} /></a></div>
+        <div className="mega-footer-brand"><a className="landing-logo" href="/">Boasted</a><p>The evidence layer for professional growth.</p><a className="footer-cta" href="/register">Start building proof <ArrowRight size={15} /></a></div>
         <div className="mega-footer-columns">
           <div><h3>Product</h3><a href="#product-impact-receipts">Impact Receipts</a><a href="#product-public-profiles">Proof Profiles</a><a href="#product-reports">Professional Packets</a><a href="#product-career-analytics">Career Analytics</a><a href="#product-open-to-talk">Open to Talk</a></div>
           <div><h3>Solutions</h3><a href="#solution-performance-reviews">Performance Reviews</a><a href="#solution-promotions">Promotions</a><a href="#solution-interviews">Interviews</a><a href="#solution-freelancers">Freelancers</a><a href="#solution-teams">Teams</a></div>
           <div><h3>Resources</h3><a href="#how-it-works">How it works</a><a href="#use-cases">Use cases</a><a href="/login">Sign in</a><a href="/register">Create account</a></div>
-          <div><h3>Company</h3><a href="mailto:hello@bragstack.app">Contact</a><a href="mailto:hello@bragstack.app?subject=BragStack%20Team%20waitlist">Team waitlist</a><a href="mailto:hello@bragstack.app?subject=BragStack%20Enterprise">Enterprise</a><a href="#security">Trust & privacy</a></div>
+          <div><h3>Company</h3><a href="mailto:hello@boasted.io">Contact</a><a href="mailto:hello@boasted.io?subject=Boasted%20Team%20waitlist">Team waitlist</a><a href="mailto:hello@boasted.io?subject=Boasted%20Enterprise">Enterprise</a><a href="#security">Trust & privacy</a></div>
         </div>
-        <div className="mega-footer-bottom"><span>© 2026 BragStack</span><span>Private by default · Your proof stays yours.</span><div><a href="/login">Log in</a><a href="/register">Start free</a></div></div>
+        <div className="mega-footer-bottom"><span>© 2026 Boasted</span><span>Private by default · Your proof stays yours.</span><div><a href="/login">Log in</a><a href="/register">Start free</a></div></div>
       </footer>
     </main>
   );

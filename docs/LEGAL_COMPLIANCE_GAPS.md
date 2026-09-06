@@ -1,4 +1,4 @@
-# BragStack — interim legal/compliance gaps
+# Boasted — interim legal/compliance gaps
 
 **Reviewed:** September 5, 2026  
 **Purpose:** Keep us from confusing good documentation with proven legal/operational compliance while we wait for attorney review.
@@ -11,17 +11,17 @@
 
 **Status: NOT YET PROVEN**
 
-The current code creates a recurring Stripe Checkout subscription and provides first-party cancellation/resume endpoints. The Upgrade page now adds a BragStack pre-checkout consent screen with the $9/month price, monthly automatic renewal, cancellation method, refund-policy summary, and Terms/Privacy/legal-notice links. However, the legal review must still verify the real customer journey, not just the code.
+The current code creates a recurring Stripe Checkout subscription and provides first-party cancellation/resume endpoints. The Upgrade page now adds a Boasted pre-checkout consent screen with the $9/month price, monthly automatic renewal, cancellation method, refund-policy summary, and Terms/Privacy/legal-notice links. However, the legal review must still verify the real customer journey, not just the code.
 
 Before calling Georgia recurring billing compliant, verify in production:
 
-- [x] BragStack pre-checkout UI clearly states $9/month and monthly auto-renewal before the user continues to Stripe;
-- [x] BragStack requires an affirmative recurring-billing acknowledgement before opening Stripe Checkout;
+- [x] Boasted pre-checkout UI clearly states $9/month and monthly auto-renewal before the user continues to Stripe;
+- [x] Boasted requires an affirmative recurring-billing acknowledgement before opening Stripe Checkout;
 - [ ] Stripe's production checkout and post-purchase customer records provide a retainable acknowledgment with all required renewal terms, cancellation policy, and cancellation instructions;
 - [ ] the cancellation UI is easy to find and successfully schedules cancellation in production;
-- [ ] each recurring charge gets the Georgia-required notice before or within three days when applicable, including renewal statement, renewal period/additional terms, electronic cancellation path, and BragStack contact information;
+- [ ] each recurring charge gets the Georgia-required notice before or within three days when applicable, including renewal statement, renewal period/additional terms, electronic cancellation path, and Boasted contact information;
 - [ ] material subscription changes produce a retainable change notice and cancellation information;
-- [ ] BragStack can demonstrate what billing terms were in effect for a given subscription and, if counsel recommends it, retain a server-side billing-consent/version record.
+- [ ] Boasted can demonstrate what billing terms were in effect for a given subscription and, if counsel recommends it, retain a server-side billing-consent/version record.
 
 **Do not assume a Stripe receipt or invoice contains every element until someone checks the actual production email/template.**
 
@@ -60,7 +60,7 @@ Existing Privacy, Terms, NDA guidance, the interim notices, and the Georgia cust
 
 **Status: NOT COMPLETE**
 
-Georgia does not currently have the comprehensive SB 111 privacy law that some stale trackers describe; final SB 111 / Act 462 became rural-hospital legislation. That does **not** mean BragStack has no privacy-law obligations. User residence can trigger other state laws.
+Georgia does not currently have the comprehensive SB 111 privacy law that some stale trackers describe; final SB 111 / Act 462 became rural-hospital legislation. That does **not** mean Boasted has no privacy-law obligations. User residence can trigger other state laws.
 
 Before meaningful growth or paid acquisition outside Georgia, counsel should map actual user states against then-current state privacy laws and thresholds.
 
@@ -95,13 +95,13 @@ The current implementation now does the following:
 - [ ] review any pre-existing/legacy customer accounts if counsel recommends re-attestation or another account review;
 - [ ] obtain a separate legal/product review before intentionally marketing to or designing dedicated experiences for children or younger teens.
 
-Georgia SB 540 / Act 518 becomes effective July 1, 2027 and includes requirements related to conversational AI, minors, privacy tools, and safety protocols. BragStack must review applicability before that date.
+Georgia SB 540 / Act 518 becomes effective July 1, 2027 and includes requirements related to conversational AI, minors, privacy tools, and safety protocols. Boasted must review applicability before that date.
 
 ### 8. B2B / employer-facing AI
 
 **Status: DO NOT EXPAND WITHOUT REVIEW**
 
-Current career AI should remain user-directed drafting/coaching. If BragStack later sells employer-facing candidate scoring, screening, ranking, hiring recommendations, or employment decision tools, stop and run a separate employment/AI legal review before release.
+Current career AI should remain user-directed drafting/coaching. If Boasted later sells employer-facing candidate scoring, screening, ranking, hiring recommendations, or employment decision tools, stop and run a separate employment/AI legal review before release.
 
 ## ✅ Existing strengths observed in the repo
 
@@ -115,7 +115,7 @@ These are useful risk-reduction controls, but they do not equal a legal certific
 - structured account consent records now preserve the accepted document version and acceptance time;
 - first-party subscription cancellation/resume endpoints exist;
 - Stripe webhook signatures are verified and webhook processing includes idempotency/replay protections;
-- BragStack now places a recurring-billing disclosure/acknowledgement before Stripe Checkout;
+- Boasted now places a recurring-billing disclosure/acknowledgement before Stripe Checkout;
 - billing docs tell operators not to put secrets or raw payment data into logs/issues;
 - verifier data has a documented lifecycle and minimum-data approach.
 

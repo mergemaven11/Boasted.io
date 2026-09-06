@@ -17,8 +17,8 @@ export default function PublicAuthHeader() {
   }
 
   return (
-    <header className="public-auth-header" aria-label="BragStack public navigation">
-      <a className="public-auth-brand" href="/">BragStack</a>
+    <header className="public-auth-header" aria-label="Boasted public navigation">
+      <a className="public-auth-brand" href="/">Boasted</a>
 
       <nav className="public-auth-links" aria-label="Public site navigation">
         <a href="/#how-it-works">How it works</a>

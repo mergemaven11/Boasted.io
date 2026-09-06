@@ -96,7 +96,7 @@ test("NDA gate points to public NDA safety guidance", () => {
 });
 
 test("NDA gate explicitly refuses to interpret the user's agreement", () => {
-  assert.match(gate, /BragStack does not interpret your agreement/);
+  assert.match(gate, /Boasted does not interpret your agreement/);
 });
 
 test("NDA gate tells uncertain users to stop and check an authorized source", () => {

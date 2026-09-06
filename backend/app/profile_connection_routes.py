@@ -1,4 +1,4 @@
-"""Opt-in connection settings for BragStack Proof Profiles."""
+"""Opt-in connection settings for Boasted Proof Profiles."""
 
 from datetime import datetime, timedelta, timezone
 from typing import Literal

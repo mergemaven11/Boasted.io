@@ -2,8 +2,8 @@
 from html import escape
 
 
-BRAND_NAME = "BragStack"
-BRAND_URL = "https://usebragstack.com"
+BRAND_NAME = "Boasted"
+BRAND_URL = "https://boasted.io"
 
 
 def _safe(value: str | None) -> str:
@@ -81,8 +81,8 @@ def _shell(*, preheader: str, eyebrow: str, title: str, intro: str, content_html
             </tr>
             <tr>
               <td style="padding:20px 4px 0;text-align:center;font-size:11px;line-height:1.6;color:#475569;">
-                <div>BragStack helps you turn real work into reusable career proof.</div>
-                <div style="margin-top:4px;"><a href="{BRAND_URL}" style="color:#64748b;text-decoration:none;">usebragstack.com</a></div>
+                <div>Boasted helps you turn real work into reusable career proof.</div>
+                <div style="margin-top:4px;"><a href="{BRAND_URL}" style="color:#64748b;text-decoration:none;">boasted.io</a></div>
               </td>
             </tr>
           </table>
@@ -112,14 +112,14 @@ def build_email_verification_html(url: str) -> str:
       </table>
     """
     return _shell(
-        preheader="Verify your BragStack email and open your career-proof workspace.",
+        preheader="Verify your Boasted email and open your career-proof workspace.",
         eyebrow="Secure account setup",
-        title="Verify your BragStack email",
+        title="Verify your Boasted email",
         intro="You’re one click away from opening your private workspace for accomplishments, Impact Receipts, and career proof.",
         content_html=content,
         cta_label="Verify email",
         cta_url=url,
-        footnote="If you didn’t create a BragStack account, you can safely ignore this message.",
+        footnote="If you didn’t create a Boasted account, you can safely ignore this message.",
     )
 
 
@@ -142,10 +142,10 @@ def build_password_reset_html(url: str) -> str:
       </table>
     """
     return _shell(
-        preheader="Reset your BragStack password securely.",
+        preheader="Reset your Boasted password securely.",
         eyebrow="Account security",
         title="Reset your password",
-        intro="We received a request to choose a new password for your BragStack account.",
+        intro="We received a request to choose a new password for your Boasted account.",
         content_html=content,
         cta_label="Choose a new password",
         cta_url=url,
@@ -191,11 +191,11 @@ def build_receipt_verification_html(*, owner_name: str, verifier_name: str, acco
         </tr>
       </table>
       {message_block}
-      <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#94a3b8;">Your response records your attestation. BragStack does not independently verify the underlying claim. No BragStack account is required to respond.</p>
-      <p style="margin:12px 0 0;font-size:12px;line-height:1.6;color:#64748b;">{safe_owner} provided your contact details so BragStack could deliver and manage this verification request. Pending request contact data is scheduled for automatic deletion after the request expires; completed responses retain only the minimum attestation details needed for the receipt. See the <a href="{privacy_url}" style="color:#93c5fd;">BragStack Privacy Policy</a>.</p>
+      <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#94a3b8;">Your response records your attestation. Boasted does not independently verify the underlying claim. No Boasted account is required to respond.</p>
+      <p style="margin:12px 0 0;font-size:12px;line-height:1.6;color:#64748b;">{safe_owner} provided your contact details so Boasted could deliver and manage this verification request. Pending request contact data is scheduled for automatic deletion after the request expires; completed responses retain only the minimum attestation details needed for the receipt. See the <a href="{privacy_url}" style="color:#93c5fd;">Boasted Privacy Policy</a>.</p>
     """
     return _shell(
-        preheader=f"{owner_name} asked you to review an Impact Receipt on BragStack.",
+        preheader=f"{owner_name} asked you to review an Impact Receipt on Boasted.",
         eyebrow="Career proof verification",
         title=f"{owner_name} asked you to confirm career proof",
         intro="Review the Impact Receipt below and confirm whether it accurately represents the work and result described.",

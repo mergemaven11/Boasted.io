@@ -253,7 +253,7 @@ export default function PublicBragPage() {
     ));
   }, [entries, search, filter]);
 
-  const name = profile?.name || "BragStack member";
+  const name = profile?.name || "Boasted member";
   const pages = Math.max(1, Math.ceil(meta.total_entries / PAGE_SIZE));
   const start = meta.total_entries ? (page - 1) * PAGE_SIZE + 1 : 0;
   const end = Math.min(page * PAGE_SIZE, meta.total_entries);
@@ -265,10 +265,10 @@ export default function PublicBragPage() {
 
   useEffect(() => {
     if (!profile) return;
-    document.title = `${name} — Proof Portfolio | BragStack`;
+    document.title = `${name} — Proof Portfolio | Boasted`;
     const description = profile.headline
       ? `${profile.headline} · ${verifiedReceipts} verified impact${verifiedReceipts === 1 ? "" : "s"} · ${meta.total_entries} selected accomplishment${meta.total_entries === 1 ? "" : "s"}.`
-      : `${name}'s evidence-backed career impact on BragStack.`;
+      : `${name}'s evidence-backed career impact on Boasted.`;
     let metaDescription = document.querySelector('meta[name="description"]');
     if (!metaDescription) {
       metaDescription = document.createElement("meta");
@@ -282,8 +282,8 @@ export default function PublicBragPage() {
     const url = richShareUrl(slug, shareVersion);
     const verifiedText = verifiedReceipts > 0 ? ` ${verifiedReceipts} verified impact${verifiedReceipts === 1 ? "" : "s"}.` : "";
     const shareData = {
-      title: `${name} · BragStack Proof Portfolio`,
-      text: `View ${name}'s public portfolio of accomplishments and career impact on BragStack.${verifiedText}`,
+      title: `${name} · Boasted Proof Portfolio`,
+      text: `View ${name}'s public portfolio of accomplishments and career impact on Boasted.${verifiedText}`,
       url,
     };
     try {
@@ -309,7 +309,7 @@ export default function PublicBragPage() {
         <header className="proof-topbar portfolio-topbar">
           <a className="proof-brand" href="/">
             <span className="proof-brand-mark">B</span>
-            <span>BragStack</span>
+            <span>Boasted</span>
           </a>
           <div className="portfolio-topbar-actions">
             <span className="proof-topbar-tag">Proof Portfolio</span>

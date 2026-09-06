@@ -1,5 +1,5 @@
 export const PROFILE_THEMES = [
-  { id: "default", name: "BragStack", career: "Signature", primary: "#7dd3fc", secondary: "#c4b5fd", background: "#050816" },
+  { id: "default", name: "Boasted", career: "Signature", primary: "#7dd3fc", secondary: "#c4b5fd", background: "#050816" },
   { id: "clinical", name: "Clinical", career: "Healthcare", primary: "#5eead4", secondary: "#67e8f9", background: "#06151a" },
   { id: "educator", name: "Educator", career: "Education", primary: "#fbbf24", secondary: "#fb7185", background: "#181006" },
   { id: "engineer", name: "Engineer", career: "Engineering & Tech", primary: "#60a5fa", secondary: "#94a3b8", background: "#07111f" },

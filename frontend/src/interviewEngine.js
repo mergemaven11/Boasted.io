@@ -131,7 +131,7 @@ function receiptQuestion(receipts = [], roleTitle = "", jobDescription = "") {
     competency: "career_evidence",
     source: "impact-receipt",
     evidenceScore: best.score,
-    text: `Your BragStack includes this accomplishment: “${accomplishment}” Walk me through the part of that example that is most relevant to this ${roleTitle || "role"}: what you personally owned, the hardest decision or technical challenge, and the result that mattered.`,
+    text: `Your Boasted includes this accomplishment: “${accomplishment}” Walk me through the part of that example that is most relevant to this ${roleTitle || "role"}: what you personally owned, the hardest decision or technical challenge, and the result that mattered.`,
   };
 }
 
@@ -452,7 +452,7 @@ function sessionVerdict(overallScore, failed) {
   if (overallScore >= 80) return "Interview-ready with a few refinements.";
   if (overallScore >= 65) return "Promising, but several answers still need sharper evidence.";
   if (overallScore >= 50) return "Not interview-ready yet; too many answers need stronger evidence, ownership, or results.";
-  return "Below BragStack’s interview-ready bar: the answers did not consistently provide enough relevant, structured evidence.";
+  return "Below Boasted’s interview-ready bar: the answers did not consistently provide enough relevant, structured evidence.";
 }
 
 export function summarizeInterview(responses = []) {

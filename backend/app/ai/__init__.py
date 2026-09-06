@@ -1,4 +1,4 @@
-"""BragStack AI evidence-assistance foundation.
+"""Boasted AI evidence-assistance foundation.
 
 AI output is suggestion state only. Domain evidence remains user-controlled and
 must be traceable to source evidence IDs.

@@ -21,7 +21,7 @@ from app.impact_receipt_routes import build_trust_signals
 router = APIRouter(tags=["receipt-verification"])
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
-VERIFICATION_FROM = os.getenv("RECEIPT_VERIFICATION_FROM", "BragStack <noreply@usebragstack.com>")
+VERIFICATION_FROM = os.getenv("RECEIPT_VERIFICATION_FROM", "Boasted <noreply@boasted.io>")
 TOKEN_TTL = timedelta(days=7)
 
 
@@ -209,7 +209,7 @@ async def _send_request_email(
             json={
                 "from": VERIFICATION_FROM,
                 "to": [to_email],
-                "subject": f"{owner_name} asked you to confirm career proof on BragStack",
+                "subject": f"{owner_name} asked you to confirm career proof on Boasted",
                 "html": body,
             },
         )
@@ -295,7 +295,7 @@ async def request_receipt_verification(
     try:
         await _send_request_email(
             email,
-            current_user.get("name") or "A BragStack user",
+            current_user.get("name") or "A Boasted user",
             receipt,
             {**confirmation, "message": message},
             raw_token,
@@ -333,7 +333,7 @@ def get_receipt_verification(token: str):
         "confirmation_type": confirmation.get("confirmation_type"),
         "message": request_record.get("message", ""),
         "expires_at": request_record.get("expires_at"),
-        "statement": "Confirming means you believe this receipt accurately represents the work and result described. BragStack records your attestation but does not independently verify the claim.",
+        "statement": "Confirming means you believe this receipt accurately represents the work and result described. Boasted records your attestation but does not independently verify the claim.",
     }
 
 

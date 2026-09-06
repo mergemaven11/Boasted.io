@@ -1,4 +1,4 @@
-# BragStack — Georgia data-breach response runbook
+# Boasted — Georgia data-breach response runbook
 
 **Working version:** September 4, 2026  
 **Status:** Interim runbook pending attorney review.
@@ -19,12 +19,12 @@ Do not wait for a completed forensic investigation to start the incident record.
 4. **Open an incident record.** Record discovery time, who discovered it, affected systems, known/suspected data types, containment actions, and decision owners.
 5. **Notify the founder/incident owner immediately.** A potential legal-notification event is not a routine support ticket.
 
-## Determine which role BragStack had for the data
+## Determine which role Boasted had for the data
 
 Georgia's breach statute distinguishes an owner/data collector from a business maintaining computerized personal information for another owner.
 
-- If BragStack owns/controls the covered data as the relevant data collector, assess resident notification duties under O.C.G.A. § 10-1-912(a).
-- If BragStack maintains covered computerized personal information for another information broker/data collector and the statutory conditions are met, O.C.G.A. § 10-1-912(b) requires notice to that owner **within 24 hours following discovery**.
+- If Boasted owns/controls the covered data as the relevant data collector, assess resident notification duties under O.C.G.A. § 10-1-912(a).
+- If Boasted maintains covered computerized personal information for another information broker/data collector and the statutory conditions are met, O.C.G.A. § 10-1-912(b) requires notice to that owner **within 24 hours following discovery**.
 
 Treat the 24-hour service-provider deadline as an immediate escalation deadline. Do not assume a customer contract allows more time than the statute.
 
@@ -62,7 +62,7 @@ Escalate to counsel immediately before sending mass notices.
 
 ## Multi-state check
 
-BragStack may have users outside Georgia. For any incident:
+Boasted may have users outside Georgia. For any incident:
 
 - identify every affected user's state/country where reasonably possible;
 - do not assume Georgia law is the only notification law;
@@ -76,11 +76,11 @@ Where notice is legally required, prepare a truthful notice based on confirmed f
 At a minimum, the incident owner should be able to explain:
 
 - what happened in plain language;
-- when it happened / when BragStack discovered it, if appropriate;
+- when it happened / when Boasted discovered it, if appropriate;
 - what information was involved;
-- what BragStack has done to contain/remediate it;
+- what Boasted has done to contain/remediate it;
 - what the customer should do, if anything;
-- how to contact BragStack with questions.
+- how to contact Boasted with questions.
 
 Counsel should review actual breach notices when available.
 

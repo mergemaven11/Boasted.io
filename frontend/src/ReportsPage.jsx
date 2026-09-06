@@ -62,7 +62,7 @@ function buildReportMarkdown(report) {
   const totals = report.totals ?? {};
   const period = report.period ?? {};
   const lines = [
-    "# BragStack Career Report",
+    "# Boasted Career Report",
     "",
     `**Period:** ${period.label ?? "Career report"}`,
     period.start_date && period.end_date
@@ -290,7 +290,7 @@ function ReportsPage() {
 
       if (requestError.response?.status === 403) {
         setPacketError(
-          `${packetLabel} are included with BragStack Pro. Your standard career reports remain available on Free.`
+          `${packetLabel} are included with Boasted Pro. Your standard career reports remain available on Free.`
         );
       } else {
         setPacketError(
@@ -317,7 +317,7 @@ function ReportsPage() {
             <ArrowLeft size={17} />
             Dashboard
           </a>
-          <p className="reports-eyebrow">BragStack Reports</p>
+          <p className="reports-eyebrow">Boasted Reports</p>
           <h1>Turn your proof into a career summary.</h1>
           <p className="reports-intro">
             Review recent work, see your all-time impact, or build a report for a
@@ -379,7 +379,7 @@ function ReportsPage() {
             <div>
               <p className="reports-eyebrow">{report.period?.label ?? "Career report"}</p>
               <h2>{report.summary}</h2>
-              <p>Report dates use the date the work happened, not simply the day it was added to BragStack.</p>
+              <p>Report dates use the date the work happened, not simply the day it was added to Boasted.</p>
             </div>
             <span className="report-period-badge">
               {report.period?.start_date && report.period?.end_date

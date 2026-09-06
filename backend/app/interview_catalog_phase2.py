@@ -1,4 +1,4 @@
-"""Phase 2 expansion roles for BragStack's zero-cost interview catalog.
+"""Phase 2 expansion roles for Boasted's zero-cost interview catalog.
 
 Kept separate from the base seed so the catalog remains reviewable and easy to extend.
 """

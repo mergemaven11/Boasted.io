@@ -3,74 +3,74 @@ import { PRIMARY_SITELINKS } from "./primarySitelinks.js";
 
 const PUBLIC_META = {
   "/": {
-    title: "BragStack | Career Proof, Resume Builder & Interview Practice",
-    description: "BragStack helps people across industries turn everyday wins into reusable career proof for resumes, interviews, reviews, promotions, portfolios, certifications, and their next opportunity.",
+    title: "Boasted | Career Proof, Resume Builder & Interview Practice",
+    description: "Boasted helps people across industries turn everyday wins into reusable career proof for resumes, interviews, reviews, promotions, portfolios, certifications, and their next opportunity.",
   },
   "/login": {
-    title: "Sign In to BragStack | Career Proof",
-    description: "Sign in to BragStack to access your career proof, Impact Receipts, Resume Builder, and Practice Interviewer.",
+    title: "Sign In to Boasted | Career Proof",
+    description: "Sign in to Boasted to access your career proof, Impact Receipts, Resume Builder, and Practice Interviewer.",
   },
   "/register": {
-    title: "Sign up for BragStack | Start Free",
-    description: "Create a free BragStack account and start turning your accomplishments into career proof for resumes, interviews, reviews, promotions, portfolios, and career transitions.",
+    title: "Sign up for Boasted | Start Free",
+    description: "Create a free Boasted account and start turning your accomplishments into career proof for resumes, interviews, reviews, promotions, portfolios, and career transitions.",
   },
   "/how-it-works": {
-    title: "How BragStack Works | Capture, Prove & Reuse Career Evidence",
-    description: "See how BragStack helps people in any profession capture accomplishments, create Impact Receipts, reuse evidence for career moments, share selectively, and keep private work private.",
+    title: "How Boasted Works | Capture, Prove & Reuse Career Evidence",
+    description: "See how Boasted helps people in any profession capture accomplishments, create Impact Receipts, reuse evidence for career moments, share selectively, and keep private work private.",
   },
   "/use-cases": {
-    title: "BragStack Use Cases | Reviews, Promotions, Resumes & Interviews",
-    description: "Explore BragStack use cases across professions for reviews, promotions, resumes, interviews, certifications, career changes, freelancers, founders, students, and education-to-career proof.",
+    title: "Boasted Use Cases | Reviews, Promotions, Resumes & Interviews",
+    description: "Explore Boasted use cases across professions for reviews, promotions, resumes, interviews, certifications, career changes, freelancers, founders, students, and education-to-career proof.",
   },
   "/contact": {
-    title: "Contact BragStack | Support, Privacy, Security & Billing",
-    description: "Contact BragStack for product support, general questions, privacy requests, security concerns, billing questions, or legal correspondence.",
+    title: "Contact Boasted | Support, Privacy, Security & Billing",
+    description: "Contact Boasted for product support, general questions, privacy requests, security concerns, billing questions, or legal correspondence.",
   },
   "/support": {
-    title: "BragStack Support Hub | Product Help, Beta Access & Security",
-    description: "Get BragStack product and account help, troubleshoot issues, understand complimentary beta access, review NDA guidance, and reach support, billing, privacy, or security contacts.",
+    title: "Boasted Support Hub | Product Help, Beta Access & Security",
+    description: "Get Boasted product and account help, troubleshoot issues, understand complimentary beta access, review NDA guidance, and reach support, billing, privacy, or security contacts.",
   },
   "/team": {
-    title: "BragStack for Teams | Coming Soon",
-    description: "Learn about the planned BragStack Team direction for evidence-backed reviews, employee-controlled sharing, bounded analytics, and organization workflows without surveillance.",
+    title: "Boasted for Teams | Coming Soon",
+    description: "Learn about the planned Boasted Team direction for evidence-backed reviews, employee-controlled sharing, bounded analytics, and organization workflows without surveillance.",
   },
   "/enterprise": {
-    title: "BragStack Enterprise | Governance Roadmap for Career Evidence",
-    description: "Learn about BragStack's early enterprise direction for identity, governance, retention, admin policy controls, integrations, and employee-controlled evidence boundaries.",
+    title: "Boasted Enterprise | Governance Roadmap for Career Evidence",
+    description: "Learn about Boasted's early enterprise direction for identity, governance, retention, admin policy controls, integrations, and employee-controlled evidence boundaries.",
   },
   "/security": {
-    title: "BragStack Security | Private-by-Default Career Evidence",
-    description: "Read BragStack's security approach, private-by-default model, confidential-work guidance, payment handling, and instructions for reporting a security concern.",
+    title: "Boasted Security | Private-by-Default Career Evidence",
+    description: "Read Boasted's security approach, private-by-default model, confidential-work guidance, payment handling, and instructions for reporting a security concern.",
   },
   "/privacy": {
-    title: "Privacy Policy | BragStack",
-    description: "Read the BragStack Privacy Policy, including information collection, career evidence, sharing, AI-assisted features, retention, security, and privacy choices.",
+    title: "Privacy Policy | Boasted",
+    description: "Read the Boasted Privacy Policy, including information collection, career evidence, sharing, AI-assisted features, retention, security, and privacy choices.",
   },
   "/terms": {
-    title: "Terms and Conditions | BragStack",
-    description: "Read the terms governing BragStack accounts, user content, acceptable use, subscriptions, AI-assisted career content, confidentiality, and service use.",
+    title: "Terms and Conditions | Boasted",
+    description: "Read the terms governing Boasted accounts, user content, acceptable use, subscriptions, AI-assisted career content, confidentiality, and service use.",
   },
   "/nda-safety": {
-    title: "NDA & Confidential Work Guidance | BragStack",
+    title: "NDA & Confidential Work Guidance | Boasted",
     description: "Learn how people across healthcare, education, trades, service, sales, creative, public-sector, technology, and other work can document accomplishments without overriding NDAs, privacy duties, professional obligations, employer policies, or client agreements.",
   },
   "/education": {
-    title: "BragStack Education | Turn Learning into Career Proof",
-    description: "BragStack Education helps college, university, trade, technical, certification, bootcamp, and continuing-education learners turn real coursework, projects, training, research, and achievements into reusable career proof.",
+    title: "Boasted Education | Turn Learning into Career Proof",
+    description: "Boasted Education helps college, university, trade, technical, certification, bootcamp, and continuing-education learners turn real coursework, projects, training, research, and achievements into reusable career proof.",
   },
   "/docs": {
-    title: "BragStack Docs | How to Use Career Proof",
-    description: "Learn how people across professions can use BragStack, Impact Receipts, Resume Builder, Practice Interviewer, privacy controls, and career proof workflows.",
+    title: "Boasted Docs | How to Use Career Proof",
+    description: "Learn how people across professions can use Boasted, Impact Receipts, Resume Builder, Practice Interviewer, privacy controls, and career proof workflows.",
   },
   "/docs/education": {
-    title: "BragStack Education Guide | Learning & Career Proof",
-    description: "Learn how to use BragStack Education to capture coursework, projects, certifications, achievements, and contributions, then reuse that evidence for applications, resumes, interviews, portfolios, and career planning.",
+    title: "Boasted Education Guide | Learning & Career Proof",
+    description: "Learn how to use Boasted Education to capture coursework, projects, certifications, achievements, and contributions, then reuse that evidence for applications, resumes, interviews, portfolios, and career planning.",
   },
 };
 
 const NOINDEX_PREFIXES = ["/app"];
 const NOINDEX_PATHS = new Set(["/upgrade", "/verify-receipt"]);
-const OFFICIAL_LOGO_URL = "https://usebragstack.com/bragstack-logo-192.png";
+const OFFICIAL_LOGO_URL = "https://boasted.io/bragstack-logo-192.png";
 
 function ensureMeta(selector, attributes) {
   let element = document.querySelector(selector);
@@ -135,7 +135,7 @@ export default function useSearchAppearanceMeta(path) {
         canonical.rel = "canonical";
         document.head.appendChild(canonical);
       }
-      canonical.href = `https://usebragstack.com${path === "/" ? "/" : path}`;
+      canonical.href = `https://boasted.io${path === "/" ? "/" : path}`;
     }
 
     const scriptId = "bragstack-search-appearance-schema";
@@ -147,17 +147,17 @@ export default function useSearchAppearanceMeta(path) {
       "@graph": [
         {
           "@type": "WebSite",
-          "@id": "https://usebragstack.com/#website",
-          url: "https://usebragstack.com/",
-          name: "BragStack",
-          alternateName: ["BragStack", "usebragstack.com"],
-          publisher: { "@id": "https://usebragstack.com/#organization" },
+          "@id": "https://boasted.io/#website",
+          url: "https://boasted.io/",
+          name: "Boasted",
+          alternateName: ["Boasted", "boasted.io"],
+          publisher: { "@id": "https://boasted.io/#organization" },
         },
         {
           "@type": "Organization",
-          "@id": "https://usebragstack.com/#organization",
-          name: "BragStack",
-          url: "https://usebragstack.com/",
+          "@id": "https://boasted.io/#organization",
+          name: "Boasted",
+          url: "https://boasted.io/",
           logo: {
             "@type": "ImageObject",
             url: OFFICIAL_LOGO_URL,
@@ -168,19 +168,19 @@ export default function useSearchAppearanceMeta(path) {
         },
         {
           "@type": "ItemList",
-          "@id": "https://usebragstack.com/#primary-navigation",
-          name: "BragStack primary navigation",
+          "@id": "https://boasted.io/#primary-navigation",
+          name: "Boasted primary navigation",
           itemListElement: PRIMARY_SITELINKS.map(([name, href], index) => ({
             "@type": "ListItem",
             position: index + 1,
             name,
-            url: `https://usebragstack.com${href}`,
+            url: `https://boasted.io${href}`,
           })),
         },
         ...PRIMARY_SITELINKS.map(([name, href]) => ({
           "@type": "SiteNavigationElement",
           name,
-          url: `https://usebragstack.com${href}`,
+          url: `https://boasted.io${href}`,
         })),
       ],
     };

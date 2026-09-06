@@ -10,7 +10,7 @@ const apiTarget = process.env.BRAGSTACK_API_TARGET || "https://api.usebragstack.
 const distDir = path.join(__dirname, "dist");
 
 app.disable("x-powered-by");
-app.get("/preview-health", (_req, res) => res.json({ status: "ok", target: "BragStack PR preview" }));
+app.get("/preview-health", (_req, res) => res.json({ status: "ok", target: "Boasted PR preview" }));
 app.use(
   "/api",
   createProxyMiddleware({
@@ -29,5 +29,5 @@ app.use((req, res, next) => {
 });
 
 app.listen(port, "0.0.0.0", () => {
-  console.log(`BragStack PR preview listening on ${port}`);
+  console.log(`Boasted PR preview listening on ${port}`);
 });

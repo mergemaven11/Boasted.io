@@ -71,7 +71,7 @@ function installInterviewSpeechGuard() {
   };
 }
 
-function RouteFallback() { return <BragStackLoader message="Opening BragStack…" detail="Loading the tools you need." />; }
+function RouteFallback() { return <BragStackLoader message="Opening Boasted…" detail="Loading the tools you need." />; }
 function LegacyShareRedirect({ path }) {
   useEffect(() => {
     const parts = path.split("/").filter(Boolean);
@@ -198,7 +198,7 @@ function RootContent() {
         lockup.appendChild(beta);
       }
 
-      document.querySelectorAll('a[href*="@bragstack.app"]').forEach((link) => { const href = link.getAttribute("href") || ""; const subject = href.includes("?subject=") ? `?${href.split("?")[1]}` : ""; link.setAttribute("href", `mailto:Tobias.scott@usebragstack.com${subject}`); });
+      document.querySelectorAll('a[href*="@boasted.io"]').forEach((link) => { const href = link.getAttribute("href") || ""; const subject = href.includes("?subject=") ? `?${href.split("?")[1]}` : ""; link.setAttribute("href", `mailto:Tobias.scott@boasted.io${subject}`); });
       document.querySelectorAll(".mega-footer-columns span").forEach((node) => { if (node.textContent?.trim() !== "Docs · coming soon") return; const link = document.createElement("a"); link.href = "/docs"; link.textContent = "Docs"; node.replaceWith(link); });
       const resourceHeading = Array.from(document.querySelectorAll(".mega-footer-columns h3")).find((node) => node.textContent?.trim() === "Resources");
       const resourceColumn = resourceHeading?.parentElement;

@@ -18,7 +18,7 @@ import "./SupportHubNavbarFix.css";
 const supportCards = [
   {
     icon: BookOpen,
-    eyebrow: "Learn BragStack",
+    eyebrow: "Learn Boasted",
     title: "Docs & getting started",
     description: "Learn how accomplishments, Impact Receipts, Proof Profiles, reports, education tools, and career intelligence fit together.",
     href: "/docs",
@@ -44,17 +44,17 @@ const supportCards = [
     icon: LockKeyhole,
     eyebrow: "Privacy & security",
     title: "Security center",
-    description: "Review BragStack's private-by-default approach, sensitive-data guidance, security boundaries, and reporting instructions.",
+    description: "Review Boasted's private-by-default approach, sensitive-data guidance, security boundaries, and reporting instructions.",
     href: "/security",
     action: "Open security center",
   },
 ];
 
 const contactCards = [
-  { icon: LifeBuoy, title: "Product & account support", email: "support@usebragstack.com", description: "Sign-in, account access, product behavior, bugs, and general help." },
-  { icon: CreditCard, title: "Billing", email: "billing@usebragstack.com", description: "Existing paid subscriptions, charges, cancellations, and billing records." },
-  { icon: ShieldCheck, title: "Security", email: "security@usebragstack.com", description: "Security concerns or suspected vulnerabilities. Do not email passwords, access tokens, or confidential evidence." },
-  { icon: Mail, title: "Privacy", email: "privacy@usebragstack.com", description: "Privacy questions and requests concerning your BragStack information." },
+  { icon: LifeBuoy, title: "Product & account support", email: "support@boasted.io", description: "Sign-in, account access, product behavior, bugs, and general help." },
+  { icon: CreditCard, title: "Billing", email: "billing@boasted.io", description: "Existing paid subscriptions, charges, cancellations, and billing records." },
+  { icon: ShieldCheck, title: "Security", email: "security@boasted.io", description: "Security concerns or suspected vulnerabilities. Do not email passwords, access tokens, or confidential evidence." },
+  { icon: Mail, title: "Privacy", email: "privacy@boasted.io", description: "Privacy questions and requests concerning your Boasted information." },
 ];
 
 export default function SupportHubPage() {
@@ -63,18 +63,18 @@ export default function SupportHubPage() {
   return <main className="support-hub-page">
     <header className="support-hub-topbar">
       <div className="support-hub-topbar-inner">
-        <a className="support-hub-brand" href="/"><span>BragStack</span><em>Beta</em></a>
+        <a className="support-hub-brand" href="/"><span>Boasted</span><em>Beta</em></a>
         <nav aria-label="Support navigation"><a href="/docs">Docs</a><a href="/security">Security</a><a href="/nda-safety">NDA guidance</a>{token ? <a className="support-account-link" href="/app">My workspace</a> : <a className="support-account-link" href="/login">Sign in</a>}</nav>
       </div>
     </header>
 
     <section className="support-hub-hero">
-      <a className="support-back" href={token ? "/app" : "/"}><ArrowLeft size={16} /> {token ? "Back to workspace" : "Back to BragStack"}</a>
+      <a className="support-back" href={token ? "/app" : "/"}><ArrowLeft size={16} /> {token ? "Back to workspace" : "Back to Boasted"}</a>
       <div className="support-hero-icon"><LifeBuoy size={30} /></div>
-      <p className="support-kicker">BRAGSTACK SUPPORT HUB</p>
+      <p className="support-kicker">BOASTED SUPPORT HUB</p>
       <h1>Help when you need it.<br/><span>Clear answers when you don&apos;t.</span></h1>
-      <p className="support-hero-copy">Find product guidance, troubleshoot an issue, protect confidential work, understand beta access, or reach the right BragStack support channel.</p>
-      <div className="support-hero-actions"><a className="support-primary" href="mailto:support@usebragstack.com?subject=BragStack%20Support">Contact support <Mail size={17} /></a><a className="support-secondary" href="/docs"><BookOpen size={17} /> Browse docs</a></div>
+      <p className="support-hero-copy">Find product guidance, troubleshoot an issue, protect confidential work, understand beta access, or reach the right Boasted support channel.</p>
+      <div className="support-hero-actions"><a className="support-primary" href="mailto:support@boasted.io?subject=Boasted%20Support">Contact support <Mail size={17} /></a><a className="support-secondary" href="/docs"><BookOpen size={17} /> Browse docs</a></div>
     </section>
 
     <section className="support-section" aria-labelledby="support-start-title">
@@ -90,18 +90,18 @@ export default function SupportHubPage() {
     <section className="support-section" aria-labelledby="support-faq-title">
       <div className="support-section-heading"><p>QUICK ANSWERS</p><h2 id="support-faq-title">Common beta questions</h2></div>
       <div className="support-faq-list">
-        <details><summary><HelpCircle size={18}/> Why does my account say Pro?</summary><p>BragStack is temporarily granting eligible beta accounts complimentary Pro feature access. That feature access is not evidence that you have a paid subscription.</p></details>
+        <details><summary><HelpCircle size={18}/> Why does my account say Pro?</summary><p>Boasted is temporarily granting eligible beta accounts complimentary Pro feature access. That feature access is not evidence that you have a paid subscription.</p></details>
         <details><summary><CreditCard size={18}/> Will complimentary Pro charge me later?</summary><p>No new recurring charge is authorized by receiving complimentary beta access. A future paid offer would require a separate checkout and billing consent. If you already had a paid subscription, manage that existing subscription from Plan & billing.</p></details>
-        <details><summary><FileWarning size={18}/> Can I put confidential workplace material into BragStack?</summary><p>Only upload or describe information you are authorized to use. Never assume BragStack overrides an NDA, employer policy, professional duty, privacy rule, client restriction, or law. Review the NDA & confidential-work guide before using sensitive work material.</p></details>
+        <details><summary><FileWarning size={18}/> Can I put confidential workplace material into Boasted?</summary><p>Only upload or describe information you are authorized to use. Never assume Boasted overrides an NDA, employer policy, professional duty, privacy rule, client restriction, or law. Review the NDA & confidential-work guide before using sensitive work material.</p></details>
         <details><summary><MessageCircleQuestion size={18}/> What should I send when reporting a bug?</summary><p>Tell us what you were trying to do, what happened, the page or feature involved, and your browser/device when useful. Do not send passwords, authentication tokens, confidential work evidence, patient/student/client records, or other protected information in a support email.</p></details>
       </div>
     </section>
 
     <section className="support-section" aria-labelledby="support-contact-title">
       <div className="support-section-heading"><p>CONTACT</p><h2 id="support-contact-title">Reach the right inbox.</h2><span>Use the most specific address when you can so your question lands in the right place.</span></div>
-      <div className="support-contact-grid">{contactCards.map(({ icon: Icon, ...contact }) => <a href={`mailto:${contact.email}?subject=BragStack%20${encodeURIComponent(contact.title)}`} key={contact.email}><Icon size={20}/><div><h3>{contact.title}</h3><strong>{contact.email}</strong><p>{contact.description}</p></div></a>)}</div>
+      <div className="support-contact-grid">{contactCards.map(({ icon: Icon, ...contact }) => <a href={`mailto:${contact.email}?subject=Boasted%20${encodeURIComponent(contact.title)}`} key={contact.email}><Icon size={20}/><div><h3>{contact.title}</h3><strong>{contact.email}</strong><p>{contact.description}</p></div></a>)}</div>
     </section>
 
-    <footer className="support-hub-footer"><a className="support-hub-brand" href="/"><span>BragStack</span><em>Beta</em></a><div><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/security">Security</a><a href="/nda-safety">NDA guidance</a></div><small>Support guidance is operational information, not legal advice.</small></footer>
+    <footer className="support-hub-footer"><a className="support-hub-brand" href="/"><span>Boasted</span><em>Beta</em></a><div><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/security">Security</a><a href="/nda-safety">NDA guidance</a></div><small>Support guidance is operational information, not legal advice.</small></footer>
   </main>;
 }

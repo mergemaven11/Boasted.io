@@ -68,7 +68,7 @@ export default function FounderAnalyticsPanel({ analytics = {} }) {
 
   return <section className="ops-panel founder-analytics-panel">
     <div className="founder-analytics-heading">
-      <div><p className="ops-kicker">FOUNDER · PRODUCT SIGNALS</p><h2>How BragStack is being used</h2><p>Growth, activation, evidence depth, Proof Profile engagement, packet adoption, content signals, subscriptions, and API health from first-party metadata.</p></div>
+      <div><p className="ops-kicker">FOUNDER · PRODUCT SIGNALS</p><h2>How Boasted is being used</h2><p>Growth, activation, evidence depth, Proof Profile engagement, packet adoption, content signals, subscriptions, and API health from first-party metadata.</p></div>
       <a href="/ops/users"><UsersRound size={16} /> User-level analysis</a>
     </div>
 
@@ -125,7 +125,7 @@ export default function FounderAnalyticsPanel({ analytics = {} }) {
         <h3>Popular packet types · 30 days</h3>
         {(packets.popular_types_30d || []).length === 0 ? <p>No packet exports in this window yet.</p> : <div className="founder-rank-list">{packets.popular_types_30d.map((item, index) => <div key={item.packet_kind}><strong>{index + 1}</strong><span>{String(item.packet_kind || "unknown").replace(/-/g, " ")}</span><b>{number(item.count)}</b></div>)}</div>}
         <div className="founder-business-row"><span>Pro subscribers <strong>{number(business.pro_subscribers)}</strong></span><span>Cancellation pending <strong>{number(business.cancellation_pending)} · {percent(business.cancellation_pending_rate)}</strong></span><span>Former subscribers <strong>{number(business.former_subscribers)}</strong></span></div>
-        <p className="founder-data-note">MRR uses BragStack's configured Pro monthly price. True churn is intentionally not estimated until subscription-history events can support a time-bounded churn calculation.</p>
+        <p className="founder-data-note">MRR uses Boasted's configured Pro monthly price. True churn is intentionally not estimated until subscription-history events can support a time-bounded churn calculation.</p>
       </article>
 
       <article className="founder-list-card">

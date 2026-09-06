@@ -1,4 +1,4 @@
-"""Themed PDF and DOCX exports for BragStack career packets."""
+"""Themed PDF and DOCX exports for Boasted career packets."""
 from __future__ import annotations
 
 import io
@@ -204,7 +204,7 @@ def _pdf_page(canvas, doc, palette: dict[str, str]):
     canvas.rect(0, 0, width, 0.08 * inch, stroke=0, fill=1)
     canvas.setFont("Helvetica", 7)
     canvas.setFillColor(_hex_color(palette["muted"]))
-    canvas.drawString(0.65 * inch, 0.27 * inch, "BragStack - Career Evidence System")
+    canvas.drawString(0.65 * inch, 0.27 * inch, "Boasted - Career Evidence System")
     canvas.drawRightString(width - 0.65 * inch, 0.27 * inch, f"Page {doc.page}")
     canvas.restoreState()
 
@@ -249,8 +249,8 @@ def build_career_packet_pdf(packet: dict[str, Any]) -> bytes:
         rightMargin=0.65 * inch,
         topMargin=0.58 * inch,
         bottomMargin=0.55 * inch,
-        title=_clean(packet.get("title"), "BragStack Career Packet"),
-        author="BragStack",
+        title=_clean(packet.get("title"), "Boasted Career Packet"),
+        author="Boasted",
     )
     frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id="normal")
     doc.addPageTemplates([PageTemplate(id="packet", frames=frame, onPage=lambda c, d: _pdf_page(c, d, palette))])
@@ -264,9 +264,9 @@ def build_career_packet_pdf(packet: dict[str, Any]) -> bytes:
     story = []
 
     story.append(Spacer(1, 14))
-    story.append(Paragraph("BRAGSTACK PROFESSIONAL PACKET", styles["eyebrow"]))
+    story.append(Paragraph("BOASTED PROFESSIONAL PACKET", styles["eyebrow"]))
     story.append(Paragraph(_paragraph_text(title), styles["title"]))
-    story.append(Paragraph(_paragraph_text(_clean(subject.get("name"), "BragStack Member")), styles["h2"]))
+    story.append(Paragraph(_paragraph_text(_clean(subject.get("name"), "Boasted Member")), styles["h2"]))
     role_line = " - ".join(value for value in [_clean(subject.get("role")), _clean(context.get("organization"))] if value)
     if role_line:
         story.append(Paragraph(_paragraph_text(role_line), styles["subtitle"]))
@@ -324,7 +324,7 @@ def build_career_packet_pdf(packet: dict[str, Any]) -> bytes:
     usage = _clean(packet.get("usage_example"))
     if usage:
         story.append(Paragraph(f"<b>How this packet can be used:</b> {_paragraph_text(usage)}", styles["body"]))
-    story.append(Paragraph(_paragraph_text(_clean(packet.get("review_summary"), "This packet organizes the career proof currently saved in BragStack.")), styles["body"]))
+    story.append(Paragraph(_paragraph_text(_clean(packet.get("review_summary"), "This packet organizes the career proof currently saved in Boasted.")), styles["body"]))
 
     signature = packet.get("signature_accomplishments") or []
     _pdf_section_header(story, "Featured accomplishments", styles)
@@ -376,7 +376,7 @@ def build_career_packet_pdf(packet: dict[str, Any]) -> bytes:
             story.append(Paragraph(_paragraph_text(line), styles["small"]))
 
     story.append(Spacer(1, 10))
-    story.append(Paragraph("Generated from user-saved BragStack data. Review the document before submitting it to an employer, school, licensing body, scholarship committee, client, or other third party.", styles["small"]))
+    story.append(Paragraph("Generated from user-saved Boasted data. Review the document before submitting it to an employer, school, licensing body, scholarship committee, client, or other third party.", styles["small"]))
     doc.build(story)
     return buffer.getvalue()
 
@@ -450,11 +450,11 @@ def build_career_packet_docx(packet: dict[str, Any]) -> bytes:
 
     header = section.header.paragraphs[0]
     header.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    header_run = header.add_run("BRAGSTACK  |  CAREER EVIDENCE SYSTEM")
+    header_run = header.add_run("BOASTED  |  CAREER EVIDENCE SYSTEM")
     _docx_run(header_run, size=8, bold=True, color=palette["secondary"])
     footer = section.footer.paragraphs[0]
     footer.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    footer_run = footer.add_run("Generated from user-saved BragStack proof - review before external submission")
+    footer_run = footer.add_run("Generated from user-saved Boasted proof - review before external submission")
     _docx_run(footer_run, size=7.5, color=palette["muted"])
 
     title = _clean(packet.get("title"), "Career Packet")
@@ -464,14 +464,14 @@ def build_career_packet_docx(packet: dict[str, Any]) -> bytes:
     scorecard = packet.get("scorecard") or {}
 
     eyebrow = document.add_paragraph()
-    eyebrow_run = eyebrow.add_run("BRAGSTACK PROFESSIONAL PACKET")
+    eyebrow_run = eyebrow.add_run("BOASTED PROFESSIONAL PACKET")
     _docx_run(eyebrow_run, size=8, bold=True, color=palette["secondary"])
     title_paragraph = document.add_paragraph()
     title_run = title_paragraph.add_run(title)
     _docx_run(title_run, size=25, bold=True, color=palette["primary"])
     title_paragraph.paragraph_format.space_after = Pt(3)
     subject_paragraph = document.add_paragraph()
-    subject_run = subject_paragraph.add_run(_clean(subject.get("name"), "BragStack Member"))
+    subject_run = subject_paragraph.add_run(_clean(subject.get("name"), "Boasted Member"))
     _docx_run(subject_run, size=17, bold=True, color=palette["ink"])
     role_line = " - ".join(value for value in [_clean(subject.get("role")), _clean(context.get("organization"))] if value)
     if role_line:
@@ -538,7 +538,7 @@ def build_career_packet_docx(packet: dict[str, Any]) -> bytes:
     usage = _clean(packet.get("usage_example"))
     if usage:
         _docx_add_body(document, usage, palette, "How this packet can be used: ")
-    _docx_add_body(document, _clean(packet.get("review_summary"), "This packet organizes the career proof currently saved in BragStack."), palette)
+    _docx_add_body(document, _clean(packet.get("review_summary"), "This packet organizes the career proof currently saved in Boasted."), palette)
 
     _docx_add_heading(document, "Featured accomplishments", palette)
     signature = packet.get("signature_accomplishments") or []
@@ -609,14 +609,14 @@ def build_career_packet_docx(packet: dict[str, Any]) -> bytes:
 
     document.add_paragraph()
     notice = document.add_paragraph()
-    notice_run = notice.add_run("Generated from user-saved BragStack data. Review the document before submitting it to an employer, school, licensing body, scholarship committee, client, or other third party.")
+    notice_run = notice.add_run("Generated from user-saved Boasted data. Review the document before submitting it to an employer, school, licensing body, scholarship committee, client, or other third party.")
     _docx_run(notice_run, size=8, color=palette["muted"])
 
     core = document.core_properties
     core.title = title
-    core.subject = "BragStack career packet"
-    core.author = "BragStack"
-    core.comments = "Generated from user-saved BragStack career evidence."
+    core.subject = "Boasted career packet"
+    core.author = "Boasted"
+    core.comments = "Generated from user-saved Boasted career evidence."
 
     buffer = io.BytesIO()
     document.save(buffer)

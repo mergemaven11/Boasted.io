@@ -7,7 +7,7 @@ const BLOCKING_PATTERNS = [
   {
     id: "private-key",
     pattern: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/i,
-    message: "Potential private key material detected. Remove it before BragStack sends this draft.",
+    message: "Potential private key material detected. Remove it before Boasted sends this draft.",
   },
   {
     id: "bearer-token",

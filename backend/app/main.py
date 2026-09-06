@@ -50,7 +50,7 @@ from app.verified_resume_routes import router as verified_resume_router
 from app.routes import router as entries_router
 
 app = FastAPI(
-    title="BragStack API",
+    title="Boasted API",
     description="Evidence-backed career proof for accomplishments, impact, and reports.",
     version="1.0.0",
 )
@@ -186,7 +186,7 @@ app.add_middleware(
         "Content-Type",
         "Accept",
         "X-Request-ID",
-        "X-BragStack-Confidentiality-Attestation",
+        "X-Boasted-Confidentiality-Attestation",
     ],
 )
 
@@ -279,7 +279,7 @@ def root():
     Returns:
         Function result.
     """
-    return {"message": "BragStack API is running"}
+    return {"message": "Boasted API is running"}
 
 
 @app.head("/", include_in_schema=False)

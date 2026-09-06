@@ -15,7 +15,7 @@ const AUTH_ROUTES = ["/app", "/app/intelligence", "/app/accomplishments", "/app/
 const CLICKABLE_SELECTOR = ["a[href]", "button", "summary", '[role="button"]', '[role="tab"]', 'input[type="button"]', 'input[type="submit"]', 'input[type="checkbox"]', 'input[type="radio"]', "select", "label[for]"].join(",");
 
 const proUser = {
-  id: "e2e-user", email: "qa@usebragstack.test", name: "BragStack QA", headline: "Career evidence tester",
+  id: "e2e-user", email: "qa@usebragstack.test", name: "Boasted QA", headline: "Career evidence tester",
   bio: "Automated browser test account", location: "Atlanta, GA", slug: "bragstack-qa", public_slug: "bragstack-qa", plan: "pro",
   entitlements: { resume_builder: true, advanced_reports: true, interview_practice: true, impact_receipts: true },
 };
@@ -63,7 +63,7 @@ function mockApiResponse(method, rawUrl) {
   if (p.startsWith("/impact-receipts")) return method === "GET" ? { receipts: [sampleReceipt], total: 1 } : sampleReceipt;
   if (p.startsWith("/receipt-verification") || p.startsWith("/verification")) return { receipt: sampleReceipt, status: "verified", valid: true };
   if (p.startsWith("/reports/")) return { total_entries: 1, total_receipts: 1, categories: [{ category: "Reliability", count: 1 }], tags: [{ tag: "automation", count: 1 }], entries: [sampleEntry], highlights: [sampleEntry.title], trends: [] };
-  if (p.startsWith("/packets/")) return { packet_type: "performance-review", title: "QA Career Packet", period: { start_date: "2026-08-01", end_date: "2026-08-25" }, subject: { name: proUser.name, role: "Support Engineer" }, context: { career_area: "Engineering", organization: "BragStack" }, target: { role: "Senior Support Engineer", level: "Senior", organization: "BragStack" }, entries: [sampleEntry], receipts: [sampleReceipt], sections: [], render_config: { sections: [], signature_entry_ids: [] }, annotations: { include_in_export: true, item_notes: {} }, branding: {} };
+  if (p.startsWith("/packets/")) return { packet_type: "performance-review", title: "QA Career Packet", period: { start_date: "2026-08-01", end_date: "2026-08-25" }, subject: { name: proUser.name, role: "Support Engineer" }, context: { career_area: "Engineering", organization: "Boasted" }, target: { role: "Senior Support Engineer", level: "Senior", organization: "Boasted" }, entries: [sampleEntry], receipts: [sampleReceipt], sections: [], render_config: { sections: [], signature_entry_ids: [] }, annotations: { include_in_export: true, item_notes: {} }, branding: {} };
   if (p.startsWith("/resume")) return { id: "resume-1", resume: { contact: { name: proUser.name, email: proUser.email, location: proUser.location }, summary: "Career evidence tester", experience: [], education: [], skills: ["Automation"] }, structured_resume: { contact: { name: proUser.name, email: proUser.email }, experience: [], education: [], skills: [] }, ats_score: 92, warnings: [], suggestions: [] };
   if (p.startsWith("/interview")) return { questions: [{ id: "q1", question: "Tell me about a measurable impact you made.", category: "behavioral" }], remaining: 0, score: 80, feedback: "Clear impact and ownership." };
   if (p.startsWith("/public/brag")) {

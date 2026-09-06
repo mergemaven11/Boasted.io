@@ -410,7 +410,7 @@ def _draw_page_footer(canvas, doc, packet: dict[str, Any]) -> None:
     canvas.line(MARGIN_X, 0.42 * inch, PAGE_WIDTH - MARGIN_X, 0.42 * inch)
     canvas.setFillColor(MUTED)
     canvas.setFont("Helvetica", 6.6)
-    canvas.drawString(MARGIN_X, 0.27 * inch, "BragStack · Career Evidence System")
+    canvas.drawString(MARGIN_X, 0.27 * inch, "Boasted · Career Evidence System")
     canvas.drawCentredString(PAGE_WIDTH / 2, 0.27 * inch, period[:72])
     canvas.drawRightString(PAGE_WIDTH - MARGIN_X, 0.27 * inch, f"Page {doc.page}")
     if packet.get("confidential"):
@@ -507,8 +507,8 @@ def build_performance_packet_pdf(packet: dict[str, Any]) -> bytes:
         rightMargin=MARGIN_X,
         topMargin=MARGIN_TOP,
         bottomMargin=MARGIN_BOTTOM,
-        title=packet.get("title") or "BragStack Performance Review Packet",
-        author="BragStack",
+        title=packet.get("title") or "Boasted Performance Review Packet",
+        author="Boasted",
         subject="Evidence-backed performance review packet",
     )
 
@@ -520,9 +520,9 @@ def build_performance_packet_pdf(packet: dict[str, Any]) -> bytes:
 
     # Cover
     story.append(Spacer(1, 0.42 * inch))
-    story.append(Paragraph("BRAGSTACK · PERFORMANCE REVIEW PACKET", styles["cover_kicker"]))
+    story.append(Paragraph("BOASTED · PERFORMANCE REVIEW PACKET", styles["cover_kicker"]))
     story.append(Spacer(1, 0.26 * inch))
-    story.append(Paragraph(_safe(subject.get("name") or "BragStack Member"), styles["cover_name"]))
+    story.append(Paragraph(_safe(subject.get("name") or "Boasted Member"), styles["cover_name"]))
     story.append(Paragraph(_safe(subject.get("role") or "Professional"), styles["cover_role"]))
     organization = _clean(context.get("organization"))
     career_area = _clean(context.get("career_area"))

@@ -1,34 +1,34 @@
 (() => {
-  const SITE_URL = "https://usebragstack.com";
-  const PERSONAL_EMAIL = "Tobias.scott@usebragstack.com";
-  const CONTACT_EMAIL = "contact@usebragstack.com";
-  const SUPPORT_EMAIL = "support@usebragstack.com";
-  const PRIVACY_EMAIL = "privacy@usebragstack.com";
-  const LEGAL_EMAIL = "legal@usebragstack.com";
-  const SECURITY_EMAIL = "security@usebragstack.com";
-  const BILLING_EMAIL = "billing@usebragstack.com";
+  const SITE_URL = "https://boasted.io";
+  const PERSONAL_EMAIL = "Tobias.scott@boasted.io";
+  const CONTACT_EMAIL = "contact@boasted.io";
+  const SUPPORT_EMAIL = "support@boasted.io";
+  const PRIVACY_EMAIL = "privacy@boasted.io";
+  const LEGAL_EMAIL = "legal@boasted.io";
+  const SECURITY_EMAIL = "security@boasted.io";
+  const BILLING_EMAIL = "billing@boasted.io";
 
   const routeMeta = {
-    "/": ["BragStack | Turn Your Work Into Career Proof", "BragStack helps professionals capture wins, attach evidence, create Impact Receipts, build Proof Profiles and Professional Packets, and selectively share career proof when it matters."],
-    "/docs": ["BragStack Docs | Career Proof, Billing, Privacy & Product Help", "Customer documentation for BragStack accounts, Impact Receipts, reports, public proof profiles, privacy, billing, and BragStack Pro."],
-    "/support": ["BragStack Support Hub | Product Help, Beta Access & Security", "Get BragStack product and account help, troubleshoot issues, understand complimentary beta access, review NDA guidance, and reach support, billing, privacy, or security contacts."],
-    "/how-it-works": ["How BragStack Works | Capture, Prove & Reuse Career Evidence", "See how BragStack helps you capture accomplishments, create Impact Receipts, reuse evidence for career moments, share selectively, and keep private work private."],
-    "/use-cases": ["BragStack Use Cases | Reviews, Promotions, Resumes & Interviews", "Explore BragStack use cases for performance reviews, promotions, resumes, interviews, career changes, freelancers, founders, and adults in education."],
-    "/contact": ["Contact BragStack | Support, Privacy, Security & Billing", "Contact BragStack for product support, privacy requests, security concerns, billing questions, general questions, or legal correspondence."],
-    "/team": ["BragStack for Teams | Coming Soon", "Learn about the planned BragStack Team direction for evidence-backed reviews, employee-controlled sharing, bounded analytics, and organization workflows without surveillance."],
-    "/enterprise": ["BragStack Enterprise | Governance Roadmap for Career Evidence", "Learn about BragStack's early enterprise direction for identity, governance, retention, admin policy controls, integrations, and employee-controlled evidence boundaries."],
-    "/security": ["BragStack Security | Private-by-Default Career Evidence", "Read BragStack's security approach, private-by-default model, confidential-work guidance, payment handling, and instructions for reporting a security concern."],
-    "/privacy": ["Privacy Policy | BragStack", "Read the BragStack Privacy Policy, including information collection, career evidence, sharing, AI-assisted features, retention, security, and privacy choices."],
-    "/terms": ["Terms and Conditions | BragStack", "Read the terms governing BragStack accounts, user content, acceptable use, subscriptions, AI-assisted career content, confidentiality, and service use."],
-    "/nda-safety": ["NDA & Confidential Work Guidance | BragStack", "Learn how to document professional accomplishments in BragStack without overriding NDAs, employer policies, client agreements, or confidentiality obligations."],
-    "/resume-accomplishments": ["Resume Accomplishments & Achievement Tracker | BragStack", "Track work accomplishments, measurable impact, and evidence so you can build stronger resume bullets from real career proof."],
-    "/career-portfolio": ["Career Portfolio & Professional Proof Profile | BragStack", "Build a professional career portfolio from selected accomplishments, skills, evidence, and measurable impact while keeping your account private by default."],
-    "/performance-reviews": ["Performance Review Accomplishment Tracker | BragStack", "Capture wins throughout the year and turn documented impact into performance-review material without rebuilding months of work from memory."],
-    "/promotion-packet": ["Promotion Packet & Career Impact Evidence | BragStack", "Organize scope, ownership, leadership, growth, and measurable results into evidence-backed promotion material."],
-    "/interview-preparation": ["Interview Preparation From Real Work Accomplishments | BragStack", "Prepare behavioral and technical interview stories from documented situations, actions, results, metrics, and skills."],
-    "/impact-receipts": ["Impact Receipts | Evidence-Backed Work Accomplishments | BragStack", "Create structured proof of your contribution, result, evidence, skills, shared credit, and measurable career impact."],
-    "/career-analytics": ["Career Analytics for Skills, Accomplishments & Impact | BragStack", "See patterns across your skills, work accomplishments, evidence coverage, ownership, and career impact over time."],
-    "/public-proof-profiles": ["Public Career Proof Profiles for Hiring & Portfolios | BragStack", "Share selected accomplishments and Impact Receipts with recruiters, hiring managers, clients, and your network without exposing private work history."],
+    "/": ["Boasted | Turn Your Work Into Career Proof", "Boasted helps professionals capture wins, attach evidence, create Impact Receipts, build Proof Profiles and Professional Packets, and selectively share career proof when it matters."],
+    "/docs": ["Boasted Docs | Career Proof, Billing, Privacy & Product Help", "Customer documentation for Boasted accounts, Impact Receipts, reports, public proof profiles, privacy, billing, and Boasted Pro."],
+    "/support": ["Boasted Support Hub | Product Help, Beta Access & Security", "Get Boasted product and account help, troubleshoot issues, understand complimentary beta access, review NDA guidance, and reach support, billing, privacy, or security contacts."],
+    "/how-it-works": ["How Boasted Works | Capture, Prove & Reuse Career Evidence", "See how Boasted helps you capture accomplishments, create Impact Receipts, reuse evidence for career moments, share selectively, and keep private work private."],
+    "/use-cases": ["Boasted Use Cases | Reviews, Promotions, Resumes & Interviews", "Explore Boasted use cases for performance reviews, promotions, resumes, interviews, career changes, freelancers, founders, and adults in education."],
+    "/contact": ["Contact Boasted | Support, Privacy, Security & Billing", "Contact Boasted for product support, privacy requests, security concerns, billing questions, general questions, or legal correspondence."],
+    "/team": ["Boasted for Teams | Coming Soon", "Learn about the planned Boasted Team direction for evidence-backed reviews, employee-controlled sharing, bounded analytics, and organization workflows without surveillance."],
+    "/enterprise": ["Boasted Enterprise | Governance Roadmap for Career Evidence", "Learn about Boasted's early enterprise direction for identity, governance, retention, admin policy controls, integrations, and employee-controlled evidence boundaries."],
+    "/security": ["Boasted Security | Private-by-Default Career Evidence", "Read Boasted's security approach, private-by-default model, confidential-work guidance, payment handling, and instructions for reporting a security concern."],
+    "/privacy": ["Privacy Policy | Boasted", "Read the Boasted Privacy Policy, including information collection, career evidence, sharing, AI-assisted features, retention, security, and privacy choices."],
+    "/terms": ["Terms and Conditions | Boasted", "Read the terms governing Boasted accounts, user content, acceptable use, subscriptions, AI-assisted career content, confidentiality, and service use."],
+    "/nda-safety": ["NDA & Confidential Work Guidance | Boasted", "Learn how to document professional accomplishments in Boasted without overriding NDAs, employer policies, client agreements, or confidentiality obligations."],
+    "/resume-accomplishments": ["Resume Accomplishments & Achievement Tracker | Boasted", "Track work accomplishments, measurable impact, and evidence so you can build stronger resume bullets from real career proof."],
+    "/career-portfolio": ["Career Portfolio & Professional Proof Profile | Boasted", "Build a professional career portfolio from selected accomplishments, skills, evidence, and measurable impact while keeping your account private by default."],
+    "/performance-reviews": ["Performance Review Accomplishment Tracker | Boasted", "Capture wins throughout the year and turn documented impact into performance-review material without rebuilding months of work from memory."],
+    "/promotion-packet": ["Promotion Packet & Career Impact Evidence | Boasted", "Organize scope, ownership, leadership, growth, and measurable results into evidence-backed promotion material."],
+    "/interview-preparation": ["Interview Preparation From Real Work Accomplishments | Boasted", "Prepare behavioral and technical interview stories from documented situations, actions, results, metrics, and skills."],
+    "/impact-receipts": ["Impact Receipts | Evidence-Backed Work Accomplishments | Boasted", "Create structured proof of your contribution, result, evidence, skills, shared credit, and measurable career impact."],
+    "/career-analytics": ["Career Analytics for Skills, Accomplishments & Impact | Boasted", "See patterns across your skills, work accomplishments, evidence coverage, ownership, and career impact over time."],
+    "/public-proof-profiles": ["Public Career Proof Profiles for Hiring & Portfolios | Boasted", "Share selected accomplishments and Impact Receipts with recruiters, hiring managers, clients, and your network without exposing private work history."],
   };
 
   function setMeta(selector, attrs) {
@@ -66,8 +66,8 @@
     if (!nav) return;
     const logo = nav.querySelector(".landing-logo");
     if (!logo) return;
-    logo.textContent = "BragStack";
-    logo.setAttribute("aria-label", "BragStack home");
+    logo.textContent = "Boasted";
+    logo.setAttribute("aria-label", "Boasted home");
     let lockup = logo.closest(".landing-brand-lockup");
     if (!lockup) {
       lockup = document.createElement("div");

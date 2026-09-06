@@ -1,6 +1,6 @@
-# BragStack API rate limiting runbook
+# Boasted API rate limiting runbook
 
-BragStack uses MongoDB-backed fixed-window counters so abuse limits are shared across API instances. Client addresses are HMAC-hashed before they are stored. Raw client IP addresses are not written to the rate-limit collection.
+Boasted uses MongoDB-backed fixed-window counters so abuse limits are shared across API instances. Client addresses are HMAC-hashed before they are stored. Raw client IP addresses are not written to the rate-limit collection.
 
 ## Default limits
 
@@ -21,7 +21,7 @@ A blocked request returns HTTP `429` with a generic response body and `Retry-Aft
 
 Limits can be overridden with the `RATE_LIMIT_*` environment variables documented in `.env.example`. `RATE_LIMIT_HASH_KEY` should be a dedicated long random value in production. If it is absent, the backend falls back to `JWT_SECRET` for the HMAC key.
 
-`RATE_LIMIT_TRUST_PROXY_HEADERS` is disabled by default. Enable it only when the deployment proxy is trusted to sanitize `X-Forwarded-For`; otherwise BragStack uses the ASGI client address and ignores the header.
+`RATE_LIMIT_TRUST_PROXY_HEADERS` is disabled by default. Enable it only when the deployment proxy is trusted to sanitize `X-Forwarded-For`; otherwise Boasted uses the ASGI client address and ignores the header.
 
 ## Storage and cleanup
 
@@ -29,7 +29,7 @@ Counters live in the MongoDB `rate_limits` collection. Every bucket has an `expi
 
 ## Failure behavior
 
-`RATE_LIMIT_FAIL_OPEN=true` is the default. If MongoDB raises an error specifically while updating an abuse counter, BragStack logs the limiter error and continues the request. This prevents the abuse-control layer from becoming an authentication outage. The main readiness check should still surface broader MongoDB failures.
+`RATE_LIMIT_FAIL_OPEN=true` is the default. If MongoDB raises an error specifically while updating an abuse counter, Boasted logs the limiter error and continues the request. This prevents the abuse-control layer from becoming an authentication outage. The main readiness check should still surface broader MongoDB failures.
 
 Set `RATE_LIMIT_FAIL_OPEN=false` only for an incident where fail-closed abuse protection is explicitly preferred. In that mode a limiter storage failure is treated as a temporary block.
 
