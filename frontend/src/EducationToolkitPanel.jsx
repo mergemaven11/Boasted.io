@@ -24,21 +24,21 @@ function supportLabel(level) {
 }
 
 export default function EducationToolkitPanel({ toolId, onSelectTool, onClose }) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [requestState, setRequestState] = useState({ key: "", data: null, error: "" });
   const [refreshKey, setRefreshKey] = useState(0);
+  const requestKey = `${toolId || "none"}:${refreshKey}`;
+  const isCurrentRequest = requestState.key === requestKey;
+  const data = isCurrentRequest ? requestState.data : null;
+  const error = isCurrentRequest ? requestState.error : "";
+  const loading = Boolean(toolId) && !isCurrentRequest;
 
   useEffect(() => {
     if (!toolId) return undefined;
     let active = true;
-    setLoading(true);
-    setError("");
     getEducationToolkit(toolId)
       .then((result) => {
         if (!active) return;
-        setData(result);
-        setLoading(false);
+        setRequestState({ key: requestKey, data: result, error: "" });
         window.setTimeout(() => {
           document.getElementById("education-toolkit")?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 0);
@@ -50,12 +50,14 @@ export default function EducationToolkitPanel({ toolId, onSelectTool, onClose })
           window.location.assign("/login");
           return;
         }
-        setData(null);
-        setError(requestError.message || "This Education tool could not be loaded.");
-        setLoading(false);
+        setRequestState({
+          key: requestKey,
+          data: null,
+          error: requestError.message || "This Education tool could not be loaded.",
+        });
       });
     return () => { active = false; };
-  }, [toolId, refreshKey]);
+  }, [toolId, refreshKey, requestKey]);
 
   if (!toolId) return null;
 
