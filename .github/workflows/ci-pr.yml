@@ -99,6 +99,7 @@ jobs:
       - name: Run deterministic frontend checks
         run: |
           npm run test:analytics
+          npm run test:education
           node scripts/verify-aisha-source.mjs
           npm run test:interview
           npm run test:resume
