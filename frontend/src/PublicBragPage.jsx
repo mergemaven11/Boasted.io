@@ -3,6 +3,7 @@ import {
   Award,
   BriefcaseBusiness,
   CalendarDays,
+  FolderKanban,
   CheckCircle2,
   ExternalLink,
   MapPin,
@@ -24,6 +25,7 @@ import { getProfileTheme } from "./profileThemes";
 import "./ProofProfile.css";
 import "./ProofProfileThemes.css";
 import "./ProofPortfolio.css";
+import "./ProfileStructureThemes.css";
 
 const PAGE_SIZE = 6;
 const FILTERS = [
@@ -142,6 +144,41 @@ function ImpactCard({ receipt, featured = false }) {
   );
 }
 
+function CareerSection({ profile }) {
+  const history = Array.isArray(profile?.work_history) ? profile.work_history : [];
+  const projects = Array.isArray(profile?.profile_projects) ? profile.profile_projects : [];
+  if (!history.length && !projects.length) return null;
+  return (
+    <section className="portfolio-section portfolio-career-section">
+      <div className="portfolio-section-heading">
+        <div>
+          <p className="proof-eyebrow">Career profile</p>
+          <h2>Experience and projects.</h2>
+          <p>The context behind the outcomes and proof shown throughout this portfolio.</p>
+        </div>
+      </div>
+      <div className="portfolio-career-grid">
+        {history.length > 0 && <div className="portfolio-career-column">
+          {history.map((item, index) => <article className="portfolio-career-item" key={`work-${index}-${item.role}`}>
+            <div className="portfolio-career-meta"><span>{item.start_date || "Start"} — {item.end_date || "Present"}</span>{item.location && <span>{item.location}</span>}</div>
+            <h3>{item.role}{item.company && <span> · {item.company}</span>}</h3>
+            {item.summary && <p>{item.summary}</p>}
+          </article>)}
+        </div>}
+        {projects.length > 0 && <div className="portfolio-career-column">
+          {projects.map((item, index) => <article className="portfolio-career-item" key={`project-${index}-${item.name}`}>
+            <div className="portfolio-career-meta"><span><FolderKanban size={14}/> Project</span>{item.role && <span>{item.role}</span>}</div>
+            <h3>{item.name}</h3>
+            {item.summary && <p>{item.summary}</p>}
+            {Array.isArray(item.skills) && item.skills.length > 0 && <div className="proof-chips portfolio-skill-chips">{item.skills.map((skill) => <span key={skill}>{skill}</span>)}</div>}
+            {item.url && <a href={item.url} target="_blank" rel="noreferrer">View project <ExternalLink size={14}/></a>}
+          </article>)}
+        </div>}
+      </div>
+    </section>
+  );
+}
+
 export default function PublicBragPage() {
   const [profile, setProfile] = useState(null);
   const [connection, setConnection] = useState(null);
@@ -198,6 +235,15 @@ export default function PublicBragPage() {
       }
     })();
   }, [slug, page]);
+
+  const filteredReceipts = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return receipts;
+    return receipts.filter((receipt) => [
+      receipt.accomplishment, receipt.contribution, receipt.result,
+      ...(receipt.skills || []), ...(receipt.metrics || []).flatMap((metric) => [metric.label, metric.value, metric.context]),
+    ].filter(Boolean).join(" ").toLowerCase().includes(query));
+  }, [receipts, search]);
 
   const shown = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -258,7 +304,7 @@ export default function PublicBragPage() {
   }
 
   return (
-    <main className="proof-profile proof-portfolio" data-theme={profile?.profile_theme || "default"} style={themeStyle(profile)}>
+    <main className="proof-profile proof-portfolio" data-theme={profile?.profile_theme || "default"} data-layout={profile?.profile_layout || "editorial"} style={themeStyle(profile)}>
       <div className="proof-profile-inner">
         <header className="proof-topbar portfolio-topbar">
           <a className="proof-brand" href="/">
@@ -276,7 +322,7 @@ export default function PublicBragPage() {
         <section className="proof-hero portfolio-hero">
           <div className="portfolio-identity">
             <p className="proof-eyebrow">Professional proof portfolio</p>
-            <div className="portfolio-avatar">{name.charAt(0).toUpperCase() || "B"}</div>
+            <div className="portfolio-avatar">{profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : (name.charAt(0).toUpperCase() || "B")}</div>
             <h1>{name}</h1>
             <p className="proof-headline">{profile?.headline || "Evidence-backed career impact"}</p>
             <p className="proof-bio">{profile?.bio || "A selected portfolio of accomplishments, measurable outcomes, and evidence-backed work."}</p>
@@ -312,7 +358,7 @@ export default function PublicBragPage() {
 
         {offline && <section className="proof-section"><div className="proof-error">Proof Portfolio data could not be loaded right now.</div></section>}
 
-        {!offline && receipts.length > 0 && (
+        {!offline && filteredReceipts.length > 0 && (
           <section className="portfolio-section portfolio-featured-impact">
             <div className="portfolio-section-heading">
               <div>
@@ -323,10 +369,12 @@ export default function PublicBragPage() {
               <span className={`portfolio-section-badge ${verifiedReceipts > 0 ? "verified" : ""}`}><ShieldCheck size={14} /> {verifiedReceipts > 0 ? `${verifiedReceipts} verified impact${verifiedReceipts === 1 ? "" : "s"}` : "Evidence-backed"}</span>
             </div>
             <div className="portfolio-impact-grid">
-              {receipts.slice(0, 4).map((receipt, index) => <ImpactCard key={receipt.id} receipt={receipt} featured={index === 0} />)}
+              {filteredReceipts.slice(0, 6).map((receipt, index) => <ImpactCard key={receipt.id} receipt={receipt} featured={index === 0} />)}
             </div>
           </section>
         )}
+
+        <CareerSection profile={profile} />
 
         {!offline && topSkills.length > 0 && (
           <section className="portfolio-section portfolio-skills-section">
