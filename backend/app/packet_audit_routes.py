@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from app.auth import get_current_user
 from app.database import packet_export_audit_collection
 from app.packet_audit import serialize_export
+from app.packet_catalog_routes import router as packet_catalog_router
 from app.plans import require_feature
 
 router = APIRouter(prefix="/packets", tags=["packets"])
@@ -48,3 +49,8 @@ def get_packet_export_history(
         .limit(limit)
     )
     return {"exports": [serialize_export(item) for item in items]}
+
+
+# Keep the expanded catalog on the same packet router that main.py already includes.
+# Extending with the child routes preserves their full /packets/catalog/... paths.
+router.routes.extend(packet_catalog_router.routes)

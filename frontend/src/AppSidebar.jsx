@@ -16,7 +16,7 @@ const CAREER_TOOLS = [
   { href: "/app/resume-builder", label: "Resume Builder", icon: FileText },
   { href: "/app/interview-practice", label: "Practice interview", icon: Video },
   { href: "/app/reports", label: "Career analytics", icon: BarChart3 },
-  { href: "/app/reports?packet=performance-review", label: "Career packets", icon: FileCheck2 },
+  { href: "/app/reports?packets=1", label: "Career packets", icon: FileCheck2 },
 ];
 
 function AppSidebar() {
