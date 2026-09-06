@@ -23,6 +23,7 @@ from app.confidentiality_routes import (
     router as confidentiality_router,
 )
 from app.core_output_routes import router as core_output_router
+from app.education_toolkit_routes import router as education_toolkit_router
 from app.executive_impact_routes import router as executive_impact_router
 from app.database import client as mongo_client, entries_collection, impact_receipts_collection
 from app.impact_receipt_routes import router as impact_receipts_router
@@ -269,6 +270,7 @@ app.include_router(core_output_router)
 app.include_router(executive_impact_router)
 app.include_router(beta_metrics_router)
 app.include_router(career_intelligence_router)
+app.include_router(education_toolkit_router)
 app.include_router(reports_router)
 app.include_router(private_packet_router)
 app.include_router(packet_audit_router)
