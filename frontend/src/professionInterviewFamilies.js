@@ -10,22 +10,11 @@ const SPECIALTY_KEYWORD_BOOSTS = {
   ux_design: ["ux", "user experience", "product design"],
 };
 
-// The current matcher uses substring containment. Filter short/broad aliases that
-// can collide with unrelated titles (for example CTO inside direCTOr, or generic
-// therapist before the more specific physical/occupational therapist entries).
-const SPECIALTY_KEYWORD_REMOVALS = {
-  executive_leadership: new Set(["cto"]),
-  mental_health: new Set(["therapist"]),
-};
-
 export const PROFESSION_FAMILIES = Object.fromEntries(
   Object.entries(PROFESSION_SPECIALTIES).map(([key, config]) => [
     key,
     {
-      keywords: [
-        ...config.keywords.filter((keyword) => !SPECIALTY_KEYWORD_REMOVALS[key]?.has(keyword)),
-        ...(SPECIALTY_KEYWORD_BOOSTS[key] || []),
-      ],
+      keywords: [...config.keywords, ...(SPECIALTY_KEYWORD_BOOSTS[key] || [])],
       competencies: [
         config.competencies[0] || "role_knowledge",
         "role_alignment",
