@@ -1,8 +1,49 @@
 import { useEffect, useRef, useState } from "react";
+import { CheckCircle2, ShieldCheck } from "lucide-react";
 import ResumeBuilderStructuredPage from "./ResumeBuilderStructuredPage.jsx";
 import "./ResumeBuilderGuidedPage.css";
+import "./ResumeTemplateGallery.css";
 
 const STEP_LABELS = ["Add resume", "Review & confirm", "Target job", "ATS results"];
+const TEMPLATE_STORAGE_KEY = "bragstack_resume_template_v1";
+const RESUME_TEMPLATES = [
+  {
+    id: "classic",
+    name: "Classic",
+    tag: "Traditional",
+    description: "Centered header, serif name, strong section rules.",
+  },
+  {
+    id: "modern",
+    name: "Modern",
+    tag: "Recommended",
+    description: "Clean left-aligned layout with a restrained navy accent.",
+  },
+  {
+    id: "executive",
+    name: "Executive",
+    tag: "Leadership",
+    description: "Polished typography and understated senior-level styling.",
+  },
+  {
+    id: "technical",
+    name: "Technical",
+    tag: "Engineering",
+    description: "Compact, scannable spacing for skills-heavy careers.",
+  },
+  {
+    id: "minimal",
+    name: "Minimal",
+    tag: "Clean",
+    description: "Lightweight styling with generous whitespace and simple rules.",
+  },
+];
+
+function getInitialTemplate() {
+  if (typeof window === "undefined") return "modern";
+  const stored = window.localStorage.getItem(TEMPLATE_STORAGE_KEY);
+  return RESUME_TEMPLATES.some((template) => template.id === stored) ? stored : "modern";
+}
 
 function focusElement(element) {
   if (!element) return;
@@ -38,6 +79,7 @@ function destinationForStep(host, step) {
 export default function ResumeBuilderGuidedPage() {
   const hostRef = useRef(null);
   const [activeStep, setActiveStep] = useState(1);
+  const [templateId, setTemplateId] = useState(getInitialTemplate);
   const pendingStepRef = useRef(null);
 
   useEffect(() => {
@@ -89,6 +131,17 @@ export default function ResumeBuilderGuidedPage() {
     };
   }, []);
 
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    host.dataset.resumeTemplate = templateId;
+    try {
+      window.localStorage.setItem(TEMPLATE_STORAGE_KEY, templateId);
+    } catch {
+      // Keep template selection usable even when storage is unavailable.
+    }
+  }, [templateId]);
+
   function goToStep(step) {
     const destination = destinationForStep(hostRef.current, step);
     if (destination) focusElement(destination);
@@ -118,6 +171,49 @@ export default function ResumeBuilderGuidedPage() {
           })}
         </div>
       </nav>
+
+      <section className="resume-template-gallery" aria-labelledby="resume-template-gallery-title">
+        <div className="resume-template-gallery-head">
+          <div>
+            <span className="resume-template-eyebrow">ATS-FRIENDLY TEMPLATES</span>
+            <h2 id="resume-template-gallery-title">Choose your resume style</h2>
+            <p>Five visual treatments, one safe reading order. The resume content stays single-column with standard headings, no tables, no text boxes, and the ATS text view stays unchanged.</p>
+          </div>
+          <div className="resume-template-ats-pill"><ShieldCheck size={16} /><span><strong>ATS-safe structure</strong><small>Style changes only</small></span></div>
+        </div>
+
+        <div className="resume-template-options">
+          {RESUME_TEMPLATES.map((template) => {
+            const selected = template.id === templateId;
+            return (
+              <button
+                type="button"
+                className={`resume-template-option ${selected ? "active" : ""}`}
+                key={template.id}
+                aria-pressed={selected}
+                onClick={() => setTemplateId(template.id)}
+              >
+                <span className={`resume-template-thumb thumb-${template.id}`} aria-hidden="true">
+                  <i className="resume-template-thumb-name" />
+                  <i className="resume-template-thumb-contact" />
+                  <i className="resume-template-thumb-heading" />
+                  <i className="resume-template-thumb-line wide" />
+                  <i className="resume-template-thumb-line" />
+                  <i className="resume-template-thumb-heading second" />
+                  <i className="resume-template-thumb-line wide" />
+                  <i className="resume-template-thumb-line short" />
+                </span>
+                <span className="resume-template-option-copy">
+                  <span className="resume-template-option-title"><strong>{template.name}</strong><em>{template.tag}</em></span>
+                  <span>{template.description}</span>
+                  <small className={selected ? "selected" : ""}>{selected ? <><CheckCircle2 size={13} /> Selected</> : "Select template"}</small>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       <ResumeBuilderStructuredPage />
     </div>
   );
