@@ -1,5 +1,27 @@
 const METRIC_RE = /\b\d+(?:\.\d+)?%?\b/;
 
+export const SUPPORTING_SECTION_ORDER = [
+  "education",
+  "projects",
+  "certifications",
+  "leadership",
+  "volunteer",
+  "awards",
+  "publications",
+  "languages",
+];
+
+export const SUPPORTING_SECTION_LABELS = {
+  education: "Education",
+  projects: "Projects",
+  certifications: "Certifications",
+  leadership: "Leadership & Activities",
+  volunteer: "Volunteer Experience",
+  awards: "Awards & Honors",
+  publications: "Publications & Presentations",
+  languages: "Languages",
+};
+
 function clean(value) {
   return String(value || "").trim();
 }
@@ -41,6 +63,7 @@ function cloneExperienceEntry(entry, index = 0, prefix = "imported-role") {
     current: Boolean(entry?.current),
     dates_raw: clean(entry?.dates_raw),
     confidence: entry?.confidence || "low",
+    field_confidence: entry?.field_confidence || {},
     bullets: (entry?.bullets || []).map(cloneBullet).filter((bullet) => bullet.text),
   };
 }
@@ -49,6 +72,7 @@ export function makeResumeDraft(importedResume = {}, user = {}) {
   const contact = importedResume.contact || {};
   const header = importedResume.header_lines || [];
   const experience = Array.isArray(importedResume.experience) ? importedResume.experience : [];
+  const experienceConfidence = importedResume.field_confidence?.experience || [];
   return {
     contact: {
       name: clean(contact.name || header[0] || user.name || ""),
@@ -58,7 +82,11 @@ export function makeResumeDraft(importedResume = {}, user = {}) {
       linkedin: clean(contact.linkedin),
       github: clean(contact.github),
     },
-    experience: experience.map((entry, index) => cloneExperienceEntry(entry, index)),
+    contact_confidence: importedResume.field_confidence?.contact || {},
+    experience: experience.map((entry, index) => ({
+      ...cloneExperienceEntry(entry, index),
+      field_confidence: experienceConfidence[index] || entry?.field_confidence || {},
+    })),
   };
 }
 
@@ -92,7 +120,8 @@ export function serializeResumeDraft({ draft, summary = "", skills = [], section
   const out = [contact.name || "YOUR NAME"];
   if (contactLine) out.push(contactLine);
 
-  // Standard, scan-friendly order: Summary → Skills → Experience → Education → Projects.
+  // Stable ATS reading order. Templates may style this differently, but they
+  // never change the machine-readable order of the structured content.
   if (clean(summary)) out.push("", "PROFESSIONAL SUMMARY", clean(summary));
   if (skills?.length) out.push("", "SKILLS", skills.filter(Boolean).join(" | "));
 
@@ -109,9 +138,9 @@ export function serializeResumeDraft({ draft, summary = "", skills = [], section
     });
   }
 
-  for (const key of ["education", "projects"]) {
+  for (const key of SUPPORTING_SECTION_ORDER) {
     const lines = sections?.[key] || [];
-    if (lines.length) out.push("", key.toUpperCase(), ...lines);
+    if (lines.length) out.push("", (SUPPORTING_SECTION_LABELS[key] || key).toUpperCase(), ...lines);
   }
   return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
@@ -171,10 +200,12 @@ export function findRequirementEvidence(term, context = {}) {
 
 function supportingContentCount(content = {}) {
   const skills = Array.isArray(content.skills) ? content.skills.filter((item) => clean(item)).length : 0;
-  const education = Array.isArray(content.sections?.education) ? content.sections.education.filter((item) => clean(item)).length : 0;
-  const projects = Array.isArray(content.sections?.projects) ? content.sections.projects.filter((item) => clean(item)).length : 0;
+  const sectionCount = SUPPORTING_SECTION_ORDER.reduce((total, key) => {
+    const values = Array.isArray(content.sections?.[key]) ? content.sections[key] : [];
+    return total + values.filter((item) => clean(item)).length;
+  }, 0);
   const summary = clean(content.summary) ? 1 : 0;
-  return skills + education + projects + summary;
+  return skills + sectionCount + summary;
 }
 
 export function parseGateStatus(draft, parseWarnings = [], content = {}) {
@@ -188,7 +219,7 @@ export function parseGateStatus(draft, parseWarnings = [], content = {}) {
     return { level: "warn", label: "Review", detail: `${Math.max(incomplete.length, parseWarnings.length)} parsed item${Math.max(incomplete.length, parseWarnings.length) === 1 ? "" : "s"} should be confirmed against the source resume.` };
   }
   if (!roles.length) {
-    return { level: "good", label: "Structured", detail: "Structured education, projects, skills, or summary content is available even without work history." };
+    return { level: "good", label: "Structured", detail: "Structured education, projects, skills, or other supporting content is available even without work history." };
   }
   return { level: "good", label: "Ready", detail: `${roles.length} role${roles.length === 1 ? "" : "s"} are structured with employer and title.` };
 }
@@ -207,7 +238,7 @@ export function recruiterGateStatus(draft, content = {}) {
   if (!bullets.length) {
     const supportingCount = supportingContentCount(content);
     if (supportingCount) {
-      return { level: "warn", label: "Review structure", detail: "No structured work-history bullets are currently available to this scan. Supporting projects, education, skills, or summary content is still present." };
+      return { level: "warn", label: "Review structure", detail: "No structured work-history bullets are currently available to this scan. Supporting projects, education, skills, or other content is still present." };
     }
     return { level: "bad", label: "Needs content", detail: "The scan could not verify accomplishments, projects, education, or skills yet. Check the source resume before treating anything as missing." };
   }
