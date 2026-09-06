@@ -1,0 +1,99 @@
+/*
+ * Wide-desktop balance for public profile templates.
+ *
+ * Dahlia is intentionally editorial, but its desktop hero should feel composed,
+ * not oversized or boxed into a narrow strip with dead gutters.
+ */
+
+.proof-portfolio[data-layout="editorial"] .proof-profile-inner {
+  width: min(1440px, calc(100% - 48px));
+  max-width: 1440px;
+}
+
+.proof-portfolio[data-layout="editorial"] .portfolio-hero {
+  min-height: 0;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.55fr);
+  gap: clamp(32px, 4vw, 56px);
+  align-items: center;
+  padding: clamp(44px, 5vw, 62px) 12px clamp(40px, 4.5vw, 54px);
+}
+
+.proof-portfolio[data-layout="editorial"] .portfolio-identity {
+  align-self: center;
+}
+
+.proof-portfolio[data-layout="editorial"] .portfolio-identity h1 {
+  max-width: 10ch;
+  margin-top: 18px;
+  margin-bottom: 20px;
+  font-size: clamp(4rem, 6.3vw, 6.65rem);
+  line-height: 0.92;
+  text-wrap: balance;
+}
+
+.proof-portfolio[data-layout="editorial"] .portfolio-avatar {
+  width: 78px;
+  height: 78px;
+  margin-top: 20px;
+  margin-bottom: 18px;
+}
+
+.proof-portfolio[data-layout="editorial"] .portfolio-proof-passport {
+  align-self: center;
+  padding: 28px 0 28px 30px;
+}
+
+.proof-portfolio[data-layout="editorial"] .portfolio-proof-passport .portfolio-proof-number strong {
+  font-size: clamp(3.2rem, 5vw, 5rem);
+  line-height: 0.95;
+}
+
+.proof-portfolio[data-layout="editorial"] .proof-actions {
+  margin-top: 22px;
+}
+
+.proof-portfolio[data-layout="editorial"] .portfolio-featured-impact {
+  margin-top: 14px;
+}
+
+/* Keep the same editorial hierarchy on laptop widths without the giant-name jump. */
+@media (min-width: 761px) and (max-width: 1279px) {
+  .proof-portfolio[data-layout="editorial"] .proof-profile-inner {
+    width: min(1180px, calc(100% - 40px));
+  }
+
+  .proof-portfolio[data-layout="editorial"] .portfolio-hero {
+    grid-template-columns: minmax(0, 1.48fr) minmax(260px, 0.62fr);
+    gap: 30px;
+    padding-top: 42px;
+    padding-bottom: 40px;
+  }
+
+  .proof-portfolio[data-layout="editorial"] .portfolio-identity h1 {
+    font-size: clamp(3.7rem, 7vw, 5.65rem);
+  }
+}
+
+/* Phone layouts should use the viewport instead of inheriting desktop gutters. */
+@media (max-width: 760px) {
+  .proof-portfolio[data-layout="editorial"] .proof-profile-inner {
+    width: calc(100% - 24px);
+  }
+
+  .proof-portfolio[data-layout="editorial"] .portfolio-hero {
+    padding: 34px 0 30px;
+    gap: 24px;
+  }
+
+  .proof-portfolio[data-layout="editorial"] .portfolio-identity h1 {
+    max-width: 100%;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    font-size: clamp(3rem, 15vw, 4.4rem);
+    line-height: 0.95;
+  }
+
+  .proof-portfolio[data-layout="editorial"] .portfolio-proof-passport {
+    padding: 22px 0 0;
+  }
+}

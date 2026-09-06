@@ -11,6 +11,7 @@ import "./ProfileUploadPolish.css";
 import "./ProfileAppearancePreview.css";
 import "./UiUxFoundation.css";
 import "./ProfileTemplateRegressionFixes.css";
+import "./ProfileDesktopBalance.css";
 import NDAInformationGate from "./NDAInformationGate.jsx";
 import PublicAuthHeader from "./PublicAuthHeader.jsx";
 import RootContent from "./RootContent.jsx";
