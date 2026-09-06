@@ -7,7 +7,7 @@ import {
   CircleHelp,
   CreditCard,
   FileText,
-  Headphones,
+  HeartPulse,
   Mic2,
   Plug,
   ReceiptText,
@@ -284,55 +284,60 @@ const journey = [
 
 const searchableText = (section) => [section.title, section.blurb, section.text, ...(section.bullets || [])].join(" ").toLowerCase();
 
-function CallCenterExample() {
-  return <section className="docs-example" id="example-call-center">
+function RegisteredNurseExample() {
+  return <section className="docs-example" id="example-registered-nurse">
     <div className="docs-example-header">
-      <span className="docs-example-kicker"><Headphones size={17}/> REAL-WORLD EXAMPLE</span>
-      <h2>Meet Maya, a call center agent.</h2>
-      <p>Maya does not need a technical job to use BragStack. She only needs to notice when her work makes something better.</p>
+      <span className="docs-example-kicker"><HeartPulse size={17}/> REAL-WORLD EXAMPLE</span>
+      <h2>Meet Maya, a registered nurse.</h2>
+      <p>On a busy medical-surgical unit, Maya can turn patient-care wins, safety leadership, and measurable quality improvement into career proof without exposing patient information.</p>
     </div>
     <div className="docs-example-story">
-      <article className="docs-example-card purple"><span>1 · Capture</span><strong>“I helped calm a difficult billing call.”</strong><p>Maya records what happened while she still remembers the details.</p></article>
-      <article className="docs-example-card blue"><span>2 · Add her contribution</span><strong>What she did</strong><p>Explained the charge clearly, found the billing issue, coordinated a correction, and prevented an escalation.</p></article>
-      <article className="docs-example-card green"><span>3 · Add the result</span><strong>What changed</strong><p>The issue was resolved in one interaction, the customer relationship was preserved, and her supervisor praised the call.</p></article>
+      <article className="docs-example-card purple"><span>1 · CAPTURE</span><strong>“I recognized a subtle change in a patient's condition and escalated care before the situation became an emergency.”</strong><p>Maya records the clinical judgment and teamwork, while leaving out names, dates, room numbers, and other protected health information.</p></article>
+      <article className="docs-example-card blue"><span>2 · ADD HER CONTRIBUTION</span><strong>What Maya personally did</strong><p>Reassessed the patient, identified a concerning trend, communicated the change using SBAR, activated the appropriate escalation path, and coordinated a safe handoff to the higher-acuity team.</p></article>
+      <article className="docs-example-card green"><span>3 · ADD THE RESULT</span><strong>What changed</strong><p>The patient was stabilized and transferred for a higher level of care before further deterioration. Maya's documentation shows clinical judgment, communication, prioritization, and patient advocacy.</p></article>
     </div>
     <div className="docs-mini-dashboard">
-      <div className="docs-mini-stat"><small>Resolved without escalation</small><strong>18</strong><span className="good">↑ this month</span></div>
-      <div className="docs-mini-stat"><small>Positive customer mentions</small><strong>7</strong><span className="good">↑ 3 from last month</span></div>
-      <div className="docs-mini-stat"><small>Coaching assists</small><strong>5</strong><span>helped teammates</span></div>
+      <div className="docs-mini-stat"><small>Early deterioration escalations</small><strong>12</strong><span className="good">recognized + escalated</span></div>
+      <div className="docs-mini-stat"><small>Peer coaching assists</small><strong>9</strong><span className="good">supported teammates</span></div>
+      <div className="docs-mini-stat"><small>Safety recognitions</small><strong>4</strong><span>example period</span></div>
     </div>
-    <div className="docs-bar-chart" aria-label="Example accomplishment trend">
-      <div className="docs-chart-heading"><div><TrendingUp size={18}/><strong>Maya's career-proof trend</strong></div><span>Example only</span></div>
-      <div className="docs-chart-row"><label>Customer saves</label><div><i style={{ width: "78%" }}/></div><strong>18</strong></div>
-      <div className="docs-chart-row"><label>Positive feedback</label><div><i style={{ width: "58%" }}/></div><strong>7</strong></div>
-      <div className="docs-chart-row"><label>Team support</label><div><i style={{ width: "42%" }}/></div><strong>5</strong></div>
+    <div className="docs-bar-chart" aria-label="Example nursing accomplishment trend">
+      <div className="docs-chart-heading"><div><TrendingUp size={18}/><strong>Maya's nursing-impact trend</strong></div><span>Example only</span></div>
+      <div className="docs-chart-row"><label>Patient safety</label><div><i style={{ width: "92%" }}/></div><strong>High</strong></div>
+      <div className="docs-chart-row"><label>Clinical leadership</label><div><i style={{ width: "84%" }}/></div><strong>High</strong></div>
+      <div className="docs-chart-row"><label>Team support</label><div><i style={{ width: "76%" }}/></div><strong>High</strong></div>
     </div>
     <div className="docs-example-output">
       <span>THEN MAYA CAN REUSE THAT SAME PROOF</span>
       <div className="docs-output-grid">
-        <article><strong>Resume</strong><p>Turn the story into a concise accomplishment bullet.</p></article>
-        <article><strong>Interview</strong><p>Use the same example when asked about de-escalation, problem solving, or customer judgment.</p></article>
-        <article><strong>Performance review</strong><p>Show a pattern of customer saves, positive feedback, and peer support across the review period.</p></article>
+        <article><strong style={{ color: "#c4b5fd" }}>Resume</strong><p>Turn the story into a concise bullet about clinical judgment, escalation, patient advocacy, and interdisciplinary coordination.</p></article>
+        <article><strong style={{ color: "#93c5fd" }}>Interview</strong><p>Use the story for questions about recognizing deterioration, prioritization, communication under pressure, or patient safety.</p></article>
+        <article><strong style={{ color: "#6ee7b7" }}>Performance review</strong><p>Show a recurring pattern of sound judgment, safe escalation, teamwork, and support for other nurses.</p></article>
       </div>
     </div>
 
-    <div className="docs-example-output" aria-label="Stronger Maya accomplishment example">
-      <span>EXAMPLE 2 · STRONGER IMPACT</span>
-      <p style={{ margin: "10px 0 0", color: "#fde68a", fontWeight: 800 }}>When Maya improves a repeat problem for the whole team, the accomplishment becomes much stronger.</p>
+    <div className="docs-example-output" aria-label="Major registered nurse impact example">
+      <span>EXAMPLE 2 · MAJOR UNIT-LEVEL IMPACT</span>
+      <p style={{ margin: "10px 0 0", color: "#fde68a", fontWeight: 800 }}>Now Maya documents a much bigger accomplishment: she helps change a safety outcome for an entire nursing unit.</p>
     </div>
     <div className="docs-example-story">
-      <article className="docs-example-card purple"><span>1 · STRONGER ACCOMPLISHMENT</span><strong>“I reduced repeat billing escalations by creating a quick-reference resolution playbook.”</strong><p>Instead of documenting one good call, Maya captures a repeat problem she helped solve at a larger scale.</p></article>
-      <article className="docs-example-card blue"><span>2 · OWNERSHIP + CONTRIBUTION</span><strong>What Maya personally did</strong><p>Reviewed patterns in recurring escalations, documented a clearer decision path, shared it with teammates, and coached newer agents on using it.</p></article>
-      <article className="docs-example-card green"><span>3 · MEASURABLE IMPACT</span><strong>What changed</strong><p>Over six weeks, escalations fell 28%, first-contact resolution improved from 71% to 84%, and her manager adopted the playbook for the team.</p></article>
+      <article className="docs-example-card purple"><span>1 · BIG ACCOMPLISHMENT</span><strong>“I led a nurse-driven fall-prevention improvement effort after identifying a pattern of preventable patient falls on my unit.”</strong><p>This is stronger than one successful shift because Maya is documenting a repeat problem, leadership across disciplines, and an outcome that affected many patients.</p></article>
+      <article className="docs-example-card blue"><span>2 · OWNERSHIP + LEADERSHIP</span><strong>What Maya personally did</strong><p>Reviewed fall-event patterns with unit leadership, helped redesign bedside risk huddles and purposeful-rounding checks, partnered with nursing assistants and therapy staff, trained 42 team members, and reviewed adherence data each week.</p></article>
+      <article className="docs-example-card green"><span>3 · HUGE, MEASURABLE RESULTS</span><strong>What changed</strong><p>In this illustrative six-month example, total patient falls dropped 52% from 23 to 11, falls with injury dropped 75% from 8 to 2, median call-light response time improved 31%, and the prevention bundle was adopted by a second unit.</p></article>
+    </div>
+    <div className="docs-mini-dashboard">
+      <div className="docs-mini-stat"><small>Total patient falls</small><strong>−52%</strong><span className="good">23 → 11</span></div>
+      <div className="docs-mini-stat"><small>Falls with injury</small><strong>−75%</strong><span className="good">8 → 2</span></div>
+      <div className="docs-mini-stat"><small>Call-light response</small><strong>31%</strong><span className="good">faster median</span></div>
     </div>
     <div className="docs-example-output">
-      <span>WHAT STRONGER CAREER PROOF CAN LOOK LIKE</span>
+      <span>WHAT HIGH-IMPACT NURSING PROOF CAN LOOK LIKE</span>
       <div className="docs-output-grid">
-        <article><strong style={{ color: "#c4b5fd" }}>Resume</strong><p>Created a billing-resolution playbook that helped reduce escalations 28% and improve first-contact resolution from 71% to 84% in six weeks.</p></article>
-        <article><strong style={{ color: "#93c5fd" }}>Interview</strong><p>Use the story to show initiative, root-cause thinking, process improvement, and peer leadership—not just one successful customer interaction.</p></article>
-        <article><strong style={{ color: "#6ee7b7" }}>Performance review</strong><p>Shows Maya turning individual skill into repeatable team impact, with measurable results and evidence her manager could verify.</p></article>
+        <article><strong style={{ color: "#c4b5fd" }}>Resume</strong><p>Led a nurse-driven fall-prevention initiative that helped reduce unit falls 52% and falls with injury 75% over six months, with the safety bundle later adopted by a second unit.</p></article>
+        <article><strong style={{ color: "#93c5fd" }}>Interview</strong><p>Use the example to demonstrate patient-safety leadership, quality improvement, data-informed decision making, interdisciplinary collaboration, and influence without formal management authority.</p></article>
+        <article><strong style={{ color: "#6ee7b7" }}>Promotion / review</strong><p>Shows Maya moving beyond excellent bedside care into unit-level leadership with measurable patient-safety results, staff education, and a process that scaled beyond her immediate team.</p></article>
       </div>
-      <p style={{ margin: "12px 0 0", color: "#cfd7e8", fontSize: ".78rem" }}>Example metrics are illustrative. In a real Impact Receipt, Maya should use only numbers or outcomes she can accurately support.</p>
+      <p style={{ margin: "12px 0 0", color: "#cfd7e8", fontSize: ".78rem" }}>All names, counts, percentages, and outcomes in this example are fictional and illustrative. Real nurses should use only accurate, supportable results and must not include patient-identifying or otherwise restricted information.</p>
     </div>
   </section>;
 }
@@ -352,7 +357,7 @@ export default function DocsPage() {
       <aside className="docs-sidebar" aria-label="Documentation sections">
         <p>Learn BragStack</p>
         <a href="#getting-started"><BookOpen size={16}/>Start Here</a>
-        <a href="#example-call-center"><Headphones size={16}/>Simple Example</a>
+        <a href="#example-registered-nurse"><HeartPulse size={16}/>Nursing Example</a>
         <a href="#feature-guide"><BriefcaseBusiness size={16}/>All Features</a>
         <a href="#impact-receipt-demo"><ReceiptText size={16}/>Impact Receipts</a>
         <a href="#verification-demo"><ShieldCheck size={16}/>Verification</a>
@@ -386,7 +391,7 @@ export default function DocsPage() {
             <div className="docs-journey-heading"><span>THE BIG PICTURE</span><h2>One career-proof loop</h2><p>Capture once. Reuse when it matters.</p></div>
             <div className="docs-flow">{journey.map((step, index) => <div className={`docs-flow-step step-${index + 1}`} key={step.title}><span>{index + 1}</span><div><strong>{step.title}</strong><small>{step.detail}</small></div>{index < journey.length - 1 && <ArrowRight className="docs-flow-arrow" size={18}/>}</div>)}</div>
           </section>
-          <CallCenterExample/>
+          <RegisteredNurseExample/>
           <section id="executive-impact" className="docs-section">
             <span className="plan-badge">Enterprise</span>
             <h2>Executive Impact Command Center</h2>
