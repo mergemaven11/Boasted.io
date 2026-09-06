@@ -29,6 +29,17 @@ export function getProfileTheme(id = "default") {
   return PROFILE_THEMES.find((theme) => theme.id === id) || PROFILE_THEMES[0];
 }
 
+export function getContrastText(hex = "#050816") {
+  const value = String(hex || "").replace("#", "");
+  if (!/^[0-9a-fA-F]{6}$/.test(value)) return "#f8fafc";
+  const r = parseInt(value.slice(0, 2), 16) / 255;
+  const g = parseInt(value.slice(2, 4), 16) / 255;
+  const b = parseInt(value.slice(4, 6), 16) / 255;
+  const channel = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const luminance = 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+  return luminance > 0.42 ? "#0f172a" : "#f8fafc";
+}
+
 export const PROFILE_LAYOUTS = [
   { id: "editorial", name: "Dahlia", description: "Editorial storytelling with dramatic type, whitespace, and elegant proof sections." },
   { id: "executive-sidebar", name: "Magnolia", description: "Executive résumé with a true professional sidebar and focused main column." },
