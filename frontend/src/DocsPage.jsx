@@ -315,6 +315,25 @@ function CallCenterExample() {
         <article><strong>Performance review</strong><p>Show a pattern of customer saves, positive feedback, and peer support across the review period.</p></article>
       </div>
     </div>
+
+    <div className="docs-example-output" aria-label="Stronger Maya accomplishment example">
+      <span>EXAMPLE 2 · STRONGER IMPACT</span>
+      <p style={{ margin: "10px 0 0", color: "#fde68a", fontWeight: 800 }}>When Maya improves a repeat problem for the whole team, the accomplishment becomes much stronger.</p>
+    </div>
+    <div className="docs-example-story">
+      <article className="docs-example-card purple"><span>1 · STRONGER ACCOMPLISHMENT</span><strong>“I reduced repeat billing escalations by creating a quick-reference resolution playbook.”</strong><p>Instead of documenting one good call, Maya captures a repeat problem she helped solve at a larger scale.</p></article>
+      <article className="docs-example-card blue"><span>2 · OWNERSHIP + CONTRIBUTION</span><strong>What Maya personally did</strong><p>Reviewed patterns in recurring escalations, documented a clearer decision path, shared it with teammates, and coached newer agents on using it.</p></article>
+      <article className="docs-example-card green"><span>3 · MEASURABLE IMPACT</span><strong>What changed</strong><p>Over six weeks, escalations fell 28%, first-contact resolution improved from 71% to 84%, and her manager adopted the playbook for the team.</p></article>
+    </div>
+    <div className="docs-example-output">
+      <span>WHAT STRONGER CAREER PROOF CAN LOOK LIKE</span>
+      <div className="docs-output-grid">
+        <article><strong style={{ color: "#c4b5fd" }}>Resume</strong><p>Created a billing-resolution playbook that helped reduce escalations 28% and improve first-contact resolution from 71% to 84% in six weeks.</p></article>
+        <article><strong style={{ color: "#93c5fd" }}>Interview</strong><p>Use the story to show initiative, root-cause thinking, process improvement, and peer leadership—not just one successful customer interaction.</p></article>
+        <article><strong style={{ color: "#6ee7b7" }}>Performance review</strong><p>Shows Maya turning individual skill into repeatable team impact, with measurable results and evidence her manager could verify.</p></article>
+      </div>
+      <p style={{ margin: "12px 0 0", color: "#cfd7e8", fontSize: ".78rem" }}>Example metrics are illustrative. In a real Impact Receipt, Maya should use only numbers or outcomes she can accurately support.</p>
+    </div>
   </section>;
 }
 
