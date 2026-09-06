@@ -101,8 +101,6 @@ jobs:
               raise SystemExit('Legacy customer domains remain in: ' + ', '.join(leftovers))
           PY
 
-          git diff --check
-
       - name: Commit rebrand and remove one-time workflow
         shell: bash
         run: |
