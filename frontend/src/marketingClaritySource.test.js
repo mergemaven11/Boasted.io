@@ -21,6 +21,49 @@ test("landing page explains Boasted immediately in plain language", () => {
   assert.doesNotMatch(source, /<p>SOLUTIONS<\/p>/);
 });
 
+test("pricing always shows Free Pro Team and Enterprise together", () => {
+  const source = read("./LandingPage.jsx");
+
+  assert.match(source, /const plans = \[/);
+  assert.match(source, /name: "Free"/);
+  assert.match(source, /name: "Pro"/);
+  assert.match(source, /name: "Team"/);
+  assert.match(source, /name: "Enterprise"/);
+  assert.match(source, /pricing-grid pricing-grid-four/);
+  assert.match(source, /All four plans stay visible/);
+  assert.doesNotMatch(source, /const plans = isCompany/);
+  assert.doesNotMatch(source, /landing-individual-pricing/);
+  assert.doesNotMatch(source, /landing-business-pricing/);
+});
+
+test("organization section uses separate Team Enterprise and Education tabs", () => {
+  const source = read("./LandingPage.jsx");
+  const css = read("./LandingPageSimple.css");
+
+  assert.match(source, /useState\("team"\)/);
+  assert.match(source, /label: "Teams"/);
+  assert.match(source, /label: "Enterprise"/);
+  assert.match(source, /label: "Education"/);
+  assert.match(source, /Team review dashboard/);
+  assert.match(source, /Enterprise admin dashboard/);
+  assert.match(source, /Major Explorer/);
+  assert.match(source, /Academic Portfolio/);
+  assert.match(source, /scholarships, internships/);
+  assert.match(source, /private career record/);
+  assert.match(source, /not a manager feed/);
+  assert.match(css, /landing-org-tabs/);
+  assert.match(css, /landing-org-dashboard/);
+});
+
+test("landing page stays compact instead of using oversized section gaps", () => {
+  const css = read("./LandingPageSimple.css");
+
+  assert.match(css, /min-height:600px/);
+  assert.match(css, /padding-top:3\.25rem/);
+  assert.match(css, /landing-org-section/);
+  assert.doesNotMatch(css, /padding-top:84px/);
+});
+
 test("career intelligence uses empty hero space for non-repeating next actions", () => {
   const source = read("./CareerIntelligencePage.jsx");
 

@@ -20,6 +20,19 @@ const EMPTY_APPEARANCE = {
   profile_background_color: "",
 };
 
+const SAVE_TIMEOUT_MS = 12000;
+
+function withTimeout(promise, timeoutMs = SAVE_TIMEOUT_MS) {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = window.setTimeout(() => {
+      reject(new Error("Saving took too long. Please try again."));
+    }, timeoutMs);
+  });
+
+  return Promise.race([promise, timeout]).finally(() => window.clearTimeout(timeoutId));
+}
+
 function FlowerLayoutMini({ id }) {
   return (
     <span className={`flower-layout-mini flower-layout-mini-${id}`} aria-hidden="true">
@@ -126,20 +139,24 @@ export default function AppearanceSettingsPage() {
   async function save() {
     setSaving(true);
     setError("");
+    let navigating = false;
     try {
-      const saved = await updateCurrentUserProfile({ ...EMPTY_APPEARANCE, ...form });
+      const saved = await withTimeout(updateCurrentUserProfile({ ...EMPTY_APPEARANCE, ...form }));
       if (saved.profile_theme !== form.profile_theme) {
         throw new Error("Saved theme did not match the selected theme.");
       }
       if ((saved.profile_layout || "editorial") !== form.profile_layout) {
         throw new Error("Saved layout did not match the selected profile structure.");
       }
+      setUser(saved);
       sessionStorage.setItem("bragstack_settings_notice", "Profile appearance saved.");
+      navigating = true;
       window.location.assign("/app/settings?saved=appearance");
     } catch (saveError) {
       const detail = saveError.response?.data?.detail;
       setError(typeof detail === "string" ? detail : saveError.message || "Appearance could not be saved.");
-      setSaving(false);
+    } finally {
+      if (!navigating) setSaving(false);
     }
   }
 
