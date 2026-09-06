@@ -29,20 +29,19 @@ export function getProfileTheme(id = "default") {
   return PROFILE_THEMES.find((theme) => theme.id === id) || PROFILE_THEMES[0];
 }
 
-
 export const PROFILE_LAYOUTS = [
-  { id: "editorial", name: "Editorial", description: "Spacious, refined, and publication-inspired." },
-  { id: "executive-sidebar", name: "Executive Sidebar", description: "Résumé-inspired structure with a strong professional rail." },
-  { id: "career-timeline", name: "Career Timeline", description: "A chronological story built around progression and proof." },
-  { id: "studio-split", name: "Studio Split", description: "A bold split hero for creative and product-focused work." },
-  { id: "minimal-column", name: "Minimal Column", description: "A calm, focused single-column profile with generous rhythm." },
-  { id: "portfolio-grid", name: "Portfolio Grid", description: "Project-forward composition for makers and multidisciplinary work." },
-  { id: "case-study", name: "Case Study", description: "Long-form storytelling that leads with evidence and outcomes." },
-  { id: "modern-resume", name: "Modern Résumé", description: "Clean two-column career summary designed for fast scanning." },
-  { id: "command-center", name: "Command Center", description: "Dense, technical presentation for engineering and operations." },
-  { id: "academic", name: "Academic", description: "Research-oriented structure for publications, teaching, and expertise." },
-  { id: "founder", name: "Founder", description: "Vision-led profile balancing leadership, products, and measurable traction." },
-  { id: "compact", name: "Compact", description: "A concise professional card for quick introductions and sharing." },
+  { id: "editorial", name: "Dahlia", description: "Editorial storytelling with dramatic type, whitespace, and elegant proof sections." },
+  { id: "executive-sidebar", name: "Magnolia", description: "Executive résumé with a true professional sidebar and focused main column." },
+  { id: "career-timeline", name: "Iris", description: "Career progression built around a strong visual timeline and milestone proof." },
+  { id: "studio-split", name: "Peony", description: "Creative split-screen portfolio with bold asymmetry and showcase-style work." },
+  { id: "minimal-column", name: "Camellia", description: "Minimal single-column profile with calm spacing and maximum readability." },
+  { id: "portfolio-grid", name: "Lotus", description: "Project-first modular grid for makers, creators, and multidisciplinary work." },
+  { id: "case-study", name: "Hibiscus", description: "Outcome-led case studies with oversized metrics and narrative proof." },
+  { id: "modern-resume", name: "Poppy", description: "Modern two-column résumé designed for fast recruiter scanning." },
+  { id: "command-center", name: "Protea", description: "Dense technical command center for engineering, infrastructure, and operations." },
+  { id: "academic", name: "Jasmine", description: "Scholarly CV-inspired layout for research, teaching, publications, and expertise." },
+  { id: "founder", name: "Marigold", description: "Founder and leadership profile that puts traction, vision, and impact up front." },
+  { id: "compact", name: "Lavender", description: "Compact professional profile optimized for quick sharing and mobile viewing." },
 ];
 
 export function getProfileLayout(id = "editorial") {
