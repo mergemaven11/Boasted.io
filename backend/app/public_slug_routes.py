@@ -61,7 +61,7 @@ def serialize_public_profile(user):
     Returns:
         Function result.
     """
-    return {"name":user.get("name",""),"public_slug":user.get("public_slug",""),"headline":user.get("headline",""),"bio":user.get("bio",""),"location":user.get("location",""),"github_url":user.get("github_url",""),"portfolio_url":user.get("portfolio_url",""),"resume_url":user.get("resume_url",""),"profile_theme":user.get("profile_theme","default"),"profile_primary_color":user.get("profile_primary_color",""),"profile_secondary_color":user.get("profile_secondary_color",""),"profile_background_color":user.get("profile_background_color","")}
+    return {"name":user.get("name",""),"public_slug":user.get("public_slug",""),"headline":user.get("headline",""),"bio":user.get("bio",""),"location":user.get("location",""),"github_url":user.get("github_url",""),"portfolio_url":user.get("portfolio_url",""),"resume_url":user.get("resume_url",""),"profile_theme":user.get("profile_theme","default"),"profile_layout":user.get("profile_layout","editorial"),"work_history":user.get("work_history",[]),"profile_projects":user.get("profile_projects",[]),"profile_primary_color":user.get("profile_primary_color",""),"profile_secondary_color":user.get("profile_secondary_color",""),"profile_background_color":user.get("profile_background_color","")}
 def serialize_public_impact_receipt(receipt):
     """Handle serialize public impact receipt.
 
