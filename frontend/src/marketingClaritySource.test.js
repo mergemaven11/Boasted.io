@@ -21,6 +21,25 @@ test("landing page explains Boasted immediately in plain language", () => {
   assert.doesNotMatch(source, /<p>SOLUTIONS<\/p>/);
 });
 
+test("landing page can switch to a company sales story without surveillance framing", () => {
+  const source = read("./LandingPage.jsx");
+  const css = read("./LandingPageSimple.css");
+
+  assert.match(source, /useState\("individual"\)/);
+  assert.match(source, /Teams &amp; enterprise/);
+  assert.match(source, /Help people show their work/);
+  assert.match(source, /Without surveillance/);
+  assert.match(source, /Better performance reviews/);
+  assert.match(source, /Clearer promotion cases/);
+  assert.match(source, /Governed workflows/);
+  assert.match(source, /No employee scoring/);
+  assert.match(source, /Bring Boasted to your company/);
+  assert.match(source, /companyPlans/);
+  assert.match(css, /landing-audience-toggle/);
+  assert.match(css, /min-height:600px/);
+  assert.match(css, /padding-top:3\.25rem/);
+});
+
 test("career intelligence uses empty hero space for non-repeating next actions", () => {
   const source = read("./CareerIntelligencePage.jsx");
 
