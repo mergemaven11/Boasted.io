@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import BragStackLoader from "./BragStackLoader.jsx";
+import EducationToolkitPanel from "./EducationToolkitPanel.jsx";
 import MajorExplorerPanel from "./MajorExplorerPanel.jsx";
 import { getApplicationIntelligence } from "./applicationIntelligenceApi.js";
 import "./ApplicationsHubPage.css";
@@ -80,7 +81,7 @@ const EDUCATION_FEATURES = [
     group: "record",
     title: "Experience Translator",
     icon: Sparkles,
-    blurb: "Capture what you actually did in class, research, clubs, service, or training so Boasted can reuse it as career evidence.",
+    blurb: "Translate what you actually did in class, research, clubs, service, or training into evidence-backed career language.",
     href: "/app/accomplishments?create=1&education_feature=experience-translator",
   },
   {
@@ -96,7 +97,7 @@ const EDUCATION_FEATURES = [
     group: "career",
     title: "Education Impact Receipts",
     icon: ShieldCheck,
-    blurb: "Turn education accomplishments into evidence-backed proof with contribution, results, skills, and supporting evidence.",
+    blurb: "See which education records are ready for stronger proof, contribution detail, results, and supporting evidence.",
     href: "/app/impact-receipts",
   },
   {
@@ -104,7 +105,7 @@ const EDUCATION_FEATURES = [
     group: "career",
     title: "Skills from Education",
     icon: Lightbulb,
-    blurb: "Use your saved evidence to understand the professional skills demonstrated by coursework, projects, training, and research.",
+    blurb: "See professional skill signals demonstrated by your coursework, projects, training, research, and service.",
     href: "/app/intelligence",
   },
   {
@@ -112,7 +113,7 @@ const EDUCATION_FEATURES = [
     group: "career",
     title: "Career Match & Skill Gaps",
     icon: Target,
-    blurb: "Compare your evidence with career goals, see what you already demonstrate, and identify gaps worth building next.",
+    blurb: "Compare demonstrated evidence with broad career directions and identify what your saved record does not show clearly yet.",
     href: "/app/intelligence",
   },
   {
@@ -120,7 +121,7 @@ const EDUCATION_FEATURES = [
     group: "career",
     title: "Résumé Builder",
     icon: FilePenLine,
-    blurb: "Turn real coursework, projects, certifications, and achievements into evidence-grounded résumé material.",
+    blurb: "Find the education evidence best prepared for evidence-grounded résumé material before you open the builder.",
     href: "/app/resume-builder",
   },
   {
@@ -128,7 +129,7 @@ const EDUCATION_FEATURES = [
     group: "career",
     title: "Interview Prep",
     icon: BriefcaseBusiness,
-    blurb: "Practice explaining your actual projects, coursework, research, skills, and contributions in interview-ready stories.",
+    blurb: "Find interview-ready education stories where you can explain your action, result, skills, and learning accurately.",
     href: "/app/interview-practice",
   },
   {
@@ -136,7 +137,7 @@ const EDUCATION_FEATURES = [
     group: "career",
     title: "Academic Portfolio",
     icon: GraduationCap,
-    blurb: "Use your Proof Profile to present the education evidence and accomplishments you intentionally choose to share.",
+    blurb: "Review which education records are strong portfolio candidates while keeping visibility fully under your control.",
     href: "/app/profile",
   },
   {
@@ -144,7 +145,7 @@ const EDUCATION_FEATURES = [
     group: "career",
     title: "Career Path Explorer",
     icon: Lightbulb,
-    blurb: "Connect your current evidence and developing skills to possible next roles without inventing experience you do not have.",
+    blurb: "Explore broad work directions connected to skills your saved evidence actually demonstrates, backed by official public references.",
     href: "/app/intelligence",
   },
 ];
@@ -204,13 +205,18 @@ function workflowFromUrl() {
   return WORKFLOWS.some((workflow) => workflow.id === requested) ? requested : "scholarship";
 }
 
+function educationToolFromUrl() {
+  const requested = new URLSearchParams(window.location.search).get("tool");
+  return EDUCATION_FEATURES.some((feature) => feature.id === requested && requested !== "major-explorer") ? requested : "";
+}
+
 function fitLabel(value) {
   if (value === "strong") return "Strong for this goal";
   if (value === "relevant") return "Useful for this goal";
   return "Keep building this story";
 }
 
-function FeatureGrid({ group, title, description }) {
+function FeatureGrid({ group, title, description, selectedTool, onOpenTool }) {
   const features = EDUCATION_FEATURES.filter((feature) => feature.group === group);
   return <section className="education-feature-section" aria-label={title}>
     <div className="education-feature-heading">
@@ -218,12 +224,19 @@ function FeatureGrid({ group, title, description }) {
       <span>{features.length} tools</span>
     </div>
     <div className="education-feature-grid">
-      {features.map(({ id, title: featureTitle, icon: Icon, blurb, href }) => (
-        <a className="education-feature-card" href={href} key={id} data-education-feature={id}>
+      {features.map(({ id, title: featureTitle, icon: Icon, blurb }) => (
+        <button
+          type="button"
+          className={`education-feature-card ${selectedTool === id ? "active" : ""}`}
+          onClick={() => onOpenTool(id)}
+          key={id}
+          data-education-feature={id}
+          aria-pressed={selectedTool === id}
+        >
           <span className="education-feature-icon"><Icon size={22} /></span>
           <span className="education-feature-copy"><strong>{featureTitle}</strong><small>{blurb}</small></span>
           <ChevronRight size={18} />
-        </a>
+        </button>
       ))}
     </div>
   </section>;
@@ -231,6 +244,7 @@ function FeatureGrid({ group, title, description }) {
 
 function ApplicationsHubPage() {
   const [applicationType, setApplicationType] = useState(workflowFromUrl);
+  const [activeEducationTool, setActiveEducationTool] = useState(educationToolFromUrl);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -273,6 +287,28 @@ function ApplicationsHubPage() {
     setApplicationType(type);
     const next = new URL(window.location.href);
     next.searchParams.set("type", type);
+    window.history.replaceState({}, "", `${next.pathname}${next.search}`);
+  }
+
+  function openEducationTool(toolId) {
+    if (toolId === "major-explorer") {
+      setActiveEducationTool("");
+      const next = new URL(window.location.href);
+      next.searchParams.delete("tool");
+      window.history.replaceState({}, "", `${next.pathname}${next.search}#major-explorer`);
+      window.setTimeout(() => document.getElementById("major-explorer")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+      return;
+    }
+    setActiveEducationTool(toolId);
+    const next = new URL(window.location.href);
+    next.searchParams.set("tool", toolId);
+    window.history.replaceState({}, "", `${next.pathname}${next.search}`);
+  }
+
+  function closeEducationTool() {
+    setActiveEducationTool("");
+    const next = new URL(window.location.href);
+    next.searchParams.delete("tool");
     window.history.replaceState({}, "", `${next.pathname}${next.search}`);
   }
 
@@ -323,8 +359,10 @@ function ApplicationsHubPage() {
       <div className="applications-trust"><ShieldCheck size={20} /><span><strong>Your education story stays yours.</strong><small>Private by default · built from your real wins · no admissions score</small></span></div>
     </header>
 
-    <FeatureGrid group="record" title="Build your education record" description="Start with the kind of learning or achievement you want to capture." />
-    <FeatureGrid group="career" title="Turn education into career proof" description="Reuse what you saved instead of starting from a blank page every time." />
+    <FeatureGrid group="record" title="Build your education record" description="Start with the kind of learning or achievement you want to capture." selectedTool={activeEducationTool} onOpenTool={openEducationTool} />
+    <FeatureGrid group="career" title="Turn education into career proof" description="Reuse what you saved instead of starting from a blank page every time." selectedTool={activeEducationTool} onOpenTool={openEducationTool} />
+
+    <EducationToolkitPanel toolId={activeEducationTool} onSelectTool={openEducationTool} onClose={closeEducationTool} />
 
     <MajorExplorerPanel />
 
@@ -389,7 +427,7 @@ function ApplicationsHubPage() {
         </aside>
       </div>
 
-      <section className="application-methodology"><ShieldCheck size={17} /><p><strong>Education Intelligence v1</strong> organizes the accomplishments you really saved. It does not make up activities, give you an admissions score, or promise scholarships, internships, or acceptance. You stay in control of your story.</p></section>
+      <section className="application-methodology"><ShieldCheck size={17} /><p><strong>Education Intelligence v2</strong> organizes the accomplishments you really saved and powers the dedicated Education toolkit. It does not make up activities, give you an admissions or career score, or promise scholarships, internships, acceptance, graduation, employment, or salary. You stay in control of your story.</p></section>
     </>}
   </main>;
 }
