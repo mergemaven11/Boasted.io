@@ -95,6 +95,21 @@
   border-color: var(--packet-line);
 }
 
+.packet-theme-modern-minimal .packet-growth-callout,
+.packet-theme-executive-report .packet-growth-callout {
+  color: var(--packet-ink);
+}
+
+.packet-theme-modern-minimal .packet-growth-callout p,
+.packet-theme-executive-report .packet-growth-callout p {
+  color: var(--packet-muted);
+}
+
+.packet-theme-modern-minimal .packet-growth-callout svg,
+.packet-theme-executive-report .packet-growth-callout svg {
+  color: var(--packet-highlight);
+}
+
 .packet-user-note {
   margin-top: 9px;
   padding: 10px 12px;
