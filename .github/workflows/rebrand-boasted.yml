@@ -34,12 +34,15 @@ jobs:
           }
           exact_names = {'.env.example', 'Dockerfile', 'LICENSE', 'NOTICE'}
           excluded_parts = {'.git', 'node_modules', 'dist', 'build', 'coverage', '.venv', 'venv'}
+          temporary_workflow = Path('.github/workflows/rebrand-boasted.yml')
 
           keep_api = '__BOASTED_KEEP_API_HOST__'
           keep_legal = '__BOASTED_KEEP_LEGAL_ENTITY__'
 
           changed = []
           for path in root.rglob('*'):
+              if path == temporary_workflow:
+                  continue
               if not path.is_file() or any(part in excluded_parts for part in path.parts):
                   continue
               if path.suffix.lower() not in text_exts and path.name not in exact_names:
@@ -82,9 +85,10 @@ jobs:
           for item in changed:
               print(item)
 
-          # Guardrails for the requested customer-facing domain migration.
           leftovers = []
           for path in root.rglob('*'):
+              if path == temporary_workflow:
+                  continue
               if not path.is_file() or any(part in excluded_parts for part in path.parts):
                   continue
               if path.suffix.lower() not in text_exts and path.name not in exact_names:
@@ -104,7 +108,7 @@ jobs:
       - name: Commit rebrand and remove one-time workflow
         shell: bash
         run: |
-          git rm --ignore-unmatch .github/workflows/rebrand-boasted.yml
+          git rm -f --ignore-unmatch .github/workflows/rebrand-boasted.yml
           git add -A
           if git diff --cached --quiet; then
             echo "No rebrand changes were needed."
