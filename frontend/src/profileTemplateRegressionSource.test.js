@@ -23,7 +23,7 @@ const layouts = [
 
 test("all 12 public profile templates remain represented", () => {
   for (const layout of layouts) {
-    assert.match(structures, new RegExp(`data-layout=[\\\"']${layout}[\\\"']`));
+    assert.match(structures, new RegExp(`data-layout=["']${layout}["']`));
   }
 });
 
