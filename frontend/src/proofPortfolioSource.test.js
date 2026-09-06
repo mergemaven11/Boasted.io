@@ -58,6 +58,21 @@ test("Appearance settings are the only profile theme editor and return to Settin
   assert.doesNotMatch(profile, /profile_primary_color:form\.profile_primary_color/);
 });
 
+test("Appearance settings expose and persist all twelve public portfolio structures", () => {
+  const appearance = read("./AppearanceSettingsPage.jsx");
+  const themes = read("./profileThemes.js");
+  const publicProfile = read("./PublicBragPage.jsx");
+  const layoutBlock = themes.split("export const PROFILE_LAYOUTS = [")[1].split("];", 1)[0];
+  const ids = [...layoutBlock.matchAll(/id: "([^"]+)"/g)].map((match) => match[1]);
+  assert.equal(ids.length, 12);
+  assert.match(appearance, /PROFILE_LAYOUTS/);
+  assert.match(appearance, /data-profile-layout-gallery/);
+  assert.match(appearance, /profile_layout:u\.profile_layout\|\|"editorial"/);
+  assert.match(appearance, /profile_layout:id/);
+  assert.match(appearance, /saved\.profile_layout/);
+  assert.match(publicProfile, /data-layout=\{profile\?\.profile_layout \|\| "editorial"\}/);
+});
+
 test("Profile form persists identity fields without resubmitting appearance state", () => {
   const source = read("./ProfilePage.jsx");
   assert.match(source, /name:form\.name,headline:form\.headline,bio:form\.bio,location:form\.location/);
