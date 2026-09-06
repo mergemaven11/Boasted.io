@@ -1,7 +1,9 @@
 """UAT regressions for OAuth, profile persistence, photos, and Open to Talk."""
 
 import mongomock
+import pytest
 from bson import ObjectId
+from fastapi import HTTPException
 
 import app.auth_routes as auth_routes
 import app.oauth_routes as oauth_routes
@@ -57,6 +59,41 @@ def test_oauth_link_preserves_user_authored_profile(monkeypatch):
     assert linked["profile_primary_color"] == original["profile_primary_color"]
     assert linked["name"] == "Tee"
     assert linked["oauth"]["google_id"] == "google-user-123"
+
+
+def test_new_oauth_account_requires_registration_legal_consent(monkeypatch):
+    _mock_users(monkeypatch)
+
+    with pytest.raises(HTTPException) as exc_info:
+        oauth_routes._find_or_create_oauth_user(
+            "google", "google-new-user", "new@example.com", "New User"
+        )
+
+    assert exc_info.value.status_code == 403
+    assert "accept the current Terms and Privacy Policy" in exc_info.value.detail
+
+
+def test_new_oauth_account_records_legal_consent(monkeypatch):
+    users = _mock_users(monkeypatch)
+
+    created = oauth_routes._find_or_create_oauth_user(
+        "github",
+        "github-new-user",
+        "new@example.com",
+        "New User",
+        accepted_terms=True,
+        accepted_privacy=True,
+    )
+
+    saved = users.find_one({"_id": created["_id"]})
+    assert saved["oauth"]["github_id"] == "github-new-user"
+    assert saved["email_verified_at"]
+    assert saved["email_verification_required"] is False
+    assert saved["terms_version"] == auth_routes.TERMS_VERSION
+    assert saved["privacy_version"] == auth_routes.PRIVACY_VERSION
+    assert saved["legal_acceptance_source"] == "github-oauth-registration"
+    assert saved["consents"]["terms"]["accepted"] is True
+    assert saved["consents"]["privacy_policy"]["accepted"] is True
 
 
 def test_partial_profile_patch_does_not_clear_omitted_fields(monkeypatch):

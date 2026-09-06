@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 
 from app.auth import create_access_token
+from app.auth_routes import PRIVACY_VERSION, TERMS_VERSION
 from app.database import users_collection
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -82,12 +83,15 @@ def _find_or_create_oauth_user(
     provider_user_id: str,
     email: str,
     name: str,
+    *,
+    accepted_terms: bool = False,
+    accepted_privacy: bool = False,
 ) -> dict:
-    """Link OAuth identity without replacing user-authored profile fields.
+    """Link an OAuth identity or create a consented OAuth account.
 
-    New OAuth account creation is temporarily disabled so every new BragStack
-    account passes through the explicit legal-acceptance registration flow.
-    Existing OAuth users continue to sign in normally.
+    Existing users can always sign in or link their provider. A brand-new OAuth
+    account is created only when the exact OAuth attempt started after the user
+    accepted the current Terms and Privacy Policy on the registration page.
     """
     normalized_email = email.lower().strip()
     provider_field = f"oauth.{provider}_id"
@@ -128,13 +132,45 @@ def _find_or_create_oauth_user(
         )
         return users_collection.find_one({"_id": user["_id"]})
 
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail=(
-            "New Google/GitHub account creation is temporarily unavailable. "
-            "Create your BragStack account with email/password first so the current Terms and Privacy Policy acceptance can be recorded."
-        ),
-    )
+    if not accepted_terms or not accepted_privacy:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "To create a new BragStack account with Google or GitHub, start from Create Account "
+                "and accept the current Terms and Privacy Policy first."
+            ),
+        )
+
+    accepted_at = datetime.now(timezone.utc).isoformat()
+    display_name = name.strip() or normalized_email.split("@", 1)[0] or "User"
+    doc = {
+        "name": display_name,
+        "email": normalized_email,
+        "public_slug": _generate_unique_public_slug(display_name),
+        "oauth": {f"{provider}_id": provider_user_id},
+        "email_verified_at": verified_at,
+        "email_verification_required": False,
+        "created_at": accepted_at,
+        "terms_accepted_at": accepted_at,
+        "terms_version": TERMS_VERSION,
+        "privacy_accepted_at": accepted_at,
+        "privacy_version": PRIVACY_VERSION,
+        "legal_acceptance_source": f"{provider}-oauth-registration",
+        "consents": {
+            "terms": {
+                "accepted": True,
+                "version": TERMS_VERSION,
+                "accepted_at": accepted_at,
+            },
+            "privacy_policy": {
+                "accepted": True,
+                "version": PRIVACY_VERSION,
+                "accepted_at": accepted_at,
+            },
+        },
+    }
+    result = users_collection.insert_one(doc)
+    return users_collection.find_one({"_id": result.inserted_id})
 
 
 def _frontend_success_redirect(user: dict) -> RedirectResponse:
@@ -156,6 +192,35 @@ def _set_state_cookie(response: RedirectResponse, provider: str, state_value: st
     )
 
 
+def _set_registration_consent_cookie(
+    response: RedirectResponse,
+    provider: str,
+    state_value: str,
+    accepted_terms: bool,
+    accepted_privacy: bool,
+) -> None:
+    """Bind registration consent to this exact OAuth state value."""
+    if not accepted_terms or not accepted_privacy:
+        return
+    response.set_cookie(
+        key=f"oauth_registration_consent_{provider}",
+        value=state_value,
+        max_age=600,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+    )
+
+
+def _registration_consent_matches(request: Request, provider: str, state_value: str | None) -> bool:
+    consent_state = request.cookies.get(f"oauth_registration_consent_{provider}")
+    return bool(
+        consent_state
+        and state_value
+        and secrets.compare_digest(consent_state, state_value)
+    )
+
+
 def _validate_state(request: Request, provider: str, state_value: str | None) -> None:
     expected = request.cookies.get(f"oauth_state_{provider}")
     if not expected or not state_value or not secrets.compare_digest(expected, state_value):
@@ -166,7 +231,11 @@ def _validate_state(request: Request, provider: str, state_value: str | None) ->
 
 
 @router.get("/google/login", name="google_login")
-def google_login(request: Request):
+def google_login(
+    request: Request,
+    accepted_terms: bool = False,
+    accepted_privacy: bool = False,
+):
     _require_credentials("google")
     state_value = secrets.token_urlsafe(32)
     params = {
@@ -179,6 +248,13 @@ def google_login(request: Request):
     }
     response = RedirectResponse(f"{GOOGLE_AUTHORIZE_URL}?{_authorization_query(params)}")
     _set_state_cookie(response, "google", state_value)
+    _set_registration_consent_cookie(
+        response,
+        "google",
+        state_value,
+        accepted_terms,
+        accepted_privacy,
+    )
     return response
 
 
@@ -186,6 +262,7 @@ def google_login(request: Request):
 async def google_callback(request: Request, code: str, state: str | None = None):
     _require_credentials("google")
     _validate_state(request, "google", state)
+    registration_consented = _registration_consent_matches(request, "google", state)
 
     async with httpx.AsyncClient(timeout=15.0) as client:
         token_response = await client.post(
@@ -218,14 +295,21 @@ async def google_callback(request: Request, code: str, state: str | None = None)
         str(profile.get("sub")),
         profile["email"],
         profile.get("name") or "",
+        accepted_terms=registration_consented,
+        accepted_privacy=registration_consented,
     )
     response = _frontend_success_redirect(user)
     response.delete_cookie("oauth_state_google")
+    response.delete_cookie("oauth_registration_consent_google")
     return response
 
 
 @router.get("/github/login", name="github_login")
-def github_login(request: Request):
+def github_login(
+    request: Request,
+    accepted_terms: bool = False,
+    accepted_privacy: bool = False,
+):
     _require_credentials("github")
     state_value = secrets.token_urlsafe(32)
     params = {
@@ -236,6 +320,13 @@ def github_login(request: Request):
     }
     response = RedirectResponse(f"{GITHUB_AUTHORIZE_URL}?{_authorization_query(params)}")
     _set_state_cookie(response, "github", state_value)
+    _set_registration_consent_cookie(
+        response,
+        "github",
+        state_value,
+        accepted_terms,
+        accepted_privacy,
+    )
     return response
 
 
@@ -243,6 +334,7 @@ def github_login(request: Request):
 async def github_callback(request: Request, code: str, state: str | None = None):
     _require_credentials("github")
     _validate_state(request, "github", state)
+    registration_consented = _registration_consent_matches(request, "github", state)
 
     headers = {"Accept": "application/json", "User-Agent": "BragStack"}
     async with httpx.AsyncClient(timeout=15.0, headers=headers) as client:
@@ -280,7 +372,10 @@ async def github_callback(request: Request, code: str, state: str | None = None)
         str(profile.get("id")),
         selected_email["email"],
         profile.get("name") or profile.get("login") or "",
+        accepted_terms=registration_consented,
+        accepted_privacy=registration_consented,
     )
     response = _frontend_success_redirect(user)
     response.delete_cookie("oauth_state_github")
+    response.delete_cookie("oauth_registration_consent_github")
     return response

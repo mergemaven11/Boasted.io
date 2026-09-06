@@ -10,6 +10,7 @@ def _request(
     scheme: str = "http",
     forwarded_proto: str = "",
     forwarded_host: str = "",
+    cookie: str = "",
 ) -> Request:
     """Build a minimal Starlette request for OAuth redirect tests."""
     headers = [(b"host", host.encode())]
@@ -17,6 +18,8 @@ def _request(
         headers.append((b"x-forwarded-proto", forwarded_proto.encode()))
     if forwarded_host:
         headers.append((b"x-forwarded-host", forwarded_host.encode()))
+    if cookie:
+        headers.append((b"cookie", cookie.encode()))
     scope = {
         "type": "http",
         "method": "GET",
@@ -65,3 +68,10 @@ def test_redirect_uri_honors_reverse_proxy_public_origin(monkeypatch):
 
     assert oauth_routes._redirect_uri(request, "google") == "https://api.usebragstack.com/auth/google/callback"
     assert oauth_routes._redirect_uri(request, "github") == "https://api.usebragstack.com/auth/github/callback"
+
+
+def test_registration_consent_is_bound_to_oauth_state():
+    request = _request(cookie="oauth_registration_consent_google=expected-state")
+
+    assert oauth_routes._registration_consent_matches(request, "google", "expected-state") is True
+    assert oauth_routes._registration_consent_matches(request, "google", "different-state") is False

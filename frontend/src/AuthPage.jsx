@@ -205,8 +205,8 @@ function AuthPage({ mode = "login", onLogin }) {
   }
 
   async function startOAuth(provider) {
-    if (isRegister) {
-      setErrorMessage("For now, create new accounts with email/password so BragStack can record the required legal confirmations. Existing users can still use OAuth from Log in.");
+    if (isRegister && (!acceptedTerms || !acceptedPrivacy)) {
+      setErrorMessage("Please accept the Terms and Privacy Policy before continuing with Google or GitHub.");
       return;
     }
     setConnectingProvider(provider);
@@ -216,7 +216,8 @@ function AuthPage({ mode = "login", onLogin }) {
     try {
       const ready = await ensureApiReady();
       if (!ready) throw new Error("BragStack is taking longer than expected to start. Please try again.");
-      window.location.assign(`${apiBaseUrl}/auth/${provider}/login`);
+      const consentQuery = isRegister ? "?accepted_terms=true&accepted_privacy=true" : "";
+      window.location.assign(`${apiBaseUrl}/auth/${provider}/login${consentQuery}`);
     } catch (error) {
       setErrorMessage(error.message || `Could not connect to ${provider}. Please try again.`);
       setConnectingProvider("");
@@ -334,11 +335,29 @@ function AuthPage({ mode = "login", onLogin }) {
             </div>
           )}
 
-          {isRegister ? (
-            <div className="auth-oauth-temporary"><strong>Google & GitHub sign-up</strong><p>Temporarily paused for new accounts so every new user completes the required legal-consent step. Existing OAuth users can still sign in from the Log in page.</p></div>
-          ) : (
-            <><div className="auth-divider"><span>or continue with</span></div><div className="auth-oauth-grid"><button type="button" className="auth-oauth-button auth-oauth-google" onClick={() => startOAuth("google")} disabled={Boolean(connectingProvider)}><span className="auth-google-mark" aria-hidden="true">G</span><span>{connectingProvider === "google" ? "Connecting to Google..." : "Continue with Google"}</span></button><button type="button" className="auth-oauth-button auth-oauth-github" onClick={() => startOAuth("github")} disabled={Boolean(connectingProvider)}><GitHubMark /><span>{connectingProvider === "github" ? "Connecting to GitHub..." : "Continue with GitHub"}</span></button>{connectingProvider && oauthIsTakingLonger && <p className="auth-oauth-status" role="status">BragStack is waking up. We’ll continue automatically as soon as it’s ready.</p>}</div></>
-          )}
+          <div className="auth-divider"><span>{isRegister ? "or sign up with" : "or continue with"}</span></div>
+          <div className="auth-oauth-grid">
+            <button
+              type="button"
+              className="auth-oauth-button auth-oauth-google"
+              onClick={() => startOAuth("google")}
+              disabled={Boolean(connectingProvider) || (isRegister && (!acceptedTerms || !acceptedPrivacy))}
+            >
+              <span className="auth-google-mark" aria-hidden="true">G</span>
+              <span>{connectingProvider === "google" ? "Connecting to Google..." : "Continue with Google"}</span>
+            </button>
+            <button
+              type="button"
+              className="auth-oauth-button auth-oauth-github"
+              onClick={() => startOAuth("github")}
+              disabled={Boolean(connectingProvider) || (isRegister && (!acceptedTerms || !acceptedPrivacy))}
+            >
+              <GitHubMark />
+              <span>{connectingProvider === "github" ? "Connecting to GitHub..." : "Continue with GitHub"}</span>
+            </button>
+            {connectingProvider && oauthIsTakingLonger && <p className="auth-oauth-status" role="status">BragStack is waking up. We’ll continue automatically as soon as it’s ready.</p>}
+          </div>
+          {isRegister && !acceptedTerms && !acceptedPrivacy && <p className="auth-submit-status">Accept the Terms and Privacy Policy above to enable Google or GitHub sign-up.</p>}
 
           <p className="auth-switch">{isRegister ? "Already have an account?" : "New to BragStack?"} <a href={isRegister ? "/login" : "/register"}>{isRegister ? "Log in" : "Create one"}</a></p>
         </form>
