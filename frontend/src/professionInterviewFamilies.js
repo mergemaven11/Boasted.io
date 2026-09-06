@@ -5,11 +5,16 @@ const UNIVERSAL_ROLE_PROMPTS = [
   "Tell me about something that did not go as planned. What did you learn, and what did you change afterward?",
 ];
 
+const SPECIALTY_KEYWORD_BOOSTS = {
+  cybersecurity: ["cyber"],
+  ux_design: ["ux", "user experience", "product design"],
+};
+
 export const PROFESSION_FAMILIES = Object.fromEntries(
   Object.entries(PROFESSION_SPECIALTIES).map(([key, config]) => [
     key,
     {
-      keywords: config.keywords,
+      keywords: [...config.keywords, ...(SPECIALTY_KEYWORD_BOOSTS[key] || [])],
       competencies: [
         config.competencies[0] || "role_knowledge",
         "role_alignment",
