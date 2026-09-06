@@ -9,7 +9,7 @@ FRONTEND_THEMES = ROOT / "frontend" / "src" / "profileThemes.js"
 
 
 def _frontend_theme_ids() -> set[str]:
-    source = FRONTEND_THEMES.read_text(encoding="utf-8")
+    source = FRONTEND_THEMES.read_text(encoding="utf-8").split("export const PROFILE_LAYOUTS", 1)[0]
     return set(re.findall(r'id:\s*"([^"]+)"', source))
 
 
