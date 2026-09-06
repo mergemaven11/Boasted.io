@@ -8,13 +8,16 @@ import "./ResponsiveLayoutGuard.css";
 import "./ImpactReceiptsResponsive.css";
 import "./VerifiedImpact.css";
 import "./ProfileUploadPolish.css";
+import "./ProfileAppearancePreview.css";
 import NDAInformationGate from "./NDAInformationGate.jsx";
 import PublicAuthHeader from "./PublicAuthHeader.jsx";
 import RootContent from "./RootContent.jsx";
 import { installInterviewBrowserPreflight } from "./interviewBrowserPreflight.js";
 import { installPublicPortfolioAvatar } from "./publicPortfolioAvatar.js";
+import { installProfileAppearancePreview } from "./profileAppearancePreview.js";
 
 installInterviewBrowserPreflight();
+installProfileAppearancePreview();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
