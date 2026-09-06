@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import ResumeBuilderStructuredPage from "./ResumeBuilderStructuredPage.jsx";
+import ResumeBuilderEnhancedPage from "./ResumeBuilderEnhancedPage.jsx";
 import "./ResumeBuilderGuidedPage.css";
 
 const STEP_LABELS = ["Add resume", "Review & confirm", "Target job", "ATS results"];
@@ -118,7 +118,7 @@ export default function ResumeBuilderGuidedPage() {
           })}
         </div>
       </nav>
-      <ResumeBuilderStructuredPage />
+      <ResumeBuilderEnhancedPage />
     </div>
   );
 }
