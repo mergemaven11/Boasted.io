@@ -26,7 +26,7 @@ assert.equal(duplicates.length, 0, `sitemap.xml contains duplicate URLs: ${dupli
 assert.ok(sitemapUrls.every((url) => url.startsWith("https://boasted.io/")), "sitemap URLs must use the canonical HTTPS origin");
 assert.ok(sitemapUrls.every((url) => !url.includes("#") && !url.includes("?")), "sitemap URLs must not contain fragments or query strings");
 
-assert.match(robots, /Sitemap:\s+https:\/\/usebragstack\.com\/sitemap\.xml/);
+assert.match(robots, /Sitemap:\s+https:\/\/boasted\.io\/sitemap\.xml/);
 assert.match(robots, /Disallow:\s+\/app\//);
 assert.doesNotMatch(robots, /Disallow:\s+\/login/);
 assert.doesNotMatch(robots, /Disallow:\s+\/register/);
@@ -52,6 +52,6 @@ assert.match(searchMeta, /"\/upgrade"/);
 assert.match(searchMeta, /"\/verify-receipt"/);
 assert.match(searchMeta, /SiteNavigationElement/);
 assert.match(searchMeta, /max-image-preview:large/);
-assert.match(searchMeta, /https:\/\/usebragstack\.com/);
+assert.match(searchMeta, /https:\/\/boasted\.io/);
 
 console.log(`Search quality gates passed for ${publicSitelinks.length} priority routes and ${sitemapUrls.length} sitemap URLs.`);
