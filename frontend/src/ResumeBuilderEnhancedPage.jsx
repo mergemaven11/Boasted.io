@@ -3,10 +3,12 @@ import { createPortal } from "react-dom";
 import { LayoutTemplate, X } from "lucide-react";
 import ResumeBuilderStructuredPage from "./ResumeBuilderStructuredPage.jsx";
 import ResumeTemplateLibrary from "./ResumeTemplateLibrary.jsx";
+import { SUPPORTING_SECTION_LABELS } from "./resumeStructured.js";
 import { DEFAULT_RESUME_TEMPLATE_ID, getResumeTemplate } from "./resumeTemplates.js";
 import "./ResumeBuilderEnhancedPage.css";
 
 const STORAGE_KEY = "boasted_resume_template_v1";
+const EXTRA_PREVIEW_SECTIONS = ["certifications", "leadership", "volunteer", "awards", "publications", "languages"];
 
 function storedTemplateId() {
   try {
@@ -16,12 +18,35 @@ function storedTemplateId() {
   }
 }
 
+function storedSupportingSections() {
+  try {
+    return JSON.parse(sessionStorage.getItem("boasted_resume_supporting_sections_v1") || "{}") || {};
+  } catch {
+    return {};
+  }
+}
+
+function ExtraPreviewSections({ sections }) {
+  return EXTRA_PREVIEW_SECTIONS.map((key) => {
+    const lines = sections?.[key] || [];
+    if (!lines.length) return null;
+    return (
+      <section className="resume-template-extra-section" key={key}>
+        <h2>{SUPPORTING_SECTION_LABELS[key] || key}</h2>
+        <div className="resume-v2-support-lines">{lines.map((line, index) => <span key={`${key}-${index}`}>{line}</span>)}</div>
+      </section>
+    );
+  });
+}
+
 export default function ResumeBuilderEnhancedPage() {
   const hostRef = useRef(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState(storedTemplateId);
   const [emptyTarget, setEmptyTarget] = useState(null);
   const [centerTarget, setCenterTarget] = useState(null);
+  const [paperTarget, setPaperTarget] = useState(null);
   const [paperBannerTarget, setPaperBannerTarget] = useState(null);
+  const [extraSections, setExtraSections] = useState(storedSupportingSections);
   const [pickerOpen, setPickerOpen] = useState(false);
   const selectedTemplate = useMemo(() => getResumeTemplate(selectedTemplateId), [selectedTemplateId]);
 
@@ -36,7 +61,11 @@ export default function ResumeBuilderEnhancedPage() {
       const banner = host.querySelector(".resume-v2-paper-banner");
       setEmptyTarget((current) => current === empty ? current : empty);
       setCenterTarget((current) => current === center ? current : center);
+      setPaperTarget((current) => current === paper ? current : paper);
       setPaperBannerTarget((current) => current === banner ? current : banner);
+
+      const storedSections = storedSupportingSections();
+      setExtraSections((current) => JSON.stringify(current) === JSON.stringify(storedSections) ? current : storedSections);
 
       if (paper) {
         const templateClasses = Array.from(paper.classList).filter((value) => value.startsWith("resume-template-"));
@@ -65,6 +94,7 @@ export default function ResumeBuilderEnhancedPage() {
       } catch {
         // No-op when storage is unavailable.
       }
+      setExtraSections({});
     };
     host.addEventListener("click", clearStaleSectionSnapshot, true);
     return () => host.removeEventListener("click", clearStaleSectionSnapshot, true);
@@ -100,6 +130,8 @@ export default function ResumeBuilderEnhancedPage() {
         </button>,
         paperBannerTarget,
       )}
+
+      {paperTarget && createPortal(<ExtraPreviewSections sections={extraSections} />, paperTarget)}
 
       {pickerOpen && centerTarget && createPortal(
         <div className="resume-template-picker-overlay" role="dialog" aria-modal="true" aria-label="Choose resume template">
