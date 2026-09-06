@@ -16,13 +16,13 @@ const CAREER_TOOLS = [
   { href: "/app/resume-builder", label: "Resume Builder", icon: FileText },
   { href: "/app/interview-practice", label: "Practice interview", icon: Video },
   { href: "/app/reports", label: "Career analytics", icon: BarChart3 },
-  { href: "/app/packets", label: "Career packets", icon: FileCheck2 },
+  { href: "/app/reports?packets=1", label: "Career packets", icon: FileCheck2 },
 ];
 
 function AppSidebar() {
   const [user, setUser] = useState(null); const [mobileOpen, setMobileOpen] = useState(false); const [internalAccess, setInternalAccess] = useState(null);
   const path = window.location.pathname; const search = window.location.search; const hash = window.location.hash;
-  const careerToolsActive = path === "/app/resume-builder" || path === "/app/interview-practice" || path === "/app/reports" || path === "/app/packets";
+  const careerToolsActive = path === "/app/resume-builder" || path === "/app/interview-practice" || path === "/app/reports";
   const [careerToolsOpen, setCareerToolsOpen] = useState(() => careerToolsActive || localStorage.getItem("bragstack_career_tools_nav") !== "closed");
   useEffect(() => { let mounted = true; (async () => { try { const data = await getCurrentUser(); if (!mounted) return; setUser(data); try { const access = await getOpsAccess(); if (mounted) setInternalAccess(access?.authorized ? access : null); } catch { if (mounted) setInternalAccess(null); } } catch (error) { if (error.response?.status === 401) { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); } } })(); return () => { mounted = false; }; }, []);
   function logout() { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); }
