@@ -6,6 +6,25 @@
  * guardrails.
  */
 
+/* Never let a profile section create horizontal overflow or phantom width. */
+.proof-portfolio .proof-profile-inner > *,
+.proof-portfolio .portfolio-hero,
+.proof-portfolio .portfolio-section,
+.proof-portfolio .portfolio-impact-card,
+.proof-portfolio .portfolio-work-card,
+.proof-portfolio .portfolio-proof-passport {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.proof-portfolio .portfolio-hero,
+.proof-portfolio .portfolio-section,
+.proof-portfolio .portfolio-impact-card,
+.proof-portfolio .portfolio-work-card,
+.proof-portfolio .portfolio-proof-passport {
+  min-height: 0;
+}
+
 /* Skill cards should size to their content, never become tall vertical pills. */
 .proof-portfolio .portfolio-skill-cloud > span {
   min-height: 0;
@@ -18,15 +37,68 @@
 }
 
 /*
- * Magnolia and Poppy put the skills section inside a 260–290px sidebar on
- * desktop. The base three-column skill cloud is far too narrow there and can
- * collapse the skill label to a few characters per line. Use a deliberate
- * single-column stack while those sidebars are active.
+ * Magnolia and Poppy originally used page-level two-column grids. That coupled
+ * unrelated section heights and produced the giant blank bands visible in
+ * real profiles. Keep their distinctive hero structures, but let the document
+ * flow naturally below the hero.
  */
+.proof-portfolio[data-layout="executive-sidebar"] .proof-profile-inner,
+.proof-portfolio[data-layout="modern-resume"] .proof-profile-inner {
+  display: block;
+}
+
 @media (min-width: 981px) {
-  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-skill-cloud,
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-hero {
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-identity,
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-proof-passport {
+    align-self: start;
+    height: auto;
+    border: 1px solid var(--profile-line);
+    border-radius: 22px;
+  }
+
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-identity {
+    padding: 32px 24px;
+  }
+
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-proof-passport {
+    padding: 32px;
+  }
+
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-actions .proof-action {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-actions .proof-action.primary {
+    grid-column: 1 / -1;
+  }
+
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-skills-section,
+  .proof-portfolio[data-layout="modern-resume"] .portfolio-skills-section {
+    margin-top: 20px;
+  }
+
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-skill-cloud {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   .proof-portfolio[data-layout="modern-resume"] .portfolio-skill-cloud {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .proof-portfolio[data-layout="executive-sidebar"] .portfolio-skill-cloud > span,
@@ -46,12 +118,43 @@
   }
 }
 
-/* Once the résumé sidebars stack, let the skills breathe in two columns. */
 @media (min-width: 641px) and (max-width: 980px) {
   .proof-portfolio[data-layout="executive-sidebar"] .portfolio-skill-cloud,
   .proof-portfolio[data-layout="modern-resume"] .portfolio-skill-cloud {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* Remove oversized hero whitespace while preserving each flower's personality. */
+.proof-portfolio[data-layout="studio-split"] .portfolio-hero {
+  min-height: 0;
+}
+
+.proof-portfolio[data-layout="studio-split"] .portfolio-identity,
+.proof-portfolio[data-layout="studio-split"] .portfolio-proof-passport {
+  justify-content: flex-start;
+  padding-top: clamp(34px, 5vw, 58px);
+  padding-bottom: clamp(34px, 5vw, 58px);
+}
+
+.proof-portfolio[data-layout="case-study"] .portfolio-hero {
+  padding-top: 54px;
+  padding-bottom: 40px;
+}
+
+.proof-portfolio[data-layout="case-study"] .portfolio-proof-passport {
+  align-items: start;
+}
+
+.proof-portfolio[data-layout="case-study"] .portfolio-impact-card.featured {
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+}
+
+.proof-portfolio[data-layout="founder"] .portfolio-hero {
+  min-height: 0;
+  padding-top: clamp(42px, 6vw, 72px);
+  padding-bottom: clamp(42px, 6vw, 72px);
 }
 
 /*
@@ -80,4 +183,198 @@
   height: auto;
   max-width: 100%;
   overflow-wrap: break-word;
+}
+
+/*
+ * Selected work is the product thesis, not another generic section heading.
+ * Make “Accomplishments, not job-description filler.” read like a manifesto.
+ */
+.proof-portfolio .portfolio-work-section > .portfolio-section-heading {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: end;
+  margin-bottom: 24px;
+  padding: clamp(24px, 4vw, 44px);
+  overflow: hidden;
+  border: 1px solid var(--profile-line);
+  border-left: 5px solid var(--theme-accent);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 95% 0%, color-mix(in srgb, var(--theme-accent-2) 18%, transparent), transparent 42%),
+    linear-gradient(135deg, color-mix(in srgb, var(--theme-accent) 10%, var(--theme-bg)), var(--profile-surface));
+}
+
+.proof-portfolio .portfolio-work-section > .portfolio-section-heading h2 {
+  max-width: 15ch;
+  margin: 6px 0 10px;
+  font-size: clamp(2.4rem, 5.8vw, 5.4rem);
+  line-height: .96;
+  letter-spacing: -.045em;
+}
+
+.proof-portfolio .portfolio-work-section > .portfolio-section-heading > div > p:last-child {
+  max-width: 58ch;
+  margin-bottom: 0;
+  font-size: clamp(1rem, 1.6vw, 1.22rem);
+  line-height: 1.65;
+}
+
+/* Give every flower a recognizably different treatment of that manifesto. */
+.proof-portfolio[data-layout="editorial"] .portfolio-work-section > .portfolio-section-heading {
+  padding-left: 0;
+  padding-right: 0;
+  border-width: 1px 0;
+  border-left: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.proof-portfolio[data-layout="editorial"] .portfolio-work-section > .portfolio-section-heading h2 {
+  max-width: 12ch;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+}
+
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-work-section > .portfolio-section-heading {
+  border-left-width: 8px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--theme-accent) 8%, var(--profile-surface));
+}
+
+.proof-portfolio[data-layout="career-timeline"] .portfolio-work-section > .portfolio-section-heading {
+  margin-left: 34px;
+  border-left-width: 3px;
+  border-radius: 0 18px 18px 0;
+}
+
+.proof-portfolio[data-layout="studio-split"] .portfolio-work-section > .portfolio-section-heading {
+  border: 0;
+  border-radius: 30px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--theme-accent) 28%, var(--theme-bg)), color-mix(in srgb, var(--theme-accent-2) 22%, var(--theme-bg)));
+}
+
+.proof-portfolio[data-layout="minimal-column"] .portfolio-work-section > .portfolio-section-heading {
+  display: block;
+  padding: 32px 0;
+  text-align: center;
+  border-width: 1px 0;
+  border-left: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.proof-portfolio[data-layout="minimal-column"] .portfolio-work-section > .portfolio-section-heading h2,
+.proof-portfolio[data-layout="minimal-column"] .portfolio-work-section > .portfolio-section-heading > div > p:last-child {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-section > .portfolio-section-heading {
+  border-left: 0;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-accent) 34%, transparent);
+}
+
+.proof-portfolio[data-layout="case-study"] .portfolio-work-section > .portfolio-section-heading {
+  display: block;
+  padding: clamp(34px, 6vw, 64px);
+  border-left-width: 10px;
+  border-radius: 0;
+}
+
+.proof-portfolio[data-layout="case-study"] .portfolio-work-section > .portfolio-section-heading h2 {
+  max-width: 11ch;
+  font-size: clamp(3rem, 7vw, 6.3rem);
+}
+
+.proof-portfolio[data-layout="modern-resume"] .portfolio-work-section > .portfolio-section-heading {
+  border: 0;
+  border-top: 5px solid var(--theme-accent);
+  border-bottom: 2px solid var(--profile-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.proof-portfolio[data-layout="modern-resume"] .portfolio-work-section > .portfolio-section-heading h2 {
+  max-width: 18ch;
+  font-size: clamp(2.2rem, 4.5vw, 4rem);
+  letter-spacing: -.025em;
+}
+
+.proof-portfolio[data-layout="command-center"] .portfolio-work-section > .portfolio-section-heading {
+  border: 1px dashed var(--theme-accent);
+  border-left: 6px solid var(--theme-accent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--theme-bg) 88%, var(--theme-accent) 7%);
+}
+
+.proof-portfolio[data-layout="command-center"] .portfolio-work-section > .portfolio-section-heading h2 {
+  max-width: 19ch;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: clamp(2rem, 4vw, 3.8rem);
+  letter-spacing: -.04em;
+}
+
+.proof-portfolio[data-layout="command-center"] .portfolio-work-section > .portfolio-section-heading h2::before {
+  content: "> ";
+  color: var(--theme-accent);
+}
+
+.proof-portfolio[data-layout="academic"] .portfolio-work-section > .portfolio-section-heading {
+  border-width: 2px 0 1px;
+  border-left: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.proof-portfolio[data-layout="academic"] .portfolio-work-section > .portfolio-section-heading h2 {
+  max-width: 15ch;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+}
+
+.proof-portfolio[data-layout="founder"] .portfolio-work-section > .portfolio-section-heading {
+  border: 0;
+  border-radius: 28px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--theme-accent) 24%, var(--theme-bg)), color-mix(in srgb, var(--theme-accent-2) 14%, var(--theme-bg)));
+}
+
+.proof-portfolio[data-layout="founder"] .portfolio-work-section > .portfolio-section-heading h2 {
+  max-width: 12ch;
+  font-size: clamp(3rem, 7vw, 6rem);
+}
+
+.proof-portfolio[data-layout="compact"] .portfolio-work-section > .portfolio-section-heading {
+  padding: 20px;
+  border-left-width: 4px;
+  border-radius: 12px;
+}
+
+.proof-portfolio[data-layout="compact"] .portfolio-work-section > .portfolio-section-heading h2 {
+  max-width: 18ch;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+}
+
+@media (max-width: 760px) {
+  .proof-portfolio .portfolio-work-section > .portfolio-section-heading {
+    grid-template-columns: 1fr;
+    align-items: start;
+    padding: 24px 20px;
+  }
+
+  .proof-portfolio .portfolio-work-section > .portfolio-section-heading h2 {
+    max-width: 100%;
+    font-size: clamp(2.1rem, 11vw, 3.8rem);
+  }
+
+  .proof-portfolio[data-layout="career-timeline"] .portfolio-work-section > .portfolio-section-heading {
+    margin-left: 0;
+  }
+
+  .proof-portfolio[data-layout="case-study"] .portfolio-work-section > .portfolio-section-heading h2,
+  .proof-portfolio[data-layout="founder"] .portfolio-work-section > .portfolio-section-heading h2 {
+    font-size: clamp(2.5rem, 12vw, 4.5rem);
+  }
 }
