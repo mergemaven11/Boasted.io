@@ -13,6 +13,14 @@ function selectedTemplateId() {
   }
 }
 
+function supportingSectionsSnapshot() {
+  try {
+    return JSON.parse(sessionStorage.getItem("boasted_resume_supporting_sections_v1") || "{}") || {};
+  } catch {
+    return {};
+  }
+}
+
 const resumeApi = axios.create({ baseURL: getBaseUrl() });
 resumeApi.interceptors.request.use((config) => {
   const token = localStorage.getItem("bragstack_token");
@@ -37,6 +45,10 @@ export async function buildResume(payload) {
 export async function saveResume(payload) {
   const response = await resumeApi.post("/resume-builder/resumes-v2", {
     ...payload,
+    supporting_sections: {
+      ...supportingSectionsSnapshot(),
+      ...(payload.supporting_sections || {}),
+    },
     template_id: payload.template_id || selectedTemplateId(),
   });
   return response.data;
