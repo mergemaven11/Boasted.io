@@ -47,7 +47,7 @@ export default function AppearanceSettingsPage() {
         setUser(u);
         setForm({
           profile_theme: u.profile_theme || "default",
-          profile_layout: u.profile_layout || "editorial",
+          profile_layout:u.profile_layout||"editorial",
           profile_primary_color: u.profile_primary_color || "",
           profile_secondary_color: u.profile_secondary_color || "",
           profile_background_color: u.profile_background_color || "",
@@ -107,7 +107,7 @@ export default function AppearanceSettingsPage() {
   }
 
   function chooseLayout(id) {
-    setForm((current) => ({ ...current, profile_layout: id }));
+    setForm((current) => ({ ...current, profile_layout:id }));
   }
 
   function change(event) {
