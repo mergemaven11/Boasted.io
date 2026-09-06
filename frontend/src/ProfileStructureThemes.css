@@ -1,0 +1,89 @@
+/* Professional public-profile structure library.
+   Color palettes remain independent; layout controls composition and typography. */
+.proof-portfolio {
+  --profile-surface: color-mix(in srgb, var(--theme-bg) 92%, white);
+  --profile-line: color-mix(in srgb, var(--theme-accent) 20%, #94a3b8);
+  --profile-muted: #aab5c7;
+}
+.proof-portfolio .portfolio-section,
+.proof-portfolio .portfolio-proof-passport,
+.proof-portfolio .portfolio-impact-card,
+.proof-portfolio .portfolio-work-card {
+  border-color: var(--profile-line);
+  box-shadow: none;
+}
+.proof-portfolio .portfolio-impact-card,
+.proof-portfolio .portfolio-work-card,
+.proof-portfolio .portfolio-proof-passport {
+  border-radius: 10px;
+}
+.portfolio-career-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.portfolio-career-column { display:grid; align-content:start; gap:0; }
+.portfolio-career-item { position:relative; padding:22px 0 22px 28px; border-left:1px solid var(--profile-line); }
+.portfolio-career-item::before { content:""; position:absolute; left:-5px; top:29px; width:9px; height:9px; border-radius:50%; background:var(--theme-accent); }
+.portfolio-career-item + .portfolio-career-item { border-top:1px solid color-mix(in srgb,var(--profile-line) 60%,transparent); }
+.portfolio-career-meta { display:flex; flex-wrap:wrap; gap:8px 14px; margin-bottom:8px; color:var(--profile-muted); font-size:.82rem; font-weight:700; }
+.portfolio-career-item h3 { margin:0; color:#f8fafc; font-size:1.18rem; }
+.portfolio-career-item h3 span { color:var(--profile-muted); font-weight:500; }
+.portfolio-career-item p { margin:10px 0 0; color:#cbd5e1; line-height:1.7; white-space:pre-line; }
+.portfolio-career-item a { display:inline-flex; align-items:center; gap:6px; margin-top:12px; color:var(--theme-accent); font-weight:800; }
+
+/* Editorial: quiet, publication-like hierarchy. */
+.proof-portfolio[data-layout="editorial"] .proof-profile-inner { max-width:1120px; }
+.proof-portfolio[data-layout="editorial"] .portfolio-hero { grid-template-columns:minmax(0,1.65fr) minmax(280px,.65fr); padding-top:70px; border-top:1px solid var(--profile-line); }
+.proof-portfolio[data-layout="editorial"] .portfolio-identity h1,
+.proof-portfolio[data-layout="editorial"] .portfolio-section h2 { font-family:Georgia,"Times New Roman",serif; font-weight:500; letter-spacing:-.04em; }
+.proof-portfolio[data-layout="editorial"] .portfolio-identity h1 { font-size:clamp(3.8rem,9vw,8rem); }
+.proof-portfolio[data-layout="editorial"] .portfolio-avatar { border-radius:50%; }
+.proof-portfolio[data-layout="editorial"] .portfolio-impact-grid,
+.proof-portfolio[data-layout="editorial"] .portfolio-work-grid { grid-template-columns:1fr 1fr; }
+.proof-portfolio[data-layout="editorial"] .portfolio-section { border-radius:0; border-left:0; border-right:0; background:transparent; }
+
+/* Executive sidebar: résumé-inspired, high-information composition. */
+.proof-portfolio[data-layout="executive-sidebar"] .proof-profile-inner { max-width:1180px; display:grid; grid-template-columns:300px minmax(0,1fr); }
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-topbar,
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-footer { grid-column:1/-1; }
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-hero { grid-column:1/-1; grid-template-columns:300px minmax(0,1fr); gap:0; padding:0; overflow:hidden; }
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-identity { padding:48px 30px; background:color-mix(in srgb,var(--theme-accent) 18%,var(--theme-bg)); }
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-identity h1 { font-size:clamp(2.5rem,5vw,4.8rem); }
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-proof-passport { border:0; border-radius:0; padding:48px; background:var(--profile-surface); }
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-skills-section,
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-career-section { grid-column:1; margin-right:20px; }
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-featured-impact,
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-work-section,
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-contact-section { grid-column:2; }
+.proof-portfolio[data-layout="executive-sidebar"] .portfolio-career-grid { grid-template-columns:1fr; }
+
+/* Timeline: makes career progression the visual spine. */
+.proof-portfolio[data-layout="career-timeline"] .portfolio-hero { border-bottom:1px solid var(--profile-line); }
+.proof-portfolio[data-layout="career-timeline"] .portfolio-career-grid { grid-template-columns:1fr; max-width:880px; }
+.proof-portfolio[data-layout="career-timeline"] .portfolio-career-item { padding-left:42px; }
+.proof-portfolio[data-layout="career-timeline"] .portfolio-career-item::before { left:-8px; width:15px; height:15px; box-shadow:0 0 0 6px color-mix(in srgb,var(--theme-accent) 16%,transparent); }
+.proof-portfolio[data-layout="career-timeline"] .portfolio-impact-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.proof-portfolio[data-layout="career-timeline"] .portfolio-impact-card.featured { grid-column:span 2; }
+
+/* Studio split: bold first impression without novelty UI. */
+.proof-portfolio[data-layout="studio-split"] .portfolio-hero { min-height:620px; align-items:stretch; padding:0; overflow:hidden; }
+.proof-portfolio[data-layout="studio-split"] .portfolio-identity { display:flex; flex-direction:column; justify-content:center; padding:clamp(36px,7vw,88px); background:#f5f2ea; color:#111827; }
+.proof-portfolio[data-layout="studio-split"] .portfolio-identity h1,
+.proof-portfolio[data-layout="studio-split"] .portfolio-identity .proof-headline { color:#111827; }
+.proof-portfolio[data-layout="studio-split"] .portfolio-identity .proof-bio,
+.proof-portfolio[data-layout="studio-split"] .portfolio-identity .proof-location { color:#475569; }
+.proof-portfolio[data-layout="studio-split"] .portfolio-proof-passport { border:0; border-radius:0; display:flex; flex-direction:column; justify-content:center; padding:clamp(36px,6vw,72px); background:linear-gradient(145deg,var(--theme-bg),color-mix(in srgb,var(--theme-accent) 18%,var(--theme-bg))); }
+.proof-portfolio[data-layout="studio-split"] .portfolio-avatar { width:96px; height:96px; border-radius:50%; }
+.proof-portfolio[data-layout="studio-split"] .portfolio-section { border-radius:4px; }
+
+@media(max-width:860px){
+  .portfolio-career-grid { grid-template-columns:1fr; }
+  .proof-portfolio[data-layout="executive-sidebar"] .proof-profile-inner { display:block; }
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-hero { grid-template-columns:1fr; }
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-skills-section,
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-career-section { margin-right:0; }
+  .proof-portfolio[data-layout="career-timeline"] .portfolio-impact-grid { grid-template-columns:1fr; }
+  .proof-portfolio[data-layout="career-timeline"] .portfolio-impact-card.featured { grid-column:auto; }
+}
+@media(max-width:620px){
+  .proof-portfolio[data-layout="editorial"] .portfolio-impact-grid,
+  .proof-portfolio[data-layout="editorial"] .portfolio-work-grid { grid-template-columns:1fr; }
+  .proof-portfolio[data-layout="studio-split"] .portfolio-hero { min-height:0; }
+}
