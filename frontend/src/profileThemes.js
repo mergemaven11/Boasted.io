@@ -28,3 +28,15 @@ export const PROFILE_THEMES = [
 export function getProfileTheme(id = "default") {
   return PROFILE_THEMES.find((theme) => theme.id === id) || PROFILE_THEMES[0];
 }
+
+
+export const PROFILE_LAYOUTS = [
+  { id: "editorial", name: "Editorial", description: "Spacious, refined, and publication-inspired." },
+  { id: "executive-sidebar", name: "Executive Sidebar", description: "Résumé-inspired structure with a strong professional rail." },
+  { id: "career-timeline", name: "Career Timeline", description: "A chronological story built around progression and proof." },
+  { id: "studio-split", name: "Studio Split", description: "A bold split hero for creative and product-focused work." },
+];
+
+export function getProfileLayout(id = "editorial") {
+  return PROFILE_LAYOUTS.find((layout) => layout.id === id) || PROFILE_LAYOUTS[0];
+}
