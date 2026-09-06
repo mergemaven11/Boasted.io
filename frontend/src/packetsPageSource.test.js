@@ -24,7 +24,7 @@ test("packet catalog exposes the full set of career and education packet choices
     "portfolio",
     "career-transition",
   ]) {
-    assert.match(catalog, new RegExp(`value: \\"${packetType}\\"`));
+    assert.ok(catalog.includes(`value: "${packetType}"`), `missing packet type ${packetType}`);
   }
   assert.match(page, /The more data you submit, the more useful these packets become/);
   assert.match(page, /Example:/);
@@ -46,7 +46,7 @@ test("packet forms expose type-specific fields and PDF DOCX choices", () => {
 
 test("packet generation and download use the catalog API and nonblank client guard", () => {
   assert.match(api, /\/packets\/catalog\/\$\{encodeURIComponent\(packetType\)\}/);
-  assert.match(api, /safeFormat === "docx"/);
+  assert.match(api, /safeFormat = format === "docx"/);
   assert.match(preview, /Download PDF/);
   assert.match(preview, /Download DOCX/);
   assert.match(preview, /The generated file was empty/);
