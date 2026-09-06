@@ -79,10 +79,10 @@ def _slug(value: str, fallback: str = "packet") -> str:
 
 
 def make_career_packet_filename(packet: dict[str, Any], extension: str) -> str:
-    subject = _clean(packet.get("subject", {}).get("name"), "bragstack-member")
+    subject = _clean(packet.get("subject", {}).get("name"), "boasted-member")
     kind = _clean(packet.get("kind"), "career-packet")
     ext = "docx" if extension.lower() == "docx" else "pdf"
-    return f"bragstack-{_slug(subject)}-{_slug(kind)}.{ext}"
+    return f"boasted-{_slug(subject)}-{_slug(kind)}.{ext}"
 
 
 def _focus_fields(packet: dict[str, Any]) -> list[dict[str, str]]:

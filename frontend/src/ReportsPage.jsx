@@ -249,7 +249,7 @@ function ReportsPage() {
     const periodName = report?.period?.label?.toLowerCase().replace(/\s+/g, "-") || "career";
 
     link.href = url;
-    link.download = `bragstack-${periodName}-report.md`;
+    link.download = `boasted-${periodName}-report.md`;
     document.body.appendChild(link);
     link.click();
     link.remove();
