@@ -62,12 +62,25 @@ function professionalLanguageWarning(text) {
   };
 }
 
+function canonicalRolePhrase(value = "") {
+  return normalize(value).replace(/-/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function careerKeywordScore(haystack, keyword) {
+  const phrase = canonicalRolePhrase(keyword);
+  if (!phrase || !` ${haystack} `.includes(` ${phrase} `)) return 0;
+  const wordCount = phrase.split(" ").filter(Boolean).length;
+  // Exact multi-word occupation phrases should outrank generic single-word
+  // overlaps, while short aliases such as RN/CTO only match as whole tokens.
+  return wordCount * 100 + phrase.length;
+}
+
 export function inferCareerFamily(roleTitle = "", careerArea = "") {
-  const haystack = ` ${normalize(`${roleTitle} ${careerArea}`)} `;
+  const haystack = canonicalRolePhrase(`${roleTitle} ${careerArea}`);
   let bestFamily = "general";
   let bestScore = 0;
   for (const [family, config] of Object.entries(CAREER_FAMILIES)) {
-    const score = config.keywords.reduce((total, keyword) => total + (haystack.includes(normalize(keyword)) ? 1 : 0), 0);
+    const score = config.keywords.reduce((total, keyword) => total + careerKeywordScore(haystack, keyword), 0);
     if (score > bestScore) { bestFamily = family; bestScore = score; }
   }
   return bestFamily;
