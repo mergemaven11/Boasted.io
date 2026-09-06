@@ -7,6 +7,15 @@ export default function PublicAuthHeader() {
 
   if (!isRegister && !isLogin) return null;
 
+  if (isRegister) {
+    return (
+      <div className="public-auth-register-actions" aria-label="Registration shortcuts">
+        <a className="public-auth-button public-auth-button-secondary" href="/docs">Docs</a>
+        <a className="public-auth-button public-auth-button-primary" href="/">Return</a>
+      </div>
+    );
+  }
+
   return (
     <div className="public-auth-register-actions" aria-label="Return to Boasted">
       <a className="public-auth-button public-auth-button-primary" href="/">Return</a>
