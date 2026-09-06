@@ -4,7 +4,6 @@ import {
   BriefcaseBusiness,
   FileStack,
   Palette,
-  Pin,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
