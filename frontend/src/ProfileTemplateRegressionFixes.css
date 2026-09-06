@@ -1,0 +1,83 @@
+/*
+ * Public profile template regression fixes.
+ *
+ * These selectors intentionally load after the app-wide UI foundation so
+ * template-specific composition wins without weakening global accessibility
+ * guardrails.
+ */
+
+/* Skill cards should size to their content, never become tall vertical pills. */
+.proof-portfolio .portfolio-skill-cloud > span {
+  min-height: 0;
+  height: auto;
+}
+
+.proof-portfolio .portfolio-skill-cloud strong {
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+/*
+ * Magnolia and Poppy put the skills section inside a 260–290px sidebar on
+ * desktop. The base three-column skill cloud is far too narrow there and can
+ * collapse the skill label to a few characters per line. Use a deliberate
+ * single-column stack while those sidebars are active.
+ */
+@media (min-width: 981px) {
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-skill-cloud,
+  .proof-portfolio[data-layout="modern-resume"] .portfolio-skill-cloud {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-skill-cloud > span,
+  .proof-portfolio[data-layout="modern-resume"] .portfolio-skill-cloud > span {
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-skill-cloud small,
+  .proof-portfolio[data-layout="modern-resume"] .portfolio-skill-cloud small {
+    flex: 0 1 auto;
+    white-space: normal;
+  }
+}
+
+/* Once the résumé sidebars stack, let the skills breathe in two columns. */
+@media (min-width: 641px) and (max-width: 980px) {
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-skill-cloud,
+  .proof-portfolio[data-layout="modern-resume"] .portfolio-skill-cloud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/*
+ * Lotus is a mosaic, but sparse proof cards should not become giant empty
+ * rectangles. Keep the mosaic spans while allowing each card to hug content.
+ */
+.proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-card,
+.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-card {
+  min-height: 0;
+  height: auto;
+  align-self: start;
+}
+
+.proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-card.featured {
+  min-height: 0;
+}
+
+/* Evidence rows should hug their links instead of inheriting excess track size. */
+.proof-portfolio .portfolio-evidence-list {
+  align-items: flex-start;
+  align-self: start;
+}
+
+.proof-portfolio .portfolio-evidence-list > a,
+.proof-portfolio .portfolio-evidence-list > span {
+  height: auto;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
