@@ -10,15 +10,66 @@ import {
 } from "./interviewEngine.js";
 import { rankImpactReceipts, scoreMeaningAlignment } from "./careerIntelligence.js";
 
-test("maps common careers to a career family while keeping an all-career fallback", () => {
-  assert.equal(inferCareerFamily("Registered Nurse"), "healthcare");
-  assert.equal(inferCareerFamily("Platform Support Engineer"), "technology");
-  assert.equal(inferCareerFamily("High School Teacher"), "education");
+test("maps common careers to profession specialties while keeping broad and all-career fallbacks", () => {
+  assert.equal(inferCareerFamily("Registered Nurse"), "nursing");
+  assert.equal(inferCareerFamily("Platform Engineer"), "devops_platform");
+  assert.equal(inferCareerFamily("High School Teacher"), "teaching_k12");
   assert.equal(inferCareerFamily("Funeral Director"), "management");
   assert.equal(inferCareerFamily("Professional Dog Walker"), "general");
 });
 
-test("builds an exact-length role-aware interview and can personalize from career proof", () => {
+test("recognizes profession-specific titles across major career areas", () => {
+  const cases = {
+    "Physician": "physician",
+    "Pharmacist": "pharmacy",
+    "Mental Health Counselor": "mental_health",
+    "Physical Therapist": "allied_health",
+    "Dentist": "dental",
+    "Software Engineer": "software_engineering",
+    "Cybersecurity Analyst": "cybersecurity",
+    "Data Analyst": "data_analytics",
+    "Technical Support Engineer": "it_support_network",
+    "Product Manager": "product_management",
+    "Project Manager": "project_program_management",
+    "Staff Accountant": "accounting",
+    "Financial Analyst": "financial_services",
+    "Account Executive": "sales",
+    "Customer Success Manager": "customer_success",
+    "Recruiter": "recruiting_hr",
+    "Marketing Manager": "marketing",
+    "UX Designer": "ux_design",
+    "Professor": "higher_education",
+    "Attorney": "legal_practice",
+    "Risk Analyst": "compliance_risk",
+    "Supply Chain Manager": "supply_chain_logistics",
+    "Quality Engineer": "manufacturing_quality",
+    "Mechanical Engineer": "engineering_nonsoftware",
+    "Electrician": "construction_trades",
+    "Auto Mechanic": "automotive",
+    "Chef": "hospitality_food",
+    "Store Manager": "retail",
+    "Police Officer": "public_safety",
+    "Social Worker": "social_work_nonprofit",
+    "Research Scientist": "science_research_lab",
+    "Executive Assistant": "administrative_office",
+    "Claims Adjuster": "insurance",
+    "Real Estate Agent": "real_estate",
+    "Truck Driver": "transportation",
+    "Agronomist": "agriculture",
+    "Veterinarian": "veterinary",
+    "Reporter": "media_journalism",
+    "Architect": "architecture",
+    "Grid Operator": "energy_utilities",
+    "Airline Pilot": "aviation",
+    "Chief Executive Officer": "executive_leadership",
+  };
+
+  for (const [role, expected] of Object.entries(cases)) {
+    assert.equal(inferCareerFamily(role), expected, role);
+  }
+});
+
+test("builds an exact-length interview with common, profession, job-description, and career-proof questions", () => {
   const plan = buildInterviewPlan({
     roleTitle: "Registered Nurse",
     careerArea: "Healthcare",
@@ -28,11 +79,27 @@ test("builds an exact-length role-aware interview and can personalize from caree
     receipts: [{ id: "r1", accomplishment: "Improved shift handoff documentation for the care team" }],
   });
 
-  assert.equal(plan.family, "healthcare");
+  assert.equal(plan.family, "nursing");
   assert.equal(plan.questions.length, 8);
   assert.ok(plan.questions.some((question) => question.source === "impact-receipt"));
   assert.ok(plan.questions.some((question) => question.source === "job-description"));
+  assert.ok(plan.questions.some((question) => /patient's condition changed|patient-care priorities/i.test(question.text)));
+  assert.ok(plan.questions.some((question) => /one strength you would bring to a Registered Nurse/i.test(question.text)));
   assert.ok(plan.questions.some((question) => question.text.includes("Registered Nurse")));
+});
+
+test("profession questions change materially with the target role", () => {
+  const nurse = buildInterviewPlan({ roleTitle: "Registered Nurse", questionCount: 5 });
+  const software = buildInterviewPlan({ roleTitle: "Software Engineer", questionCount: 5 });
+  const teacher = buildInterviewPlan({ roleTitle: "High School Teacher", questionCount: 5 });
+
+  assert.ok(nurse.questions.some((question) => /patient|shift|care/i.test(question.text)));
+  assert.ok(software.questions.some((question) => /software defect|technical tradeoff|code review/i.test(question.text)));
+  assert.ok(teacher.questions.some((question) => /lesson|students|classroom/i.test(question.text)));
+  assert.notDeepEqual(
+    nurse.questions.map((question) => question.text),
+    software.questions.map((question) => question.text),
+  );
 });
 
 test("ranks the strongest relevant Impact Receipt instead of taking the first one", () => {
