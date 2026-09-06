@@ -1,5 +1,8 @@
 name: CI PR
 
+# Protected-branch contexts are intentionally defined here; changing this
+# workflow triggers the full backend, frontend, and dependency validation set.
+
 on:
   pull_request:
     paths:

@@ -1,4 +1,8 @@
+import { PROFESSION_FAMILIES } from "./professionInterviewFamilies.js";
+
 export const CAREER_FAMILIES = {
+  // Put profession-level matches before broad families so exact titles win ties.
+  ...PROFESSION_FAMILIES,
   healthcare: {
     keywords: ["nurse", "nursing", "physician", "doctor", "medical", "healthcare", "therapist", "pharmacy", "pharmacist", "dental", "patient", "clinical", "caregiver", "emt", "paramedic"],
     competencies: ["judgment", "communication", "teamwork", "safety", "empathy", "prioritization"],
@@ -9,7 +13,7 @@ export const CAREER_FAMILIES = {
     ],
   },
   technology: {
-    keywords: ["software", "developer", "engineer", "devops", "platform", "cloud", "security", "cyber", "data", "database", "docker", "kubernetes", "support engineer", "systems", "network", "it ", "programmer"],
+    keywords: ["software", "developer", "devops", "cloud", "security", "cyber", "data", "database", "docker", "kubernetes", "systems", "network", "programmer", "information technology"],
     competencies: ["problem_solving", "ownership", "communication", "reliability", "learning", "prioritization"],
     roleQuestions: [
       "Walk me through a difficult technical problem you diagnosed and how you narrowed down the cause.",
@@ -18,7 +22,7 @@ export const CAREER_FAMILIES = {
     ],
   },
   education: {
-    keywords: ["teacher", "education", "educator", "professor", "instructor", "school", "principal", "tutor", "counselor", "student"],
+    keywords: ["teacher", "education", "educator", "professor", "instructor", "school", "principal", "tutor", "student"],
     competencies: ["communication", "adaptability", "planning", "empathy", "leadership", "assessment"],
     roleQuestions: [
       "Tell me about a time you adapted your approach because someone was not learning or responding as expected.",
@@ -27,7 +31,7 @@ export const CAREER_FAMILIES = {
     ],
   },
   finance: {
-    keywords: ["accountant", "accounting", "finance", "financial", "bank", "banking", "analyst", "auditor", "investment", "payroll", "bookkeeper", "controller"],
+    keywords: ["accounting", "finance", "financial", "bank", "banking", "auditor", "investment", "payroll", "bookkeeper", "controller"],
     competencies: ["accuracy", "judgment", "communication", "analysis", "integrity", "prioritization"],
     roleQuestions: [
       "Tell me about a time you found an error, risk, or inconsistency that others had missed.",
@@ -36,7 +40,7 @@ export const CAREER_FAMILIES = {
     ],
   },
   sales: {
-    keywords: ["sales", "account executive", "business development", "recruiter", "recruiting", "customer success", "real estate", "agent", "fundraising"],
+    keywords: ["sales", "account executive", "business development", "customer success", "real estate", "agent", "fundraising"],
     competencies: ["communication", "influence", "resilience", "customer_focus", "planning", "results"],
     roleQuestions: [
       "Tell me about a time you earned trust with a difficult or hesitant customer, client, or stakeholder.",
@@ -111,16 +115,24 @@ export const CAREER_FAMILIES = {
 
 export const CORE_QUESTIONS = [
   { id: "intro-role", competency: "motivation", types: ["mixed", "behavioral", "role-specific", "leadership"], text: "Walk me through your background and what makes you interested in this {role} opportunity." },
+  { id: "why-role", competency: "motivation", types: ["mixed", "behavioral", "role-specific"], text: "Why this {role} role now, and what specifically are you looking for in your next opportunity?" },
   { id: "achievement", competency: "results", types: ["mixed", "behavioral", "role-specific", "leadership"], text: "What accomplishment are you most proud of that is relevant to a {role} role? What made it meaningful?" },
+  { id: "strength", competency: "role_alignment", types: ["mixed", "behavioral", "role-specific"], text: "What is one strength you would bring to a {role} position, and what real example best proves it?" },
+  { id: "growth-area", competency: "self_awareness", types: ["mixed", "behavioral", "leadership"], text: "What is a professional skill or habit you have been actively improving? What have you done to get better at it?" },
   { id: "problem", competency: "problem_solving", types: ["mixed", "behavioral", "role-specific"], text: "Tell me about a difficult problem you faced at work. What did you personally do, and what happened afterward?" },
   { id: "priority", competency: "prioritization", types: ["mixed", "behavioral", "role-specific", "leadership"], text: "Describe a time you had several important priorities competing for your attention. How did you decide what to do first?" },
+  { id: "deadline", competency: "execution", types: ["mixed", "behavioral", "role-specific"], text: "Tell me about a time a deadline or commitment was at risk. What did you do to protect the outcome?" },
   { id: "conflict", competency: "communication", types: ["mixed", "behavioral", "leadership"], text: "Tell me about a disagreement with a coworker, customer, manager, or stakeholder. How did you handle it?" },
   { id: "failure", competency: "learning", types: ["mixed", "behavioral", "leadership"], text: "Tell me about something that did not go as planned. What did you learn, and what did you change afterward?" },
+  { id: "change", competency: "adaptability", types: ["mixed", "behavioral", "role-specific", "leadership"], text: "Describe a significant change in priorities, tools, process, or expectations. How did you adapt?" },
   { id: "ownership", competency: "ownership", types: ["mixed", "behavioral", "role-specific", "leadership"], text: "Give me an example of a time you took ownership of something beyond simply completing the task you were given." },
   { id: "teamwork", competency: "teamwork", types: ["mixed", "behavioral", "role-specific"], text: "Tell me about a time collaboration was essential to getting a good result. What was your contribution?" },
+  { id: "stakeholder", competency: "communication", types: ["mixed", "behavioral", "role-specific", "leadership"], text: "Tell me about a time you had to earn trust with a difficult customer, patient, student, client, or stakeholder." },
   { id: "feedback", competency: "learning", types: ["mixed", "behavioral", "leadership"], text: "Describe a piece of difficult feedback you received and what you did with it." },
   { id: "leadership", competency: "leadership", types: ["mixed", "leadership"], text: "Tell me about a time you influenced an outcome even when you did not have formal authority over everyone involved." },
   { id: "decision", competency: "decision_making", types: ["mixed", "role-specific", "leadership"], text: "Describe an important decision you made with incomplete information. How did you evaluate the tradeoffs?" },
+  { id: "integrity", competency: "integrity", types: ["mixed", "behavioral", "role-specific", "leadership"], text: "Tell me about a time doing the right thing was less convenient than the easier option. How did you handle it?" },
+  { id: "learning-new", competency: "learning", types: ["mixed", "behavioral", "role-specific"], text: "Tell me about a time you had to learn something unfamiliar quickly in order to perform well." },
   { id: "closing", competency: "motivation", types: ["mixed", "behavioral", "role-specific", "leadership"], text: "Why should we choose you for this {role} role, and what would you hope to contribute first?" },
 ];
 
