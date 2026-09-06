@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
 
-from app.auth_routes import PROFILE_THEMES, ProfileUpdateRequest
+from app.auth_routes import PROFILE_LAYOUTS, PROFILE_THEMES, ProfileUpdateRequest
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -37,3 +37,19 @@ def test_newer_profile_themes_are_part_of_the_persistence_contract():
         "studio",
         "research",
     } <= PROFILE_THEMES
+
+
+def test_professional_profile_layouts_are_persisted():
+    assert PROFILE_LAYOUTS == {"editorial", "executive-sidebar", "career-timeline", "studio-split"}
+    for layout_id in PROFILE_LAYOUTS:
+        payload = ProfileUpdateRequest(profile_layout=layout_id)
+        assert payload.profile_layout == layout_id
+
+
+def test_structured_profile_sections_validate():
+    payload = ProfileUpdateRequest(
+        work_history=[{"role": "Support Engineer", "company": "Example Co"}],
+        profile_projects=[{"name": "Impact system", "skills": ["Docker", "FastAPI"]}],
+    )
+    assert payload.work_history[0].role == "Support Engineer"
+    assert payload.profile_projects[0].skills == ["Docker", "FastAPI"]
