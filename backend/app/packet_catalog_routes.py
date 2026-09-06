@@ -13,14 +13,14 @@ from app.auth import get_current_user
 from app.certification_packet_routes import _build_certification_packet
 from app.interview_packet_routes import _build_interview_packet
 from app.packet_audit import record_packet_export, record_packet_generation
-from app.packet_document_exports import (
-    DOCX_MIME,
-    build_career_packet_docx,
-    build_career_packet_pdf,
-    make_career_packet_filename,
-)
+from app.packet_document_exports import DOCX_MIME, make_career_packet_filename
 from app.packet_platform import apply_packet_platform
 from app.packet_platform_routes import _signature_candidates, build_platform_packet
+from app.packet_reviewer_exports import (
+    build_reviewable_career_packet_docx,
+    build_reviewable_career_packet_pdf,
+    reviewer_guide_for_packet,
+)
 from app.performance_packet_routes import _build_packet, _clean_string, _parse_period
 from app.plans import require_feature
 from app.promotion_packet_routes import _build_promotion_packet
@@ -419,12 +419,13 @@ def build_catalog_packet(packet_type: str, payload: PacketCatalogRequest, curren
         "scorecard_intro": spec["scorecard_intro"],
         "highlight_label": spec["highlight_label"],
     }
+    packet["reviewer_guide"] = reviewer_guide_for_packet(packet_type)
     return packet
 
 
 def _pdf_response(packet: dict[str, Any], current_user: dict):
     require_feature(current_user, "export_pdf")
-    pdf_bytes = build_career_packet_pdf(packet)
+    pdf_bytes = build_reviewable_career_packet_pdf(packet)
     filename = make_career_packet_filename(packet, "pdf")
     record_packet_export(
         user_id=str(current_user["_id"]),
@@ -445,7 +446,7 @@ def _pdf_response(packet: dict[str, Any], current_user: dict):
 
 def _docx_response(packet: dict[str, Any], current_user: dict):
     require_feature(current_user, "export_pdf")
-    docx_bytes = build_career_packet_docx(packet)
+    docx_bytes = build_reviewable_career_packet_docx(packet)
     filename = make_career_packet_filename(packet, "docx")
     return StreamingResponse(
         io.BytesIO(docx_bytes),
