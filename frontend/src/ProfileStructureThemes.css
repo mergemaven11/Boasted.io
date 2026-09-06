@@ -87,3 +87,72 @@
   .proof-portfolio[data-layout="editorial"] .portfolio-work-grid { grid-template-columns:1fr; }
   .proof-portfolio[data-layout="studio-split"] .portfolio-hero { min-height:0; }
 }
+
+/* Minimal Column */
+.proof-portfolio[data-layout="minimal-column"] .proof-profile-inner{max-width:860px}
+.proof-portfolio[data-layout="minimal-column"] .portfolio-hero{grid-template-columns:1fr;text-align:center;padding:80px 24px}
+.proof-portfolio[data-layout="minimal-column"] .portfolio-avatar,.proof-portfolio[data-layout="minimal-column"] .proof-actions{margin-left:auto;margin-right:auto}
+.proof-portfolio[data-layout="minimal-column"] .portfolio-proof-passport{margin-top:28px;text-align:left}
+.proof-portfolio[data-layout="minimal-column"] .portfolio-impact-grid,.proof-portfolio[data-layout="minimal-column"] .portfolio-work-grid,.proof-portfolio[data-layout="minimal-column"] .portfolio-career-grid{grid-template-columns:1fr}
+
+/* Portfolio Grid */
+.proof-portfolio[data-layout="portfolio-grid"] .portfolio-hero{grid-template-columns:1fr 1fr}
+.proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-grid,.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-card.featured{grid-column:span 2;grid-row:span 2}
+.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-card{min-height:360px;display:flex;flex-direction:column}
+.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-card .proof-chips{margin-top:auto}
+
+/* Case Study */
+.proof-portfolio[data-layout="case-study"] .proof-profile-inner{max-width:1040px}
+.proof-portfolio[data-layout="case-study"] .portfolio-hero{grid-template-columns:1fr;padding:96px 0 64px;border-bottom:1px solid var(--profile-line)}
+.proof-portfolio[data-layout="case-study"] .portfolio-proof-passport{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.proof-portfolio[data-layout="case-study"] .portfolio-impact-grid,.proof-portfolio[data-layout="case-study"] .portfolio-work-grid{grid-template-columns:1fr}
+.proof-portfolio[data-layout="case-study"] .portfolio-impact-card,.proof-portfolio[data-layout="case-study"] .portfolio-work-card{padding:clamp(28px,5vw,58px)}
+.proof-portfolio[data-layout="case-study"] .portfolio-work-card-head{max-width:720px}
+
+/* Modern Résumé */
+.proof-portfolio[data-layout="modern-resume"] .portfolio-hero{grid-template-columns:2fr 1fr;border-radius:0;border-top:6px solid var(--theme-accent)}
+.proof-portfolio[data-layout="modern-resume"] .portfolio-career-grid{grid-template-columns:1fr}
+.proof-portfolio[data-layout="modern-resume"] .portfolio-work-grid{grid-template-columns:1fr 1fr}
+.proof-portfolio[data-layout="modern-resume"] .portfolio-section{border-radius:0;border-left-width:4px}
+.proof-portfolio[data-layout="modern-resume"] .portfolio-section-heading{border-bottom:2px solid var(--profile-line);padding-bottom:18px}
+
+/* Command Center */
+.proof-portfolio[data-layout="command-center"]{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
+.proof-portfolio[data-layout="command-center"] .proof-profile-inner{max-width:1260px}
+.proof-portfolio[data-layout="command-center"] .portfolio-hero{border-radius:4px;border-color:var(--theme-accent)}
+.proof-portfolio[data-layout="command-center"] .portfolio-section,.proof-portfolio[data-layout="command-center"] .portfolio-impact-card,.proof-portfolio[data-layout="command-center"] .portfolio-work-card{border-radius:3px;background:color-mix(in srgb,var(--theme-bg) 94%,#0f172a)}
+.proof-portfolio[data-layout="command-center"] .portfolio-section-heading{border-bottom:1px dashed var(--profile-line)}
+.proof-portfolio[data-layout="command-center"] .portfolio-impact-grid,.proof-portfolio[data-layout="command-center"] .portfolio-work-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+/* Academic */
+.proof-portfolio[data-layout="academic"]{--profile-muted:#475569;background:#f6f7f8!important;color:#172033}
+.proof-portfolio[data-layout="academic"] .proof-profile-inner{max-width:1000px}
+.proof-portfolio[data-layout="academic"] .portfolio-hero,.proof-portfolio[data-layout="academic"] .portfolio-section,.proof-portfolio[data-layout="academic"] .portfolio-impact-card,.proof-portfolio[data-layout="academic"] .portfolio-work-card,.proof-portfolio[data-layout="academic"] .portfolio-proof-passport{background:#fff;color:#172033;border-color:#cbd5e1;border-radius:0}
+.proof-portfolio[data-layout="academic"] h1,.proof-portfolio[data-layout="academic"] h2,.proof-portfolio[data-layout="academic"] h3{font-family:Georgia,"Times New Roman",serif;color:#172033}
+.proof-portfolio[data-layout="academic"] p{color:#334155}
+.proof-portfolio[data-layout="academic"] .portfolio-career-grid{grid-template-columns:1fr}
+
+/* Founder */
+.proof-portfolio[data-layout="founder"] .portfolio-hero{min-height:560px;align-items:center;background:linear-gradient(135deg,color-mix(in srgb,var(--theme-accent) 12%,var(--theme-bg)),var(--theme-bg))}
+.proof-portfolio[data-layout="founder"] .portfolio-identity h1{font-size:clamp(3.5rem,8vw,7.2rem)}
+.proof-portfolio[data-layout="founder"] .portfolio-proof-number strong{font-size:clamp(4rem,8vw,7rem)}
+.proof-portfolio[data-layout="founder"] .portfolio-impact-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.proof-portfolio[data-layout="founder"] .portfolio-impact-card.featured{grid-column:span 2}
+
+/* Compact */
+.proof-portfolio[data-layout="compact"] .proof-profile-inner{max-width:920px}
+.proof-portfolio[data-layout="compact"] .portfolio-hero{padding:30px;gap:24px}
+.proof-portfolio[data-layout="compact"] .portfolio-identity h1{font-size:clamp(2.4rem,6vw,4.4rem)}
+.proof-portfolio[data-layout="compact"] .portfolio-section{padding:26px;margin-top:14px}
+.proof-portfolio[data-layout="compact"] .portfolio-impact-grid,.proof-portfolio[data-layout="compact"] .portfolio-work-grid{grid-template-columns:1fr 1fr;gap:12px}
+.proof-portfolio[data-layout="compact"] .portfolio-impact-card,.proof-portfolio[data-layout="compact"] .portfolio-work-card{padding:18px}
+
+@media(max-width:860px){
+ .proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-grid,.proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-grid,.proof-portfolio[data-layout="command-center"] .portfolio-impact-grid,.proof-portfolio[data-layout="command-center"] .portfolio-work-grid,.proof-portfolio[data-layout="founder"] .portfolio-impact-grid{grid-template-columns:1fr}
+ .proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-card.featured,.proof-portfolio[data-layout="founder"] .portfolio-impact-card.featured{grid-column:auto;grid-row:auto}
+}
+@media(max-width:620px){
+ .proof-portfolio[data-layout="modern-resume"] .portfolio-hero,.proof-portfolio[data-layout="portfolio-grid"] .portfolio-hero{grid-template-columns:1fr}
+ .proof-portfolio[data-layout="modern-resume"] .portfolio-work-grid,.proof-portfolio[data-layout="compact"] .portfolio-impact-grid,.proof-portfolio[data-layout="compact"] .portfolio-work-grid{grid-template-columns:1fr}
+}
