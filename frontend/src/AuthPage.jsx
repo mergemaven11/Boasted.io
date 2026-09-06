@@ -306,7 +306,7 @@ function AuthPage({ mode = "login", onLogin }) {
             </div>
           )}
 
-          {isRegister && <label className="auth-field">Name<div><UserPlus size={17} /><input name="name" value={formData.name} onChange={handleChange} placeholder="Tee" required /></div></label>}
+          {isRegister && <label className="auth-field">Name<div><UserPlus size={17} /><input name="name" value={formData.name} onChange={handleChange} placeholder="Jordan Lee" required /></div></label>}
           <label className="auth-field">Email<div><Mail size={17} /><input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required /></div></label>
           <label className="auth-field">Password<div><Lock size={17} /><input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" minLength={8} required /></div></label>
 
