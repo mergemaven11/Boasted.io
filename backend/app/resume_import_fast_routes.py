@@ -9,7 +9,7 @@ from starlette.concurrency import run_in_threadpool
 from app.auth import get_current_user
 from app.plans import require_feature
 from app.resume_builder_routes import MAX_RESUME_BYTES, MAX_RESUME_PAGES
-from app.resume_import_parser import parse_existing_resume_text
+from app.resume_import_parser_v2 import parse_existing_resume_text
 
 router = APIRouter(prefix="/resume-builder", tags=["resume-builder"])
 
@@ -90,6 +90,8 @@ def _parse_file(filename: str, content_type: str, data: bytes) -> dict:
         "experience": parsed.get("experience", []),
         "parse_warnings": parsed.get("parse_warnings", []),
         "source_signals": parsed.get("source_signals", {}),
+        "field_confidence": parsed.get("field_confidence", {}),
+        "parse_quality": parsed.get("parse_quality", {}),
         "line_count": parsed["line_count"],
     }
 
