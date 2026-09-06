@@ -61,7 +61,7 @@ function ProfilePage() {
   const [photoBusy,setPhotoBusy]=useState(false);
   const [error,setError]=useState("");
 
-  useEffect(()=>{let active=true; async function load(){try{const[data,connectionData]=await Promise.all([getCurrentUser(),getProfileConnection()]);if(!active)return;setUser(data);setForm({...EMPTY_PROFILE,...data});setConnection({...EMPTY_CONNECTION,...connectionData});}catch(e){if(e.response?.status===401){localStorage.removeItem("bragstack_token");window.location.assign("/login");return;}if(active)setError("Your profile could not be loaded.");}finally{if(active)setLoading(false);}}void load();return()=>{active=false}},[]);
+  useEffect(()=>{let active=true; async function load(){try{const[data,connectionData]=await Promise.all([getCurrentUser(),getProfileConnection()]);if(!active)return;setUser(data);setForm({...EMPTY_PROFILE,...data,work_history:Array.isArray(data.work_history)?data.work_history:[],profile_projects:Array.isArray(data.profile_projects)?data.profile_projects:[]});setConnection({...EMPTY_CONNECTION,...connectionData});}catch(e){if(e.response?.status===401){localStorage.removeItem("bragstack_token");window.location.assign("/login");return;}if(active)setError("Your profile could not be loaded.");}finally{if(active)setLoading(false);}}void load();return()=>{active=false}},[]);
 
   function handleChange(e){const{name,value}=e.target;setForm(c=>({...c,[name]:value}));}
   function handleConnectionChange(e){const{name,type,checked}=e.target;setConnection(c=>({...c,[name]:type==="checkbox"?checked:e.target.value}));}
