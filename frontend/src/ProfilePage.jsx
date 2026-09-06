@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, ExternalLink, ImagePlus, MessageSquare, Save, Trash2, UserRound } from "lucide-react";
+import { ArrowLeft, BriefcaseBusiness, ExternalLink, FolderKanban, ImagePlus, MessageSquare, Plus, Save, Trash2, UserRound } from "lucide-react";
 import BragStackLoader from "./BragStackLoader.jsx";
 import { getCurrentUser, updateCurrentUserProfile } from "./api";
 import { getProfileConnection, updateProfileConnection } from "./profileConnectionApi";
 import { updateProfileAvatar } from "./profileApi";
 import "./ProfilePage.css";
 
-const EMPTY_PROFILE = { name:"",headline:"",bio:"",location:"",avatar_url:"",github_url:"",portfolio_url:"",resume_url:"" };
+const EMPTY_PROFILE = { name:"",headline:"",bio:"",location:"",avatar_url:"",github_url:"",portfolio_url:"",resume_url:"",work_history:[],profile_projects:[] };
+const NEW_ROLE = () => ({role:"",company:"",location:"",start_date:"",end_date:"",summary:""});
+const NEW_PROJECT = () => ({name:"",role:"",url:"",summary:"",skills:[]});
 const EMPTY_CONNECTION = { open_to_talk:false,open_to_talk_note:"",open_to_talk_types:[] };
 const CONVERSATION_TYPES = [
   ["general-chat","General chat","Open conversation"],
@@ -63,6 +65,9 @@ function ProfilePage() {
 
   function handleChange(e){const{name,value}=e.target;setForm(c=>({...c,[name]:value}));}
   function handleConnectionChange(e){const{name,type,checked}=e.target;setConnection(c=>({...c,[name]:type==="checkbox"?checked:e.target.value}));}
+  function updateList(listName,index,field,value){setForm(current=>({...current,[listName]:current[listName].map((item,itemIndex)=>itemIndex===index?{...item,[field]:value}:item)}));}
+  function addListItem(listName,item){setForm(current=>({...current,[listName]:[...current[listName],item]}));}
+  function removeListItem(listName,index){setForm(current=>({...current,[listName]:current[listName].filter((_,itemIndex)=>itemIndex!==index)}));}
   function toggleConversationType(value){setConnection(c=>({...c,open_to_talk_types:c.open_to_talk_types.includes(value)?c.open_to_talk_types.filter(item=>item!==value):[...c.open_to_talk_types,value]}));}
 
   async function handlePhotoFile(event){
@@ -82,6 +87,8 @@ function ProfilePage() {
       const profileFields={
         name:form.name,headline:form.headline,bio:form.bio,location:form.location,
         github_url:form.github_url,portfolio_url:form.portfolio_url,resume_url:form.resume_url,
+        work_history:form.work_history.filter(item=>item.role.trim()),
+        profile_projects:form.profile_projects.filter(item=>item.name.trim()).map(item=>({...item,skills:Array.isArray(item.skills)?item.skills:String(item.skills||"").split(",").map(skill=>skill.trim()).filter(Boolean)})),
       };
       const savedProfile=await updateCurrentUserProfile(profileFields);
       const savedConnection=await updateProfileConnection({
@@ -117,6 +124,16 @@ function ProfilePage() {
         <label>Portfolio URL<input type="url" name="portfolio_url" value={form.portfolio_url} onChange={handleChange} placeholder="https://..."/></label>
         <label className="profile-wide profile-resume-field"><span>Resume URL</span><small className="profile-share-note">Before saving: make sure this résumé link is viewable by anyone with the link. Private Google Docs/Drive links can show visitors a permission error.</small><input type="url" name="resume_url" value={form.resume_url} onChange={handleChange} placeholder="https://..."/></label>
       </div>
+
+      <section className="profile-career-editor">
+        <div className="appearance-heading"><div><p className="profile-settings-eyebrow"><BriefcaseBusiness size={14}/> Career story</p><h2>Work history</h2><p>Add the roles that give context to your accomplishments. Only completed entries are shown publicly.</p></div><button type="button" className="profile-add-button" onClick={()=>addListItem("work_history",NEW_ROLE())}><Plus size={15}/> Add position</button></div>
+        {form.work_history.length===0?<div className="profile-editor-empty">No positions added yet.</div>:<div className="profile-repeat-list">{form.work_history.map((item,index)=><article className="profile-repeat-card" key={`role-${index}`}><div className="profile-repeat-head"><strong>Position {index+1}</strong><button type="button" onClick={()=>removeListItem("work_history",index)} aria-label={`Remove position ${index+1}`}><Trash2 size={14}/></button></div><div className="profile-form-grid"><label>Role<input value={item.role} onChange={e=>updateList("work_history",index,"role",e.target.value)} placeholder="Platform Support Engineer"/></label><label>Company<input value={item.company} onChange={e=>updateList("work_history",index,"company",e.target.value)} placeholder="Company name"/></label><label>Start<input value={item.start_date} onChange={e=>updateList("work_history",index,"start_date",e.target.value)} placeholder="May 2024"/></label><label>End<input value={item.end_date} onChange={e=>updateList("work_history",index,"end_date",e.target.value)} placeholder="Present"/></label><label className="profile-wide">Location<input value={item.location} onChange={e=>updateList("work_history",index,"location",e.target.value)} placeholder="Remote or Atlanta, GA"/></label><label className="profile-wide">Role summary<textarea value={item.summary} onChange={e=>updateList("work_history",index,"summary",e.target.value)} rows={4} placeholder="Scope, responsibilities, and the kind of problems you owned."/></label></div></article>)}</div>}
+      </section>
+
+      <section className="profile-career-editor">
+        <div className="appearance-heading"><div><p className="profile-settings-eyebrow"><FolderKanban size={14}/> Selected work</p><h2>Projects</h2><p>Add projects that deserve their own context alongside your searchable proof.</p></div><button type="button" className="profile-add-button" onClick={()=>addListItem("profile_projects",NEW_PROJECT())}><Plus size={15}/> Add project</button></div>
+        {form.profile_projects.length===0?<div className="profile-editor-empty">No projects added yet.</div>:<div className="profile-repeat-list">{form.profile_projects.map((item,index)=><article className="profile-repeat-card" key={`project-${index}`}><div className="profile-repeat-head"><strong>Project {index+1}</strong><button type="button" onClick={()=>removeListItem("profile_projects",index)} aria-label={`Remove project ${index+1}`}><Trash2 size={14}/></button></div><div className="profile-form-grid"><label>Project name<input value={item.name} onChange={e=>updateList("profile_projects",index,"name",e.target.value)} placeholder="BragStack"/></label><label>Your role<input value={item.role} onChange={e=>updateList("profile_projects",index,"role",e.target.value)} placeholder="Founder · Engineer"/></label><label className="profile-wide">Project URL<input type="url" value={item.url} onChange={e=>updateList("profile_projects",index,"url",e.target.value)} placeholder="https://..."/></label><label className="profile-wide">Summary<textarea value={item.summary} onChange={e=>updateList("profile_projects",index,"summary",e.target.value)} rows={4} placeholder="What you built, why it mattered, and your contribution."/></label><label className="profile-wide">Skills<input value={Array.isArray(item.skills)?item.skills.join(", "):item.skills} onChange={e=>updateList("profile_projects",index,"skills",e.target.value)} placeholder="React, FastAPI, Docker"/></label></div></article>)}</div>}
+      </section>
 
       <section className="appearance-section"><div className="appearance-heading"><div><p className="profile-settings-eyebrow"><MessageSquare size={14}/> Connection</p><h2>Open to Talk</h2><p>Choose the kinds of conversations you welcome. Calendly scheduling is configured once under <strong>Settings → Integrations</strong>.</p></div></div>
         <div className="profile-form-grid">
