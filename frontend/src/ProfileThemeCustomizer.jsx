@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getCurrentUser, updateCurrentUserProfile } from "./api";
-import { PROFILE_THEMES as THEME_OBJECTS } from "./profileThemes";
+import { PROFILE_LAYOUTS, PROFILE_THEMES as THEME_OBJECTS } from "./profileThemes";
 
 const PROFILE_THEMES = THEME_OBJECTS.map((theme) => [theme.id, theme.name]);
 const THEME_COLORS = Object.fromEntries(THEME_OBJECTS.map((theme) => [theme.id, [theme.primary, theme.secondary, theme.background]]));
@@ -48,7 +48,7 @@ export default function ProfileThemeCustomizer({ publicSlug, profile, onSaved })
       const updated = await updateCurrentUserProfile({
         name: form.name, headline: form.headline || "", bio: form.bio || "", location: form.location || "",
         github_url: form.github_url || "", portfolio_url: form.portfolio_url || "", resume_url: form.resume_url || "",
-        profile_theme: form.profile_theme, profile_primary_color: form.profile_primary_color,
+        profile_theme: form.profile_theme, profile_layout: form.profile_layout || "editorial", profile_primary_color: form.profile_primary_color,
         profile_secondary_color: form.profile_secondary_color, profile_background_color: form.profile_background_color,
       });
       setOwner(updated); setForm({ ...updated }); onSaved?.(updated); setOpen(false);
@@ -59,6 +59,11 @@ export default function ProfileThemeCustomizer({ publicSlug, profile, onSaved })
     <button type="button" className="proof-action primary" onClick={() => setOpen(!open)}>🎨 Customize profile</button>
     {open && <div className="theme-customizer" style={previewStyle}>
       <div className="theme-customizer-heading"><div><strong>Make this Proof Profile yours</strong><p>Choose a career-inspired theme, then customize all three colors.</p></div></div>
+      <div className="profile-layout-heading"><strong>Choose a profile structure</strong><p>Structure controls the composition. Colors are selected separately below.</p></div>
+      <div className="profile-layout-gallery">
+        {PROFILE_LAYOUTS.map((layout) => <button type="button" key={layout.id} className={form.profile_layout===layout.id||(!form.profile_layout&&layout.id==="editorial")?"selected":""} onClick={() => setValue("profile_layout",layout.id)}><span className={`layout-thumbnail layout-thumbnail-${layout.id}`} aria-hidden="true"><i/><i/><i/></span><strong>{layout.name}</strong><small>{layout.description}</small></button>)}
+      </div>
+      <div className="profile-layout-heading"><strong>Choose a color palette</strong><p>Start with a curated palette, then fine-tune all three colors.</p></div>
       <div className="theme-gallery">
         {PROFILE_THEMES.map(([id,label]) => <button type="button" key={id} className={form.profile_theme===id?"selected":""} onClick={() => chooseTheme(id)}>{label}</button>)}
       </div>
@@ -70,3 +75,4 @@ export default function ProfileThemeCustomizer({ publicSlug, profile, onSaved })
     </div>}
   </div>;
 }
+

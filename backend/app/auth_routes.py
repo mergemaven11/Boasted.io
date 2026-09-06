@@ -48,6 +48,7 @@ PROFILE_THEMES = {
     "research",
 }
 HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
+PROFILE_LAYOUTS = {"editorial", "executive-sidebar", "career-timeline", "studio-split", "minimal-column", "portfolio-grid", "case-study", "modern-resume", "command-center", "academic", "founder", "compact"}
 PROFILE_TEXT_FIELDS = {"name", "headline", "bio", "location", "github_url", "portfolio_url", "resume_url"}
 PROFILE_COLOR_FIELDS = {"profile_primary_color", "profile_secondary_color", "profile_background_color"}
 
@@ -77,6 +78,23 @@ class PasswordResetConfirm(BaseModel):
     password: str = Field(..., min_length=8, max_length=256)
 
 
+class WorkExperienceItem(BaseModel):
+    role: str = Field(..., min_length=1, max_length=120)
+    company: str = Field(default="", max_length=120)
+    location: str = Field(default="", max_length=100)
+    start_date: str = Field(default="", max_length=30)
+    end_date: str = Field(default="", max_length=30)
+    summary: str = Field(default="", max_length=800)
+
+
+class ProfileProjectItem(BaseModel):
+    name: str = Field(..., min_length=1, max_length=120)
+    role: str = Field(default="", max_length=120)
+    url: str = Field(default="", max_length=300)
+    summary: str = Field(default="", max_length=800)
+    skills: list[str] = Field(default_factory=list, max_length=12)
+
+
 class ProfileUpdateRequest(BaseModel):
     """Partial profile patch; omitted fields are never cleared."""
 
@@ -88,6 +106,9 @@ class ProfileUpdateRequest(BaseModel):
     portfolio_url: str | None = Field(default=None, max_length=300)
     resume_url: str | None = Field(default=None, max_length=300)
     profile_theme: str | None = None
+    profile_layout: str | None = None
+    work_history: list[WorkExperienceItem] | None = Field(default=None, max_length=12)
+    profile_projects: list[ProfileProjectItem] | None = Field(default=None, max_length=12)
     profile_primary_color: str | None = None
     profile_secondary_color: str | None = None
     profile_background_color: str | None = None
@@ -97,6 +118,22 @@ class ProfileUpdateRequest(BaseModel):
     def valid_theme(cls, value):
         if value is not None and value not in PROFILE_THEMES:
             raise ValueError("Unknown profile theme")
+        return value
+
+    @field_validator("profile_layout")
+    @classmethod
+    def valid_layout(cls, value):
+        if value is not None and value not in PROFILE_LAYOUTS:
+            raise ValueError("Unknown profile layout")
+        return value
+
+    @field_validator("profile_projects")
+    @classmethod
+    def valid_project_urls(cls, value):
+        for project in value or []:
+            if project.url and not project.url.startswith(("http://", "https://")):
+                raise ValueError("Project URLs must start with http:// or https://")
+            project.skills = [skill.strip()[:60] for skill in project.skills if skill.strip()]
         return value
 
     @field_validator("profile_primary_color", "profile_secondary_color", "profile_background_color")
