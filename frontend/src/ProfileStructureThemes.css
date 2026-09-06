@@ -5,6 +5,8 @@
   --profile-line: color-mix(in srgb, var(--theme-accent) 20%, #94a3b8);
   --profile-muted: #aab5c7;
 }
+.proof-portfolio .portfolio-avatar { overflow:hidden; }
+.proof-portfolio .portfolio-avatar img { display:block; width:100%; height:100%; object-fit:cover; }
 .proof-portfolio .portfolio-section,
 .proof-portfolio .portfolio-proof-passport,
 .proof-portfolio .portfolio-impact-card,
