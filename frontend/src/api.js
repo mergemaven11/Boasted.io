@@ -267,7 +267,7 @@ export async function downloadCareerPacket(packet, format = "pdf") {
   return downloadPacketFile(
     `/packets/catalog/${encodeURIComponent(packetType)}.${safeFormat}`,
     packet,
-    `bragstack-${packetType}.${safeFormat}`,
+    `boasted-${packetType}.${safeFormat}`,
   );
 }
 export async function downloadPerformancePacketPdf(packet) { return downloadCareerPacket(packet, "pdf"); }
