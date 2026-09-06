@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import BragStackLoader from "./BragStackLoader.jsx";
 import "./CareerIntelligencePage.css";
+import "./CareerIntelligenceActions.css";
 
 const SKILLS_PER_PAGE = 6;
 
