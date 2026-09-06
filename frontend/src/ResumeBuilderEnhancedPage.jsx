@@ -4,6 +4,7 @@ import { LayoutTemplate, X } from "lucide-react";
 import ResumeBuilderStructuredPage from "./ResumeBuilderStructuredPage.jsx";
 import ResumeTemplateLibrary from "./ResumeTemplateLibrary.jsx";
 import { DEFAULT_RESUME_TEMPLATE_ID, getResumeTemplate } from "./resumeTemplates.js";
+import "./ResumeBuilderEnhancedPage.css";
 
 const STORAGE_KEY = "boasted_resume_template_v1";
 
