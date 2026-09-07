@@ -1,3 +1,5 @@
+import pytest
+
 from app import student_opportunity_routes as opportunity
 
 
@@ -112,3 +114,38 @@ def test_audit_event_never_logs_query_location_or_credentials(monkeypatch):
     assert document["safeguards"]["api_credentials_logged"] is False
     assert document["safeguards"]["upstream_records_persisted"] is False
     assert "api_key" not in repr(document).lower()
+
+
+def test_required_audit_event_fails_closed_when_receipt_cannot_be_written(monkeypatch):
+    def fail_write(_document):
+        raise RuntimeError("database unavailable")
+
+    monkeypatch.setattr(opportunity.education_source_audit_events_collection, "insert_one", fail_write)
+
+    with pytest.raises(opportunity.HTTPException) as exc_info:
+        opportunity._audit_event(
+            provider="College Scorecard",
+            operation="program_search",
+            outcome="attempt",
+            request_id="req-audit-fail",
+            required=True,
+        )
+
+    assert exc_info.value.status_code == 503
+    assert exc_info.value.detail["code"] == "education_source_audit_unavailable"
+
+
+def test_source_configuration_gates_require_server_side_credentials(monkeypatch):
+    monkeypatch.setattr(opportunity, "COLLEGE_SCORECARD_API_KEY", "")
+    monkeypatch.setattr(opportunity, "USAJOBS_API_KEY", "")
+    monkeypatch.setattr(opportunity, "USAJOBS_USER_AGENT", "")
+    assert opportunity._scorecard_configured() is False
+    assert opportunity._usajobs_configured() is False
+
+    monkeypatch.setattr(opportunity, "COLLEGE_SCORECARD_API_KEY", "scorecard-key")
+    monkeypatch.setattr(opportunity, "USAJOBS_API_KEY", "usajobs-key")
+    assert opportunity._scorecard_configured() is True
+    assert opportunity._usajobs_configured() is False
+
+    monkeypatch.setattr(opportunity, "USAJOBS_USER_AGENT", "api-owner@example.com")
+    assert opportunity._usajobs_configured() is True
