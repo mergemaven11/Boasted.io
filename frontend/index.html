@@ -95,6 +95,35 @@
   <body>
     <div id="root"></div>
     <script src="/production-patches.js"></script>
+    <script>
+      (() => {
+        const style = document.createElement("style");
+        style.textContent = `
+          .landing-nav-actions .landing-education-mobile-link { display: none; }
+          @media (max-width: 850px) {
+            .landing-nav-actions .landing-education-mobile-link { display: inline-flex !important; }
+            .landing-nav-actions .landing-docs-link,
+            .landing-nav-actions .landing-pricing-link { display: none !important; }
+          }
+        `;
+        document.head.appendChild(style);
+
+        const patchEducationNav = () => {
+          const actions = document.querySelector(".landing-nav-actions");
+          if (!actions || actions.querySelector('a[href="/education"].landing-education-mobile-link')) return;
+          const education = document.createElement("a");
+          education.href = "/education";
+          education.className = "landing-login-link landing-education-mobile-link";
+          education.textContent = "Education";
+          const login = actions.querySelector('a[href="/login"]');
+          actions.insertBefore(education, login || actions.firstChild);
+        };
+
+        patchEducationNav();
+        const observer = new MutationObserver(patchEducationNav);
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
