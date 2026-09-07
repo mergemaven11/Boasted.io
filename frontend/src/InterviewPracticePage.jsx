@@ -166,10 +166,12 @@ function speakSoftText(text, { cancelFirst = false, voiceStyle = "warm" } = {}) 
     const voice = cachedSoftVoice?.style === voiceStyle
       ? cachedSoftVoice.voice
       : chooseSoftVoice(synth.getVoices?.() || [], voiceStyle);
-    if (voice) {
-      cachedSoftVoice = { style: voiceStyle, voice };
-      utterance.voice = voice;
+    if (!voice) {
+      resolve(false);
+      return;
     }
+    cachedSoftVoice = { style: voiceStyle, voice };
+    utterance.voice = voice;
     utterance.rate = settings.rate;
     utterance.pitch = settings.pitch;
     utterance.volume = 0.86;
