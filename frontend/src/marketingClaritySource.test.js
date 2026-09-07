@@ -55,6 +55,22 @@ test("organization section uses separate Team Enterprise and Education tabs", ()
   assert.match(css, /landing-org-dashboard/);
 });
 
+test("Education marketing keeps Education in the header and gives students clear steps", () => {
+  const source = read("./EducationMarketingPage.jsx");
+  const css = read("./EducationMarketingPage.css");
+
+  assert.match(source, /className="active" href="\/education">Education/);
+  assert.match(source, /href="#how-to-use">How to use/);
+  assert.match(source, /How a student actually uses Boasted Education/);
+  assert.match(source, /Create your Education record/);
+  assert.match(source, /Save what you actually did/);
+  assert.match(source, /Strengthen important wins/);
+  assert.match(source, /Open an opportunity tool/);
+  assert.match(source, /Search, verify, and apply/);
+  assert.match(source, /href="\/app\/applications">Open my Education workspace/);
+  assert.match(css, /education-student-step-grid/);
+});
+
 test("landing page stays compact instead of using oversized section gaps", () => {
   const css = read("./LandingPageSimple.css");
 
