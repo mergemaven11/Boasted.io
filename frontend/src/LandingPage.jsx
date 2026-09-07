@@ -62,7 +62,7 @@ const plans = [
     badge: "Coming soon",
     features: ["Everything in Pro", "Team review dashboard", "Shared review templates", "Optional manager confirmation", "Review-cycle packets", "Bounded team analytics", "Centralized billing"],
     cta: "Talk about Team",
-    href: "mailto:hello@boasted.io?subject=Boasted%20Team",
+    href: "mailto:contact@boasted.io?subject=Boasted%20Team",
   },
   {
     name: "Enterprise",
@@ -70,7 +70,7 @@ const plans = [
     tagline: "Governance and deeper controls for larger organizations",
     features: ["Everything in Team", "Enterprise admin dashboard", "Identity and SSO roadmap", "Audit and governance controls", "Retention and policy controls", "Custom integrations and support"],
     cta: "Talk about Enterprise",
-    href: "mailto:hello@boasted.io?subject=Boasted%20Enterprise",
+    href: "mailto:contact@boasted.io?subject=Boasted%20Enterprise",
   },
 ];
 
@@ -101,7 +101,7 @@ const organizationTabs = {
       ["Team trends", "Aggregate only", "Bounded"],
     ],
     cta: "Talk about Team",
-    href: "mailto:hello@boasted.io?subject=Boasted%20Team",
+    href: "mailto:contact@boasted.io?subject=Boasted%20Team",
   },
   enterprise: {
     label: "Enterprise",
@@ -129,7 +129,7 @@ const organizationTabs = {
       ["Integrations", "Custom", "Supported"],
     ],
     cta: "Talk about Enterprise",
-    href: "mailto:hello@boasted.io?subject=Boasted%20Enterprise",
+    href: "mailto:contact@boasted.io?subject=Boasted%20Enterprise",
   },
   education: {
     label: "Education",
