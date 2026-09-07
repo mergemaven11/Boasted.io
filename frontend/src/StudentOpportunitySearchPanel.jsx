@@ -39,46 +39,51 @@ function SearchPager({ page, pages, onPage }) {
 }
 
 function ProgramCard({ item }) {
-  const location = [item.city, item.state, item.zip].filter(Boolean).join(", ");
+  const source = item.source || {};
+  const boasted = item.boasted || {};
+  const location = [source.city, source.state, source.zip].filter(Boolean).join(", ");
+  const isYouthSupport = boasted.display_kind === "youth-support";
   return <article className="student-opportunity-card program-card">
     <div className="student-opportunity-card-top">
-      <span className={`opportunity-kind ${item.kind}`}>
-        {item.kind === "free-support" ? <HandHeart size={14} /> : <GraduationCap size={14} />}
-        {item.kind === "free-support" ? "Free local support" : "Training program"}
+      <span className={`opportunity-kind ${isYouthSupport ? "free-support" : "training"}`}>
+        {isYouthSupport ? <HandHeart size={14} /> : <GraduationCap size={14} />}
+        {isYouthSupport ? "Youth support program" : "Training program"}
       </span>
-      {item.wioa_or_etp_signal ? <span className="opportunity-funded"><BadgeDollarSign size={14} /> Funding may be available</span> : null}
+      {boasted.wioa_or_etp_signal ? <span className="opportunity-funded"><BadgeDollarSign size={14} /> Funding may be available</span> : null}
     </div>
-    <h4>{item.title}</h4>
-    <p className="student-opportunity-provider">{item.provider}</p>
+    <h4>{source.title || "Program"}</h4>
+    {source.provider ? <p className="student-opportunity-provider">{source.provider}</p> : null}
     <div className="student-opportunity-facts">
-      {location ? <span><MapPin size={15} />{location}{item.distance ? ` · ${item.distance} mi` : ""}</span> : null}
-      {item.credential ? <span><GraduationCap size={15} />{item.credential}</span> : null}
+      {location ? <span><MapPin size={15} />{location}{source.distance ? ` · ${source.distance} mi` : ""}</span> : null}
+      {source.credential ? <span><GraduationCap size={15} />{source.credential}</span> : null}
     </div>
-    {item.formats?.length ? <div className="student-opportunity-tags">{item.formats.slice(0, 3).map((value) => <span key={value}>{value}</span>)}</div> : null}
-    {item.why_shown ? <p className="student-opportunity-reason"><Sparkles size={14} />{cleanReason(item.why_shown)}</p> : null}
+    {source.formats?.length ? <div className="student-opportunity-tags">{source.formats.slice(0, 3).map((value) => <span key={value}>{value}</span>)}</div> : null}
+    {boasted.why_shown ? <p className="student-opportunity-reason"><Sparkles size={14} />{cleanReason(boasted.why_shown)}</p> : null}
     <footer>
-      <small>{item.cost_type === "free" ? "Listed as free local support" : "Cost not assumed — verify with provider"}</small>
-      {item.url ? <a href={item.url} target="_blank" rel="noreferrer noopener">View program <ExternalLink size={14} /></a> : null}
+      <small>Cost/funding status not changed by Boasted — verify with the provider</small>
+      {source.url ? <a href={source.url} target="_blank" rel="noreferrer noopener">View program <ExternalLink size={14} /></a> : null}
     </footer>
   </article>;
 }
 
 function InternshipCard({ item }) {
+  const source = item.source || {};
+  const boasted = item.boasted || {};
   return <article className="student-opportunity-card internship-card">
     <div className="student-opportunity-card-top">
-      <span className="opportunity-kind internship"><BriefcaseBusiness size={14} /> Internship signal verified</span>
-      {item.posted_at ? <span className="opportunity-posted"><CalendarDays size={13} />{item.posted_at}</span> : null}
+      <span className="opportunity-kind internship"><BriefcaseBusiness size={14} /> Internship signal verified by Boasted</span>
+      {source.posted_at ? <span className="opportunity-posted"><CalendarDays size={13} />{source.posted_at}</span> : null}
     </div>
-    <h4>{item.title}</h4>
-    <p className="student-opportunity-provider">{item.company}</p>
+    <h4>{source.title || "Internship opportunity"}</h4>
+    {source.company ? <p className="student-opportunity-provider">{source.company}</p> : null}
     <div className="student-opportunity-facts">
-      {item.location ? <span><MapPin size={15} />{item.location}{item.distance ? ` · ${item.distance} mi` : ""}</span> : null}
+      {source.location ? <span><MapPin size={15} />{source.location}{source.distance ? ` · ${source.distance} mi` : ""}</span> : null}
     </div>
-    {item.description ? <p className="student-opportunity-description">{item.description}</p> : null}
-    {item.why_shown ? <p className="student-opportunity-reason"><Sparkles size={14} />{cleanReason(item.why_shown)}</p> : null}
+    {source.description ? <p className="student-opportunity-description">{source.description}</p> : null}
+    {boasted.why_shown ? <p className="student-opportunity-reason"><Sparkles size={14} />{cleanReason(boasted.why_shown)}</p> : null}
     <footer>
-      <small>Live job listing · no hiring prediction</small>
-      {item.url ? <a href={item.url} target="_blank" rel="noreferrer noopener">Open listing <ExternalLink size={14} /></a> : null}
+      <small>CareerOneStop listing text shown as received · no hiring prediction</small>
+      {source.url ? <a href={source.url} target="_blank" rel="noreferrer noopener">Open listing <ExternalLink size={14} /></a> : null}
     </footer>
   </article>;
 }
@@ -187,7 +192,7 @@ export default function StudentOpportunitySearchPanel({ mode }) {
 
     {suggestions.length ? <div className="student-opportunity-suggestions"><span>From your Boasted evidence:</span>{suggestions.slice(0, 5).map((item) => <button type="button" key={`${item.query}-${item.direction}`} onClick={() => chooseSuggestion(item)}>{item.query}</button>)}</div> : null}
 
-    {!context?.api_configured && !loadingContext ? <div className="student-opportunity-setup"><Info size={19} /><div><strong>CareerOneStop connection needed</strong><span>The feature code is ready, but the server still needs the free CareerOneStop API user ID and token before live results can load.</span></div></div> : null}
+    {!context?.api_configured && !loadingContext ? <div className="student-opportunity-setup"><Info size={19} /><div><strong>CareerOneStop license/API connection needed</strong><span>Boasted will not request CareerOneStop data until the API credentials and an active, unexpired CareerOneStop license grant are configured on the server.</span></div></div> : null}
     {error ? <div className="student-opportunity-error"><Info size={18} />{error}</div> : null}
 
     {loading ? <div className="student-opportunity-loading"><span /><strong>Checking current {isPrograms ? "programs" : "internships"}…</strong><small>Using your chosen location and search direction.</small></div> : null}
@@ -198,7 +203,7 @@ export default function StudentOpportunitySearchPanel({ mode }) {
         <label>Show<select value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); setPage(1); }}><option value={20}>20</option><option value={40}>40</option></select></label>
       </div>
 
-      {isPrograms && data.results?.some((item) => item.kind === "free-support") ? <div className="student-opportunity-callout"><HandHeart size={18} /><span><strong>Free local help included.</strong> CareerOneStop&apos;s Youth Program Finder can surface local job, career, education, and training assistance programs. Contact the program to confirm age and service eligibility.</span></div> : null}
+      {isPrograms && data.results?.some((item) => item.boasted?.display_kind === "youth-support") ? <div className="student-opportunity-callout"><HandHeart size={18} /><span><strong>Youth-support programs included.</strong> Contact each provider to confirm services, eligibility, and any cost.</span></div> : null}
 
       {data.results?.length ? <div className="student-opportunity-grid">{data.results.map((item) => isPrograms ? <ProgramCard item={item} key={item.id} /> : <InternshipCard item={item} key={item.id} />)}</div> : <div className="student-opportunity-empty"><Search size={24} /><h3>No {isPrograms ? "programs" : "internships"} matched that search.</h3><p>Try a broader career term, a larger radius, or another evidence-based suggestion above.</p></div>}
 
@@ -206,7 +211,10 @@ export default function StudentOpportunitySearchPanel({ mode }) {
 
       <div className="student-opportunity-source">
         <ShieldCheck size={18} />
-        <div><strong>CareerOneStop · U.S. Department of Labor</strong><span>Boasted queries CareerOneStop&apos;s Web API live. The API datasets are published for third-party integration under USDOL&apos;s open-data policy; source metadata stays visible.</span></div>
+        <div>
+          <strong>CareerOneStop data attribution</strong>
+          <span>{data.source?.required_attribution || "CareerOneStop data source acknowledgement: U.S. Department of Labor Employment and Training Administration (DOLETA) and Minnesota Department of Employment & Economic Development (DEED)."}</span>
+        </div>
         <a href="https://www.careeronestop.org/" target="_blank" rel="noreferrer noopener">Source <ExternalLink size={14} /></a>
       </div>
 
