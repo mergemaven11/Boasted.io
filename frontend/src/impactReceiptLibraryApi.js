@@ -17,7 +17,6 @@ impactReceiptApi.interceptors.request.use((config) => {
 export async function getAllImpactReceipts() {
   const receipts = [];
   let skip = 0;
-  let totalReceipts = null;
 
   while (true) {
     const response = await impactReceiptApi.get("/impact-receipts", {
@@ -27,16 +26,12 @@ export async function getAllImpactReceipts() {
     const batch = Array.isArray(data.receipts) ? data.receipts : [];
 
     receipts.push(...batch);
-    totalReceipts = Number.isFinite(data.total_receipts)
-      ? data.total_receipts
-      : receipts.length;
-
-    if (!data.has_more || batch.length === 0 || receipts.length >= totalReceipts) break;
+    if (!data.has_more || batch.length === 0) break;
     skip += batch.length;
   }
 
   return {
     receipts,
-    total_receipts: totalReceipts ?? receipts.length,
+    total_receipts: receipts.length,
   };
 }
