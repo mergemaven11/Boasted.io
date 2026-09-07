@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  Award,
   BookOpenCheck,
   BriefcaseBusiness,
   CheckCircle2,
