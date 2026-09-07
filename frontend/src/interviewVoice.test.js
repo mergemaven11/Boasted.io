@@ -11,12 +11,26 @@ test("keeps the three styles distinct", () => {
   assert.notEqual(getInterviewVoiceStyle("calm").rate, getInterviewVoiceStyle("warm").rate);
 });
 
-test("selects a preferred English voice and never falls back to non-English", () => {
+test("selects an expanded feminine English voice across major platforms", () => {
   const voices = [
-    { name: "Ava", lang: "fr-FR" },
-    { name: "Generic English", lang: "en-US" },
+    { name: "Microsoft David Online (Natural)", lang: "en-US" },
+    { name: "Microsoft Jenny Online (Natural)", lang: "en-US" },
     { name: "Samantha", lang: "en-US" },
   ];
-  assert.equal(chooseInterviewVoice(voices, "bright").name, "Samantha");
-  assert.equal(chooseInterviewVoice([{ name: "Ava", lang: "fr-FR" }], "bright"), null);
+  assert.equal(chooseInterviewVoice(voices, "warm").name, "Microsoft Jenny Online (Natural)");
+  assert.equal(chooseInterviewVoice([{ name: "Samantha", lang: "en-US" }], "bright").name, "Samantha");
+});
+
+test("never selects a non-English or arbitrary male-sounding fallback", () => {
+  const unsupported = [
+    { name: "Microsoft Ava", lang: "fr-FR" },
+    { name: "Microsoft David Online (Natural)", lang: "en-US" },
+    { name: "Generic English", lang: "en-US" },
+  ];
+  assert.equal(chooseInterviewVoice(unsupported, "bright"), null);
+});
+
+test("falls back to another recognized feminine voice when a style preference is unavailable", () => {
+  const voices = [{ name: "Microsoft Zira Desktop", lang: "en-US" }];
+  assert.equal(chooseInterviewVoice(voices, "calm").name, "Microsoft Zira Desktop");
 });
