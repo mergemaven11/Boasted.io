@@ -11,6 +11,11 @@ from app.scholarship_catalog import (
 )
 
 
+APPROVED_ATTRIBUTION = (
+    "Open Scholarships by Grudged LLC - https://github.com/Grudged/open-scholarships (CC BY 4.0)"
+)
+
+
 def _record(**overrides):
     record = {
         "id": "us-example",
@@ -35,23 +40,28 @@ def _record(**overrides):
     return record
 
 
+def _approved_meta(**overrides):
+    meta = {
+        "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "attribution_required": APPROVED_ATTRIBUTION,
+    }
+    meta.update(overrides)
+    return {"meta": meta}
+
+
 def test_open_scholarships_license_gate_accepts_only_approved_cc_by_metadata():
-    validate_open_scholarships_license({
-        "meta": {
-            "license": "CC-BY-4.0",
-            "license_url": "https://creativecommons.org/licenses/by/4.0/",
-            "attribution_required": "Open Scholarships by Grudged LLC",
-        }
-    })
+    validate_open_scholarships_license(_approved_meta())
 
     with pytest.raises(ScholarshipSourceLicenseError):
-        validate_open_scholarships_license({
-            "meta": {
-                "license": "unknown",
-                "license_url": "https://example.com/license",
-                "attribution_required": "Example",
-            }
-        })
+        validate_open_scholarships_license(_approved_meta(license="unknown"))
+
+
+def test_open_scholarships_license_gate_fails_closed_on_attribution_drift():
+    with pytest.raises(ScholarshipSourceLicenseError):
+        validate_open_scholarships_license(
+            _approved_meta(attribution_required="Open Scholarships by Grudged LLC")
+        )
 
 
 def test_normalized_scholarship_keeps_rights_and_source_provenance():
