@@ -35,6 +35,34 @@ const stages = [
   { title: "Career", text: "Carry the same evidence forward into resumes, interviews, portfolios, reviews, promotions, and professional opportunities." },
 ];
 
+const studentSteps = [
+  {
+    number: "01",
+    title: "Create your Education record",
+    text: "Start with your school, program, training, certification, or learning milestone. You do not need to enter your whole history at once.",
+  },
+  {
+    number: "02",
+    title: "Save what you actually did",
+    text: "Add coursework, projects, research, service, leadership, certifications, internships, and other real experiences while the details are still fresh.",
+  },
+  {
+    number: "03",
+    title: "Strengthen important wins",
+    text: "Use Impact Receipts to connect your contribution, result, evidence, skills, shared credit, and optional confirmation without exaggerating the story.",
+  },
+  {
+    number: "04",
+    title: "Open an opportunity tool",
+    text: "Choose Scholarships, Programs, Internships, or Essay Stories. Boasted can turn patterns in your saved evidence into editable search ideas.",
+  },
+  {
+    number: "05",
+    title: "Search, verify, and apply",
+    text: "Review the real source listing, verify the requirements, choose what fits your goals, and reuse your strongest saved evidence when you prepare the application.",
+  },
+];
+
 const opportunityTools = [
   {
     icon: Search,
@@ -90,6 +118,7 @@ export default function EducationMarketingPage() {
       <a className="education-brand" href="/">Boasted</a>
       <nav aria-label="Education navigation">
         <a className="active" href="/education">Education</a>
+        <a href="#how-to-use">How to use</a>
         <a href="#opportunities">Opportunity tools</a>
         <a href="#proof">Evidence intelligence</a>
         <a href="/docs/education">Education guide</a>
@@ -103,7 +132,7 @@ export default function EducationMarketingPage() {
         <p className="education-eyebrow"><Sparkles size={16}/> BOASTED EDUCATION</p>
         <h1>Turn what you learn into <span>proof—and your next opportunity.</span></h1>
         <p className="education-lede">Save coursework, projects, research, certifications, service, leadership, training, and internships once. Then use the same real evidence to explore scholarships, programs, federal internships, majors, careers, résumés, interviews, and application stories.</p>
-        <div className="education-actions"><a className="education-primary" href="/register">Start building my record <ArrowRight size={18}/></a><a className="education-secondary" href="/docs/education">Explore the Education guide</a></div>
+        <div className="education-actions"><a className="education-primary" href="/register">Start building my record <ArrowRight size={18}/></a><a className="education-secondary" href="#how-to-use">Show me the steps</a></div>
         <p className="education-note"><LockKeyhole size={15}/> Private by default · no admissions odds · no scholarship odds · no invented achievements.</p>
         <div className="education-hero-badges">
           <span><ShieldCheck size={15}/> Licensed scholarship source</span>
@@ -128,6 +157,14 @@ export default function EducationMarketingPage() {
       <span><Database size={17}/> Provenance stays visible</span>
       <span><LockKeyhole size={17}/> Private evidence is not copied into public source databases</span>
       <a href="/legal/education-data">View source & licensing audit <ArrowRight size={15}/></a>
+    </section>
+
+    <section className="education-section education-student-steps" id="how-to-use">
+      <div className="education-heading"><p>START HERE</p><h2>How a student actually uses Boasted Education.</h2><span>You can start small. Save one real experience, then let the record become more useful as you add proof over time.</span></div>
+      <div className="education-student-step-grid">
+        {studentSteps.map((step) => <article key={step.number}><span>{step.number}</span><h3>{step.title}</h3><p>{step.text}</p></article>)}
+      </div>
+      <div className="education-student-step-actions"><a className="education-primary" href="/register">Start with step 1 <ArrowRight size={17}/></a><a className="education-secondary" href="/app/applications">Open my Education workspace</a></div>
     </section>
 
     <section className="education-section" id="opportunities">
