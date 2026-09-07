@@ -24,6 +24,7 @@ The public rendering of this policy is `/legal/education-data`.
 - **Decision:** Approved for stored scholarship catalog seed.
 - **Publisher:** Grudged LLC / Open Scholarships.
 - **Rights basis:** CC BY 4.0.
+- **Commercial use:** Permitted by CC BY 4.0 with required attribution.
 - **Safeguard:** Importer fails closed when license identity, license URL, or required-attribution metadata drifts.
 - **Use:** Scholarship search, filters, source provenance, weekly refresh, soft expiration.
 
@@ -31,7 +32,8 @@ The public rendering of this policy is `/legal/education-data`.
 
 - **Decision:** Approved for live Program Finder.
 - **Publisher:** U.S. Department of Education.
-- **Rights basis:** Public federal dataset; Data.gov catalog links the College Scorecard dataset to CC BY licensing information.
+- **Rights basis:** Data.gov currently lists the College Scorecard dataset as public and links it to CC BY licensing information.
+- **Commercial use:** CC BY permits commercial reuse subject to attribution and other license conditions.
 - **Use:** Institution and field-of-study/program discovery by city/state plus aggregate cost/size context.
 - **Safeguard:** Aggregate values are context only; no personal cost, salary, admission, or graduation predictions.
 - **Credential:** `COLLEGE_SCORECARD_API_KEY` remains server-side.
@@ -41,6 +43,7 @@ The public rendering of this policy is `/legal/education-data`.
 - **Decision:** Approved for live federal internship discovery.
 - **Publisher:** U.S. Office of Personnel Management.
 - **Rights basis:** USAJOBS API Terms of Service and public Job Opportunity Announcement data.
+- **Commercial use:** Current USAJOBS Job Search API documentation expressly anticipates use by commercial job boards, mobile applications, and social media sites. Current API Terms permit storing/reformatting data for internal application purposes when displayed source values are not altered, USAJOBS is credited, and users are directed to USAJOBS to view/apply. Standalone resale/redistribution is not permitted.
 - **Use:** Live federal internship/student-trainee search with direct source links.
 - **Safeguard:** Boasted filters to an explicit intern/student-trainee signal and does not persist a competing job database.
 - **Credentials:** `USAJOBS_API_KEY` and the registered `USAJOBS_USER_AGENT` email remain server-side.
@@ -93,6 +96,12 @@ The public rendering of this policy is `/legal/education-data`.
 - **Reason:** Strong large-scale U.S. scholarship path once Boasted has a valid data-client agreement and the related membership/license cost is justified.
 
 ## Change history
+
+### 2026-09-07 — Commercial-use rights re-verified
+
+- College Scorecard was re-checked against the current Data.gov catalog record showing the dataset as public with CC BY licensing metadata. CC BY permits commercial reuse with attribution.
+- USAJOBS was re-checked against the current API Terms and Job Search documentation. The endpoint expressly anticipates commercial job-board use; Boasted's implementation credits USAJOBS, links users back to USAJOBS, keeps source values separate from Boasted annotations, and does not build a standalone redistribution feed.
+- This audit entry records the source review and is not a legal opinion or guarantee that third-party terms will never change.
 
 ### 2026-09-07 — Permanent source audit policy adopted
 
