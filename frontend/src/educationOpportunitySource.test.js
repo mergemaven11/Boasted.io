@@ -30,37 +30,42 @@ test("Scholarship search has query guidance, filters, pagination, provider submi
   assert.match(panel, /Submit a scholarship/);
   assert.match(panel, /authorized to provide this scholarship information/i);
   assert.match(panel, /CC BY 4\.0/);
-  assert.match(panel, /ScholarshipCatalogPanel/);
   assert.match(api, /\/scholarships/);
 });
 
-test("Program finder separates CareerOneStop source values from Boasted annotations", () => {
+test("Program finder uses College Scorecard and keeps official data separate from Boasted suggestions", () => {
   const panel = read("./StudentOpportunitySearchPanel.jsx");
   const api = read("./studentOpportunityApi.js");
+  assert.match(panel, /College Scorecard/);
+  assert.match(panel, /U\.S\. Department of Education/);
   assert.match(panel, /const source = item\.source \|\| \{\}/);
   assert.match(panel, /const boasted = item\.boasted \|\| \{\}/);
   assert.match(panel, /From your Boasted evidence:/);
-  assert.match(panel, /City, state or ZIP/);
-  assert.match(panel, /Funding may be available/);
-  assert.match(panel, /Cost\/funding status not changed by Boasted/);
+  assert.match(panel, /Atlanta, GA or GA/);
   assert.match(panel, /No fake match score/);
   assert.match(panel, /Volunteer\.gov/);
+  assert.match(panel, /Education Data & Source Audit/);
   assert.match(api, /student-opportunities\/programs/);
 });
 
-test("CareerOneStop display includes both required government acknowledgements", () => {
-  const panel = read("./StudentOpportunitySearchPanel.jsx");
-  assert.match(panel, /Department of Labor Employment and Training Administration \(DOLETA\)/);
-  assert.match(panel, /Minnesota Department of Employment & Economic Development \(DEED\)/);
-  assert.match(panel, /data\.source\?\.required_attribution/);
-});
-
-test("Internship finder uses evidence-connected search but leaves listing text as source data", () => {
+test("Internship finder uses USAJOBS public listings and no hiring prediction", () => {
   const panel = read("./StudentOpportunitySearchPanel.jsx");
   const api = read("./studentOpportunityApi.js");
-  assert.match(panel, /Internship signal verified by Boasted/);
-  assert.match(panel, /CareerOneStop listing text shown as received/);
-  assert.match(panel, /live source data/i);
+  assert.match(panel, /Federal internship/);
+  assert.match(panel, /USAJOBS/);
+  assert.match(panel, /U\.S\. Office of Personnel Management/);
   assert.match(panel, /no hiring prediction/i);
   assert.match(api, /student-opportunities\/internships/);
+});
+
+test("Education public pages expose the source audit and new opportunity sources", () => {
+  const marketing = read("./EducationMarketingPage.jsx");
+  const guide = read("./EducationGuidePage.jsx");
+  assert.match(marketing, /Scholarship Finder/);
+  assert.match(marketing, /College Scorecard/);
+  assert.match(marketing, /USAJOBS/);
+  assert.match(marketing, /\/legal\/education-data/);
+  assert.match(guide, /College Scorecard/);
+  assert.match(guide, /USAJOBS/);
+  assert.match(guide, /Education Data & Source Audit/);
 });
