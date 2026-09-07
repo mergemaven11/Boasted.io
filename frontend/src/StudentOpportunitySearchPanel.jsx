@@ -1,6 +1,7 @@
 import {
   BadgeDollarSign,
   BriefcaseBusiness,
+  Building2,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
@@ -12,6 +13,7 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  Users,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -29,6 +31,12 @@ function cleanReason(reason) {
     : reason.direction || "";
 }
 
+function money(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "";
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(amount);
+}
+
 function SearchPager({ page, pages, onPage }) {
   if (!pages || pages <= 1) return null;
   return <nav className="student-opportunity-pagination" aria-label="Opportunity result pages">
@@ -42,26 +50,23 @@ function ProgramCard({ item }) {
   const source = item.source || {};
   const boasted = item.boasted || {};
   const location = [source.city, source.state, source.zip].filter(Boolean).join(", ");
-  const isYouthSupport = boasted.display_kind === "youth-support";
   return <article className="student-opportunity-card program-card">
     <div className="student-opportunity-card-top">
-      <span className={`opportunity-kind ${isYouthSupport ? "free-support" : "training"}`}>
-        {isYouthSupport ? <HandHeart size={14} /> : <GraduationCap size={14} />}
-        {isYouthSupport ? "Youth support program" : "Training program"}
-      </span>
-      {boasted.wioa_or_etp_signal ? <span className="opportunity-funded"><BadgeDollarSign size={14} /> Funding may be available</span> : null}
+      <span className="opportunity-kind training"><GraduationCap size={14} /> College program</span>
+      {source.cip_code ? <span className="opportunity-posted">CIP {source.cip_code}</span> : null}
     </div>
     <h4>{source.title || "Program"}</h4>
     {source.provider ? <p className="student-opportunity-provider">{source.provider}</p> : null}
     <div className="student-opportunity-facts">
-      {location ? <span><MapPin size={15} />{location}{source.distance ? ` · ${source.distance} mi` : ""}</span> : null}
+      {location ? <span><MapPin size={15} />{location}</span> : null}
       {source.credential ? <span><GraduationCap size={15} />{source.credential}</span> : null}
+      {source.student_size ? <span><Users size={15} />{Number(source.student_size).toLocaleString()} students</span> : null}
+      {source.avg_net_price != null ? <span><BadgeDollarSign size={15} />Avg. net price context: {money(source.avg_net_price)}</span> : null}
     </div>
-    {source.formats?.length ? <div className="student-opportunity-tags">{source.formats.slice(0, 3).map((value) => <span key={value}>{value}</span>)}</div> : null}
     {boasted.why_shown ? <p className="student-opportunity-reason"><Sparkles size={14} />{cleanReason(boasted.why_shown)}</p> : null}
     <footer>
-      <small>Cost/funding status not changed by Boasted — verify with the provider</small>
-      {source.url ? <a href={source.url} target="_blank" rel="noreferrer noopener">View program <ExternalLink size={14} /></a> : null}
+      <small>College Scorecard aggregate data · verify program details and cost with the school</small>
+      {source.url ? <a href={source.url.startsWith("http") ? source.url : `https://${source.url}`} target="_blank" rel="noreferrer noopener">View institution <ExternalLink size={14} /></a> : null}
     </footer>
   </article>;
 }
@@ -71,19 +76,20 @@ function InternshipCard({ item }) {
   const boasted = item.boasted || {};
   return <article className="student-opportunity-card internship-card">
     <div className="student-opportunity-card-top">
-      <span className="opportunity-kind internship"><BriefcaseBusiness size={14} /> Internship signal verified by Boasted</span>
-      {source.posted_at ? <span className="opportunity-posted"><CalendarDays size={13} />{source.posted_at}</span> : null}
+      <span className="opportunity-kind internship"><BriefcaseBusiness size={14} /> Federal internship</span>
+      {source.posted_at ? <span className="opportunity-posted"><CalendarDays size={13} />{new Date(source.posted_at).toLocaleDateString()}</span> : null}
     </div>
-    <h4>{source.title || "Internship opportunity"}</h4>
+    <h4>{source.title || "Federal internship opportunity"}</h4>
     {source.company ? <p className="student-opportunity-provider">{source.company}</p> : null}
     <div className="student-opportunity-facts">
-      {source.location ? <span><MapPin size={15} />{source.location}{source.distance ? ` · ${source.distance} mi` : ""}</span> : null}
+      {source.location ? <span><MapPin size={15} />{source.location}</span> : null}
+      {source.deadline ? <span><CalendarDays size={15} />Closes {new Date(source.deadline).toLocaleDateString()}</span> : null}
     </div>
     {source.description ? <p className="student-opportunity-description">{source.description}</p> : null}
     {boasted.why_shown ? <p className="student-opportunity-reason"><Sparkles size={14} />{cleanReason(boasted.why_shown)}</p> : null}
     <footer>
-      <small>CareerOneStop listing text shown as received · no hiring prediction</small>
-      {source.url ? <a href={source.url} target="_blank" rel="noreferrer noopener">Open listing <ExternalLink size={14} /></a> : null}
+      <small>Live USAJOBS public listing · no hiring prediction</small>
+      {source.url ? <a href={source.url} target="_blank" rel="noreferrer noopener">Open on USAJOBS <ExternalLink size={14} /></a> : null}
     </footer>
   </article>;
 }
@@ -109,8 +115,7 @@ export default function StudentOpportunitySearchPanel({ mode }) {
         if (!active) return;
         setContext(result);
         setLocation(result.location || "");
-        const suggested = result.suggested_queries?.[0]?.query || "";
-        setQuery(suggested);
+        setQuery(result.suggested_queries?.[0]?.query || "");
       })
       .catch((requestError) => {
         if (!active) return;
@@ -126,10 +131,11 @@ export default function StudentOpportunitySearchPanel({ mode }) {
   }, []);
 
   const suggestions = useMemo(() => context?.suggested_queries || [], [context]);
+  const sourceConfigured = isPrograms ? context?.program_api_configured : context?.internship_api_configured;
 
   async function runSearch(nextPage = 1, nextQuery = query) {
     if (!location.trim()) {
-      setError("Enter a city, state, or ZIP code so Boasted knows where to look.");
+      setError(isPrograms ? "Enter a state or city and state, such as Atlanta, GA." : "Enter a city, state, or ZIP code so Boasted knows where to look.");
       return;
     }
     setLoading(true);
@@ -168,57 +174,59 @@ export default function StudentOpportunitySearchPanel({ mode }) {
     <div className="student-opportunity-hero">
       <div>
         <p className="student-opportunity-kicker"><Sparkles size={16} /> {isPrograms ? "Program Finder" : "Internship Finder"}</p>
-        <h2>{isPrograms ? "Find nearby programs that can help you build what comes next." : "Find internships connected to the skills and directions already showing up in your record."}</h2>
+        <h2>{isPrograms ? "Explore college programs connected to the directions already showing up in your work." : "Find current federal internships connected to your demonstrated skills and career directions."}</h2>
         <p>{isPrograms
-          ? "Boasted uses your saved education evidence to suggest search directions, then searches official local training and support data. You can always change the search or location."
-          : "Boasted turns your demonstrated skills and career directions into search ideas, then checks current job listings for explicit intern/internship signals near you."}</p>
+          ? "Boasted turns your saved evidence into editable search ideas, then checks U.S. Department of Education College Scorecard data for programs in the city or state you choose."
+          : "Boasted turns your demonstrated skills and career directions into editable search ideas, then searches current USAJOBS public listings for explicit internship or student-trainee signals."}</p>
       </div>
-      <div className="student-opportunity-trust"><ShieldCheck size={20} /><span><strong>No fake match score.</strong><small>Evidence-connected suggestions · live source data · you choose what to pursue</small></span></div>
+      <div className="student-opportunity-trust"><ShieldCheck size={20} /><span><strong>No fake match score.</strong><small>Evidence-connected suggestions · official public data · you choose what to pursue</small></span></div>
     </div>
 
     <div className="student-opportunity-tipbar">
       <Info size={17} />
       <div><strong>{isPrograms ? "How to search programs:" : "How to search internships:"}</strong><span>{isPrograms
-        ? "Try a career direction or skill such as cybersecurity, nursing, graphic design, welding, teaching, or project management. Add your city/ZIP and widen the radius if needed."
-        : "Start with a career area instead of a company name: software development, data analysis, public health, marketing, research, design, finance, or another direction from your evidence."}</span></div>
+        ? "Try a career or subject such as software, nursing, cybersecurity, marketing, finance, teaching, design, or engineering. Use a state or city + state, such as Atlanta, GA."
+        : "Start with a career area instead of an agency name: software development, data analysis, public health, finance, research, engineering, design, or another direction from your evidence."}</span></div>
     </div>
 
-    <form className="student-opportunity-search" onSubmit={(event) => { event.preventDefault(); void runSearch(1); }}>
-      <label className="student-opportunity-query"><Search size={19} /><span>Career / skill</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isPrograms ? "e.g. cybersecurity" : "e.g. software development"} /></label>
-      <label><MapPin size={18} /><span>Location</span><input value={location} onChange={(event) => setLocation(event.target.value)} placeholder="City, state or ZIP" /></label>
-      <label><span>Within</span><select value={radius} onChange={(event) => setRadius(Number(event.target.value))}><option value={10}>10 miles</option><option value={25}>25 miles</option><option value={50}>50 miles</option><option value={100}>100 miles</option></select></label>
-      <button type="submit" disabled={loading || loadingContext}>{loading ? "Searching…" : "Search"}</button>
+    <form className={`student-opportunity-search ${isPrograms ? "program-search" : ""}`} onSubmit={(event) => { event.preventDefault(); void runSearch(1); }}>
+      <label className="student-opportunity-query"><Search size={19} /><span>Career / subject</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isPrograms ? "e.g. software" : "e.g. software development"} /></label>
+      <label><MapPin size={18} /><span>Location</span><input value={location} onChange={(event) => setLocation(event.target.value)} placeholder={isPrograms ? "Atlanta, GA or GA" : "City, state or ZIP"} /></label>
+      {!isPrograms ? <label><span>Within</span><select value={radius} onChange={(event) => setRadius(Number(event.target.value))}><option value={10}>10 miles</option><option value={25}>25 miles</option><option value={50}>50 miles</option><option value={100}>100 miles</option></select></label> : null}
+      <button type="submit" disabled={loading || loadingContext || !sourceConfigured}>{loading ? "Searching…" : "Search"}</button>
     </form>
 
     {suggestions.length ? <div className="student-opportunity-suggestions"><span>From your Boasted evidence:</span>{suggestions.slice(0, 5).map((item) => <button type="button" key={`${item.query}-${item.direction}`} onClick={() => chooseSuggestion(item)}>{item.query}</button>)}</div> : null}
 
-    {!context?.api_configured && !loadingContext ? <div className="student-opportunity-setup"><Info size={19} /><div><strong>CareerOneStop license/API connection needed</strong><span>Boasted will not request CareerOneStop data until the API credentials and an active, unexpired CareerOneStop license grant are configured on the server.</span></div></div> : null}
+    {!sourceConfigured && !loadingContext ? <div className="student-opportunity-setup"><Info size={19} /><div><strong>{isPrograms ? "College Scorecard connection needed" : "USAJOBS connection needed"}</strong><span>{isPrograms ? "The feature is ready; the server needs a free api.data.gov key before live College Scorecard program results can load." : "The feature is ready; the server needs a USAJOBS API key plus the email used to register that key."}</span></div></div> : null}
     {error ? <div className="student-opportunity-error"><Info size={18} />{error}</div> : null}
 
-    {loading ? <div className="student-opportunity-loading"><span /><strong>Checking current {isPrograms ? "programs" : "internships"}…</strong><small>Using your chosen location and search direction.</small></div> : null}
+    {loading ? <div className="student-opportunity-loading"><span /><strong>Checking current {isPrograms ? "programs" : "federal internships"}…</strong><small>Using your chosen location and search direction.</small></div> : null}
 
     {!loading && searched && data ? <>
       <div className="student-opportunity-results-head">
-        <div><strong>{isPrograms ? data.training_total ?? data.results?.length ?? 0 : data.results?.length ?? 0}</strong><span>{isPrograms ? "career-focused training results" : "internship listings on this page"}</span></div>
+        <div><strong>{isPrograms ? data.training_total ?? data.results?.length ?? 0 : data.results?.length ?? 0}</strong><span>{isPrograms ? "program matches in this search" : "verified internship listings on this page"}</span></div>
         <label>Show<select value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); setPage(1); }}><option value={20}>20</option><option value={40}>40</option></select></label>
       </div>
 
-      {isPrograms && data.results?.some((item) => item.boasted?.display_kind === "youth-support") ? <div className="student-opportunity-callout"><HandHeart size={18} /><span><strong>Youth-support programs included.</strong> Contact each provider to confirm services, eligibility, and any cost.</span></div> : null}
+      {isPrograms && data.coverage_notice ? <div className="student-opportunity-callout"><Building2 size={18} /><span><strong>Transparent discovery.</strong> {data.coverage_notice}</span></div> : null}
 
-      {data.results?.length ? <div className="student-opportunity-grid">{data.results.map((item) => isPrograms ? <ProgramCard item={item} key={item.id} /> : <InternshipCard item={item} key={item.id} />)}</div> : <div className="student-opportunity-empty"><Search size={24} /><h3>No {isPrograms ? "programs" : "internships"} matched that search.</h3><p>Try a broader career term, a larger radius, or another evidence-based suggestion above.</p></div>}
+      {data.results?.length ? <div className="student-opportunity-grid">{data.results.map((item) => isPrograms ? <ProgramCard item={item} key={item.id} /> : <InternshipCard item={item} key={item.id} />)}</div> : <div className="student-opportunity-empty"><Search size={24} /><h3>No {isPrograms ? "programs" : "federal internships"} matched that search.</h3><p>Try a broader career term, a different location, or another evidence-based suggestion above.</p></div>}
 
-      {isPrograms ? <SearchPager page={page} pages={data.pages || 0} onPage={(value) => void runSearch(value)} /> : <SearchPager page={page} pages={(data.results?.length || 0) >= pageSize ? page + 1 : page} onPage={(value) => void runSearch(value)} />}
+      <SearchPager page={page} pages={data.pages || 0} onPage={(value) => void runSearch(value)} />
 
       <div className="student-opportunity-source">
         <ShieldCheck size={18} />
         <div>
-          <strong>CareerOneStop data attribution</strong>
-          <span>{data.source?.required_attribution || "CareerOneStop data source acknowledgement: U.S. Department of Labor Employment and Training Administration (DOLETA) and Minnesota Department of Employment & Economic Development (DEED)."}</span>
+          <strong>{isPrograms ? "College Scorecard · U.S. Department of Education" : "USAJOBS · U.S. Office of Personnel Management"}</strong>
+          <span>{isPrograms ? "Official public institution and field-of-study context. Aggregate cost/outcome data is context, not a personal prediction." : "Live public federal job opportunity announcements. Boasted keeps the source listing separate from its evidence-based search suggestions."}</span>
         </div>
-        <a href="https://www.careeronestop.org/" target="_blank" rel="noreferrer noopener">Source <ExternalLink size={14} /></a>
+        <a href={isPrograms ? "https://collegescorecard.ed.gov/" : "https://www.usajobs.gov/"} target="_blank" rel="noreferrer noopener">Source <ExternalLink size={14} /></a>
       </div>
 
-      {isPrograms ? <div className="student-opportunity-volunteer"><HandHeart size={19} /><div><strong>Looking specifically to volunteer?</strong><span>Volunteer.gov is the official federal volunteer opportunity portal. We link to it, but we are not copying its listings until we have an approved API/data-use path.</span></div><a href="https://www.volunteer.gov/" target="_blank" rel="noreferrer noopener">Search Volunteer.gov <ExternalLink size={14} /></a></div> : null}
+      <div className="student-opportunity-legal"><ShieldCheck size={17}/><span>Want the licensing/source history? <a href="/legal/education-data">Read Boasted&apos;s Education Data & Source Audit</a>.</span></div>
+
+      {isPrograms ? <div className="student-opportunity-volunteer"><HandHeart size={19} /><div><strong>Looking specifically to volunteer?</strong><span>Volunteer.gov is the official federal volunteer opportunity portal. Boasted links to it rather than copying its listings without an approved data-use path.</span></div><a href="https://www.volunteer.gov/" target="_blank" rel="noreferrer noopener">Search Volunteer.gov <ExternalLink size={14} /></a></div> : null}
     </> : null}
   </section>;
 }
