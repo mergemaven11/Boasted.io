@@ -55,6 +55,7 @@ test("Internship finder uses USAJOBS public listings and no hiring prediction", 
   assert.match(panel, /USAJOBS/);
   assert.match(panel, /U\.S\. Office of Personnel Management/);
   assert.match(panel, /no hiring prediction/i);
+  assert.match(panel, /Open on USAJOBS/);
   assert.match(api, /student-opportunities\/internships/);
 });
 
@@ -68,4 +69,16 @@ test("Education public pages expose the source audit and new opportunity sources
   assert.match(guide, /College Scorecard/);
   assert.match(guide, /USAJOBS/);
   assert.match(guide, /Education Data & Source Audit/);
+});
+
+test("Education legal audit publishes commercial-use rights and terms links", () => {
+  const policy = read("./EducationDataPolicyPage.jsx");
+  assert.match(policy, /College Scorecard/);
+  assert.match(policy, /CC BY/);
+  assert.match(policy, /commercial use permitted with attribution/i);
+  assert.match(policy, /creativecommons\.org\/licenses\/by\/4\.0/);
+  assert.match(policy, /USAJOBS API Terms of Service/);
+  assert.match(policy, /commercial job boards/i);
+  assert.match(policy, /developer\.usajobs\.gov\/apirequest\/index/);
+  assert.match(policy, /Commercial-use rights re-verified/);
 });
