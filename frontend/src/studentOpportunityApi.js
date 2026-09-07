@@ -35,14 +35,13 @@ export function findStudentPrograms({ location, query = "", radius = 25, page = 
   return request(`/student-opportunities/programs?${params.toString()}`);
 }
 
-export function findStudentInternships({ location, query = "", radius = 25, page = 1, pageSize = 20, days = 30 }) {
+export function findStudentInternships({ location, query = "", radius = 25, page = 1, pageSize = 20 }) {
   const params = new URLSearchParams({
     location,
     q: query,
     radius: String(radius),
     page: String(page),
     page_size: String(pageSize),
-    days: String(days),
   });
   return request(`/student-opportunities/internships?${params.toString()}`);
 }

@@ -10,6 +10,7 @@ from __future__ import annotations
 import math
 import os
 import re
+import time
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -33,6 +34,10 @@ COLLEGE_SCORECARD_API_KEY = os.getenv("COLLEGE_SCORECARD_API_KEY", "").strip()
 USAJOBS_BASE = "https://data.usajobs.gov/api/search"
 USAJOBS_API_KEY = os.getenv("USAJOBS_API_KEY", "").strip()
 USAJOBS_USER_AGENT = os.getenv("USAJOBS_USER_AGENT", "").strip()
+
+SCORECARD_CACHE_SECONDS = 12 * 60 * 60
+USAJOBS_CACHE_SECONDS = 15 * 60
+SOURCE_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
 
 COLLEGE_SCORECARD_SOURCE = {
     "id": "college-scorecard",
@@ -88,9 +93,65 @@ PROGRAM_ALIASES = {
     "engineering": {"engineering", "engineer"},
 }
 
+QUERY_CORRECTIONS = {
+    "commupter": "computer",
+    "computor": "computer",
+    "sofware": "software",
+    "enginer": "engineer",
+    "engeneer": "engineer",
+    "developper": "developer",
+}
+
+CAREER_QUERY_FAMILIES = (
+    {
+        "id": "software-computing",
+        "triggers": {
+            "computer engineer", "computer engineering", "software engineer", "software engineering",
+            "software developer", "backend engineer", "backend developer", "systems engineer",
+            "computer scientist", "programmer",
+        },
+        "related_terms": [
+            "computer engineer", "computer engineering", "software engineer", "software engineering",
+            "software developer", "backend engineer", "backend developer", "systems engineer",
+            "computer scientist", "computer science", "programmer",
+        ],
+    },
+    {
+        "id": "data",
+        "triggers": {"data analyst", "data scientist", "data engineer", "analytics"},
+        "related_terms": ["data analyst", "data scientist", "data engineer", "data analytics", "analytics"],
+    },
+    {
+        "id": "cybersecurity",
+        "triggers": {"cybersecurity", "cyber security", "security engineer", "information security", "infosec"},
+        "related_terms": ["cybersecurity", "cyber security", "security engineer", "information security", "infosec"],
+    },
+)
+
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _cache_key(provider: str, params: dict[str, Any]) -> str:
+    pairs = "&".join(f"{key}={params[key]}" for key in sorted(params))
+    return f"{provider}|{pairs}"
+
+
+def _cache_get(provider: str, params: dict[str, Any]) -> dict[str, Any] | None:
+    key = _cache_key(provider, params)
+    cached = SOURCE_CACHE.get(key)
+    if not cached:
+        return None
+    expires_at, payload = cached
+    if expires_at <= time.monotonic():
+        SOURCE_CACHE.pop(key, None)
+        return None
+    return payload
+
+
+def _cache_put(provider: str, params: dict[str, Any], payload: dict[str, Any], ttl_seconds: int) -> None:
+    SOURCE_CACHE[_cache_key(provider, params)] = (time.monotonic() + ttl_seconds, payload)
 
 
 def _audit_event(
@@ -223,6 +284,18 @@ def _scorecard_request(params: dict[str, Any]) -> dict:
             },
         )
     request_id = uuid.uuid4().hex
+    cached = _cache_get("college-scorecard", params)
+    if cached is not None:
+        _audit_event(
+            provider="College Scorecard",
+            operation="program_search",
+            outcome="cache_hit",
+            request_id=request_id,
+            metadata={"cache": "memory", "ttl_seconds": SCORECARD_CACHE_SECONDS},
+            required=True,
+        )
+        return cached
+
     _audit_event(provider="College Scorecard", operation="program_search", outcome="attempt", request_id=request_id, required=True)
     try:
         response = httpx.get(
@@ -243,9 +316,10 @@ def _scorecard_request(params: dict[str, Any]) -> dict:
             request_id=request_id,
             http_status=response.status_code,
             result_count=len(results),
-            metadata={"total": metadata.get("total"), "page": metadata.get("page")},
+            metadata={"total": metadata.get("total"), "page": metadata.get("page"), "cache_ttl_seconds": SCORECARD_CACHE_SECONDS},
             required=True,
         )
+        _cache_put("college-scorecard", params, payload, SCORECARD_CACHE_SECONDS)
         return payload
     except httpx.HTTPError as exc:
         status = getattr(getattr(exc, "response", None), "status_code", None)
@@ -266,6 +340,21 @@ def _usajobs_request(params: dict[str, Any]) -> dict:
             },
         )
     request_id = uuid.uuid4().hex
+    cached = _cache_get("usajobs", params)
+    if cached is not None:
+        search_result = cached.get("SearchResult") or {}
+        items = search_result.get("SearchResultItems") or []
+        _audit_event(
+            provider="USAJOBS",
+            operation="federal_internship_search",
+            outcome="cache_hit",
+            request_id=request_id,
+            result_count=len(items),
+            metadata={"cache": "memory", "ttl_seconds": USAJOBS_CACHE_SECONDS},
+            required=True,
+        )
+        return cached
+
     _audit_event(provider="USAJOBS", operation="federal_internship_search", outcome="attempt", request_id=request_id, required=True)
     try:
         response = httpx.get(
@@ -291,9 +380,10 @@ def _usajobs_request(params: dict[str, Any]) -> dict:
             request_id=request_id,
             http_status=response.status_code,
             result_count=len(items),
-            metadata={"matched": search_result.get("SearchResultCountAll")},
+            metadata={"matched": search_result.get("SearchResultCountAll"), "cache_ttl_seconds": USAJOBS_CACHE_SECONDS},
             required=True,
         )
+        _cache_put("usajobs", params, payload, USAJOBS_CACHE_SECONDS)
         return payload
     except httpx.HTTPError as exc:
         status = getattr(getattr(exc, "response", None), "status_code", None)
@@ -310,6 +400,30 @@ def _program_terms(query: str) -> set[str]:
     for token in tokens:
         expanded.update(PROGRAM_ALIASES.get(token, set()))
     return expanded
+
+
+def _normalize_career_query(query: str) -> str:
+    tokens = re.findall(r"[a-z0-9+#.-]+", query.lower())
+    corrected = [QUERY_CORRECTIONS.get(token, token) for token in tokens]
+    return " ".join(corrected).strip()
+
+
+def _internship_search_plan(query: str) -> dict[str, Any]:
+    normalized = _normalize_career_query(query)
+    for family in CAREER_QUERY_FAMILIES:
+        if any(trigger in normalized for trigger in family["triggers"]):
+            return {
+                "normalized_query": normalized,
+                "family": family["id"],
+                "provider_keyword": None,
+                "related_terms": list(family["related_terms"]),
+            }
+    return {
+        "normalized_query": normalized,
+        "family": None,
+        "provider_keyword": normalized or "student",
+        "related_terms": [normalized] if normalized else [],
+    }
 
 
 def _scorecard_programs(record: dict) -> list[dict]:
@@ -368,14 +482,30 @@ def _program_item(record: dict, program: dict, *, reason: dict | None = None) ->
     }
 
 
+def _offering_type_names(descriptor: dict) -> list[str]:
+    names: list[str] = []
+    for value in descriptor.get("PositionOfferingType") or []:
+        if isinstance(value, dict):
+            name = value.get("Name") or value.get("name")
+        else:
+            name = value
+        if name:
+            names.append(str(name))
+    return names
+
+
 def _usajobs_item(item: dict, *, reason: dict | None = None) -> dict:
     descriptor = item.get("MatchedObjectDescriptor") or {}
     user_area = descriptor.get("UserArea") or {}
     details = user_area.get("Details") or {}
     title = str(descriptor.get("PositionTitle") or "")
     summary = str(details.get("JobSummary") or descriptor.get("QualificationSummary") or "")
+    offering_types = _offering_type_names(descriptor)
+    structured_signal = any("intern" in value.lower() for value in offering_types)
     signal_text = f"{title} {summary}".lower()
-    internship_signal = "intern" in signal_text or "student trainee" in signal_text
+    text_signal = "intern" in signal_text or "student trainee" in signal_text
+    internship_signal = structured_signal or text_signal
+    signal_source = "position_offering_type" if structured_signal else "title_or_summary" if text_signal else None
     return {
         "id": f"usajobs:{item.get('MatchedObjectId') or descriptor.get('PositionID')}",
         "source": {
@@ -393,9 +523,40 @@ def _usajobs_item(item: dict, *, reason: dict | None = None) -> dict:
         "boasted": {
             "display_kind": "federal-internship",
             "internship_signal": internship_signal,
+            "internship_signal_source": signal_source,
             "why_shown": reason,
         },
     }
+
+
+def _matches_internship_plan(item: dict, plan: dict[str, Any]) -> bool:
+    if not plan.get("family"):
+        return True
+    source = item.get("source") or {}
+    haystack = f"{source.get('title') or ''} {source.get('description') or ''}".lower()
+    return any(term in haystack for term in plan.get("related_terms") or [])
+
+
+def _normalize_internship_results(payload: dict, plan: dict[str, Any], reason: dict | None) -> list[dict]:
+    search_result = payload.get("SearchResult") or {}
+    raw_items = search_result.get("SearchResultItems") or []
+    normalized = [_usajobs_item(item, reason=reason) for item in raw_items]
+    return [
+        item for item in normalized
+        if item["boasted"]["internship_signal"] and _matches_internship_plan(item, plan)
+    ]
+
+
+def _usajobs_search_params(plan: dict[str, Any], location: str, radius: int) -> dict[str, Any]:
+    params: dict[str, Any] = {
+        "LocationName": location,
+        "Radius": radius,
+        "ResultsPerPage": 500,
+        "Page": 1,
+    }
+    if plan.get("provider_keyword"):
+        params["Keyword"] = plan["provider_keyword"]
+    return params
 
 
 @router.get("/context")
@@ -522,10 +683,9 @@ def find_internships(
     radius: int = Query(default=25, ge=5, le=100),
     page: int = Query(default=1, ge=1, le=100),
     page_size: int = Query(default=20, ge=10, le=40),
-    days: int = Query(default=30, ge=1, le=90),
     current_user: dict = Depends(get_current_user),
 ):
-    """Search current federal internships through USAJOBS."""
+    """Search all currently open federal internships through USAJOBS."""
     context = _career_context(current_user)
     suggestions = context["suggested_queries"]
     selected_reason = None
@@ -534,31 +694,55 @@ def find_internships(
         career_term = suggestions[0]["query"]
         selected_reason = suggestions[0]
     career_term = career_term or "student"
+    plan = _internship_search_plan(career_term)
 
-    payload = _usajobs_request({
-        "Keyword": f"{career_term} intern",
-        "LocationName": location,
-        "Radius": radius,
-        "ResultsPerPage": page_size,
-        "Page": page,
-        "DatePosted": days,
-    })
+    primary_params = _usajobs_search_params(plan, location, radius)
+    payload = _usajobs_request(primary_params)
     search_result = payload.get("SearchResult") or {}
-    raw_items = search_result.get("SearchResultItems") or []
-    normalized = [_usajobs_item(item, reason=selected_reason) for item in raw_items]
-    results = [item for item in normalized if item["boasted"]["internship_signal"]]
-    total = int(search_result.get("SearchResultCountAll") or len(results))
+    all_matches = _normalize_internship_results(payload, plan, selected_reason)
+    search_scope = "requested_location"
+    fallback_notice = None
+
+    city, state = _location_parts(location)
+    if not all_matches and city and state:
+        fallback_params = _usajobs_search_params(plan, state, 100)
+        fallback_payload = _usajobs_request(fallback_params)
+        fallback_matches = _normalize_internship_results(fallback_payload, plan, selected_reason)
+        if fallback_matches:
+            payload = fallback_payload
+            search_result = payload.get("SearchResult") or {}
+            all_matches = fallback_matches
+            search_scope = "state_fallback"
+            fallback_notice = (
+                f"No matching internships were returned for the exact {location} radius search, "
+                f"so Boasted is showing open {state} results. Check each listing's location before applying."
+            )
+
+    total = len(all_matches)
+    start = (page - 1) * page_size
+    end = start + page_size
+    provider_total = int(search_result.get("SearchResultCountAll") or len(search_result.get("SearchResultItems") or []))
 
     return {
-        "results": results,
-        "upstream_result_count": total,
+        "results": all_matches[start:end],
+        "total": total,
+        "upstream_result_count": provider_total,
         "page": page,
         "page_size": page_size,
         "pages": math.ceil(total / page_size) if total else 0,
         "location": location,
-        "query": career_term,
+        "query": plan["normalized_query"] or career_term,
+        "search_scope": search_scope,
+        "search_interpretation": {
+            "normalized_query": plan["normalized_query"],
+            "related_terms": plan["related_terms"],
+            "career_family": plan["family"],
+            "provider_keyword": plan["provider_keyword"],
+            "date_posted_filter": False,
+        },
+        "fallback_notice": fallback_notice,
         "used_career_suggestion": selected_reason is not None,
         "career_context": context,
         "source": USAJOBS_SOURCE,
-        "notice": "Results are live USAJOBS public job announcements filtered to records that explicitly contain an intern or student-trainee signal. Boasted does not predict hiring or selection.",
+        "notice": "Results are current open USAJOBS announcements. Boasted primarily trusts USAJOBS' structured PositionOfferingType internship classification, with explicit intern/student-trainee text as a fallback. No 30-day posted-date filter is applied and Boasted does not predict hiring or selection.",
     }
