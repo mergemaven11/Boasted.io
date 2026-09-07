@@ -16,6 +16,7 @@ const CareerIntelligencePage = lazyPage(() => import("./CareerIntelligencePage.j
 const ComplianceAuditPage = lazyPage(() => import("./ComplianceAuditPage.jsx"));
 const DashboardPage = lazyPage(() => import("./DashboardPage.jsx"));
 const DocsPage = lazyPage(() => import("./DocsPage.jsx"));
+const EducationDataPolicyPage = lazyPage(() => import("./EducationDataPolicyPage.jsx"));
 const EducationGuidePage = lazyPage(() => import("./EducationGuidePage.jsx"));
 const EducationMarketingPage = lazyPage(() => import("./EducationMarketingPage.jsx"));
 const ExecutiveImpactPage = lazyPage(() => import("./ExecutiveImpactPage.jsx"));
@@ -221,6 +222,7 @@ function RootContent() {
   let content;
   if (path.startsWith("/share/brag/")) content = <LegacyShareRedirect path={path} />;
   else if (path === "/privacy" || path === "/terms") content = <LegalPageRouter page={path === "/privacy" ? "privacy" : "terms"} />;
+  else if (path === "/legal/education-data") content = <EducationDataPolicyPage />;
   else if (path === "/verify-receipt") content = <ReceiptVerificationPage />;
   else if (path === "/upgrade") content = <LegacyUpgradeRedirect />;
   else if (path === "/support") content = <SupportHubPage />;
