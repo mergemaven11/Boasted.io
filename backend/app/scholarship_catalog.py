@@ -21,7 +21,7 @@ OPEN_SCHOLARSHIPS_URL = "https://scholarships.grudged.io/scholarships.json"
 OPEN_SCHOLARSHIPS_LICENSE = "CC-BY-4.0"
 OPEN_SCHOLARSHIPS_LICENSE_URL = "https://creativecommons.org/licenses/by/4.0/"
 OPEN_SCHOLARSHIPS_ATTRIBUTION = (
-    "Open Scholarships by Grudged LLC — https://github.com/Grudged/open-scholarships (CC BY 4.0)"
+    "Open Scholarships by Grudged LLC - https://github.com/Grudged/open-scholarships (CC BY 4.0)"
 )
 SYNC_INTERVAL = timedelta(days=7)
 
@@ -34,6 +34,13 @@ class ScholarshipSourceLicenseError(RuntimeError):
 
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _as_utc(value: datetime) -> datetime:
+    """Normalize Mongo/driver datetimes before freshness arithmetic."""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 def _parse_date(value: Any) -> datetime | None:
@@ -52,18 +59,18 @@ def _parse_date(value: Any) -> datetime | None:
 
 
 def validate_open_scholarships_license(payload: dict[str, Any]) -> None:
-    """Fail closed if the upstream license identity changes or disappears."""
+    """Fail closed if the upstream license identity or required attribution drifts."""
     meta = payload.get("meta") if isinstance(payload, dict) else None
     if not isinstance(meta, dict):
         raise ScholarshipSourceLicenseError("Open Scholarships response is missing license metadata")
     if meta.get("license") != OPEN_SCHOLARSHIPS_LICENSE:
         raise ScholarshipSourceLicenseError("Open Scholarships license is not the approved CC BY 4.0 license")
-    license_url = str(meta.get("license_url") or "")
-    if "creativecommons.org/licenses/by/4.0" not in license_url:
+    license_url = str(meta.get("license_url") or "").rstrip("/")
+    if license_url != OPEN_SCHOLARSHIPS_LICENSE_URL.rstrip("/"):
         raise ScholarshipSourceLicenseError("Open Scholarships license URL changed; manual review required")
     attribution = str(meta.get("attribution_required") or "").strip()
-    if not attribution:
-        raise ScholarshipSourceLicenseError("Open Scholarships attribution requirement is missing")
+    if attribution != OPEN_SCHOLARSHIPS_ATTRIBUTION:
+        raise ScholarshipSourceLicenseError("Open Scholarships attribution requirement changed; manual review required")
 
 
 def normalize_open_scholarship(record: dict[str, Any], *, imported_at: datetime | None = None) -> dict[str, Any]:
@@ -264,10 +271,12 @@ def archive_expired_scholarships(*, now: datetime | None = None) -> int:
 
 
 def catalog_needs_sync(*, now: datetime | None = None) -> bool:
-    now = now or utcnow()
+    now = _as_utc(now or utcnow())
     state = scholarship_sync_state_collection.find_one({"source": OPEN_SCHOLARSHIPS_SOURCE})
     last_success = state.get("last_success_at") if state else None
-    return not isinstance(last_success, datetime) or (now - last_success.astimezone(timezone.utc)) >= SYNC_INTERVAL
+    if not isinstance(last_success, datetime):
+        return True
+    return (now - _as_utc(last_success)) >= SYNC_INTERVAL
 
 
 STATE_NAMES = {
@@ -359,7 +368,6 @@ def interpret_scholarship_query(query: str) -> dict[str, Any]:
         word for word in words
         if word not in excluded and not word.isdigit() and not re.fullmatch(r"\d+[kK]?", word)
     ]
-    # Keep ordering while deduplicating.
     text_tokens = list(dict.fromkeys(text_tokens))[:8]
 
     return {
