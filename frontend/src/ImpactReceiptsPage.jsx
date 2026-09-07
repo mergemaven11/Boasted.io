@@ -1,8 +1,28 @@
 import "./ProductPolish.css";
+import "./ImpactReceiptsPolish.css";
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, ExternalLink, Pencil, Plus, ReceiptText, ShieldCheck, Trash2, X } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Pencil,
+  Plus,
+  ReceiptText,
+  ShieldCheck,
+  Trash2,
+  X,
+} from "lucide-react";
 import BragStackLoader from "./BragStackLoader.jsx";
-import { createImpactReceipt, deleteImpactReceipt, getImpactReceipts, updateImpactReceipt } from "./api";
+import { createImpactReceipt, deleteImpactReceipt, updateImpactReceipt } from "./api";
+import { getAllImpactReceipts } from "./impactReceiptLibraryApi.js";
+import {
+  RECEIPTS_PER_PAGE,
+  getImpactReceiptPage,
+  getImpactReceiptPageNumbers,
+  isReceiptVerified,
+  sortImpactReceiptsVerifiedFirst,
+} from "./impactReceiptLibrary.js";
 
 const EMPTY_EVIDENCE = { evidence_type: "other", title: "", reference: "", description: "", is_public: false };
 const EMPTY_FORM = { accomplishment: "", contribution: "", result: "", metricLabel: "", metricValue: "", metricContext: "", evidence: [{ ...EMPTY_EVIDENCE }], skills: "", isPublic: false };
@@ -91,7 +111,7 @@ function ReceiptVerificationStatus({ receipt }) {
           <div className="receipt-confirmation-detail" key={confirmation.id || `${confirmation.name}-${index}`}>
             <header>
               <div>
-                <strong>{confirmation.name || "Verifier"}</strong>
+                <strong className="receipt-verifier-name" title="Verifier name hidden for privacy">{confirmation.name || "Verifier"}</strong>
                 {confirmation.role && <small>{confirmation.role}</small>}
               </div>
               <span><CheckCircle2 size={13} /> Confirmed</span>
@@ -111,6 +131,7 @@ function ReceiptVerificationStatus({ receipt }) {
 
 function ImpactReceiptsPage() {
   const [receipts, setReceipts] = useState([]);
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -123,7 +144,7 @@ function ImpactReceiptsPage() {
 
   async function loadReceipts() {
     try {
-      const data = await getImpactReceipts();
+      const data = await getAllImpactReceipts();
       setReceipts(data.receipts ?? []);
       setError("");
     } catch (err) {
@@ -143,11 +164,22 @@ function ImpactReceiptsPage() {
     return () => window.clearTimeout(timeoutId);
   }, []);
 
+  const sortedReceipts = useMemo(() => sortImpactReceiptsVerifiedFirst(receipts), [receipts]);
+  const pageCount = Math.max(1, Math.ceil(sortedReceipts.length / RECEIPTS_PER_PAGE));
+  const pageReceipts = useMemo(() => getImpactReceiptPage(sortedReceipts, page), [sortedReceipts, page]);
+  const pageNumbers = useMemo(() => getImpactReceiptPageNumbers(page, pageCount), [page, pageCount]);
+  const pageStart = sortedReceipts.length === 0 ? 0 : (page - 1) * RECEIPTS_PER_PAGE + 1;
+  const pageEnd = Math.min(page * RECEIPTS_PER_PAGE, sortedReceipts.length);
+
+  useEffect(() => {
+    if (page > pageCount) setPage(pageCount);
+  }, [page, pageCount]);
+
   const stats = useMemo(() => ({
     publicCount: receipts.filter((receipt) => receipt.is_public).length,
     evidenceCount: receipts.reduce((total, receipt) => total + (receipt.evidence?.length ?? 0), 0),
     confirmedCount: receipts.reduce((total, receipt) => total + (receipt.confirmations?.filter((confirmation) => confirmation.status === "confirmed").length ?? 0), 0),
-    verifiedReceiptCount: receipts.filter((receipt) => receipt.confirmations?.some((confirmation) => confirmation.status === "confirmed")).length,
+    verifiedReceiptCount: receipts.filter(isReceiptVerified).length,
   }), [receipts]);
 
   function updateForm(field, value) { setForm((current) => ({ ...current, [field]: value })); }
@@ -163,7 +195,7 @@ function ImpactReceiptsPage() {
     const evidence = normalizeEvidence(form.evidence).map((item) => ({ ...item, reference: item.reference.trim() || null, description: item.description.trim() || null, title: item.title.trim() }));
     try {
       await createImpactReceipt({ accomplishment: form.accomplishment.trim(), contribution: form.contribution.trim(), result: form.result.trim(), metrics, evidence, skills, credit: [], is_public: form.isPublic });
-      setForm(EMPTY_FORM); setShowCreate(false); setSuccess("Impact Receipt saved with evidence."); await loadReceipts();
+      setForm(EMPTY_FORM); setShowCreate(false); setPage(1); setSuccess("Impact Receipt saved with evidence."); await loadReceipts();
     } catch (err) {
       const detail = err.response?.data?.detail;
       setError(typeof detail === "string" ? detail : "Impact Receipt could not be saved. Check the required fields.");
@@ -210,6 +242,11 @@ function ImpactReceiptsPage() {
     finally { setUpdatingId(null); }
   }
 
+  function goToPage(nextPage) {
+    const safePage = Math.min(Math.max(1, nextPage), pageCount);
+    setPage(safePage);
+  }
+
   return <main className="product-page receipt-library-page">
     <section className="product-page-hero">
       <div><p className="mini-label">Evidence-backed career proof</p><h1>Impact Receipts</h1><p>Capture what you accomplished, what changed, the evidence behind it, and the skills you demonstrated. Receipts and evidence stay private unless you explicitly choose to share them.</p></div>
@@ -244,39 +281,51 @@ function ImpactReceiptsPage() {
     {isLoading ? <BragStackLoader compact message="Loading your Impact Receipts…" detail="Gathering evidence-backed outcomes, proof, and confirmation signals." /> : receipts.length === 0 ? (
       <section className="product-empty"><h2>No receipts yet.</h2><p>Create your first evidence-backed receipt, or turn an existing accomplishment into one.</p><a href="/app/accomplishments">Create from an accomplishment <ExternalLink size={16} /></a></section>
     ) : (
-      <section className="receipt-library-grid">
-        {receipts.map((receipt) => {
-          const isVerified = receipt.confirmations?.some((confirmation) => confirmation.status === "confirmed");
-          return <article className={`receipt-library-card ${isVerified ? "is-verified" : ""}`} key={receipt.id}>
-            <div className="receipt-library-card-top">
-              <div><p className="mini-label">Impact Receipt</p><h2>{receipt.accomplishment}</h2></div>
-              <div className="receipt-card-actions">
-                <button type="button" className={`visibility-pill ${receipt.is_public ? "public" : "private"}`} disabled={updatingId === receipt.id} onClick={() => toggleVisibility(receipt)}>{updatingId === receipt.id ? "Saving…" : receipt.is_public ? "Public" : "Private"}</button>
-                <button type="button" aria-label="Edit Impact Receipt" onClick={() => beginEdit(receipt)}><Pencil size={16} /></button>
-                <button type="button" aria-label="Delete Impact Receipt" disabled={updatingId === receipt.id} onClick={() => removeReceipt(receipt)}><Trash2 size={16} /></button>
+      <>
+        <div className="receipt-library-order-note"><CheckCircle2 size={16} /> Verified receipts appear first. Newest receipts stay first within each group.</div>
+        <section className="receipt-library-grid">
+          {pageReceipts.map((receipt) => {
+            const isVerified = isReceiptVerified(receipt);
+            return <article className={`receipt-library-card ${isVerified ? "is-verified" : ""}`} key={receipt.id}>
+              <div className="receipt-library-card-top">
+                <div><p className="mini-label">Impact Receipt</p><h2>{receipt.accomplishment}</h2></div>
+                <div className="receipt-card-actions">
+                  <button type="button" className={`visibility-pill ${receipt.is_public ? "public" : "private"}`} disabled={updatingId === receipt.id} onClick={() => toggleVisibility(receipt)}>{updatingId === receipt.id ? "Saving…" : receipt.is_public ? "Public" : "Private"}</button>
+                  <button type="button" aria-label="Edit Impact Receipt" onClick={() => beginEdit(receipt)}><Pencil size={16} /></button>
+                  <button type="button" aria-label="Delete Impact Receipt" disabled={updatingId === receipt.id} onClick={() => removeReceipt(receipt)}><Trash2 size={16} /></button>
+                </div>
               </div>
-            </div>
 
-            <ReceiptVerificationStatus receipt={receipt} />
+              <ReceiptVerificationStatus receipt={receipt} />
 
-            {editingId === receipt.id && editForm && <div className="receipt-create-form receipt-edit-form">
-              <label>Accomplishment<input value={editForm.accomplishment} onChange={(event) => updateEdit("accomplishment", event.target.value)} /></label>
-              <label>Your contribution<textarea value={editForm.contribution} onChange={(event) => updateEdit("contribution", event.target.value)} /></label>
-              <label>Result / impact<textarea value={editForm.result} onChange={(event) => updateEdit("result", event.target.value)} /></label>
-              <EvidenceFields items={editForm.evidence} onChange={updateEditEvidence} onAdd={addEditEvidence} onRemove={removeEditEvidence} />
-              <label>Skills<input value={editForm.skills} onChange={(event) => updateEdit("skills", event.target.value)} /></label>
-              <label><input type="checkbox" checked={editForm.is_public} onChange={(event) => updateEdit("is_public", event.target.checked)} /> This receipt may be shared publicly</label>
-              <button type="button" disabled={updatingId === receipt.id} onClick={() => saveEdit(receipt.id)}>Save changes</button>
-              <button type="button" onClick={() => { setEditingId(null); setEditForm(null); }}>Cancel</button>
-            </div>}
+              {editingId === receipt.id && editForm && <div className="receipt-create-form receipt-edit-form">
+                <label>Accomplishment<input value={editForm.accomplishment} onChange={(event) => updateEdit("accomplishment", event.target.value)} /></label>
+                <label>Your contribution<textarea value={editForm.contribution} onChange={(event) => updateEdit("contribution", event.target.value)} /></label>
+                <label>Result / impact<textarea value={editForm.result} onChange={(event) => updateEdit("result", event.target.value)} /></label>
+                <EvidenceFields items={editForm.evidence} onChange={updateEditEvidence} onAdd={addEditEvidence} onRemove={removeEditEvidence} />
+                <label>Skills<input value={editForm.skills} onChange={(event) => updateEdit("skills", event.target.value)} /></label>
+                <label><input type="checkbox" checked={editForm.is_public} onChange={(event) => updateEdit("is_public", event.target.checked)} /> This receipt may be shared publicly</label>
+                <button type="button" disabled={updatingId === receipt.id} onClick={() => saveEdit(receipt.id)}>Save changes</button>
+                <button type="button" onClick={() => { setEditingId(null); setEditForm(null); }}>Cancel</button>
+              </div>}
 
-            <div className="receipt-proof-columns"><div><span>Contribution</span><p>{receipt.contribution}</p></div><div><span>Result</span><p>{receipt.result}</p></div></div>
-            {receipt.metrics?.length > 0 && <div className="receipt-signal-row">{receipt.metrics.map((metric, index) => <span key={`${metric.label}-${index}`}>{metric.label}: <strong>{metric.value}</strong>{metric.context ? ` · ${metric.context}` : ""}</span>)}</div>}
-            <div className="receipt-chip-row">{receipt.skills?.map((skill) => <span key={skill}>{skill}</span>)}</div>
-            {receipt.evidence?.length > 0 && <div className="receipt-evidence-list"><span className="receipt-evidence-heading">Evidence</span>{receipt.evidence.map((item, index) => <div className="receipt-evidence-row" key={`${item.title}-${index}`}><div><strong>{item.title}</strong><span>{formatLabel(item.evidence_type)}</span>{item.description && <p>{item.description}</p>}</div><div className="receipt-evidence-actions">{item.reference && <a href={item.reference.startsWith("http") ? item.reference : undefined} title={item.reference}>{item.reference.startsWith("http") ? <ExternalLink size={15} /> : item.reference}</a>}<span className={`visibility-pill ${item.is_public ? "public" : "private"}`}>{item.is_public ? "Public evidence" : "Private evidence"}</span></div></div>)}</div>}
-          </article>;
-        })}
-      </section>
+              <div className="receipt-proof-columns"><div><span>Contribution</span><p>{receipt.contribution}</p></div><div><span>Result</span><p>{receipt.result}</p></div></div>
+              {receipt.metrics?.length > 0 && <div className="receipt-signal-row">{receipt.metrics.map((metric, index) => <span key={`${metric.label}-${index}`}>{metric.label}: <strong>{metric.value}</strong>{metric.context ? ` · ${metric.context}` : ""}</span>)}</div>}
+              <div className="receipt-chip-row">{receipt.skills?.map((skill) => <span key={skill}>{skill}</span>)}</div>
+              {receipt.evidence?.length > 0 && <div className="receipt-evidence-list"><span className="receipt-evidence-heading">Evidence</span>{receipt.evidence.map((item, index) => <div className="receipt-evidence-row" key={`${item.title}-${index}`}><div><strong>{item.title}</strong><span>{formatLabel(item.evidence_type)}</span>{item.description && <p>{item.description}</p>}</div><div className="receipt-evidence-actions">{item.reference && <a href={item.reference.startsWith("http") ? item.reference : undefined} title={item.reference}>{item.reference.startsWith("http") ? <ExternalLink size={15} /> : item.reference}</a>}<span className={`visibility-pill ${item.is_public ? "public" : "private"}`}>{item.is_public ? "Public evidence" : "Private evidence"}</span></div></div>)}</div>}
+            </article>;
+          })}
+        </section>
+
+        {sortedReceipts.length > RECEIPTS_PER_PAGE && <div className="pagination-shell receipt-library-pagination">
+          <span className="pagination-summary">Showing {pageStart}–{pageEnd} of {sortedReceipts.length} Impact Receipts · Page {page} of {pageCount}</span>
+          <div className="pagination-controls" aria-label="Impact Receipt pages">
+            <button type="button" aria-label="Previous page" disabled={page === 1} onClick={() => goToPage(page - 1)}><ChevronLeft size={16} /> Prev</button>
+            {pageNumbers.map((pageNumber) => <button type="button" key={pageNumber} className={pageNumber === page ? "active" : ""} aria-current={pageNumber === page ? "page" : undefined} onClick={() => goToPage(pageNumber)}>{pageNumber}</button>)}
+            <button type="button" aria-label="Next page" disabled={page === pageCount} onClick={() => goToPage(page + 1)}>Next <ChevronRight size={16} /></button>
+          </div>
+        </div>}
+      </>
     )}
   </main>;
 }
