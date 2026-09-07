@@ -1,25 +1,25 @@
-"""Career-aware student opportunity discovery using CareerOneStop under license.
+"""Evidence-aware education opportunity discovery using simpler public APIs.
 
-CareerOneStop API use is fail-closed: credentials alone are not enough. Boasted also
-requires an explicit active license status and future license-expiration date before
-making a CareerOneStop request. Every upstream call receives a compliance audit
-receipt, while private accomplishments, raw search terms, locations, and geocodes are
-not written to the audit log.
+Programs use the U.S. Department of Education College Scorecard. Federal internships
+use the USAJOBS public search API. Boasted keeps member evidence separate from source
+data, never stores upstream job/program records as a competing database, and records
+only data-minimized source-access receipts in the permanent education source audit log.
 """
 from __future__ import annotations
 
 import math
 import os
+import re
 import uuid
 from datetime import datetime, timezone
-from urllib.parse import quote
+from typing import Any
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.auth import get_current_user
 from app.database import (
-    careeronestop_audit_events_collection,
+    education_source_audit_events_collection,
     entries_collection,
     impact_receipts_collection,
 )
@@ -28,31 +28,64 @@ from app.ops_routes import require_internal_role
 
 router = APIRouter(prefix="/student-opportunities", tags=["student-opportunities"])
 
-CAREERONESTOP_BASE = "https://api.careeronestop.org"
-CAREERONESTOP_USER_ID = os.getenv("CAREERONESTOP_USER_ID", "").strip()
-CAREERONESTOP_API_TOKEN = os.getenv("CAREERONESTOP_API_TOKEN", "").strip()
-CAREERONESTOP_LICENSE_STATUS = os.getenv("CAREERONESTOP_LICENSE_STATUS", "pending").strip().lower()
-CAREERONESTOP_LICENSE_GRANTED_AT = os.getenv("CAREERONESTOP_LICENSE_GRANTED_AT", "").strip()
-CAREERONESTOP_LICENSE_EXPIRES_AT = os.getenv("CAREERONESTOP_LICENSE_EXPIRES_AT", "").strip()
-CAREERONESTOP_LICENSE_PURPOSE_VERSION = "boasted-education-opportunity-discovery-v1"
-CAREERONESTOP_REQUIRED_ATTRIBUTION = (
-    "CareerOneStop data source acknowledgement: U.S. Department of Labor Employment and Training "
-    "Administration (DOLETA) and Minnesota Department of Employment & Economic Development (DEED)."
-)
-CAREERONESTOP_SOURCE = {
-    "name": "CareerOneStop Web API",
-    "publisher": "DOLETA and Minnesota DEED",
-    "url": "https://www.careeronestop.org/Developers/WebAPI/web-api.aspx",
-    "rights_basis": "CareerOneStop Data Sharing and Use/Display Click License Agreement; active grant required",
-    "usage": "Live program, youth-service, and job discovery with required source attribution.",
-    "required_attribution": CAREERONESTOP_REQUIRED_ATTRIBUTION,
+COLLEGE_SCORECARD_BASE = "https://api.data.gov/ed/collegescorecard/v1/schools.json"
+COLLEGE_SCORECARD_API_KEY = os.getenv("COLLEGE_SCORECARD_API_KEY", "").strip()
+USAJOBS_BASE = "https://data.usajobs.gov/api/search"
+USAJOBS_API_KEY = os.getenv("USAJOBS_API_KEY", "").strip()
+USAJOBS_USER_AGENT = os.getenv("USAJOBS_USER_AGENT", "").strip()
+
+COLLEGE_SCORECARD_SOURCE = {
+    "id": "college-scorecard",
+    "name": "College Scorecard",
+    "publisher": "U.S. Department of Education",
+    "url": "https://collegescorecard.ed.gov/data/",
+    "rights_basis": "Public federal dataset; Data.gov catalog links CC BY licensing information",
+    "usage": "Live institution and field-of-study discovery. Boasted does not turn aggregate outcomes into personal predictions.",
+}
+USAJOBS_SOURCE = {
+    "id": "usajobs",
+    "name": "USAJOBS",
+    "publisher": "U.S. Office of Personnel Management",
+    "url": "https://www.usajobs.gov/",
+    "rights_basis": "USAJOBS API Terms of Service; public job opportunity announcement data",
+    "usage": "Live federal internship discovery with attribution and links back to USAJOBS.",
 }
 VOLUNTEER_SOURCE = {
+    "id": "volunteer-gov",
     "name": "Volunteer.gov",
     "publisher": "U.S. Department of the Interior and participating federal agencies",
     "url": "https://www.volunteer.gov/",
     "rights_basis": "link-only",
-    "usage": "Official federal volunteer opportunity search. Boasted does not ingest it because no approved public opportunity API was identified.",
+    "usage": "Official federal volunteer opportunity search. Boasted links out rather than copying listings.",
+}
+
+STATE_CODES = {
+    "alabama": "AL", "alaska": "AK", "arizona": "AZ", "arkansas": "AR", "california": "CA",
+    "colorado": "CO", "connecticut": "CT", "delaware": "DE", "florida": "FL", "georgia": "GA",
+    "hawaii": "HI", "idaho": "ID", "illinois": "IL", "indiana": "IN", "iowa": "IA",
+    "kansas": "KS", "kentucky": "KY", "louisiana": "LA", "maine": "ME", "maryland": "MD",
+    "massachusetts": "MA", "michigan": "MI", "minnesota": "MN", "mississippi": "MS", "missouri": "MO",
+    "montana": "MT", "nebraska": "NE", "nevada": "NV", "new hampshire": "NH", "new jersey": "NJ",
+    "new mexico": "NM", "new york": "NY", "north carolina": "NC", "north dakota": "ND", "ohio": "OH",
+    "oklahoma": "OK", "oregon": "OR", "pennsylvania": "PA", "rhode island": "RI", "south carolina": "SC",
+    "south dakota": "SD", "tennessee": "TN", "texas": "TX", "utah": "UT", "vermont": "VT",
+    "virginia": "VA", "washington": "WA", "west virginia": "WV", "wisconsin": "WI", "wyoming": "WY",
+    "district of columbia": "DC",
+}
+
+PROGRAM_ALIASES = {
+    "software": {"computer", "computing", "programming", "software", "information technology"},
+    "developer": {"computer", "computing", "programming", "software", "information technology"},
+    "cybersecurity": {"cyber", "security", "information technology", "computer"},
+    "data": {"data", "statistics", "analytics", "computer", "information"},
+    "nursing": {"nursing", "registered nurse", "health"},
+    "health": {"health", "public health", "healthcare", "nursing"},
+    "marketing": {"marketing", "advertising", "communications", "business"},
+    "finance": {"finance", "financial", "accounting", "business"},
+    "education": {"education", "teaching", "teacher"},
+    "teaching": {"education", "teaching", "teacher"},
+    "design": {"design", "graphic", "visual", "digital"},
+    "engineering": {"engineering", "engineer"},
 }
 
 
@@ -60,140 +93,59 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
-def _parse_datetime(value: str) -> datetime | None:
-    if not value:
-        return None
-    try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(timezone.utc)
-
-
-def _license_state(*, now: datetime | None = None) -> dict:
-    """Return a non-secret license state and fail closed on missing/expired dates."""
-    now = now or _utcnow()
-    expires_at = _parse_datetime(CAREERONESTOP_LICENSE_EXPIRES_AT)
-    granted_at = _parse_datetime(CAREERONESTOP_LICENSE_GRANTED_AT)
-    active = CAREERONESTOP_LICENSE_STATUS == "granted" and expires_at is not None and expires_at > now
-    days_remaining = max(0, (expires_at - now).days) if expires_at else None
-    return {
-        "status": CAREERONESTOP_LICENSE_STATUS or "pending",
-        "active": active,
-        "granted_at": granted_at,
-        "expires_at": expires_at,
-        "days_remaining": days_remaining,
-        "purpose_version": CAREERONESTOP_LICENSE_PURPOSE_VERSION,
-        "renewal_warning": bool(active and days_remaining is not None and days_remaining <= 90),
-    }
-
-
-def _credentials_configured() -> bool:
-    return bool(CAREERONESTOP_USER_ID and CAREERONESTOP_API_TOKEN)
-
-
-def _configured() -> bool:
-    return _credentials_configured() and bool(_license_state()["active"])
-
-
-def _auth_headers() -> dict[str, str]:
-    return {
-        "Authorization": f"Bearer {CAREERONESTOP_API_TOKEN}",
-        "Accept": "application/json",
-        "User-Agent": "Boasted Student Opportunity Discovery/1.0",
-    }
-
-
 def _audit_event(
     *,
-    request_id: str,
+    provider: str,
     operation: str,
     outcome: str,
+    request_id: str,
     http_status: int | None = None,
     result_count: int | None = None,
-    metadata: dict | None = None,
     error_type: str | None = None,
+    metadata: dict[str, Any] | None = None,
     required: bool = False,
 ) -> None:
-    """Persist a data-minimized CareerOneStop compliance receipt.
+    """Append a permanent, data-minimized source-access receipt.
 
-    Raw search terms, locations, member evidence, API credentials, API paths containing
-    those values, response records, and geocodes are intentionally excluded.
+    There is intentionally no TTL index or delete route for this collection. Raw search
+    terms, locations, member evidence, API keys, and upstream response records are not
+    written to the log.
     """
-    state = _license_state()
-    upstream = metadata or {}
     document = {
-        "provider": "CareerOneStop",
-        "event_type": "licensed_api_access",
-        "request_id": request_id,
+        "event_id": uuid.uuid4().hex,
+        "provider": provider,
+        "event_type": "education_source_access",
         "operation": operation,
         "outcome": outcome,
+        "request_id": request_id,
         "occurred_at": _utcnow(),
         "http_status": http_status,
         "result_count": result_count,
         "error_type": error_type,
-        "license": {
-            "status": state["status"],
-            "active": state["active"],
-            "granted_at": state["granted_at"],
-            "expires_at": state["expires_at"],
-            "purpose_version": state["purpose_version"],
-        },
-        "source_metadata": {
-            "publisher": upstream.get("Publisher"),
-            "sponsor": upstream.get("Sponsor"),
-            "last_access_date": upstream.get("LastAccessDate"),
-            "citation_suggested": upstream.get("CitationSuggested"),
-        },
+        "source_metadata": metadata or {},
         "safeguards": {
-            "private_member_evidence_sent_to_cos": False,
+            "private_member_evidence_sent": False,
             "raw_query_or_location_logged": False,
-            "cos_records_persisted_by_boasted": False,
-            "cos_geocodes_persisted_copied_or_shared": False,
-            "source_text_rewritten": False,
-            "boasted_annotations_separate_from_source_fields": True,
-            "doletta_deed_attribution_required_on_results_page": True,
+            "api_credentials_logged": False,
+            "upstream_records_persisted": False,
+            "boasted_annotations_separate": True,
         },
     }
     try:
-        careeronestop_audit_events_collection.insert_one(document)
-    except Exception as exc:  # pragma: no cover - exercised by integration/DB failure handling
+        education_source_audit_events_collection.insert_one(document)
+    except Exception as exc:  # pragma: no cover - database outage path
         if required:
             raise HTTPException(
                 status_code=503,
                 detail={
-                    "code": "careeronestop_audit_unavailable",
-                    "message": "CareerOneStop search was withheld because the compliance audit trail could not be written.",
+                    "code": "education_source_audit_unavailable",
+                    "message": "External opportunity search was withheld because the compliance audit receipt could not be written.",
                 },
             ) from exc
 
 
-def _require_active_license(operation: str, request_id: str) -> None:
-    if not _credentials_configured():
-        _audit_event(request_id=request_id, operation=operation, outcome="blocked_missing_credentials")
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "careeronestop_not_configured",
-                "message": "Opportunity search is ready but the CareerOneStop API credentials have not been configured on the server.",
-            },
-        )
-    state = _license_state()
-    if not state["active"]:
-        _audit_event(request_id=request_id, operation=operation, outcome="blocked_license_inactive")
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "careeronestop_license_not_active",
-                "message": "CareerOneStop results are disabled until Boasted has been notified that its license is granted and a future license expiration date is configured.",
-            },
-        )
-
-
 def _career_context(current_user: dict) -> dict:
-    """Build safe search hints from verified member-saved evidence; never a fit score."""
+    """Build editable search hints from member-saved evidence; never a fit score."""
     user_id = str(current_user["_id"])
     entries = list(entries_collection.find({"user_id": user_id}))
     receipts = list(impact_receipts_collection.find({"user_id": user_id}))
@@ -206,13 +158,11 @@ def _career_context(current_user: dict) -> dict:
         examples = [str(value).strip() for value in direction.get("examples") or [] if str(value).strip()]
         supported = [str(value).strip() for value in direction.get("demonstrated_skills") or [] if str(value).strip()]
         for example in examples[:2]:
-            suggested.append(
-                {
-                    "query": example,
-                    "direction": direction.get("title") or "Career direction",
-                    "supported_by": supported[:4],
-                }
-            )
+            suggested.append({
+                "query": example,
+                "direction": direction.get("title") or "Career direction",
+                "supported_by": supported[:4],
+            })
     if not suggested:
         for item in skills[:4]:
             skill = str(item.get("skill") or "").strip()
@@ -229,144 +179,219 @@ def _career_context(current_user: dict) -> dict:
     }
 
 
-def _request(path: str, *, operation: str, params: dict | None = None) -> dict:
+def _location_parts(location: str) -> tuple[str | None, str | None]:
+    cleaned = " ".join(location.strip().split())
+    if not cleaned:
+        return None, None
+    pieces = [piece.strip() for piece in cleaned.split(",") if piece.strip()]
+    state: str | None = None
+    city: str | None = pieces[0] if len(pieces) > 1 else None
+
+    candidates = pieces[1:] if len(pieces) > 1 else pieces
+    for candidate in reversed(candidates):
+        letters = re.sub(r"[^A-Za-z ]", "", candidate).strip()
+        if len(letters) == 2 and letters.upper() in set(STATE_CODES.values()):
+            state = letters.upper()
+            break
+        if letters.lower() in STATE_CODES:
+            state = STATE_CODES[letters.lower()]
+            break
+    if state is None and cleaned.lower() in STATE_CODES:
+        state = STATE_CODES[cleaned.lower()]
+        city = None
+    if state is None and len(cleaned) == 2 and cleaned.upper() in set(STATE_CODES.values()):
+        state = cleaned.upper()
+        city = None
+    return city, state
+
+
+def _scorecard_configured() -> bool:
+    return bool(COLLEGE_SCORECARD_API_KEY)
+
+
+def _usajobs_configured() -> bool:
+    return bool(USAJOBS_API_KEY and USAJOBS_USER_AGENT)
+
+
+def _scorecard_request(params: dict[str, Any]) -> dict:
+    if not _scorecard_configured():
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "college_scorecard_not_configured",
+                "message": "Program search is ready but the server still needs a College Scorecard API key.",
+            },
+        )
     request_id = uuid.uuid4().hex
-    _require_active_license(operation, request_id)
-    _audit_event(request_id=request_id, operation=operation, outcome="attempt", required=True)
+    _audit_event(provider="College Scorecard", operation="program_search", outcome="attempt", request_id=request_id, required=True)
     try:
         response = httpx.get(
-            f"{CAREERONESTOP_BASE}{path}",
-            headers=_auth_headers(),
-            params=params or {},
+            COLLEGE_SCORECARD_BASE,
+            params={**params, "api_key": COLLEGE_SCORECARD_API_KEY},
+            headers={"Accept": "application/json", "User-Agent": "Boasted Education/1.0"},
             timeout=18.0,
             follow_redirects=True,
         )
         response.raise_for_status()
         payload = response.json()
-        metadata = payload.get("MetaData") or payload.get("Metadata") or {}
-        result_count = None
-        for key in ("RecordCount", "JobCount"):
-            if payload.get(key) is not None:
-                try:
-                    result_count = int(payload.get(key))
-                except (TypeError, ValueError):
-                    result_count = None
-                break
+        results = payload.get("results") or []
+        metadata = payload.get("metadata") or {}
         _audit_event(
-            request_id=request_id,
-            operation=operation,
+            provider="College Scorecard",
+            operation="program_search",
             outcome="success",
+            request_id=request_id,
             http_status=response.status_code,
-            result_count=result_count,
-            metadata=metadata,
+            result_count=len(results),
+            metadata={"total": metadata.get("total"), "page": metadata.get("page")},
             required=True,
         )
         return payload
     except httpx.HTTPError as exc:
-        status_code = getattr(getattr(exc, "response", None), "status_code", None)
-        _audit_event(
-            request_id=request_id,
-            operation=operation,
-            outcome="upstream_error",
-            http_status=status_code,
-            error_type=type(exc).__name__,
-        )
-        raise HTTPException(status_code=502, detail="CareerOneStop could not be reached right now.") from exc
+        status = getattr(getattr(exc, "response", None), "status_code", None)
+        _audit_event(provider="College Scorecard", operation="program_search", outcome="upstream_error", request_id=request_id, http_status=status, error_type=type(exc).__name__)
+        raise HTTPException(status_code=502, detail="College Scorecard could not be reached right now.") from exc
     except ValueError as exc:
-        _audit_event(
-            request_id=request_id,
-            operation=operation,
-            outcome="unreadable_response",
-            error_type=type(exc).__name__,
+        _audit_event(provider="College Scorecard", operation="program_search", outcome="unreadable_response", request_id=request_id, error_type=type(exc).__name__)
+        raise HTTPException(status_code=502, detail="College Scorecard returned an unreadable response.") from exc
+
+
+def _usajobs_request(params: dict[str, Any]) -> dict:
+    if not _usajobs_configured():
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "usajobs_not_configured",
+                "message": "Federal internship search is ready but the server still needs the USAJOBS API key and registered email.",
+            },
         )
-        raise HTTPException(status_code=502, detail="CareerOneStop returned an unreadable response.") from exc
+    request_id = uuid.uuid4().hex
+    _audit_event(provider="USAJOBS", operation="federal_internship_search", outcome="attempt", request_id=request_id, required=True)
+    try:
+        response = httpx.get(
+            USAJOBS_BASE,
+            params=params,
+            headers={
+                "Host": "data.usajobs.gov",
+                "User-Agent": USAJOBS_USER_AGENT,
+                "Authorization-Key": USAJOBS_API_KEY,
+                "Accept": "application/json",
+            },
+            timeout=18.0,
+            follow_redirects=True,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        search_result = payload.get("SearchResult") or {}
+        items = search_result.get("SearchResultItems") or []
+        _audit_event(
+            provider="USAJOBS",
+            operation="federal_internship_search",
+            outcome="success",
+            request_id=request_id,
+            http_status=response.status_code,
+            result_count=len(items),
+            metadata={"matched": search_result.get("SearchResultCountAll")},
+            required=True,
+        )
+        return payload
+    except httpx.HTTPError as exc:
+        status = getattr(getattr(exc, "response", None), "status_code", None)
+        _audit_event(provider="USAJOBS", operation="federal_internship_search", outcome="upstream_error", request_id=request_id, http_status=status, error_type=type(exc).__name__)
+        raise HTTPException(status_code=502, detail="USAJOBS could not be reached right now.") from exc
+    except ValueError as exc:
+        _audit_event(provider="USAJOBS", operation="federal_internship_search", outcome="unreadable_response", request_id=request_id, error_type=type(exc).__name__)
+        raise HTTPException(status_code=502, detail="USAJOBS returned an unreadable response.") from exc
 
 
-def _source_metadata(payload: dict) -> dict:
-    metadata = payload.get("MetaData") or payload.get("Metadata") or {}
+def _program_terms(query: str) -> set[str]:
+    tokens = {token for token in re.findall(r"[a-z0-9]+", query.lower()) if len(token) >= 3}
+    expanded = set(tokens)
+    for token in tokens:
+        expanded.update(PROGRAM_ALIASES.get(token, set()))
+    return expanded
+
+
+def _scorecard_programs(record: dict) -> list[dict]:
+    direct = record.get("latest.programs.cip_4_digit")
+    if isinstance(direct, list):
+        return direct
+    latest = record.get("latest") or {}
+    programs = latest.get("programs") if isinstance(latest, dict) else None
+    cip = programs.get("cip_4_digit") if isinstance(programs, dict) else None
+    return cip if isinstance(cip, list) else []
+
+
+def _scorecard_school_value(record: dict, dotted: str, nested_path: tuple[str, ...]) -> Any:
+    if dotted in record:
+        return record.get(dotted)
+    current: Any = record
+    for key in nested_path:
+        if not isinstance(current, dict):
+            return None
+        current = current.get(key)
+    return current
+
+
+def _program_item(record: dict, program: dict, *, reason: dict | None = None) -> dict:
+    school_id = record.get("id")
+    title = program.get("title") or program.get("Title") or program.get("cip_title")
+    code = program.get("code") or program.get("cip_code")
+    credential = program.get("credential") or program.get("credential.level") or program.get("credential_level")
+    school_name = _scorecard_school_value(record, "school.name", ("school", "name"))
+    city = _scorecard_school_value(record, "school.city", ("school", "city"))
+    state = _scorecard_school_value(record, "school.state", ("school", "state"))
+    zip_code = _scorecard_school_value(record, "school.zip", ("school", "zip"))
+    school_url = _scorecard_school_value(record, "school.school_url", ("school", "school_url"))
+    student_size = _scorecard_school_value(record, "latest.student.size", ("latest", "student", "size"))
+    net_price = _scorecard_school_value(record, "latest.cost.avg_net_price.overall", ("latest", "cost", "avg_net_price", "overall"))
     return {
-        **CAREERONESTOP_SOURCE,
-        "citation": metadata.get("CitationSuggested"),
-        "last_access_date": metadata.get("LastAccessDate"),
-        "upstream_sources": metadata.get("DataSource") or [],
-        "license": _license_state(),
-    }
-
-
-def _program_item(record: dict, *, reason: dict | None = None) -> dict:
-    """Keep CareerOneStop values verbatim and put Boasted annotations in a separate block."""
-    source_label = str(record.get("DataSource") or "")
-    return {
-        "id": f"training:{record.get('DetailId')}",
+        "id": f"scorecard:{school_id}:{code}:{credential}",
         "source": {
-            "title": record.get("EtaProgramName") if record.get("EtaProgramName") is not None else record.get("CipTitle"),
-            "provider": record.get("SchoolName"),
-            "credential": record.get("Credential") if record.get("Credential") is not None else record.get("AwardLevel"),
-            "formats": record.get("Format") or [],
-            "occupations": record.get("OccupationsList") or [],
-            "address": record.get("Address"),
-            "city": record.get("City"),
-            "state": record.get("StateAbbr") if record.get("StateAbbr") is not None else record.get("State"),
-            "zip": record.get("Zip"),
-            "distance": record.get("Distance"),
-            "phone": record.get("Phone"),
-            "url": record.get("SchoolURL"),
-            "data_source": record.get("DataSource"),
+            "title": title,
+            "provider": school_name,
+            "city": city,
+            "state": state,
+            "zip": zip_code,
+            "url": school_url,
+            "credential": f"Credential level {credential}" if credential is not None else None,
+            "cip_code": code,
+            "student_size": student_size,
+            "avg_net_price": net_price,
+            "data_source": "College Scorecard",
         },
         "boasted": {
-            "display_kind": "training",
-            "cost_claim": "unknown",
-            "wioa_or_etp_signal": "ETP" in source_label.upper() or "WIOA" in source_label.upper(),
+            "display_kind": "college-program",
+            "cost_claim": "aggregate-context-only",
             "why_shown": reason,
         },
     }
 
 
-def _youth_program_item(record: dict) -> dict:
-    """Do not turn the Youth Program Finder category into a per-provider price claim."""
+def _usajobs_item(item: dict, *, reason: dict | None = None) -> dict:
+    descriptor = item.get("MatchedObjectDescriptor") or {}
+    user_area = descriptor.get("UserArea") or {}
+    details = user_area.get("Details") or {}
+    title = str(descriptor.get("PositionTitle") or "")
+    summary = str(details.get("JobSummary") or descriptor.get("QualificationSummary") or "")
+    signal_text = f"{title} {summary}".lower()
+    internship_signal = "intern" in signal_text or "student trainee" in signal_text
     return {
-        "id": f"youth:{record.get('ID')}",
+        "id": f"usajobs:{item.get('MatchedObjectId') or descriptor.get('PositionID')}",
         "source": {
-            "title": record.get("Name"),
-            "provider": record.get("ProgramType"),
-            "address": record.get("Address1"),
-            "city": record.get("City"),
-            "state": record.get("StateAbbr") if record.get("StateAbbr") is not None else record.get("StateName"),
-            "zip": record.get("Zip"),
-            "distance": record.get("Distance"),
-            "phone": record.get("Phone"),
-            "email": record.get("GeneralEmail"),
-            "url": record.get("WebSiteUrl"),
-            "status": record.get("CenterStatus"),
-            "service_message": record.get("ServiceMessage"),
+            "title": descriptor.get("PositionTitle"),
+            "company": descriptor.get("OrganizationName") or descriptor.get("DepartmentName"),
+            "location": descriptor.get("PositionLocationDisplay"),
+            "description": details.get("JobSummary") or descriptor.get("QualificationSummary"),
+            "posted_at": descriptor.get("PublicationStartDate"),
+            "deadline": descriptor.get("ApplicationCloseDate"),
+            "url": descriptor.get("PositionURI"),
+            "schedule": descriptor.get("PositionSchedule") or [],
+            "offering_type": descriptor.get("PositionOfferingType") or [],
+            "data_source": "USAJOBS",
         },
         "boasted": {
-            "display_kind": "youth-support",
-            "cost_claim": "verify-with-provider",
-            "why_shown": {"direction": "Local student support", "supported_by": []},
-        },
-    }
-
-
-def _job_item(record: dict, *, reason: dict | None = None) -> dict:
-    """Keep listing text unchanged; derive only a separate internship-filter signal."""
-    title = str(record.get("JobTitle") or "")
-    snippet = str(record.get("DescriptionSnippet") or "")
-    internship_signal = "intern" in f"{title} {snippet}".lower()
-    return {
-        "id": f"job:{record.get('JvId')}",
-        "source": {
-            "title": record.get("JobTitle"),
-            "company": record.get("Company"),
-            "location": record.get("Location"),
-            "distance": record.get("Distance"),
-            "description": record.get("DescriptionSnippet"),
-            "posted_at": record.get("AcquisitionDate"),
-            "url": record.get("URL"),
-            "onet_codes": record.get("OnetCodes") or [],
-        },
-        "boasted": {
-            "display_kind": "internship-candidate",
+            "display_kind": "federal-internship",
             "internship_signal": internship_signal,
             "why_shown": reason,
         },
@@ -376,32 +401,29 @@ def _job_item(record: dict, *, reason: dict | None = None) -> dict:
 @router.get("/context")
 def opportunity_context(current_user: dict = Depends(get_current_user)):
     """Return member-controlled defaults and evidence-connected search ideas."""
-    license_state = _license_state()
     return {
         **_career_context(current_user),
-        "credentials_configured": _credentials_configured(),
-        "license_active": license_state["active"],
-        "api_configured": _configured(),
-        "license": license_state,
-        "sources": [CAREERONESTOP_SOURCE, VOLUNTEER_SOURCE],
+        "program_api_configured": _scorecard_configured(),
+        "internship_api_configured": _usajobs_configured(),
+        "api_configured": _scorecard_configured() and _usajobs_configured(),
+        "sources": [COLLEGE_SCORECARD_SOURCE, USAJOBS_SOURCE, VOLUNTEER_SOURCE],
     }
 
 
 @router.get("/compliance/audit")
-def careeronestop_compliance_audit(
+def education_source_compliance_audit(
     limit: int = Query(default=100, ge=1, le=500),
     _current_user: dict = Depends(require_internal_role("ops", "security", "admin")),
 ):
-    """Return recent data-minimized CareerOneStop access receipts to authorized operators."""
+    """Return recent permanent education source receipts to authorized operators."""
     events = list(
-        careeronestop_audit_events_collection.find(
-            {"provider": "CareerOneStop"},
-            {"_id": 0},
-        ).sort("occurred_at", -1).limit(limit)
+        education_source_audit_events_collection.find({}, {"_id": 0})
+        .sort("occurred_at", -1)
+        .limit(limit)
     )
     return {
-        "license": _license_state(),
-        "required_attribution": CAREERONESTOP_REQUIRED_ATTRIBUTION,
+        "retention": "append-only/no-TTL",
+        "sources": [COLLEGE_SCORECARD_SOURCE, USAJOBS_SOURCE],
         "events": events,
     }
 
@@ -410,68 +432,85 @@ def careeronestop_compliance_audit(
 def find_programs(
     location: str = Query(min_length=2, max_length=120),
     q: str = Query(default="", max_length=120),
-    radius: int = Query(default=25, ge=5, le=100),
+    radius: int = Query(default=25, ge=5, le=100),  # kept for stable client contract; Scorecard is city/state based
     page: int = Query(default=1, ge=1, le=100),
     page_size: int = Query(default=20, ge=10, le=40),
-    include_youth_support: bool = True,
     current_user: dict = Depends(get_current_user),
 ):
-    """Find local training/support programs using career evidence as optional search guidance."""
+    """Find postsecondary programs near the member using College Scorecard data."""
+    del radius
     context = _career_context(current_user)
-    suggested = context["suggested_queries"]
+    suggestions = context["suggested_queries"]
     selected_reason = None
     keyword = q.strip()
-    if not keyword and suggested:
-        keyword = suggested[0]["query"]
-        selected_reason = suggested[0]
-    keyword = keyword or "career training"
+    if not keyword and suggestions:
+        keyword = suggestions[0]["query"]
+        selected_reason = suggestions[0]
+    keyword = keyword or "career"
+
+    city, state = _location_parts(location)
+    if not state:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "program_location_needs_state",
+                "message": "For College Scorecard program search, enter a state or a city and state, such as Atlanta, GA.",
+            },
+        )
+
+    fields = ",".join([
+        "id",
+        "school.name",
+        "school.city",
+        "school.state",
+        "school.zip",
+        "school.school_url",
+        "latest.student.size",
+        "latest.cost.avg_net_price.overall",
+        "latest.programs.cip_4_digit",
+    ])
+    params: dict[str, Any] = {
+        "school.operating": "1",
+        "school.state": state,
+        "fields": fields,
+        "keys_nested": "true",
+        "_per_page": 100,
+        "page": 0,
+    }
+    if city:
+        params["school.city"] = city
+
+    payload = _scorecard_request(params)
+    terms = _program_terms(keyword)
+    matches: list[dict] = []
+    for school in payload.get("results") or []:
+        for program in _scorecard_programs(school):
+            title = str(program.get("title") or program.get("Title") or program.get("cip_title") or "")
+            haystack = title.lower()
+            if terms and not any(term in haystack for term in terms):
+                continue
+            matches.append(_program_item(school, program, reason=selected_reason))
+
+    total = len(matches)
     start = (page - 1) * page_size
-    encoded = [quote(value, safe="") for value in [CAREERONESTOP_USER_ID, keyword, location]]
-    path = (
-        f"/v2/training/programs/{encoded[0]}/{encoded[1]}/{encoded[2]}/{radius}/"
-        f"0/0/0/0/0/0/0/0/0/{start}/{page_size}"
-    )
-    training_payload = _request(
-        path,
-        operation="training_program_search",
-        params={"enableMetaData": "true"},
-    )
-    programs = [_program_item(item, reason=selected_reason) for item in training_payload.get("SchoolPrograms") or []]
-    training_count = int(training_payload.get("RecordCount") or 0)
-
-    youth_items: list[dict] = []
-    youth_payload: dict = {}
-    if include_youth_support and page == 1:
-        youth_path = (
-            f"/v1/youthprogramfinder/{quote(CAREERONESTOP_USER_ID, safe='')}/{quote(location, safe='')}/"
-            f"{radius}/Distance/ASC/0/{min(8, page_size)}"
-        )
-        youth_payload = _request(
-            youth_path,
-            operation="youth_program_search",
-            params={"enableMetaData": "true"},
-        )
-        youth_items = [_youth_program_item(item) for item in youth_payload.get("YouthProgramList") or []]
-
+    end = start + page_size
     return {
-        "results": youth_items + programs,
-        "training_total": training_count,
+        "results": matches[start:end],
+        "training_total": total,
         "page": page,
         "page_size": page_size,
-        "pages": max(1, math.ceil(training_count / page_size)) if training_count else 0,
+        "pages": math.ceil(total / page_size) if total else 0,
         "location": location,
         "query": keyword,
         "used_career_suggestion": selected_reason is not None,
         "career_context": context,
-        "source": _source_metadata(training_payload),
-        "youth_source": _source_metadata(youth_payload) if youth_payload else None,
+        "source": COLLEGE_SCORECARD_SOURCE,
         "volunteer_source": VOLUNTEER_SOURCE,
+        "coverage_notice": "College Scorecard program matching is based on the active schools returned for the selected city/state and transparent program-title terms; it is discovery help, not a ranking.",
         "notices": [
-            "CareerOneStop source values are displayed without rewriting; Boasted annotations are separate.",
-            "Training price is not inferred when the source does not provide it.",
-            "A WIOA/ETP source signal is only a Boasted search annotation; funding and eligibility must be confirmed with the provider or American Job Center.",
-            "CareerOneStop Youth Program Finder results are not individually labeled free unless the source record itself says so; verify services and eligibility with the provider.",
-            "Volunteer.gov is linked as an official volunteer source, but Boasted does not ingest its listings without an approved API/data-use path.",
+            "College Scorecard aggregates can have cohort and coverage limitations.",
+            "Net-price and outcome fields are context only and are never personal cost, salary, admission, or graduation predictions.",
+            "Volunteer.gov remains link-only because Boasted does not copy its listings without an approved data-use path.",
         ],
     }
 
@@ -486,39 +525,40 @@ def find_internships(
     days: int = Query(default=30, ge=1, le=90),
     current_user: dict = Depends(get_current_user),
 ):
-    """Search current internships around the member using evidence-connected career terms."""
+    """Search current federal internships through USAJOBS."""
     context = _career_context(current_user)
-    suggested = context["suggested_queries"]
+    suggestions = context["suggested_queries"]
     selected_reason = None
     career_term = q.strip()
-    if not career_term and suggested:
-        career_term = suggested[0]["query"]
-        selected_reason = suggested[0]
+    if not career_term and suggestions:
+        career_term = suggestions[0]["query"]
+        selected_reason = suggestions[0]
     career_term = career_term or "student"
-    keyword = f"{career_term} intern"
-    start = (page - 1) * page_size
-    path = (
-        f"/v2/jobsearch/{quote(CAREERONESTOP_USER_ID, safe='')}/{quote(keyword, safe='')}/"
-        f"{quote(location, safe='')}/{radius}/acquisitiondate/DESC/{start}/{page_size}/{days}"
-    )
-    payload = _request(
-        path,
-        operation="job_internship_search",
-        params={"enableJobDescriptionSnippet": "true", "enableMetaData": "true"},
-    )
-    raw_jobs = payload.get("Jobs") or []
-    results = [_job_item(item, reason=selected_reason) for item in raw_jobs]
-    internship_results = [item for item in results if item["boasted"]["internship_signal"]]
-    total = int(payload.get("JobCount") or len(internship_results))
+
+    payload = _usajobs_request({
+        "Keyword": f"{career_term} intern",
+        "LocationName": location,
+        "Radius": radius,
+        "ResultsPerPage": page_size,
+        "Page": page,
+        "DatePosted": days,
+    })
+    search_result = payload.get("SearchResult") or {}
+    raw_items = search_result.get("SearchResultItems") or []
+    normalized = [_usajobs_item(item, reason=selected_reason) for item in raw_items]
+    results = [item for item in normalized if item["boasted"]["internship_signal"]]
+    total = int(search_result.get("SearchResultCountAll") or len(results))
+
     return {
-        "results": internship_results,
+        "results": results,
         "upstream_result_count": total,
         "page": page,
         "page_size": page_size,
+        "pages": math.ceil(total / page_size) if total else 0,
         "location": location,
         "query": career_term,
         "used_career_suggestion": selected_reason is not None,
         "career_context": context,
-        "source": _source_metadata(payload),
-        "notice": "CareerOneStop listing fields are shown without rewriting. Boasted filters to listings whose source title/snippet contains an intern signal and does not predict hiring or selection.",
+        "source": USAJOBS_SOURCE,
+        "notice": "Results are live USAJOBS public job announcements filtered to records that explicitly contain an intern or student-trainee signal. Boasted does not predict hiring or selection.",
     }
