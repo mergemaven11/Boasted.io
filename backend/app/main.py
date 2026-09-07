@@ -47,6 +47,7 @@ from app.rate_limit import check_rate_limit
 from app.reports_routes import router as reports_router
 from app.resume_builder_routes import router as resume_builder_router
 from app.resume_import_fast_routes import router as resume_import_fast_router
+from app.scholarship_routes import router as scholarship_router
 from app.verified_resume_routes import router as verified_resume_router
 from app.routes import router as entries_router
 
@@ -271,6 +272,7 @@ app.include_router(executive_impact_router)
 app.include_router(beta_metrics_router)
 app.include_router(career_intelligence_router)
 app.include_router(education_toolkit_router)
+app.include_router(scholarship_router)
 app.include_router(reports_router)
 app.include_router(private_packet_router)
 app.include_router(packet_audit_router)
