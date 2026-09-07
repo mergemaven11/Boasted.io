@@ -44,11 +44,11 @@ def test_purge_removes_only_target_users_owned_product_data():
     assert db["future_product_collection"].count_documents({"owner_user_id": other_id}) == 1
 
 
-def test_purge_preserves_retained_security_billing_and_legal_records():
+def test_purge_preserves_retained_security_billing_legal_and_source_audit_records():
     db = _db()
     target_id = str(ObjectId())
 
-    for collection_name in (
+    retained = (
         "ops_audit",
         "ops_events",
         "stripe_webhook_events",
@@ -56,20 +56,14 @@ def test_purge_preserves_retained_security_billing_and_legal_records():
         "ai_verification_events",
         "compliance_audit_runs",
         "confidentiality_attestations",
-    ):
+        "education_source_audit_events",
+    )
+    for collection_name in retained:
         db[collection_name].insert_one({"user_id": target_id, "event": collection_name})
 
     purge_user_owned_data(db, target_id)
 
-    for collection_name in (
-        "ops_audit",
-        "ops_events",
-        "stripe_webhook_events",
-        "rate_limits",
-        "ai_verification_events",
-        "compliance_audit_runs",
-        "confidentiality_attestations",
-    ):
+    for collection_name in retained:
         assert db[collection_name].count_documents({"user_id": target_id}) == 1
 
 
