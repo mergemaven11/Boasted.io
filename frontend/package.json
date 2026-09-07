@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "test:analytics": "node --test src/analytics.test.js",
     "test:education": "node --test src/applicationsHubSource.test.js src/accomplishmentsEducationSource.test.js src/educationToolkitSource.test.js src/educationOpportunitySource.test.js",
-    "test:interview": "node --test src/interviewEngine*.test.js",
+    "test:interview": "node --test src/interviewEngine*.test.js src/interviewTranscript.test.js src/interviewVoice.test.js",
     "test:resume": "node --test src/resumeStructured.test.js src/dashboardTags.test.js",
     "test:safety": "node --test src/ndaSafety.test.js src/ndaInformationGateSource.test.js src/ndaGuidanceSource.test.js src/ndaApiSource.test.js",
     "test:seo": "node --test src/proofPortfolioSource.test.js src/marketingClaritySource.test.js && node scripts/verify-search-appearance.mjs",
