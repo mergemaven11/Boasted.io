@@ -20,25 +20,28 @@ const approvedSources = [
     name: "Open Scholarships",
     publisher: "Grudged LLC / Open Scholarships",
     status: "Approved · stored catalog",
-    rights: "CC BY 4.0",
+    rights: "CC BY 4.0 · commercial use permitted with attribution",
     use: "Licensed scholarship seed. Boasted validates the source license identity, license URL, and required attribution before writes.",
     url: "https://github.com/Grudged/open-scholarships",
+    rightsUrl: "https://creativecommons.org/licenses/by/4.0/",
   },
   {
     name: "College Scorecard",
     publisher: "U.S. Department of Education",
     status: "Approved · live API",
-    rights: "Public federal dataset / Data.gov licensing metadata",
+    rights: "Data.gov lists the dataset as public and CC BY · commercial use permitted with attribution",
     use: "Program and institution discovery. Aggregate cost/outcome fields remain context and are not personal predictions.",
     url: "https://collegescorecard.ed.gov/data/",
+    rightsUrl: "https://creativecommons.org/licenses/by/4.0/",
   },
   {
     name: "USAJOBS",
     publisher: "U.S. Office of Personnel Management",
     status: "Approved · live API",
-    rights: "USAJOBS API Terms of Service",
-    use: "Live federal internship and student-trainee discovery with source links. API credentials remain server-side.",
+    rights: "USAJOBS API Terms of Service · endpoint expressly anticipates commercial job boards",
+    use: "Live federal internship and student-trainee discovery with USAJOBS credit and direct source/apply links. Boasted does not resell or redistribute USAJOBS data as a standalone feed.",
     url: "https://developer.usajobs.gov/",
+    rightsUrl: "https://developer.usajobs.gov/apirequest/index",
   },
   {
     name: "O*NET 31.0 Database",
@@ -47,6 +50,7 @@ const approvedSources = [
     rights: "CC BY 4.0, subject to O*NET exceptions",
     use: "Occupation/skill taxonomy and career exploration context with required attribution.",
     url: "https://www.onetcenter.org/database.html",
+    rightsUrl: "https://creativecommons.org/licenses/by/4.0/",
   },
   {
     name: "NCES CIP-SOC Crosswalk",
@@ -95,6 +99,7 @@ const blockedSources = [
 ];
 
 const auditEntries = [
+  ["2026-09-07", "Commercial-use rights re-verified", "College Scorecard was re-checked against current Data.gov licensing metadata and CC BY commercial-use terms; USAJOBS was re-checked against its current API Terms and documentation expressly anticipating commercial job-board use."],
   ["2026-09-07", "CareerOneStop removed", "After reviewing the full click license and web-service terms, Boasted removed CareerOneStop from the planned Programs/Internships architecture before production activation."],
   ["2026-09-07", "College Scorecard approved", "Selected as the official U.S. Department of Education source for live program/institution discovery."],
   ["2026-09-07", "USAJOBS approved", "Selected for live federal internship/student-trainee discovery using server-side API authentication and direct source links."],
@@ -130,7 +135,7 @@ export default function EducationDataPolicyPage() {
 
     <section className="education-data-section" id="approved">
       <div className="education-data-heading"><CheckCircle2 size={22}/><div><small>ACTIVE / APPROVED</small><h2>Sources currently allowed in Education</h2><p>Every source has a defined use and a documented rights basis. Source-specific attribution and limitations still apply.</p></div></div>
-      <div className="education-data-source-grid">{approvedSources.map((source) => <article key={source.name}><div className="education-data-source-top"><span>{source.status}</span><Landmark size={18}/></div><h3>{source.name}</h3><small>{source.publisher}</small><dl><div><dt>Rights basis</dt><dd>{source.rights}</dd></div><div><dt>Boasted use</dt><dd>{source.use}</dd></div></dl><a href={source.url} target="_blank" rel="noreferrer noopener">Official/source page <ExternalLink size={14}/></a></article>)}</div>
+      <div className="education-data-source-grid">{approvedSources.map((source) => <article key={source.name}><div className="education-data-source-top"><span>{source.status}</span><Landmark size={18}/></div><h3>{source.name}</h3><small>{source.publisher}</small><dl><div><dt>Rights basis</dt><dd>{source.rights}</dd></div><div><dt>Boasted use</dt><dd>{source.use}</dd></div></dl><div><a href={source.url} target="_blank" rel="noreferrer noopener">Official/source page <ExternalLink size={14}/></a>{source.rightsUrl ? <a href={source.rightsUrl} target="_blank" rel="noreferrer noopener">Rights / terms <ExternalLink size={14}/></a> : null}</div></article>)}</div>
     </section>
 
     <section className="education-data-section education-data-blocked" id="blocked">
