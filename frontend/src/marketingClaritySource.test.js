@@ -48,7 +48,7 @@ test("organization section uses separate Team Enterprise and Education tabs", ()
   assert.match(source, /Enterprise admin dashboard/);
   assert.match(source, /Major Explorer/);
   assert.match(source, /Academic Portfolio/);
-  assert.match(source, /scholarships, internships/);
+  assert.match(source, /scholarships, programs, internships/);
   assert.match(source, /private career record/);
   assert.match(source, /not a manager feed/);
   assert.match(css, /landing-org-tabs/);
