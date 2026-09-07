@@ -345,7 +345,7 @@ export default function InterviewPracticePage() {
   }
 
   function speakAisha(text, options = {}) {
-    return speakAisha(text, { ...options, voiceStyle: setup.voiceStyle });
+    return speakSoftText(text, { ...options, voiceStyle: setup.voiceStyle });
   }
 
   async function primeMicrophonePermission() {
