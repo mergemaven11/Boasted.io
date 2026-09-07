@@ -166,14 +166,11 @@ function ImpactReceiptsPage() {
 
   const sortedReceipts = useMemo(() => sortImpactReceiptsVerifiedFirst(receipts), [receipts]);
   const pageCount = Math.max(1, Math.ceil(sortedReceipts.length / RECEIPTS_PER_PAGE));
-  const pageReceipts = useMemo(() => getImpactReceiptPage(sortedReceipts, page), [sortedReceipts, page]);
-  const pageNumbers = useMemo(() => getImpactReceiptPageNumbers(page, pageCount), [page, pageCount]);
-  const pageStart = sortedReceipts.length === 0 ? 0 : (page - 1) * RECEIPTS_PER_PAGE + 1;
-  const pageEnd = Math.min(page * RECEIPTS_PER_PAGE, sortedReceipts.length);
-
-  useEffect(() => {
-    if (page > pageCount) setPage(pageCount);
-  }, [page, pageCount]);
+  const activePage = Math.min(page, pageCount);
+  const pageReceipts = useMemo(() => getImpactReceiptPage(sortedReceipts, activePage), [sortedReceipts, activePage]);
+  const pageNumbers = useMemo(() => getImpactReceiptPageNumbers(activePage, pageCount), [activePage, pageCount]);
+  const pageStart = sortedReceipts.length === 0 ? 0 : (activePage - 1) * RECEIPTS_PER_PAGE + 1;
+  const pageEnd = Math.min(activePage * RECEIPTS_PER_PAGE, sortedReceipts.length);
 
   const stats = useMemo(() => ({
     publicCount: receipts.filter((receipt) => receipt.is_public).length,
@@ -318,11 +315,11 @@ function ImpactReceiptsPage() {
         </section>
 
         {sortedReceipts.length > RECEIPTS_PER_PAGE && <div className="pagination-shell receipt-library-pagination">
-          <span className="pagination-summary">Showing {pageStart}–{pageEnd} of {sortedReceipts.length} Impact Receipts · Page {page} of {pageCount}</span>
+          <span className="pagination-summary">Showing {pageStart}–{pageEnd} of {sortedReceipts.length} Impact Receipts · Page {activePage} of {pageCount}</span>
           <div className="pagination-controls" aria-label="Impact Receipt pages">
-            <button type="button" aria-label="Previous page" disabled={page === 1} onClick={() => goToPage(page - 1)}><ChevronLeft size={16} /> Prev</button>
-            {pageNumbers.map((pageNumber) => <button type="button" key={pageNumber} className={pageNumber === page ? "active" : ""} aria-current={pageNumber === page ? "page" : undefined} onClick={() => goToPage(pageNumber)}>{pageNumber}</button>)}
-            <button type="button" aria-label="Next page" disabled={page === pageCount} onClick={() => goToPage(page + 1)}>Next <ChevronRight size={16} /></button>
+            <button type="button" aria-label="Previous page" disabled={activePage === 1} onClick={() => goToPage(activePage - 1)}><ChevronLeft size={16} /> Prev</button>
+            {pageNumbers.map((pageNumber) => <button type="button" key={pageNumber} className={pageNumber === activePage ? "active" : ""} aria-current={pageNumber === activePage ? "page" : undefined} onClick={() => goToPage(pageNumber)}>{pageNumber}</button>)}
+            <button type="button" aria-label="Next page" disabled={activePage === pageCount} onClick={() => goToPage(activePage + 1)}>Next <ChevronRight size={16} /></button>
           </div>
         </div>}
       </>
