@@ -34,23 +34,32 @@ test("Scholarship search has query guidance, filters, pagination, provider submi
   assert.match(api, /\/scholarships/);
 });
 
-test("Program finder uses member evidence and local search without inventing price or rankings", () => {
+test("Program finder separates CareerOneStop source values from Boasted annotations", () => {
   const panel = read("./StudentOpportunitySearchPanel.jsx");
   const api = read("./studentOpportunityApi.js");
+  assert.match(panel, /const source = item\.source \|\| \{\}/);
+  assert.match(panel, /const boasted = item\.boasted \|\| \{\}/);
   assert.match(panel, /From your Boasted evidence:/);
   assert.match(panel, /City, state or ZIP/);
   assert.match(panel, /Funding may be available/);
-  assert.match(panel, /Cost not assumed/);
+  assert.match(panel, /Cost\/funding status not changed by Boasted/);
   assert.match(panel, /No fake match score/);
   assert.match(panel, /Volunteer\.gov/);
   assert.match(api, /student-opportunities\/programs/);
 });
 
-test("Internship finder uses the same evidence-connected search layer and a live API", () => {
+test("CareerOneStop display includes both required government acknowledgements", () => {
+  const panel = read("./StudentOpportunitySearchPanel.jsx");
+  assert.match(panel, /Department of Labor Employment and Training Administration \(DOLETA\)/);
+  assert.match(panel, /Minnesota Department of Employment & Economic Development \(DEED\)/);
+  assert.match(panel, /data\.source\?\.required_attribution/);
+});
+
+test("Internship finder uses evidence-connected search but leaves listing text as source data", () => {
   const panel = read("./StudentOpportunitySearchPanel.jsx");
   const api = read("./studentOpportunityApi.js");
-  assert.match(panel, /Internship signal verified/);
-  assert.match(panel, /CareerOneStop/);
+  assert.match(panel, /Internship signal verified by Boasted/);
+  assert.match(panel, /CareerOneStop listing text shown as received/);
   assert.match(panel, /live source data/i);
   assert.match(panel, /no hiring prediction/i);
   assert.match(api, /student-opportunities\/internships/);
