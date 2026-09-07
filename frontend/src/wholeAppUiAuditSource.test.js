@@ -3,6 +3,11 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import {
+  getImpactReceiptPage,
+  isReceiptVerified,
+  sortImpactReceiptsVerifiedFirst,
+} from "./impactReceiptLibrary.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..");
@@ -15,6 +20,9 @@ const routeSource = read("src/RootContent.jsx");
 const responsiveAudit = read("scripts/audit-responsive-layout.mjs");
 const careerAnalyticsSource = read("src/ProCareerPage.jsx");
 const careerAnalyticsStyles = read("src/ProCareerPage.css");
+const impactReceiptsSource = read("src/ImpactReceiptsPage.jsx");
+const impactReceiptsStyles = read("src/ImpactReceiptsPolish.css");
+const impactReceiptsApiSource = read("src/impactReceiptLibraryApi.js");
 
 const expectedUserFacingRoutes = [
   "/",
@@ -136,4 +144,32 @@ test("career analytics animation is distinctive, responsive, and reduced-motion 
   ]) {
     assert.ok(careerAnalyticsStyles.includes(token), `career analytics styles are missing: ${token}`);
   }
+});
+
+test("Impact Receipts prioritize verified proof, paginate the full library, and mask verifier names", () => {
+  const receipts = [
+    { id: "unverified-new", created_at: "2026-09-03T00:00:00Z", confirmations: [] },
+    { id: "verified-old", created_at: "2026-01-01T00:00:00Z", confirmations: [{ status: "confirmed" }] },
+    { id: "verified-new", created_at: "2026-08-20T00:00:00Z", confirmations: [{ status: "confirmed" }] },
+  ];
+
+  const sorted = sortImpactReceiptsVerifiedFirst(receipts);
+  assert.deepEqual(sorted.map((receipt) => receipt.id), ["verified-new", "verified-old", "unverified-new"]);
+  assert.equal(isReceiptVerified(sorted[0]), true);
+  assert.deepEqual(getImpactReceiptPage(sorted, 2, 2).map((receipt) => receipt.id), ["unverified-new"]);
+
+  for (const token of [
+    "getAllImpactReceipts",
+    "pageReceipts.map",
+    "Verified receipts appear first",
+    "pagination-shell",
+    "receipt-verifier-name",
+    "RECEIPTS_PER_PAGE",
+  ]) {
+    assert.ok(impactReceiptsSource.includes(token), `Impact Receipts UI is missing: ${token}`);
+  }
+
+  assert.ok(impactReceiptsStyles.includes("filter: blur(5px)"), "verifier names must remain visually obscured");
+  assert.ok(impactReceiptsApiSource.includes("limit: API_PAGE_LIMIT, skip"), "receipt loader must request API pages explicitly");
+  assert.ok(impactReceiptsApiSource.includes("data.has_more"), "receipt loader must continue until the full library is loaded");
 });
