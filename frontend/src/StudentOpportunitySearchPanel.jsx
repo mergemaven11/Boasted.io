@@ -88,7 +88,7 @@ function InternshipCard({ item }) {
     {source.description ? <p className="student-opportunity-description">{source.description}</p> : null}
     {boasted.why_shown ? <p className="student-opportunity-reason"><Sparkles size={14} />{cleanReason(boasted.why_shown)}</p> : null}
     <footer>
-      <small>Live USAJOBS public listing · no hiring prediction</small>
+      <small>Live open USAJOBS listing · no hiring prediction</small>
       {source.url ? <a href={source.url} target="_blank" rel="noreferrer noopener">Open on USAJOBS <ExternalLink size={14} /></a> : null}
     </footer>
   </article>;
@@ -170,6 +170,8 @@ export default function StudentOpportunitySearchPanel({ mode }) {
     void runSearch(1, item.query);
   }
 
+  const relatedTerms = data?.search_interpretation?.related_terms || [];
+
   return <section className="student-opportunity-panel" data-mode={mode}>
     <div className="student-opportunity-hero">
       <div>
@@ -177,7 +179,7 @@ export default function StudentOpportunitySearchPanel({ mode }) {
         <h2>{isPrograms ? "Explore college programs connected to the directions already showing up in your work." : "Find current federal internships connected to your demonstrated skills and career directions."}</h2>
         <p>{isPrograms
           ? "Boasted turns your saved evidence into editable search ideas, then checks U.S. Department of Education College Scorecard data for programs in the city or state you choose."
-          : "Boasted turns your demonstrated skills and career directions into editable search ideas, then searches current USAJOBS public listings for explicit internship or student-trainee signals."}</p>
+          : "Boasted turns your demonstrated skills and career directions into editable search ideas, then searches all currently open USAJOBS announcements. Related career wording is expanded locally so one search can cover titles such as computer engineer, software engineer, backend engineer, and software developer without making one API call per synonym."}</p>
       </div>
       <div className="student-opportunity-trust"><ShieldCheck size={20} /><span><strong>No fake match score.</strong><small>Evidence-connected suggestions · official public data · you choose what to pursue</small></span></div>
     </div>
@@ -186,11 +188,11 @@ export default function StudentOpportunitySearchPanel({ mode }) {
       <Info size={17} />
       <div><strong>{isPrograms ? "How to search programs:" : "How to search internships:"}</strong><span>{isPrograms
         ? "Try a career or subject such as software, nursing, cybersecurity, marketing, finance, teaching, design, or engineering. Use a state or city + state, such as Atlanta, GA."
-        : "Start with a career area instead of an agency name: software development, data analysis, public health, finance, research, engineering, design, or another direction from your evidence."}</span></div>
+        : "Use the career language you would naturally type. Boasted corrects a few obvious search typos, expands known related titles locally, and searches currently open announcements without a hidden 30-day posted-date cutoff."}</span></div>
     </div>
 
     <form className={`student-opportunity-search ${isPrograms ? "program-search" : ""}`} onSubmit={(event) => { event.preventDefault(); void runSearch(1); }}>
-      <label className="student-opportunity-query"><Search size={19} /><span>Career / subject</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isPrograms ? "e.g. software" : "e.g. software development"} /></label>
+      <label className="student-opportunity-query"><Search size={19} /><span>Career / subject</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isPrograms ? "e.g. software" : "e.g. computer engineer"} /></label>
       <label><MapPin size={18} /><span>Location</span><input value={location} onChange={(event) => setLocation(event.target.value)} placeholder={isPrograms ? "Atlanta, GA or GA" : "City, state or ZIP"} /></label>
       {!isPrograms ? <label><span>Within</span><select value={radius} onChange={(event) => setRadius(Number(event.target.value))}><option value={10}>10 miles</option><option value={25}>25 miles</option><option value={50}>50 miles</option><option value={100}>100 miles</option></select></label> : null}
       <button type="submit" disabled={loading || loadingContext || !sourceConfigured}>{loading ? "Searching…" : "Search"}</button>
@@ -204,8 +206,11 @@ export default function StudentOpportunitySearchPanel({ mode }) {
     {loading ? <div className="student-opportunity-loading"><span /><strong>Checking current {isPrograms ? "programs" : "federal internships"}…</strong><small>Using your chosen location and search direction.</small></div> : null}
 
     {!loading && searched && data ? <>
+      {!isPrograms && relatedTerms.length > 1 ? <div className="student-opportunity-callout"><Sparkles size={18} /><span><strong>Related titles included.</strong> {relatedTerms.slice(0, 6).join(" · ")}</span></div> : null}
+      {!isPrograms && data.fallback_notice ? <div className="student-opportunity-callout"><MapPin size={18} /><span><strong>Location broadened.</strong> {data.fallback_notice}</span></div> : null}
+
       <div className="student-opportunity-results-head">
-        <div><strong>{isPrograms ? data.training_total ?? data.results?.length ?? 0 : data.results?.length ?? 0}</strong><span>{isPrograms ? "program matches in this search" : "verified internship listings on this page"}</span></div>
+        <div><strong>{isPrograms ? data.training_total ?? data.results?.length ?? 0 : data.total ?? data.results?.length ?? 0}</strong><span>{isPrograms ? "program matches in this search" : "open internship matches in this search"}</span></div>
         <label>Show<select value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); setPage(1); }}><option value={20}>20</option><option value={40}>40</option></select></label>
       </div>
 
@@ -219,7 +224,7 @@ export default function StudentOpportunitySearchPanel({ mode }) {
         <ShieldCheck size={18} />
         <div>
           <strong>{isPrograms ? "College Scorecard · U.S. Department of Education" : "USAJOBS · U.S. Office of Personnel Management"}</strong>
-          <span>{isPrograms ? "Official public institution and field-of-study context. Aggregate cost/outcome data is context, not a personal prediction." : "Live public federal job opportunity announcements. Boasted keeps the source listing separate from its evidence-based search suggestions."}</span>
+          <span>{isPrograms ? "Official public institution and field-of-study context. Aggregate cost/outcome data is context, not a personal prediction." : "Live public federal job opportunity announcements. Boasted keeps the source listing separate from its evidence-based search suggestions and caches identical searches briefly to avoid unnecessary provider calls."}</span>
         </div>
         <a href={isPrograms ? "https://collegescorecard.ed.gov/" : "https://www.usajobs.gov/"} target="_blank" rel="noreferrer noopener">Source <ExternalLink size={14} /></a>
       </div>
