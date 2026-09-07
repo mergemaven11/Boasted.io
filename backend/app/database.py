@@ -29,4 +29,5 @@ confidentiality_attestations_collection = db["confidentiality_attestations"]
 scholarships_collection = db["scholarships"]
 scholarship_sync_state_collection = db["scholarship_sync_state"]
 scholarship_submissions_collection = db["scholarship_submissions"]
-careeronestop_audit_events_collection = db["careeronestop_audit_events"]
+# Append-only/no-TTL source access receipts. No user payloads or API credentials belong here.
+education_source_audit_events_collection = db["education_source_audit_events"]
