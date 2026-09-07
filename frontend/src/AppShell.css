@@ -176,6 +176,8 @@
 }
 .sidebar-nav .sidebar-proof-profile svg { color: #7dd3fc; }
 .sidebar-nav .sidebar-proof-profile small {
+  flex: 0 0 auto;
+  white-space: nowrap;
   margin-left: auto;
   padding: 3px 6px;
   border-radius: 999px;
