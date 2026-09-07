@@ -17,8 +17,9 @@ test("Education application cards open dedicated opportunity discovery experienc
   assert.match(hub, /Search \+ evidence intelligence/);
 });
 
-test("Scholarship search has query guidance, filters, pagination, provider submission and visible rights provenance", () => {
+test("Scholarship search has query guidance, aligned input, filters, pagination, provider submission and visible rights provenance", () => {
   const panel = read("./ScholarshipCatalogPanel.jsx");
+  const css = read("./ScholarshipCatalogPanel.css");
   const api = read("./scholarshipApi.js");
   assert.match(panel, /Boasted understood:/);
   assert.match(panel, /Search tip:/);
@@ -30,6 +31,8 @@ test("Scholarship search has query guidance, filters, pagination, provider submi
   assert.match(panel, /Submit a scholarship/);
   assert.match(panel, /authorized to provide this scholarship information/i);
   assert.match(panel, /CC BY 4\.0/);
+  assert.match(css, /\.scholarship-search-box \.sr-only/);
+  assert.match(css, /text-align:left!important/);
   assert.match(api, /\/scholarships/);
 });
 
@@ -48,7 +51,7 @@ test("Program finder uses College Scorecard and keeps official data separate fro
   assert.match(api, /student-opportunities\/programs/);
 });
 
-test("Internship finder uses USAJOBS public listings and no hiring prediction", () => {
+test("Internship finder searches currently open USAJOBS listings, expands related titles locally, and has no hidden 30-day client filter", () => {
   const panel = read("./StudentOpportunitySearchPanel.jsx");
   const api = read("./studentOpportunityApi.js");
   assert.match(panel, /Federal internship/);
@@ -56,7 +59,12 @@ test("Internship finder uses USAJOBS public listings and no hiring prediction", 
   assert.match(panel, /U\.S\. Office of Personnel Management/);
   assert.match(panel, /no hiring prediction/i);
   assert.match(panel, /Open on USAJOBS/);
+  assert.match(panel, /all currently open USAJOBS announcements/i);
+  assert.match(panel, /Related titles included/);
+  assert.match(panel, /caches identical searches briefly/i);
   assert.match(api, /student-opportunities\/internships/);
+  assert.doesNotMatch(api, /days:/);
+  assert.doesNotMatch(api, /DatePosted/);
 });
 
 test("Education public pages expose the source audit and new opportunity sources", () => {
