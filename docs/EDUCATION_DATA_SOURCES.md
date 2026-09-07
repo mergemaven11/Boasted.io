@@ -4,9 +4,11 @@ This document defines the public sources Boasted may use to make **Education** m
 
 The governing rule is simple:
 
-> **The member's personal evidence comes from the member. Public datasets provide taxonomy, context, and exploration references.**
+> **The member's personal evidence comes from the member. Public datasets provide taxonomy, context, and opportunity discovery.**
 
 No source below is permission to invent a degree, course, grade, award, skill, project, credential, job result, salary, acceptance probability, graduation probability, or career outcome for a member.
+
+For scholarship/program/internship implementation details, see `docs/EDUCATION_OPPORTUNITY_DISCOVERY.md`.
 
 ## Source registry
 
@@ -62,26 +64,64 @@ Important limitations include:
 - field-of-study and institution-level aggregates must not be presented as a member's expected personal salary;
 - privacy-suppressed values stay suppressed.
 
+### Open Scholarships
+
+**Publisher/maintainer:** Grudged LLC / Open Scholarships  
+**Primary use in Boasted:** initial scholarship search seed with machine-readable scholarship records and source provenance.  
+**Project:** https://github.com/Grudged/open-scholarships  
+**Feed:** https://scholarships.grudged.io/scholarships.json  
+**Data license:** Creative Commons Attribution 4.0 International (CC BY 4.0).  
+**Required attribution:** stored with imported records and displayed in the Scholarship Finder.
+
+Boasted validates the feed's license metadata **before any write**. If the upstream license identity, license URL, or required-attribution field changes/disappears, the importer fails closed and requires manual review.
+
+Open Scholarships is currently Nevada-first with national opportunities mixed in. It is an approved seed source, not permission to scrape unrelated scholarship sites. Boasted prefers a smaller catalog with a documented storage/display right over a larger unlicensed catalog.
+
+### First-party scholarship provider submissions
+
+**Publisher:** individual scholarship provider.  
+**Primary use in Boasted:** allow organizations or individuals who operate a scholarship to submit their own listing for review.  
+**Rights basis:** provider attestation granting Boasted permission to store/display the submitted listing after review.
+
+Provider submissions are saved as `pending_review` and are never auto-published. Provider identity, URLs, award/deadline, eligibility, duplication, suspicious fees, and the current application cycle must be reviewed before publication.
+
 ### CareerOneStop Web API
 
 **Publisher:** U.S. Department of Labor  
-**Primary use in Boasted:** optional live enrichment for occupation reports, skills gaps between occupations, skills matching, salaries, training, professional associations, and tools/technology.  
-**API Explorer:** https://api.careeronestop.org/api-explorer/
+**Primary use in Boasted:** live local program/training discovery, Youth Program Finder results, and internship/job discovery, with additional occupation/skills context available for future enrichment.  
+**Web API:** https://www.careeronestop.org/Developers/WebAPI/web-api.aspx  
+**API Explorer:** https://api.careeronestop.org/api-explorer/  
+**Rights basis:** CareerOneStop's API documentation identifies API datasets as open data under USDOL's Open Data Policy and expressly supports publishing career, employment, and education data through third-party sites.
 
-CareerOneStop's Web API uses REST and requires an API token. The current Education toolkit treats it as an **optional adapter**, not a required dependency. Boasted must continue to work when no CareerOneStop token is configured.
+CareerOneStop uses REST and requires a registered API user ID and token. Production configuration is server-side only:
 
-No API token is stored in the browser or committed to the repository.
+```text
+CAREERONESTOP_USER_ID=<registered API user id>
+CAREERONESTOP_API_TOKEN=<server-side token>
+```
+
+The browser never receives this token. The Education evidence toolkit still works when the token is absent; only live opportunity discovery is unavailable until the server is configured.
+
+### Volunteer.gov
+
+**Publisher:** U.S. Department of the Interior and participating federal agencies.  
+**Primary use in Boasted:** official external destination for federal volunteer opportunities.  
+**Portal:** https://www.volunteer.gov/  
+**Runtime:** link-only.
+
+The current implementation did not identify an approved public opportunity API/data-use path for ingesting Volunteer.gov listings, so Boasted links to the official service rather than scraping or copying its opportunity catalog.
 
 ## Runtime policy
 
-Education Toolkit v2 currently uses public sources as **versioned reference/provenance metadata** while its personal analysis remains deterministic and based on the member's saved Boasted records and Impact Receipts.
+Education Toolkit v2 uses public taxonomy sources as **versioned reference/provenance metadata** while its personal analysis remains deterministic and based on the member's saved Boasted records and Impact Receipts.
 
-This means:
+Opportunity discovery is a separate live-data layer:
 
-- no network call to O*NET, NCES, BLS, College Scorecard, or CareerOneStop is required to open an Education tool;
-- a source outage cannot block access to a member's own saved evidence;
-- the source registry can be audited and versioned independently;
-- future live adapters can be added behind clear attribution, caching, source dates, and failure handling.
+- Scholarship Finder may store records only from an approved open/licensed source or a first-party provider submission with publication rights.
+- Program Finder and Internship Finder send only the final search term/location needed for the public CareerOneStop query; they do not send private accomplishments or Impact Receipts to CareerOneStop.
+- O*NET, NCES, BLS, and College Scorecard are not required to open the member's own Education evidence tools.
+- A source outage cannot block access to a member's saved evidence.
+- Source registries, rights bases, versions, and attribution can be audited independently.
 
 ## Product rules by feature
 
@@ -96,6 +136,18 @@ Skill language may be normalized against an auditable taxonomy, but every displa
 ### Career Match & Skill Gaps / Career Path Explorer
 
 Use O*NET and CIP-SOC as exploration references. A "gap" means the saved Boasted record does not clearly demonstrate something; it does **not** establish that the member lacks the skill. No fit percentage, aptitude score, employment probability, or "best career" verdict is allowed.
+
+### Scholarships
+
+Scholarship search must show source provenance, current lifecycle status, and license/rights basis. Fixed past deadlines are soft-expired and excluded from normal search. Rolling/upcoming cycles are not assigned an invented deadline. Scholarship search never predicts the member's chance of winning.
+
+### Programs
+
+CareerOneStop training and youth-program data may be searched by member-controlled location and a career/skill phrase suggested from saved evidence. Training price is not inferred. A WIOA/Eligible Training Provider signal may be displayed as **funding may be available**, not as "free" unless the source actually describes the service that way.
+
+### Internships
+
+CareerOneStop Job Search may be queried using a member-controlled career/skill direction plus an internship term. Boasted only labels a returned item an internship when the returned title/snippet itself contains an explicit intern/internship signal. No hiring probability or "best internship" ranking is allowed.
 
 ### Education Impact Receipts
 
@@ -116,13 +168,16 @@ When a public dataset is actually surfaced in product output rather than merely 
 5. preserve source limitations and privacy suppression;
 6. never transform aggregate statistics into personal outcome predictions;
 7. keep live API credentials server-side;
-8. add regression tests for provenance, bounds, and no-prediction invariants.
+8. add regression tests for provenance, bounds, and no-prediction invariants;
+9. store an explicit `rights_basis` for ingested catalog records;
+10. fail closed when an upstream source's approved license/rights metadata changes.
 
 ## Explicitly out of scope
 
 Boasted does not use this source policy to justify:
 
 - copying another career or education product's UI, copy, proprietary rankings, recommendation logic, or private dataset;
+- scraping scholarship/job/program pages merely because they are publicly viewable;
 - scraping private student essays, admissions decisions, transcripts, learning-management systems, or protected school records by default;
 - training on a member's private education evidence without separate product/legal authorization;
 - manufacturing activities to optimize an admissions or hiring score;
