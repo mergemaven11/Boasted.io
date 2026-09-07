@@ -1,0 +1,359 @@
+/*
+ * Public profile responsive hardening.
+ *
+ * The profile templates can render inside a narrow browser, embedded preview,
+ * split pane, or other constrained surface. Viewport-only media queries cannot
+ * reliably detect those cases, so this layer responds to the profile's actual
+ * inline size while keeping the 12 flower layouts visually distinct.
+ */
+
+.proof-portfolio {
+  container: profile / inline-size;
+  overflow-x: clip;
+}
+
+.proof-portfolio .portfolio-skills-section {
+  container: skills / inline-size;
+}
+
+/* Long user-authored content must wrap as words, not create horizontal scroll. */
+.proof-portfolio :where(
+  .portfolio-identity,
+  .portfolio-proof-passport,
+  .portfolio-section,
+  .portfolio-impact-card,
+  .portfolio-work-card,
+  .portfolio-career-item,
+  .portfolio-evidence-list,
+  .portfolio-skill-chips,
+  .portfolio-passport-grid
+) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.proof-portfolio :where(h1, h2, h3, p, a, strong, span, small) {
+  word-break: normal;
+}
+
+.proof-portfolio :where(
+  .portfolio-identity h1,
+  .portfolio-impact-card h3,
+  .portfolio-work-card h3,
+  .portfolio-career-item h3,
+  .portfolio-evidence-list a,
+  .portfolio-evidence-list > span,
+  .portfolio-skill-chips span
+) {
+  overflow-wrap: break-word;
+}
+
+/*
+ * Skills are a content-driven grid. This intentionally overrides fixed 3/4
+ * column template rules: a 220px minimum keeps labels such as
+ * "Software Engineering" readable instead of turning cards into vertical pills.
+ */
+.proof-portfolio[data-layout] .portfolio-skill-cloud {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+.proof-portfolio[data-layout] .portfolio-skill-cloud > span {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 6px 12px;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  padding: 14px 16px;
+}
+
+.proof-portfolio[data-layout] .portfolio-skill-cloud strong {
+  min-width: 0;
+  overflow-wrap: break-word;
+  line-height: 1.25;
+}
+
+.proof-portfolio[data-layout] .portfolio-skill-cloud small {
+  min-width: 0;
+  white-space: normal;
+  line-height: 1.35;
+  text-align: right;
+}
+
+/* Interactive controls should remain comfortably tappable on touch screens. */
+.proof-portfolio :where(
+  .proof-action,
+  .portfolio-share,
+  .portfolio-footer button,
+  .proof-filter-row button,
+  .proof-pagination-controls button
+) {
+  min-height: 44px;
+}
+
+.proof-portfolio .proof-search input {
+  min-width: 0;
+  width: 100%;
+}
+
+/* Medium containers: preserve personality, reduce dense desktop grids. */
+@container profile (max-width: 980px) {
+  .proof-portfolio[data-layout="portfolio-grid"] :where(.portfolio-impact-grid, .portfolio-work-grid),
+  .proof-portfolio[data-layout="command-center"] :where(.portfolio-impact-grid, .portfolio-work-grid),
+  .proof-portfolio[data-layout="founder"] .portfolio-impact-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .proof-portfolio[data-layout="portfolio-grid"] .portfolio-impact-card.featured,
+  .proof-portfolio[data-layout="founder"] .portfolio-impact-card.featured {
+    grid-column: span 2;
+    grid-row: auto;
+  }
+
+  .proof-portfolio[data-layout="case-study"] .portfolio-impact-card.featured {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Narrow tablets and split panes: every hero gets a safe single-column mode. */
+@container profile (max-width: 820px) {
+  .proof-portfolio[data-layout] .portfolio-hero {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-identity,
+  .proof-portfolio[data-layout="executive-sidebar"] .portfolio-proof-passport,
+  .proof-portfolio[data-layout="studio-split"] .portfolio-identity,
+  .proof-portfolio[data-layout="studio-split"] .portfolio-proof-passport {
+    padding: clamp(28px, 6vw, 40px);
+  }
+
+  .proof-portfolio[data-layout="minimal-column"] .portfolio-proof-passport,
+  .proof-portfolio[data-layout="case-study"] .portfolio-proof-passport {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .proof-portfolio[data-layout] .portfolio-impact-card.featured {
+    grid-template-columns: minmax(0, 1fr);
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .proof-portfolio[data-layout] .portfolio-impact-card.featured :where(
+    .portfolio-card-kicker,
+    h3,
+    .portfolio-impact-copy,
+    .portfolio-skill-chips,
+    .portfolio-evidence-list,
+    .portfolio-metric
+  ) {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .proof-portfolio[data-layout] .portfolio-career-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .proof-portfolio[data-layout="editorial"] :where(.portfolio-impact-grid, .portfolio-work-grid),
+  .proof-portfolio[data-layout="studio-split"] .portfolio-work-grid,
+  .proof-portfolio[data-layout="modern-resume"] .portfolio-work-grid,
+  .proof-portfolio[data-layout="compact"] :where(.portfolio-impact-grid, .portfolio-work-grid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .proof-portfolio[data-layout="studio-split"] .portfolio-work-card:nth-child(3n),
+  .proof-portfolio[data-layout="portfolio-grid"] .portfolio-work-card:nth-child(4n + 1) {
+    grid-column: auto;
+  }
+}
+
+/* Phones and phone-sized preview panes. */
+@container profile (max-width: 640px) {
+  .proof-portfolio .proof-profile-inner {
+    width: min(100% - 24px, 1180px);
+    padding-bottom: 36px;
+  }
+
+  .proof-portfolio .portfolio-topbar {
+    gap: 10px;
+  }
+
+  .proof-portfolio .portfolio-topbar-actions {
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .proof-portfolio .proof-topbar-tag {
+    display: none;
+  }
+
+  .proof-portfolio[data-layout] .portfolio-hero {
+    gap: 20px;
+    padding: 24px 20px;
+    border-radius: 24px;
+  }
+
+  .proof-portfolio[data-layout="editorial"] .portfolio-hero,
+  .proof-portfolio[data-layout="case-study"] .portfolio-hero,
+  .proof-portfolio[data-layout="academic"] .portfolio-hero {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .proof-portfolio[data-layout] .portfolio-identity h1 {
+    max-width: 100%;
+    font-size: clamp(2.35rem, 13vw, 4rem);
+    line-height: .96;
+    letter-spacing: -.055em;
+    overflow-wrap: break-word;
+  }
+
+  .proof-portfolio[data-layout] .portfolio-section {
+    padding: 22px 18px;
+    border-radius: 22px;
+  }
+
+  .proof-portfolio[data-layout] .portfolio-section-heading {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .proof-portfolio[data-layout] .portfolio-section-heading h2 {
+    max-width: 100%;
+    font-size: clamp(2rem, 10vw, 3.35rem);
+    line-height: 1;
+  }
+
+  .proof-portfolio[data-layout] :where(
+    .portfolio-impact-grid,
+    .portfolio-work-grid,
+    .portfolio-career-grid,
+    .portfolio-impact-copy
+  ) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .proof-portfolio[data-layout] :where(
+    .portfolio-impact-card,
+    .portfolio-work-card,
+    .portfolio-proof-passport
+  ) {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .proof-portfolio[data-layout] .portfolio-proof-passport {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 19px;
+  }
+
+  .proof-portfolio[data-layout] .portfolio-passport-grid {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .proof-portfolio[data-layout] .portfolio-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .proof-portfolio[data-layout] .portfolio-actions .proof-action {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .proof-portfolio[data-layout] .portfolio-work-card-head {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .proof-portfolio[data-layout] .proof-filter-row {
+    display: flex;
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+
+  .proof-portfolio[data-layout] .proof-filter-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .proof-portfolio[data-layout] .proof-filter-row button {
+    flex: 0 0 auto;
+  }
+
+  .proof-portfolio[data-layout] :where(.portfolio-footer, .portfolio-pagination) {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .proof-portfolio[data-layout] .portfolio-footer button {
+    width: 100%;
+  }
+}
+
+/* The screenshot regression: a narrow skills section must never keep 3-4 cols. */
+@container skills (max-width: 560px) {
+  .proof-portfolio[data-layout] .portfolio-skill-cloud {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .proof-portfolio[data-layout] .portfolio-skill-cloud > span {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+@container profile (max-width: 420px) {
+  .proof-portfolio .proof-profile-inner {
+    width: min(100% - 16px, 1180px);
+  }
+
+  .proof-portfolio[data-layout] .portfolio-hero,
+  .proof-portfolio[data-layout] .portfolio-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .proof-portfolio[data-layout="editorial"] .portfolio-hero,
+  .proof-portfolio[data-layout="case-study"] .portfolio-hero,
+  .proof-portfolio[data-layout="academic"] .portfolio-hero {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .proof-portfolio[data-layout] .portfolio-passport-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .proof-portfolio[data-layout] .portfolio-skill-cloud > span {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .proof-portfolio[data-layout] .portfolio-skill-cloud small {
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proof-portfolio *,
+  .proof-portfolio *::before,
+  .proof-portfolio *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
