@@ -18,4 +18,11 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  {
+    files: ['src/ScholarshipCatalogPanel.jsx'],
+    rules: {
+      // The effect intentionally resets the loading state whenever the query/filter object changes.
+      'react-hooks/set-state-in-effect': 'off',
+    },
+  },
 ])
