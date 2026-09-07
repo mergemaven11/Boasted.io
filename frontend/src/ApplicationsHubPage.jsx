@@ -16,6 +16,8 @@ import { useEffect, useMemo, useState } from "react";
 import BragStackLoader from "./BragStackLoader.jsx";
 import EducationToolkitPanel from "./EducationToolkitPanel.jsx";
 import MajorExplorerPanel from "./MajorExplorerPanel.jsx";
+import ScholarshipCatalogPanel from "./ScholarshipCatalogPanel.jsx";
+import StudentOpportunitySearchPanel from "./StudentOpportunitySearchPanel.jsx";
 import { getApplicationIntelligence } from "./applicationIntelligenceApi.js";
 import "./ApplicationsHubPage.css";
 
@@ -155,21 +157,21 @@ const WORKFLOWS = [
     id: "scholarship",
     title: "Scholarships",
     icon: Award,
-    blurb: "Find the wins that show leadership, service, academics, initiative, and follow-through.",
+    blurb: "Search current scholarships, then use your saved wins to prepare a stronger, evidence-backed application.",
     accent: "gold",
   },
   {
     id: "special-program",
     title: "Programs",
     icon: GraduationCap,
-    blurb: "Use real projects, interests, competitions, research, and growth for programs you want to pursue.",
+    blurb: "Find nearby training and support programs connected to career directions already showing up in your evidence.",
     accent: "violet",
   },
   {
     id: "internship",
     title: "Internships",
     icon: BriefcaseBusiness,
-    blurb: "Turn school, projects, service, clubs, and work into examples that show what you can do.",
+    blurb: "Search current internship listings around you using career and skill directions from your saved evidence.",
     accent: "blue",
   },
   {
@@ -280,14 +282,16 @@ function ApplicationsHubPage() {
   }, [applicationType, refreshKey]);
 
   function chooseWorkflow(type) {
-    if (type === applicationType) return;
-    setLoading(true);
-    setError("");
-    setNotice("");
-    setApplicationType(type);
-    const next = new URL(window.location.href);
-    next.searchParams.set("type", type);
-    window.history.replaceState({}, "", `${next.pathname}${next.search}`);
+    if (type !== applicationType) {
+      setLoading(true);
+      setError("");
+      setNotice("");
+      setApplicationType(type);
+      const next = new URL(window.location.href);
+      next.searchParams.set("type", type);
+      window.history.replaceState({}, "", `${next.pathname}${next.search}`);
+    }
+    window.setTimeout(() => document.getElementById("education-opportunity-workspace")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   }
 
   function openEducationTool(toolId) {
@@ -367,7 +371,7 @@ function ApplicationsHubPage() {
     <MajorExplorerPanel />
 
     <section className="education-application-section" aria-label="Application tools">
-      <div className="education-feature-heading"><div><p className="applications-kicker"><Target size={15} /> Application tools</p><h2>Find the real wins that fit the opportunity in front of you.</h2></div><span>Built from your saved evidence</span></div>
+      <div className="education-feature-heading"><div><p className="applications-kicker"><Target size={15} /> Application tools</p><h2>Find the real opportunities and the real wins that can help you pursue them.</h2></div><span>Search + evidence intelligence</span></div>
       <div className="application-workflow-grid">
         {WORKFLOWS.map(({ id, title, icon: Icon, blurb, accent }) => <button type="button" key={id} className={`application-workflow-card ${accent} ${applicationType === id ? "active" : ""}`} onClick={() => chooseWorkflow(id)}>
           <span className="application-workflow-icon"><Icon size={22} /></span>
@@ -376,6 +380,12 @@ function ApplicationsHubPage() {
         </button>)}
       </div>
     </section>
+
+    <div id="education-opportunity-workspace">
+      {applicationType === "scholarship" && <ScholarshipCatalogPanel />}
+      {applicationType === "special-program" && <StudentOpportunitySearchPanel mode="programs" />}
+      {applicationType === "internship" && <StudentOpportunitySearchPanel mode="internships" />}
+    </div>
 
     {loading && <BragStackLoader compact message={`Looking through your wins for ${activeWorkflow.title.toLowerCase()}…`} detail="Reviewing what you actually saved without making up achievements or experiences." />}
 

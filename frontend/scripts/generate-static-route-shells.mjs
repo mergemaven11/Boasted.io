@@ -26,6 +26,7 @@ const REQUIRED_CLIENT_ROUTES = [
   "/education",
   "/docs",
   "/docs/education",
+  "/legal/education-data",
 ];
 
 function normalizeRoute(route) {

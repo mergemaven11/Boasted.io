@@ -1,8 +1,8 @@
 """Account-closure cleanup helpers.
 
 The closure path removes the account record and user-owned product data while
-leaving narrowly scoped operational, billing, security, and legal records that
-may need to be retained under Boasted's published privacy policy.
+leaving narrowly scoped operational, billing, security, source-governance, and legal
+records that may need to be retained under Boasted's published privacy/compliance policy.
 """
 from __future__ import annotations
 
@@ -17,9 +17,9 @@ OWNER_FIELDS = (
 )
 
 # These collections are intentionally excluded from self-service deletion.
-# They contain operational/security/billing/legal records rather than a user's
-# career workspace. Deleting the user record severs the normal application link
-# back to the closed account.
+# They contain operational/security/billing/legal/source-governance records rather
+# than a user's career workspace. Education source audit receipts intentionally omit
+# raw member evidence, queries, locations, API credentials, and full upstream records.
 RETAINED_COLLECTIONS = {
     "ops_audit",
     "ops_events",
@@ -28,6 +28,7 @@ RETAINED_COLLECTIONS = {
     "ai_verification_events",
     "compliance_audit_runs",
     "confidentiality_attestations",
+    "education_source_audit_events",
 }
 
 
@@ -46,7 +47,7 @@ def purge_user_owned_data(db, user_id: str) -> dict[str, int]:
     field. Scanning the database's current collection list makes closure cover
     newer product collections without requiring every feature to be hard-coded
     here, while the retained allow-list prevents deletion of records that may
-    have a separate compliance or security retention purpose.
+    have a separate compliance, legal, source-governance, or security retention purpose.
     """
     variants = _user_id_variants(user_id)
     ownership_query = {

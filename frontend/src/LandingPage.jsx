@@ -136,25 +136,25 @@ const organizationTabs = {
     icon: GraduationCap,
     eyebrow: "FOR EDUCATION",
     title: "Turn learning into proof students can actually reuse.",
-    description: "Education helps students and early-career users save coursework, projects, certifications, achievements, leadership, and practical experience, then reuse that evidence for résumés, interviews, scholarships, internships, and career exploration.",
+    description: "Education helps students and early-career users save coursework, projects, certifications, achievements, leadership, and practical experience, then reuse that evidence for résumés, interviews, scholarships, programs, internships, and career exploration.",
     features: [
-      "Education workspace for coursework, academic projects, certifications, achievements, and graduation progress",
+      "Scholarship Finder with licensed source provenance, filters, query understanding, and provider submissions",
+      "Program Finder using U.S. Department of Education College Scorecard data",
+      "Federal Internship Finder using live USAJOBS public listings",
+      "Major Explorer, Skills from Education, and evidence-connected career directions",
       "Academic Portfolio and education-focused Impact Receipts",
-      "Skills from Education and Career Match & Skill Gaps",
-      "Major Explorer for evidence-based academic directions to explore",
-      "Résumé Builder and Interview Prep using the same saved evidence",
-      "Application support for scholarships, programs, internships, and essay-story preparation",
+      "Public Education Data & Source Audit documenting approved and blocked sources",
     ],
     stats: [
-      ["Learning record", "Reusable", "one evidence system"],
-      ["Major Explorer", "Evidence-based", "not a prediction"],
-      ["Student proof", "Private", "shared by choice"],
+      ["Scholarships", "Licensed", "source-gated catalog"],
+      ["Programs", "Scorecard", "official public data"],
+      ["Internships", "USAJOBS", "live federal listings"],
     ],
     rows: [
-      ["Coursework", "Captured", "Reusable"],
-      ["Academic projects", "Evidence linked", "Ready"],
-      ["Career tools", "Resume + interview", "Connected"],
-      ["Applications", "Scholarships + internships", "Supported"],
+      ["Student evidence", "Private", "Shared by choice"],
+      ["Opportunity search", "Evidence-connected", "Editable"],
+      ["Source rights", "Audited", "Public log"],
+      ["Predictions", "None", "No fake fit score"],
     ],
     cta: "Explore Education",
     href: "/education",
@@ -173,6 +173,7 @@ function LandingPage() {
           <a href="#how-it-works">How it works</a>
           <a href="#product">What it makes</a>
           <a href="#organizations">Organizations</a>
+          <a href="/education">Education</a>
           <a href="#pricing">Pricing</a>
         </nav>
         <div className="landing-nav-actions">
@@ -342,8 +343,9 @@ function LandingPage() {
           <div><h3>Product</h3><a href="#product">What Boasted makes</a><a href="#how-it-works">How it works</a><a href="#security">Privacy</a></div>
           <div><h3>Organizations</h3><a href="#organizations" onClick={() => setOrganizationTab("team")}>Teams</a><a href="#organizations" onClick={() => setOrganizationTab("enterprise")}>Enterprise</a><a href="/education">Education</a></div>
           <div><h3>Account</h3><a href="/login">Log in</a><a href="/register">Create account</a><a href="#pricing">Pricing</a></div>
+          <div><h3>Legal & trust</h3><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/legal/education-data">Education data audit</a></div>
         </div>
-        <div className="mega-footer-bottom"><span>© 2026 Boasted</span><span>Private by default · Your proof stays yours.</span><div><a href="/login">Log in</a><a href="/register">Start free</a></div></div>
+        <div className="mega-footer-bottom"><span>© 2026 Boasted</span><span>Private by default · Your proof stays yours.</span><div><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></div>
       </footer>
     </main>
   );
