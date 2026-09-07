@@ -5,6 +5,8 @@ import AnimatedInterviewerAvatar from "./AnimatedInterviewerAvatar.jsx";
 import { getImpactReceipts, reportInterviewIntelligenceVerification } from "./api.js";
 import { EXPERIENCE_LEVELS, INTERVIEW_TYPES } from "./interviewKnowledgeBase.js";
 import { analyzeAnswer, buildInterviewPlan, getBrowserInterviewCapabilities, summarizeInterview } from "./interviewEngine.js";
+import { buildTranscriptContext, resolveTranscriptAlternatives } from "./interviewTranscript.js";
+import { chooseInterviewVoice, getInterviewVoiceStyle, INTERVIEW_VOICE_STYLES } from "./interviewVoice.js";
 import {
   INITIAL_INTERVIEW_CONVERSATION,
   INTERVIEW_PHASES,
@@ -135,28 +137,23 @@ function wait(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-function chooseSoftVoice(voices = []) {
-  const preferred = ["Samantha", "Ava", "Serena", "Tessa", "Moira", "Nicky", "Karen", "Microsoft Aria", "Google US English"];
-  return preferred.map((name) => voices.find((voice) => voice.lang?.startsWith("en") && voice.name.includes(name))).find(Boolean)
-    || voices.find((voice) => voice.lang?.startsWith("en-US") && /premium|enhanced|natural|neural/i.test(voice.name))
-    || voices.find((voice) => voice.lang?.startsWith("en-US"))
-    || voices.find((voice) => voice.lang?.startsWith("en"))
-    || null;
+function chooseSoftVoice(voices = [], style = "warm") {
+  return chooseInterviewVoice(voices, style);
 }
 
 function warmSpeechVoices() {
   const synth = window.speechSynthesis;
   if (!synth?.getVoices) return () => {};
   const refresh = () => {
-    const next = chooseSoftVoice(synth.getVoices());
-    if (next) cachedSoftVoice = next;
+    const next = chooseSoftVoice(synth.getVoices(), "warm");
+    if (next) cachedSoftVoice = { style: "warm", voice: next };
   };
   refresh();
   synth.addEventListener?.("voiceschanged", refresh);
   return () => synth.removeEventListener?.("voiceschanged", refresh);
 }
 
-function speakSoftText(text, { cancelFirst = false } = {}) {
+function speakSoftText(text, { cancelFirst = false, voiceStyle = "warm" } = {}) {
   return new Promise((resolve) => {
     const synth = window.speechSynthesis;
     if (!synth?.speak || !text) {
@@ -165,13 +162,16 @@ function speakSoftText(text, { cancelFirst = false } = {}) {
     }
     if (cancelFirst) synth.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    const voice = cachedSoftVoice || chooseSoftVoice(synth.getVoices?.() || []);
+    const settings = getInterviewVoiceStyle(voiceStyle);
+    const voice = cachedSoftVoice?.style === voiceStyle
+      ? cachedSoftVoice.voice
+      : chooseSoftVoice(synth.getVoices?.() || [], voiceStyle);
     if (voice) {
-      cachedSoftVoice = voice;
+      cachedSoftVoice = { style: voiceStyle, voice };
       utterance.voice = voice;
     }
-    utterance.rate = 0.92;
-    utterance.pitch = 0.99;
+    utterance.rate = settings.rate;
+    utterance.pitch = settings.pitch;
     utterance.volume = 0.86;
     let settled = false;
     let timeoutId = null;
@@ -223,7 +223,7 @@ function playSoftChime() {
 
 export default function InterviewPracticePage() {
   const [stage, setStage] = useState("setup");
-  const [setup, setSetup] = useState({ roleTitle: "", careerArea: "", experienceLevel: "experienced", interviewType: "mixed", questionCount: 8, responseMinutes: 3, jobDescription: "", useReceipts: true });
+  const [setup, setSetup] = useState({ roleTitle: "", careerArea: "", experienceLevel: "experienced", interviewType: "mixed", questionCount: 8, responseMinutes: 3, voiceStyle: "warm", jobDescription: "", useReceipts: true });
   const [receipts, setReceipts] = useState([]);
   const [plan, setPlan] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -256,6 +256,7 @@ export default function InterviewPracticePage() {
   const timeoutHandledRef = useRef(false);
   const autoListenRef = useRef(false);
   const dictationBaseRef = useRef("");
+  const dictationRawFinalRef = useRef("");
   const dictationFinalRef = useRef("");
   const dictationLiveRef = useRef("");
   const recognitionRestartRef = useRef(null);
@@ -343,6 +344,10 @@ export default function InterviewPracticePage() {
     setSetup((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
   }
 
+  function speakAisha(text, options = {}) {
+    return speakAisha(text, { ...options, voiceStyle: setup.voiceStyle });
+  }
+
   async function primeMicrophonePermission() {
     if (!navigator.mediaDevices?.getUserMedia) return true;
     try {
@@ -383,9 +388,10 @@ export default function InterviewPracticePage() {
     recognition.lang = "en-US";
     recognition.interimResults = true;
     recognition.continuous = !appleMobile;
-    recognition.maxAlternatives = 1;
+    recognition.maxAlternatives = 3;
 
     dictationBaseRef.current = answerRef.current.trim();
+    dictationRawFinalRef.current = "";
     dictationFinalRef.current = "";
     dictationLiveRef.current = dictationBaseRef.current;
 
@@ -399,10 +405,24 @@ export default function InterviewPracticePage() {
       let interim = "";
       for (let index = event.resultIndex; index < event.results.length; index += 1) {
         const result = event.results[index];
-        const transcript = String(result[0]?.transcript || "").trim();
-        if (!transcript) continue;
-        if (result.isFinal) dictationFinalRef.current = `${dictationFinalRef.current} ${transcript}`.trim();
-        else interim = `${interim} ${transcript}`.trim();
+        const alternatives = Array.from(result).slice(0, 3).map((alternative) => ({
+          transcript: alternative?.transcript,
+          confidence: alternative?.confidence,
+        }));
+        const transcriptContext = buildTranscriptContext({
+          roleTitle: setup.roleTitle,
+          careerArea: setup.careerArea,
+          jobDescription: setup.jobDescription,
+          question: currentPrompt,
+        });
+        const resolved = resolveTranscriptAlternatives(alternatives, transcriptContext);
+        if (!resolved.display) continue;
+        if (result.isFinal) {
+          dictationRawFinalRef.current = `${dictationRawFinalRef.current} ${resolved.raw}`.trim();
+          dictationFinalRef.current = `${dictationFinalRef.current} ${resolved.display}`.trim();
+        } else {
+          interim = `${interim} ${resolved.display}`.trim();
+        }
       }
       const next = [dictationBaseRef.current, dictationFinalRef.current, interim].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
       if (next) {
@@ -492,10 +512,10 @@ export default function InterviewPracticePage() {
       return true;
     }
 
-    let spoken = await speakSoftText(prompt);
+    let spoken = await speakAisha(prompt);
     if (!spoken) {
       await wait(250);
-      spoken = await speakSoftText(prompt, { cancelFirst: true });
+      spoken = await speakAisha(prompt, { cancelFirst: true });
     }
     if (!spoken) {
       setAudioError("Aisha Jordan’s audio was blocked or interrupted. The interview is continuing in text mode; Replay question can retry the audio.");
@@ -513,13 +533,13 @@ export default function InterviewPracticePage() {
 
     if (!spoken && capabilities.speechSynthesis) {
       await wait(200);
-      spoken = await speakSoftText(INTRO_SEGMENTS[0], { cancelFirst: true });
+      spoken = await speakAisha(INTRO_SEGMENTS[0], { cancelFirst: true });
     }
 
     if (spoken) {
       for (let index = 1; index < INTRO_SEGMENTS.length; index += 1) {
         await wait(INTRO_PAUSE_MS);
-        const ok = await speakSoftText(INTRO_SEGMENTS[index]);
+        const ok = await speakAisha(INTRO_SEGMENTS[index]);
         if (!ok) {
           setAudioError("Aisha Jordan’s intro was interrupted. The interview will continue with the first question.");
           break;
@@ -573,7 +593,7 @@ export default function InterviewPracticePage() {
     });
 
     scrollInterviewToTop();
-    const firstSegmentPromise = speakSoftText(INTRO_SEGMENTS[0]);
+    const firstSegmentPromise = speakAisha(INTRO_SEGMENTS[0]);
     const catalogPromise = enrichInterviewPlanWithCatalog(fallbackPlan, setup);
     void continueGreeting(firstSegmentPromise, fallbackPlan, catalogPromise);
   }
@@ -595,7 +615,7 @@ export default function InterviewPracticePage() {
     setInterviewPhase(INTERVIEW_PHASES.SPEAKING);
     playSoftChime();
     await wait(450);
-    await speakSoftText("Okay, that’s time. Thank you.");
+    await speakAisha("Okay, that’s time. Thank you.");
     evaluateAnswer(answerRef.current, { timedOut: true });
   }
 
@@ -768,6 +788,7 @@ export default function InterviewPracticePage() {
             <label>Questions<select name="questionCount" value={setup.questionCount} onChange={updateSetup}><option value="5">5 · Quick practice</option><option value="8">8 · Standard</option><option value="10">10 · Full interview</option></select></label>
             <label>Response time<select name="responseMinutes" value={setup.responseMinutes} onChange={updateSetup}><option value="1">1 minute</option><option value="3">3 minutes</option><option value="5">5 minutes</option></select></label>
           </div>
+          <label>Aisha&apos;s voice<select name="voiceStyle" value={setup.voiceStyle} onChange={updateSetup}>{Object.entries(INTERVIEW_VOICE_STYLES).map(([value, style]) => <option value={value} key={value}>{style.label}</option>)}</select></label>
           <label>Job description <small>optional</small><textarea name="jobDescription" value={setup.jobDescription} onChange={updateSetup} rows="5" placeholder="Paste the job description for more targeted questions." /></label>
           <label className="receipt-personalization"><input type="checkbox" name="useReceipts" checked={setup.useReceipts} onChange={updateSetup} /><span><strong>Personalize with my career proof</strong><small>{receipts.length ? `${receipts.length} Impact Receipt${receipts.length === 1 ? "" : "s"} available` : "No Impact Receipts loaded yet — the interview still works normally."}</small></span></label>
           <button className="start-interview-button" type="submit">Start practice interview <ChevronRight size={18} /></button>
