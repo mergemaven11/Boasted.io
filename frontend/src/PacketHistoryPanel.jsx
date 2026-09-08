@@ -88,6 +88,7 @@ export default function PacketHistoryPanel({ refreshKey = 0, compact = false }) 
           <div className="packet-history-meta">{item.filename ? <span>{item.filename}</span> : <span>Preview created</span>}{item.page_count ? <small>{item.page_count} page{item.page_count === 1 ? "" : "s"}</small> : null}</div>
         </article>;
       })}</div> : null}
+      {items.length ? <p className="packet-history-feedback">Was your packet useful? <a href="mailto:support@boasted.io?subject=Career%20packet%20feedback">Send optional feedback</a>.</p> : null}
     </section>
   );
 }
