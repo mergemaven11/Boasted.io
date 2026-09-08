@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build && node scripts/generate-static-route-shells.mjs",
     "lint": "eslint .",
-    "test:analytics": "node --test src/analytics.test.js",
+    "test:analytics": "node --test src/analytics.test.js src/publicAnalytics.test.js",
     "test:education": "node --test src/applicationsHubSource.test.js src/accomplishmentsEducationSource.test.js src/educationToolkitSource.test.js src/educationOpportunitySource.test.js",
     "test:interview": "node --test src/interviewEngine*.test.js src/interviewTranscript.test.js src/interviewVoice.test.js",
     "test:resume": "node --test src/resumeStructured.test.js src/dashboardTags.test.js",
