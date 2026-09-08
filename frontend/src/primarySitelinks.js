@@ -4,8 +4,7 @@ export const PRIMARY_SITELINKS = [
   ["Resume Builder", "/resume-accomplishments", "Build evidence-backed resume material"],
   ["Interview Preparation", "/interview-preparation", "Practice role-specific interview stories"],
   ["Impact Receipts", "/impact-receipts", "Turn accomplishments into reusable proof"],
-  ["Education", "/education", "Track student wins, growth, and opportunity-ready stories"],
+  ["Career Portfolio", "/career-portfolio", "Build a professional proof portfolio from selected accomplishments"],
   ["How It Works", "/how-it-works", "See how Boasted turns wins into career proof"],
-  ["Support Hub", "/support", "Get product help, beta access guidance, and support contacts"],
-  ["Sign In", "/login", "Open your Boasted account"],
+  ["Pricing", "/pricing", "Compare Boasted Free and Pro plans"],
 ];
