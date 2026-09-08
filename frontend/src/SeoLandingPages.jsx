@@ -12,7 +12,7 @@ function setMetaContent(selector, value) {
   if (element) element.setAttribute("content", value);
 }
 
-function installContentSchema({ path, canonicalUrl, title, content }) {
+function installContentSchema({ canonicalUrl, title, content }) {
   const scriptId = "boasted-seo-content-schema";
   document.getElementById(scriptId)?.remove();
 
@@ -175,7 +175,7 @@ function SeoLandingPage({ content }) {
     setMetaContent('meta[name="twitter:description"]', content.description);
     const canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) canonical.href = canonicalUrl;
-    return installContentSchema({ path, canonicalUrl, title, content });
+    return installContentSchema({ canonicalUrl, title, content });
   }, [content, isGuide, path]);
 
   return <main className={`landing-page seo-product-page${isGuide || isHub ? " seo-guide-page" : ""}`}>
