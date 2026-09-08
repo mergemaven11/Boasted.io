@@ -141,6 +141,34 @@ const ROUTE_META = Object.freeze({
     title: "Public Career Proof Profiles for Hiring & Portfolios | Boasted",
     description: "Share selected accomplishments and Impact Receipts with recruiters, hiring managers, clients, and your network without exposing private work history.",
   },
+  "/guides": {
+    title: "Career Accomplishment Guides | Boasted",
+    description: "Practical guides for tracking work accomplishments, building a brag document, preparing performance-review evidence, writing resume achievements, creating STAR interview stories, and organizing promotion proof.",
+  },
+  "/guides/brag-document": {
+    title: "What Is a Brag Document? Work Accomplishment Guide | Boasted",
+    description: "Learn how to build a brag document that captures wins, results, evidence, skills, and shared credit for reviews, resumes, interviews, and promotions.",
+  },
+  "/guides/track-work-accomplishments": {
+    title: "How to Track Work Accomplishments | Boasted",
+    description: "Use a simple system to track work accomplishments, measurable results, evidence, skills, and shared credit throughout the year instead of rebuilding your career story from memory.",
+  },
+  "/guides/performance-review-accomplishments": {
+    title: "Performance Review Accomplishments Guide | Boasted",
+    description: "Learn how to prepare specific performance-review accomplishments using scope, action, result, evidence, growth, collaboration, and measurable impact.",
+  },
+  "/guides/star-interview-stories": {
+    title: "STAR Interview Stories: Method & Examples | Boasted",
+    description: "Prepare STAR interview stories from real situations, actions, results, decisions, and lessons instead of memorized generic scripts.",
+  },
+  "/guides/resume-accomplishment-examples": {
+    title: "Resume Accomplishment Examples & Writing Guide | Boasted",
+    description: "Turn job duties into truthful resume accomplishment bullets using action, scope, results, metrics, and context across technical support, software, operations, service, and leadership work.",
+  },
+  "/guides/promotion-packet": {
+    title: "Promotion Packet Guide: Evidence & Impact | Boasted",
+    description: "Build a promotion packet around role criteria, sustained impact, increased scope, leadership, collaboration, growth, and supporting evidence collected over time.",
+  },
 });
 
 function normalizeRoute(route) {
