@@ -13,6 +13,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import CalendlyEmbed from "./CalendlyEmbed.jsx";
+import { ANALYTICS_EVENTS, trackAnalyticsEvent } from "./analytics";
 import {
   getPublicEntries,
   getPublicImpactReceipts,
@@ -289,9 +290,11 @@ export default function PublicBragPage() {
     try {
       if (navigator.share) {
         await navigator.share(shareData);
+        trackAnalyticsEvent(ANALYTICS_EVENTS.PROFILE_SHARED, { share_method: "native" });
         setShareNotice("Shared");
       } else if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
+        trackAnalyticsEvent(ANALYTICS_EVENTS.PROFILE_SHARED, { share_method: "clipboard" });
         setShareNotice("Rich link copied");
       } else {
         window.prompt("Copy this Proof Portfolio share link:", url);
