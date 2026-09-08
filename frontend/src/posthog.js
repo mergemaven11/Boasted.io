@@ -2,10 +2,6 @@ const DEFAULT_POSTHOG_HOST = "https://us.i.posthog.com";
 const POSTHOG_DEFAULTS = "2026-05-30";
 const IDENTIFIED_USER_STORAGE_KEY = "boasted_posthog_identified_user";
 
-function getEnvValue(name) {
-  return import.meta.env?.[name]?.trim?.() || "";
-}
-
 function isLocalDevelopment() {
   if (typeof window === "undefined") return true;
   const hostname = window.location?.hostname || "";
@@ -89,10 +85,10 @@ export function initializePostHog() {
   if (typeof window === "undefined" || typeof document === "undefined") return false;
   if (isLocalDevelopment()) return false;
 
-  const apiKey = getEnvValue("VITE_POSTHOG_KEY");
+  const apiKey = import.meta.env.VITE_POSTHOG_KEY?.trim() || "";
   if (!apiKey) return false;
 
-  const apiHost = getEnvValue("VITE_POSTHOG_HOST") || DEFAULT_POSTHOG_HOST;
+  const apiHost = import.meta.env.VITE_POSTHOG_HOST?.trim() || DEFAULT_POSTHOG_HOST;
   const posthog = installPostHogStub();
   if (!posthog) return false;
 
