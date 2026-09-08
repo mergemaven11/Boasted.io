@@ -1,0 +1,27 @@
+/*
+ * High-specificity safeguards for profile CSS that is loaded with the lazy
+ * PublicBragPage chunk after the app-wide responsive audit layer.
+ */
+
+.proof-portfolio[data-layout][data-theme] .portfolio-share,
+.proof-portfolio[data-layout][data-theme] .proof-action,
+.proof-portfolio[data-layout][data-theme] .portfolio-footer button,
+.proof-portfolio[data-layout][data-theme] .proof-pagination-controls button {
+  min-height: 44px;
+}
+
+@container profile (max-width: 640px) {
+  /* Keep every filter visible instead of hiding choices off-canvas on phones. */
+  .proof-portfolio[data-layout][data-theme] .proof-filter-row {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    padding-bottom: 0;
+  }
+
+  .proof-portfolio[data-layout][data-theme] .proof-filter-row button {
+    flex: 0 1 auto;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+}
