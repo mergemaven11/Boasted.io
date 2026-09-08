@@ -15,11 +15,26 @@ const UTM_FIELDS = [
 const FIRST_TOUCH_UTM_KEY = "bragstack_first_touch_utm";
 const SESSION_UTM_KEY = "bragstack_session_utm";
 const MAX_ATTRIBUTION_VALUE_LENGTH = 100;
+const SENSITIVE_PRODUCT_PARAMETER_PATTERN = /(^|_)(accomplishment|employer|evidence|url|company|organization|title|description|body|text|content)($|_)/i;
 
 export const ANALYTICS_EVENTS = Object.freeze({
   SIGN_UP: "sign_up",
+  SIGNUP_STARTED: "signup_started",
+  SIGNUP_COMPLETED: "signup_completed",
+  ONBOARDING_COMPLETED: "onboarding_completed",
   ACCOMPLISHMENT_CREATED: "accomplishment_created",
+  FIRST_PROOF_CREATED: "first_proof_created",
+  SECOND_PROOF_CREATED: "second_proof_created",
+  FIFTH_PROOF_CREATED: "fifth_proof_created",
   IMPACT_RECEIPT_CREATED: "impact_receipt_created",
+  FIRST_IMPACT_RECEIPT_COMPLETED: "first_impact_receipt_completed",
+  FIRST_GENERATED_OUTPUT: "first_generated_output",
+  EXISTING_PROOF_REUSED: "existing_proof_reused",
+  PUBLIC_PROFILE_VIEWED: "public_profile_viewed",
+  PROFILE_SHARED: "profile_shared",
+  IMPACT_RECEIPT_SHARED: "impact_receipt_shared",
+  CAREER_PACKET_EXPORTED: "career_packet_exported",
+  RETURNED_WITHIN_7_DAYS: "returned_within_7_days",
 });
 
 function safeStorageRead(storage, key) {
@@ -108,10 +123,11 @@ export function initializeAnalytics() {
   document.head.appendChild(script);
 }
 
-function sanitizeEventParameters(parameters = {}) {
+function sanitizeEventParameters(parameters = {}, { productParameters = false } = {}) {
   return Object.fromEntries(
     Object.entries(parameters).filter(([key, value]) => {
       if (!GA_NAME_PATTERN.test(key)) return false;
+      if (productParameters && SENSITIVE_PRODUCT_PARAMETER_PATTERN.test(key)) return false;
       if (value === null || value === undefined || value === "") return false;
       return ["string", "number", "boolean"].includes(typeof value);
     }),
@@ -127,10 +143,10 @@ export function trackAnalyticsEvent(eventName, parameters = {}) {
   window.gtag(
     "event",
     eventName,
-    sanitizeEventParameters({
-      ...getCampaignEventParameters(),
-      ...parameters,
-    }),
+    {
+      ...sanitizeEventParameters(getCampaignEventParameters()),
+      ...sanitizeEventParameters(parameters, { productParameters: true }),
+    },
   );
   return true;
 }
