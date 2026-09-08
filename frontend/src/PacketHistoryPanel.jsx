@@ -65,15 +65,15 @@ export default function PacketHistoryPanel({ refreshKey = 0, compact = false }) 
   }, [refreshKey]);
 
   return (
-    <section className={`packet-history-panel ${compact ? "compact" : ""}`} aria-label="Packet history">
+    <section className={`packet-history-panel ${compact ? "compact" : ""}`} aria-label="Exports">
       <div className="packet-history-heading">
-        <div><span>PACKET HISTORY</span><h2>Your generated packets</h2><p>Boasted stores metadata only here—never packet bodies, evidence contents, or private notes.</p></div>
+        <div><span>EXPORTS</span><h2>Packet history and downloads</h2><p>Your generated and downloaded packets are listed here. Boasted stores metadata only—never packet bodies, evidence contents, or private notes.</p></div>
         <button type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} className={loading ? "packet-history-spin" : ""} /> Refresh</button>
       </div>
 
       {error ? <div className="packet-history-error">{error}</div> : null}
       {loading && !items.length ? <div className="packet-history-empty"><Clock3 size={20} /><span>Loading packet history…</span></div> : null}
-      {!loading && !items.length ? <div className="packet-history-empty"><FileCheck2 size={22} /><div><strong>No packet history yet.</strong><span>Build a packet and it will appear here immediately—even before you download the PDF.</span></div></div> : null}
+      {!loading && !items.length ? <div className="packet-history-empty"><FileCheck2 size={22} /><div><strong>No exports yet.</strong><span>Build a packet and it will appear here immediately—even before you download the PDF.</span></div></div> : null}
 
       {items.length ? <div className="packet-history-list">{items.map((item) => {
         const exported = item.activity === "pdf_exported";
