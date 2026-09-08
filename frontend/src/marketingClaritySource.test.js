@@ -7,13 +7,15 @@ const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 test("landing page explains Boasted immediately in plain language", () => {
   const source = read("./LandingPage.jsx");
 
-  assert.match(source, /Remember what you did/);
-  assert.match(source, /Save your wins, results, skills, and proof in one private place/);
-  assert.match(source, /Save it → Prove it → Use it/);
-  assert.match(source, /ATS-friendly résumés/);
-  assert.match(source, /Performance reviews/);
-  assert.match(source, /Promotion packets/);
-  assert.match(source, /Interview practice/);
+  assert.match(source, /Never lose track of what you/);
+  assert.match(source, /Save your work, wins, projects, skills, and proof in one place/);
+  assert.match(source, /Save it\. Prove it\. Use it\./);
+  assert.match(source, /IMPACT RECEIPT/);
+  assert.match(source, /One record/);
+  assert.match(source, /title: "Résumé"/);
+  assert.match(source, /title: "Performance review"/);
+  assert.match(source, /title: "Promotion"/);
+  assert.match(source, /title: "Interview"/);
 
   assert.doesNotMatch(source, /Capture → Prove → Package → Share → Connect/);
   assert.doesNotMatch(source, /WHY IT EXISTS/);
@@ -30,7 +32,7 @@ test("pricing always shows Free Pro Team and Enterprise together", () => {
   assert.match(source, /name: "Team"/);
   assert.match(source, /name: "Enterprise"/);
   assert.match(source, /pricing-grid pricing-grid-four/);
-  assert.match(source, /All four plans stay visible/);
+  assert.match(source, /Pro is temporarily complimentary during early access/);
   assert.doesNotMatch(source, /const plans = isCompany/);
   assert.doesNotMatch(source, /landing-individual-pricing/);
   assert.doesNotMatch(source, /landing-business-pricing/);
@@ -46,11 +48,10 @@ test("organization section uses separate Team Enterprise and Education tabs", ()
   assert.match(source, /label: "Education"/);
   assert.match(source, /Team review dashboard/);
   assert.match(source, /Enterprise admin dashboard/);
-  assert.match(source, /Major Explorer/);
   assert.match(source, /Academic Portfolio/);
-  assert.match(source, /scholarships, programs, internships/);
-  assert.match(source, /private career record/);
-  assert.match(source, /not a manager feed/);
+  assert.match(source, /Scholarship, program, and federal internship discovery/);
+  assert.match(source, /Employees keep their own private record/);
+  assert.match(source, /Private individual notes are not exposed as an employer activity feed/);
   assert.match(css, /landing-org-tabs/);
   assert.match(css, /landing-org-dashboard/);
 });
@@ -74,8 +75,8 @@ test("Education marketing keeps Education in the header and gives students clear
 test("landing page stays compact instead of using oversized section gaps", () => {
   const css = read("./LandingPageSimple.css");
 
-  assert.match(css, /min-height:600px/);
-  assert.match(css, /padding-top:3\.25rem/);
+  assert.match(css, /landing-thirty-hero\{min-height:690px/);
+  assert.match(css, /landing-simple-workflow\{padding-top:4rem/);
   assert.match(css, /landing-org-section/);
   assert.doesNotMatch(css, /padding-top:84px/);
 });
