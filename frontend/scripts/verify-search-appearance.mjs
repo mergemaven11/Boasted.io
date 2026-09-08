@@ -21,6 +21,9 @@ const publicSitelinks = [
 ];
 
 const sitemapUrls = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => match[1]);
+const sitemapPaths = sitemapUrls
+  .map((url) => new URL(url).pathname.replace(/\/$/, "") || "/")
+  .filter((path) => path !== "/");
 const duplicates = sitemapUrls.filter((url, index) => sitemapUrls.indexOf(url) !== index);
 
 assert.equal(duplicates.length, 0, `sitemap.xml contains duplicate URLs: ${duplicates.join(", ")}`);
@@ -55,14 +58,27 @@ assert.match(searchMeta, /SiteNavigationElement/);
 assert.match(searchMeta, /max-image-preview:large/);
 assert.match(searchMeta, /https:\/\/boasted\.io/);
 
-// Static HTML must not tell crawlers every sitemap route is the homepage.
+// Static HTML must expose route-specific crawl metadata before React executes.
 assert.match(staticRouteShells, /function routeShell\(indexHtml, route\)/);
+assert.match(staticRouteShells, /ROUTE_META = Object\.freeze/);
 assert.match(staticRouteShells, /canonicalUrl = `\$\{SITE_ORIGIN\}\$\{route\}`/);
+assert.match(staticRouteShells, /<title>/);
+assert.match(staticRouteShells, /<meta name="description"/);
 assert.match(staticRouteShells, /<link rel="canonical"/);
+assert.match(staticRouteShells, /<meta property="og:title"/);
+assert.match(staticRouteShells, /<meta property="og:description"/);
 assert.match(staticRouteShells, /<meta property="og:url"/);
+assert.match(staticRouteShells, /<meta name="twitter:title"/);
+assert.match(staticRouteShells, /<meta name="twitter:description"/);
+assert.match(staticRouteShells, /Missing static metadata for public route/);
 assert.match(staticRouteShells, /writeFile\(path\.join\(routeDir, "index\.html"\), routeShell\(indexHtml, route\)/);
 assert.doesNotMatch(staticRouteShells, /copyFile\(INDEX_FILE, path\.join\(routeDir, "index\.html"\)\)/);
 assert.match(staticRouteShells, /NOINDEX_ROUTES = new Set\(\["\/upgrade", "\/verify-receipt"\]\)/);
 assert.match(staticRouteShells, /noindex,nofollow/);
+assert.ok(staticRouteShells.includes('"/support"'), "the public Support Hub needs a generated static shell");
+
+for (const path of sitemapPaths) {
+  assert.ok(staticRouteShells.includes(`"${path}"`), `${path} must have explicit static title/description metadata`);
+}
 
 console.log(`Search quality gates passed for ${publicSitelinks.length} priority routes and ${sitemapUrls.length} sitemap URLs.`);
