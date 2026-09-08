@@ -34,8 +34,14 @@ createRoot(document.getElementById("root")).render(
 void installPublicPortfolioAvatar();
 
 function loadAnalyticsWhenIdle() {
-  import("./analytics.js")
-    .then(({ initializeAnalytics }) => initializeAnalytics())
+  Promise.all([
+    import("./posthog.js"),
+    import("./analytics.js"),
+  ])
+    .then(([{ initializePostHog }, { initializeAnalytics }]) => {
+      initializePostHog();
+      initializeAnalytics();
+    })
     .catch(() => {});
 }
 
