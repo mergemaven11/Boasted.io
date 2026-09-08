@@ -3,8 +3,8 @@ import { PRIMARY_SITELINKS } from "./primarySitelinks.js";
 
 const PUBLIC_META = {
   "/": {
-    title: "Boasted | Career Proof, Resume Builder & Interview Practice",
-    description: "Boasted helps people across industries turn everyday wins into reusable career proof for resumes, interviews, reviews, promotions, portfolios, certifications, and their next opportunity.",
+    title: "Boasted: Save It. Prove It. Use It.",
+    description: "Boasted helps you save your work, wins, projects, skills, and proof in one place, then reuse them for jobs, reviews, promotions, interviews, scholarships, and more.",
   },
   "/login": {
     title: "Sign In to Boasted | Career Proof",
@@ -69,7 +69,7 @@ const PUBLIC_META = {
 };
 
 const NOINDEX_PREFIXES = ["/app"];
-const NOINDEX_PATHS = new Set(["/upgrade", "/verify-receipt"]);
+const NOINDEX_PATHS = new Set(["/login", "/register", "/upgrade", "/verify-receipt"]);
 const OFFICIAL_LOGO_URL = "https://boasted.io/boasted-logo-192.png";
 
 function ensureMeta(selector, attributes) {
@@ -159,14 +159,17 @@ export default function useSearchAppearanceMeta(path) {
           "@id": "https://boasted.io/#website",
           url: "https://boasted.io/",
           name: "Boasted",
-          alternateName: ["Boasted", "boasted.io"],
+          alternateName: ["Boasted.io", "Boasted Career Proof"],
+          description: "Boasted helps people save meaningful work and turn it into reusable career proof.",
           publisher: { "@id": "https://boasted.io/#organization" },
         },
         {
           "@type": "Organization",
           "@id": "https://boasted.io/#organization",
           name: "Boasted",
+          alternateName: ["Boasted.io", "Boasted Career Proof"],
           url: "https://boasted.io/",
+          description: "Boasted is career evidence software for capturing accomplishments, outcomes, skills, and proof so people can reuse them when opportunities arrive.",
           logo: {
             "@type": "ImageObject",
             url: OFFICIAL_LOGO_URL,
