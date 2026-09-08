@@ -314,6 +314,7 @@ function ApplicationsHubPage() {
     const next = new URL(window.location.href);
     next.searchParams.delete("tool");
     window.history.replaceState({}, "", `${next.pathname}${next.search}`);
+    window.setTimeout(() => document.querySelector('[data-education-feature]')?.focus(), 0);
   }
 
   function retryLoad() {
