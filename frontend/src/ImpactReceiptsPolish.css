@@ -20,6 +20,97 @@
   flex: 0 0 auto;
 }
 
+.receipt-next-use-card {
+  margin: 18px 0 22px;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid rgba(125, 211, 252, .28);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(14, 116, 144, .2), rgba(15, 23, 42, .92) 58%);
+  box-shadow: 0 18px 48px rgba(2, 6, 23, .26);
+}
+
+.receipt-next-use-copy {
+  max-width: 760px;
+}
+
+.receipt-next-use-copy h2 {
+  margin: 4px 0 8px;
+  font-size: clamp(1.35rem, 2.4vw, 1.8rem);
+}
+
+.receipt-next-use-copy > p:last-child {
+  margin: 0;
+  color: #cbd5e1;
+  line-height: 1.65;
+}
+
+.receipt-next-use-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.receipt-next-use-grid a {
+  min-width: 0;
+  min-height: 116px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: start;
+  gap: 7px 10px;
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, .2);
+  border-radius: 16px;
+  background: rgba(15, 23, 42, .72);
+  color: #f8fafc;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.receipt-next-use-grid a strong,
+.receipt-next-use-grid a span {
+  grid-column: 1;
+}
+
+.receipt-next-use-grid a strong {
+  font-size: .98rem;
+}
+
+.receipt-next-use-grid a span {
+  color: #cbd5e1;
+  font-size: .84rem;
+  line-height: 1.45;
+}
+
+.receipt-next-use-grid a svg {
+  grid-column: 2;
+  grid-row: 1;
+  color: #7dd3fc;
+}
+
+.receipt-next-use-grid a:hover {
+  border-color: rgba(125, 211, 252, .5);
+  background: rgba(14, 116, 144, .22);
+}
+
+.receipt-next-use-grid a:focus-visible,
+.receipt-next-use-dismiss:focus-visible {
+  outline: 2px solid #7dd3fc;
+  outline-offset: 3px;
+}
+
+.receipt-next-use-dismiss {
+  min-height: 44px;
+  margin-top: 14px;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  color: #94a3b8;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .receipt-library-pagination {
   margin-top: 22px;
 }
@@ -61,7 +152,21 @@
   outline-offset: 2px;
 }
 
+@media (max-width: 900px) {
+  .receipt-next-use-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 620px) {
+  .receipt-next-use-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .receipt-next-use-grid a {
+    min-height: 96px;
+  }
+
   .receipt-library-pagination .pagination-controls {
     width: 100%;
   }
