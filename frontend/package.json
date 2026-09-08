@@ -16,6 +16,7 @@
     "test:settings": "node --test src/settingsAccountClosureSource.test.js src/settingsBackNavigationSource.test.js src/packetsPageSource.test.js src/appearanceUiAuditSource.test.js src/wholeAppUiAuditSource.test.js src/profileTemplateRegressionSource.test.js src/profileResponsiveSafetySource.test.js",
     "test:clicks": "node scripts/run-click-audit.mjs",
     "test:layout": "node scripts/audit-responsive-layout.mjs",
+    "test:profiles": "node scripts/audit-public-profile-layouts.mjs",
     "test:bundle": "node scripts/verify-bundle-budget.mjs",
     "preview": "vite preview"
   },
