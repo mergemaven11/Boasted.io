@@ -170,6 +170,7 @@ export default function useSearchAppearanceMeta(path) {
           alternateName: ["Boasted.io", "Boasted Career Proof"],
           url: "https://boasted.io/",
           description: "Boasted is career evidence software for capturing accomplishments, outcomes, skills, and proof so people can reuse them when opportunities arrive.",
+          founder: { "@id": "https://boasted.io/#founder" },
           logo: {
             "@type": "ImageObject",
             url: OFFICIAL_LOGO_URL,
@@ -177,6 +178,17 @@ export default function useSearchAppearanceMeta(path) {
             height: 192,
           },
           image: OFFICIAL_LOGO_URL,
+        },
+        {
+          "@type": "Person",
+          "@id": "https://boasted.io/#founder",
+          name: "Tobias Scott",
+          url: "https://tcs-portfolio.netlify.app/",
+          jobTitle: "Founder",
+          sameAs: [
+            "https://github.com/mergemaven11",
+            "https://www.linkedin.com/in/tobias-scott-he-him-b3572751/",
+          ],
         },
         {
           "@type": "ItemList",
