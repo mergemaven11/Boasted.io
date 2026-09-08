@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -29,6 +29,8 @@ const REQUIRED_CLIENT_ROUTES = [
   "/legal/education-data",
 ];
 
+const NOINDEX_ROUTES = new Set(["/upgrade", "/verify-receipt"]);
+
 function normalizeRoute(route) {
   const pathname = route.split(/[?#]/, 1)[0] || "/";
   if (!pathname.startsWith("/")) return null;
@@ -49,7 +51,32 @@ function sitemapRoutes(xml) {
   return routes;
 }
 
-const sitemapXml = await readFile(SITEMAP_FILE, "utf8");
+function routeShell(indexHtml, route) {
+  const canonicalUrl = `${SITE_ORIGIN}${route}`;
+  let html = indexHtml
+    .replace(
+      /<link rel="canonical" href="[^"]*"\s*\/>/,
+      `<link rel="canonical" href="${canonicalUrl}" />`,
+    )
+    .replace(
+      /<meta property="og:url" content="[^"]*"\s*\/>/,
+      `<meta property="og:url" content="${canonicalUrl}" />`,
+    );
+
+  if (NOINDEX_ROUTES.has(route)) {
+    html = html.replace(
+      /<meta name="robots" content="[^"]*"\s*\/>/,
+      '<meta name="robots" content="noindex,nofollow" />',
+    );
+  }
+
+  return html;
+}
+
+const [sitemapXml, indexHtml] = await Promise.all([
+  readFile(SITEMAP_FILE, "utf8"),
+  readFile(INDEX_FILE, "utf8"),
+]);
 const routes = new Set([
   ...sitemapRoutes(sitemapXml),
   ...REQUIRED_CLIENT_ROUTES.map(normalizeRoute).filter(Boolean),
@@ -59,11 +86,12 @@ for (const route of [...routes].sort()) {
   const relativeRoute = route.slice(1);
   const routeDir = path.join(DIST_DIR, relativeRoute);
   await mkdir(routeDir, { recursive: true });
-  await copyFile(INDEX_FILE, path.join(routeDir, "index.html"));
+  await writeFile(path.join(routeDir, "index.html"), routeShell(indexHtml, route), "utf8");
 }
 
 // Render serves a static site, so unknown client-side routes need an SPA shell too.
-// This keeps dynamic public profile/share links from becoming a dead-end 404 page.
-await copyFile(INDEX_FILE, path.join(DIST_DIR, "404.html"));
+// Keep the generic 404 shell canonicalized to the homepage; dynamic public profile
+// metadata is applied client-side after the requested slug loads.
+await writeFile(path.join(DIST_DIR, "404.html"), indexHtml, "utf8");
 
-console.log(`Generated SPA route shells for ${routes.size} public/client routes.`);
+console.log(`Generated route-specific SPA shells for ${routes.size} public/client routes.`);

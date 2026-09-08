@@ -9,6 +9,7 @@ const searchMeta = read("src/useSearchAppearanceMeta.js");
 const sitelinksNav = read("src/SearchSitelinksNav.jsx");
 const sitelinksConfig = read("src/seoSitelinks.js");
 const seoLandingPages = read("src/SeoLandingPages.jsx");
+const staticRouteShells = read("scripts/generate-static-route-shells.mjs");
 
 const publicSitelinks = [
   "/resume-accomplishments",
@@ -53,5 +54,15 @@ assert.match(searchMeta, /"\/verify-receipt"/);
 assert.match(searchMeta, /SiteNavigationElement/);
 assert.match(searchMeta, /max-image-preview:large/);
 assert.match(searchMeta, /https:\/\/boasted\.io/);
+
+// Static HTML must not tell crawlers every sitemap route is the homepage.
+assert.match(staticRouteShells, /function routeShell\(indexHtml, route\)/);
+assert.match(staticRouteShells, /canonicalUrl = `\$\{SITE_ORIGIN\}\$\{route\}`/);
+assert.match(staticRouteShells, /<link rel="canonical"/);
+assert.match(staticRouteShells, /<meta property="og:url"/);
+assert.match(staticRouteShells, /writeFile\(path\.join\(routeDir, "index\.html"\), routeShell\(indexHtml, route\)/);
+assert.doesNotMatch(staticRouteShells, /copyFile\(INDEX_FILE, path\.join\(routeDir, "index\.html"\)\)/);
+assert.match(staticRouteShells, /NOINDEX_ROUTES = new Set\(\["\/upgrade", "\/verify-receipt"\]\)/);
+assert.match(staticRouteShells, /noindex,nofollow/);
 
 console.log(`Search quality gates passed for ${publicSitelinks.length} priority routes and ${sitemapUrls.length} sitemap URLs.`);
