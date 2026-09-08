@@ -15,9 +15,9 @@ const publicSitelinks = [
   "/resume-accomplishments",
   "/interview-preparation",
   "/impact-receipts",
+  "/career-portfolio",
   "/how-it-works",
   "/pricing",
-  "/login",
 ];
 
 const sitemapUrls = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => match[1]);
@@ -29,6 +29,8 @@ const duplicates = sitemapUrls.filter((url, index) => sitemapUrls.indexOf(url) !
 assert.equal(duplicates.length, 0, `sitemap.xml contains duplicate URLs: ${duplicates.join(", ")}`);
 assert.ok(sitemapUrls.every((url) => url.startsWith("https://boasted.io/")), "sitemap URLs must use the canonical HTTPS origin");
 assert.ok(sitemapUrls.every((url) => !url.includes("#") && !url.includes("?")), "sitemap URLs must not contain fragments or query strings");
+assert.ok(!sitemap.includes("https://boasted.io/login"), "login should not compete with product pages in the public sitemap");
+assert.ok(!sitemap.includes("https://boasted.io/register"), "register should not compete with product pages in the public sitemap");
 
 assert.match(robots, /Sitemap:\s+https:\/\/boasted\.io\/sitemap\.xml/);
 assert.match(robots, /Disallow:\s+\/app\//);
@@ -52,11 +54,14 @@ assert.match(seoLandingPages, /meta\[property="og:url"\]/);
 assert.match(seoLandingPages, /meta\[name="twitter:title"\]/);
 assert.match(seoLandingPages, /meta\[name="twitter:description"\]/);
 assert.match(searchMeta, /NOINDEX_PREFIXES\s*=\s*\["\/app"\]/);
+assert.match(searchMeta, /"\/login"/);
+assert.match(searchMeta, /"\/register"/);
 assert.match(searchMeta, /"\/upgrade"/);
 assert.match(searchMeta, /"\/verify-receipt"/);
 assert.match(searchMeta, /SiteNavigationElement/);
 assert.match(searchMeta, /max-image-preview:large/);
 assert.match(searchMeta, /https:\/\/boasted\.io/);
+assert.match(searchMeta, /Boasted\.io/);
 
 // Static HTML must expose route-specific crawl metadata before React executes.
 assert.match(staticRouteShells, /function routeShell\(indexHtml, route\)/);
