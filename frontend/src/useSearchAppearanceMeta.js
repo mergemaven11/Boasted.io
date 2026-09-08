@@ -70,7 +70,7 @@ const PUBLIC_META = {
 
 const NOINDEX_PREFIXES = ["/app"];
 const NOINDEX_PATHS = new Set(["/upgrade", "/verify-receipt"]);
-const OFFICIAL_LOGO_URL = "https://boasted.io/bragstack-logo-192.png";
+const OFFICIAL_LOGO_URL = "https://boasted.io/boasted-logo-192.png";
 
 function ensureMeta(selector, attributes) {
   let element = document.querySelector(selector);
@@ -84,17 +84,25 @@ function ensureMeta(selector, attributes) {
 
 function installOfficialIcon() {
   document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]').forEach((node) => node.remove());
-  const icon = document.createElement("link");
-  icon.rel = "icon";
-  icon.type = "image/png";
-  icon.sizes = "192x192";
-  icon.href = "/bragstack-logo-192.png?v=1";
-  document.head.appendChild(icon);
+
+  const favicon = document.createElement("link");
+  favicon.rel = "icon";
+  favicon.type = "image/png";
+  favicon.sizes = "48x48";
+  favicon.href = "/favicon-48x48.png?v=4";
+  document.head.appendChild(favicon);
+
+  const highResolutionIcon = document.createElement("link");
+  highResolutionIcon.rel = "icon";
+  highResolutionIcon.type = "image/png";
+  highResolutionIcon.sizes = "192x192";
+  highResolutionIcon.href = "/boasted-logo-192.png?v=4";
+  document.head.appendChild(highResolutionIcon);
 
   const shortcut = document.createElement("link");
   shortcut.rel = "shortcut icon";
   shortcut.type = "image/png";
-  shortcut.href = "/bragstack-logo-192.png?v=1";
+  shortcut.href = "/favicon-48x48.png?v=4";
   document.head.appendChild(shortcut);
 
   let appleTouch = document.querySelector('link[rel="apple-touch-icon"]');
@@ -103,7 +111,8 @@ function installOfficialIcon() {
     appleTouch.rel = "apple-touch-icon";
     document.head.appendChild(appleTouch);
   }
-  appleTouch.href = "/bragstack-logo-192.png?v=1";
+  appleTouch.sizes = "192x192";
+  appleTouch.href = "/boasted-logo-192.png?v=4";
 }
 
 function isNoindexPath(path) {
@@ -138,7 +147,7 @@ export default function useSearchAppearanceMeta(path) {
       canonical.href = `https://boasted.io${path === "/" ? "/" : path}`;
     }
 
-    const scriptId = "bragstack-search-appearance-schema";
+    const scriptId = "boasted-search-appearance-schema";
     document.getElementById(scriptId)?.remove();
     if (path !== "/") return undefined;
 
