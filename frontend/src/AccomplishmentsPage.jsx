@@ -338,11 +338,6 @@ function AccomplishmentsPage() {
         <div>
           <p className="mini-label">Career & Education Evidence Library</p>
           <h1>Your accomplishments</h1>
-          <p>
-            Build a private record of meaningful work, education achievements,
-            activities, leadership, service, research, awards, coursework, and
-            projects before the details are forgotten.
-          </p>
         </div>
         <button className="accomplishments-add" type="button" onClick={openCreate}>
           <Plus size={18} /> Add accomplishment
