@@ -13,6 +13,7 @@ import "./UiUxFoundation.css";
 import "./ProfileTemplateRegressionFixes.css";
 import "./ProfileDesktopBalance.css";
 import "./ProfileResponsiveAudit.css";
+import "./ProfileResponsiveAuditOverrides.css";
 import NDAInformationGate from "./NDAInformationGate.jsx";
 import PublicAuthHeader from "./PublicAuthHeader.jsx";
 import RootContent from "./RootContent.jsx";
