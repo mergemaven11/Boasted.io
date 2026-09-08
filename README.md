@@ -210,7 +210,7 @@ Boasted is built around a few non-negotiable rules:
 8. **Analytics and diagnostics should measure the product, not expose private career evidence.**
 9. **Generated packets must not invent facts, scores, outcomes, or evidence.**
 
-Customer-facing details about analytics and privacy-controlled diagnostics live in the [Privacy Policy](/privacy). Engineering configuration belongs in [`docs/posthog-production.md`](docs/posthog-production.md), so privacy commitments are not duplicated across operational documentation.
+Customer-facing details about analytics and privacy-controlled diagnostics live on the public `/privacy` route. Engineering configuration belongs in [`docs/posthog-production.md`](docs/posthog-production.md), so privacy commitments are not duplicated across operational documentation.
 
 ---
 
