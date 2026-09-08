@@ -60,6 +60,10 @@ function installBrowserFakes() {
   };
 }
 
+function productEvents(name) {
+  return window.dataLayer.filter((entry) => entry[0] === "event" && entry[1] === name);
+}
+
 describe("Boasted analytics", () => {
   beforeEach(() => {
     installBrowserFakes();
@@ -135,14 +139,65 @@ describe("Boasted analytics", () => {
     });
 
     assert.equal(tracked, true);
-    const event = window.dataLayer.find(
-      (entry) => entry[0] === "event" && entry[1] === ANALYTICS_EVENTS.SIGN_UP,
-    );
+    const event = productEvents(ANALYTICS_EVENTS.SIGN_UP)[0];
     assert.ok(event);
     assert.equal(event[2].method, "email_password");
     assert.equal(event[2].utm_source, "linkedin");
     assert.equal(event[2].utm_medium, "social");
     assert.equal(event[2].utm_campaign, "beta");
     assert.equal(event[2].first_utm_source, "linkedin");
+  });
+
+  it("drops sensitive product content while preserving structural metadata", () => {
+    trackAnalyticsEvent(ANALYTICS_EVENTS.CAREER_PACKET_EXPORTED, {
+      packet_type: "performance-review",
+      format: "pdf",
+      accomplishment_text: "Saved a customer escalation",
+      employer: "Private Employer",
+      evidence_url: "https://private.example/evidence",
+      organization_name: "Private Org",
+    });
+
+    const event = productEvents(ANALYTICS_EVENTS.CAREER_PACKET_EXPORTED)[0];
+
+    assert.ok(event);
+    assert.equal(event[2].packet_type, "performance-review");
+    assert.equal(event[2].format, "pdf");
+    assert.equal(event[2].accomplishment_text, undefined);
+    assert.equal(event[2].employer, undefined);
+    assert.equal(event[2].evidence_url, undefined);
+    assert.equal(event[2].organization_name, undefined);
+  });
+
+  it("derives signup and proof milestones only for a newly tracked signup cohort", () => {
+    trackAnalyticsEvent(ANALYTICS_EVENTS.SIGN_UP, { method: "email_password" });
+    for (let index = 0; index < 5; index += 1) {
+      trackAnalyticsEvent(ANALYTICS_EVENTS.ACCOMPLISHMENT_CREATED);
+    }
+
+    assert.equal(productEvents(ANALYTICS_EVENTS.SIGNUP_COMPLETED).length, 1);
+    assert.equal(productEvents(ANALYTICS_EVENTS.FIRST_PROOF_CREATED).length, 1);
+    assert.equal(productEvents(ANALYTICS_EVENTS.SECOND_PROOF_CREATED).length, 1);
+    assert.equal(productEvents(ANALYTICS_EVENTS.FIFTH_PROOF_CREATED).length, 1);
+    assert.equal(productEvents(ANALYTICS_EVENTS.FIRST_PROOF_CREATED)[0][2].proof_number, 1);
+    assert.equal(productEvents(ANALYTICS_EVENTS.FIFTH_PROOF_CREATED)[0][2].proof_number, 5);
+  });
+
+  it("derives the first completed Impact Receipt once for the new-user cohort", () => {
+    trackAnalyticsEvent(ANALYTICS_EVENTS.SIGN_UP, { method: "email_password" });
+    trackAnalyticsEvent(ANALYTICS_EVENTS.IMPACT_RECEIPT_CREATED, { creation_source: "accomplishment" });
+    trackAnalyticsEvent(ANALYTICS_EVENTS.IMPACT_RECEIPT_CREATED, { creation_source: "manual" });
+
+    const events = productEvents(ANALYTICS_EVENTS.FIRST_IMPACT_RECEIPT_COMPLETED);
+    assert.equal(events.length, 1);
+    assert.equal(events[0][2].creation_source, "accomplishment");
+  });
+
+  it("does not invent proof milestones for existing users outside the signup cohort", () => {
+    trackAnalyticsEvent(ANALYTICS_EVENTS.ACCOMPLISHMENT_CREATED);
+    trackAnalyticsEvent(ANALYTICS_EVENTS.IMPACT_RECEIPT_CREATED, { creation_source: "manual" });
+
+    assert.equal(productEvents(ANALYTICS_EVENTS.FIRST_PROOF_CREATED).length, 0);
+    assert.equal(productEvents(ANALYTICS_EVENTS.FIRST_IMPACT_RECEIPT_COMPLETED).length, 0);
   });
 });
