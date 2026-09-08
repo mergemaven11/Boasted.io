@@ -145,4 +145,27 @@ describe("Boasted analytics", () => {
     assert.equal(event[2].utm_campaign, "beta");
     assert.equal(event[2].first_utm_source, "linkedin");
   });
+
+  it("drops sensitive product content while preserving structural metadata", () => {
+    trackAnalyticsEvent(ANALYTICS_EVENTS.CAREER_PACKET_EXPORTED, {
+      packet_type: "performance-review",
+      format: "pdf",
+      accomplishment_text: "Saved a customer escalation",
+      employer: "Private Employer",
+      evidence_url: "https://private.example/evidence",
+      organization_name: "Private Org",
+    });
+
+    const event = window.dataLayer.find(
+      (entry) => entry[0] === "event" && entry[1] === ANALYTICS_EVENTS.CAREER_PACKET_EXPORTED,
+    );
+
+    assert.ok(event);
+    assert.equal(event[2].packet_type, "performance-review");
+    assert.equal(event[2].format, "pdf");
+    assert.equal(event[2].accomplishment_text, undefined);
+    assert.equal(event[2].employer, undefined);
+    assert.equal(event[2].evidence_url, undefined);
+    assert.equal(event[2].organization_name, undefined);
+  });
 });
