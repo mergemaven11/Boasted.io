@@ -24,6 +24,7 @@ const MAX_ATTRIBUTION_VALUE_LENGTH = 100;
 const SENSITIVE_PRODUCT_PARAMETER_PATTERN = /(^|_)(accomplishment|employer|evidence|url|company|organization|title|description|body|text|content)($|_)/i;
 const RETURN_SESSION_GAP_MS = 30 * 60 * 1000;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const OAUTH_SIGNUP_METHODS = new Set(["google", "github"]);
 
 export const ANALYTICS_EVENTS = Object.freeze({
   SIGN_UP: "sign_up",
@@ -133,6 +134,15 @@ function emitAnalyticsEvent(eventName, parameters = {}) {
   return true;
 }
 
+function isConfirmedSignupEvent(eventName, parameters = {}) {
+  if (eventName !== ANALYTICS_EVENTS.SIGN_UP) return true;
+  const method = String(parameters.method || "");
+  if (!OAUTH_SIGNUP_METHODS.has(method)) return true;
+
+  const hash = new URLSearchParams(String(window.location?.hash || "").replace(/^#/, ""));
+  return hash.get("oauth_created") === "1";
+}
+
 function trackReturnWithinSevenDays() {
   if (typeof window === "undefined") return;
   const signupAt = Number(safeStorageRead(window.localStorage, ACTIVATION_SIGNUP_AT_KEY));
@@ -218,6 +228,7 @@ export function initializeAnalytics() {
 
 export function trackAnalyticsEvent(eventName, parameters = {}) {
   if (typeof window === "undefined" || !GA_NAME_PATTERN.test(eventName)) return false;
+  if (!isConfirmedSignupEvent(eventName, parameters)) return false;
 
   initializeAnalytics();
   if (!emitAnalyticsEvent(eventName, parameters)) return false;
