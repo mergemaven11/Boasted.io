@@ -100,6 +100,7 @@ function PerformancePacketPreview({ packet, onBack, backLabel = "Back to reports
           <button type="button" className={`packet-download-button packet-docx-button ${preferredFormat === "docx" ? "preferred" : ""}`} onClick={() => void handleDownload("docx")} disabled={Boolean(downloadingFormat)}><FileText size={17} />{downloadingFormat === "docx" ? "Building DOCX..." : "Download DOCX"}</button>
         </span>
       </header>
+      <p className="packet-preview-screen-note">Browser preview spacing may vary by screen size. The downloaded PDF is the final formatted version.</p>
       {downloadError && <p className="packet-preview-download-error" role="alert">{downloadError}</p>}
       {isPerformance && !packet?.shared_view && <PacketSharePanel packet={packet} />}
 
