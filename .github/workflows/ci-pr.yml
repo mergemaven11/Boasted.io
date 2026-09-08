@@ -9,6 +9,7 @@ on:
       - "backend/**"
       - "frontend/**"
       - ".github/workflows/ci-*.yml"
+      - ".github/workflows/production-smoke.yml"
       - "docs/CI_BUDGET_POLICY.md"
 
 concurrency:
