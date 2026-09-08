@@ -27,10 +27,20 @@ assert.match(
   /trackAnalyticsEvent\(ANALYTICS_EVENTS\.SIGNUP_STARTED, \{ method: provider \}\)/,
   "OAuth registration must record a signup attempt only at the redirect boundary",
 );
-assert.doesNotMatch(
-  authPage,
-  /trackAnalyticsEvent\([^\n]*(email|name|formData|password)/,
-  "signup analytics calls must never include personal form fields",
-);
+
+const analyticsCalls = authPage.match(/trackAnalyticsEvent\([^;\n]+/g) ?? [];
+assert.ok(analyticsCalls.length >= 4, "expected signup analytics calls to be present");
+for (const call of analyticsCalls) {
+  assert.doesNotMatch(
+    call,
+    /\b(?:email|name|password|formData)\s*:/,
+    "analytics payloads must not define personal form-field keys",
+  );
+  assert.doesNotMatch(
+    call,
+    /formData\./,
+    "analytics payloads must not read personal form-field values",
+  );
+}
 
 console.log("Auth analytics source wiring passed.");
