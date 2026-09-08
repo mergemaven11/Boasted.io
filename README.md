@@ -207,7 +207,10 @@ Boasted is built around a few non-negotiable rules:
 5. **Verification must clearly state what was actually confirmed.**
 6. **Boasted should complement existing HR systems, not require replacing them.**
 7. **Career visibility should not become workplace surveillance.**
-8. **Generated packets must not invent facts, scores, outcomes, or evidence.**
+8. **Analytics and diagnostics should measure the product, not expose private career evidence.**
+9. **Generated packets must not invent facts, scores, outcomes, or evidence.**
+
+Customer-facing details about analytics and privacy-controlled diagnostics live in the [Privacy Policy](/privacy). Engineering configuration belongs in [`docs/posthog-production.md`](docs/posthog-production.md), so privacy commitments are not duplicated across operational documentation.
 
 ---
 
