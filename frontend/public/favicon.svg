@@ -1,10 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Boasted">
   <defs>
-    <linearGradient id="g1" x1="14" y1="8" x2="112" y2="118" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#24D7FF"/><stop offset="0.5" stop-color="#3478FF"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient>
-    <linearGradient id="g2" x1="28" y1="34" x2="102" y2="104" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#C7D2FE"/></linearGradient>
+    <linearGradient id="brand" x1="18" y1="12" x2="112" y2="116" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#24D7FF"/>
+      <stop offset="0.5" stop-color="#3478FF"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="arrow" x1="28" y1="40" x2="108" y2="98" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#D9E5FF"/>
+    </linearGradient>
+    <filter id="glow" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
-  <rect width="128" height="128" rx="30" fill="#07101F"/>
-  <path d="M26 24h47c20 0 31 9 31 24 0 10-5 17-15 21 13 4 20 12 20 25 0 18-13 28-35 28H26V24Z" fill="url(#g1)"/>
-  <path d="M44 41h27c10 0 15 4 15 11s-5 11-15 11H44V41Zm0 38h31c11 0 17 4 17 12s-6 12-17 12H44V79Z" fill="#07101F"/>
-  <path d="M18 95 44 69l13 13 28-31h-13V38h37v37H96V61L58 103 44 89l-16 16-10-10Z" fill="url(#g2)"/>
+  <rect x="4" y="4" width="120" height="120" rx="29" fill="#07101F"/>
+  <rect x="5" y="5" width="118" height="118" rx="28" fill="none" stroke="#173866" stroke-width="2"/>
+  <path d="M27 23h46c20 0 31 9 31 24 0 10-5 17-15 21 13 4 20 12 20 25 0 18-13 28-35 28H27V23Z" fill="url(#brand)" filter="url(#glow)"/>
+  <path d="M44 40h27c10 0 15 4 15 11s-5 11-15 11H44V40Zm0 38h31c11 0 17 4 17 12s-6 12-17 12H44V78Z" fill="#07101F"/>
+  <path d="M18 95 44 69l13 13 28-31H72V38h37v37H96V61L58 103 44 89l-16 16-10-10Z" fill="url(#arrow)" filter="url(#glow)"/>
 </svg>
