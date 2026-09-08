@@ -4,7 +4,8 @@ import { ANALYTICS_EVENTS, trackAnalyticsEvent } from "./analytics.js";
 
 function apiBase() {
   if (window.location.hostname.endsWith(".app.github.dev")) return "/api";
-  return import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8000";
+  const viteEnv = import.meta.env || {};
+  return viteEnv.VITE_API_BASE_URL || viteEnv.VITE_API_URL || "http://localhost:8000";
 }
 
 const VISITOR_STORAGE_KEY = "bragstack_public_visitor_id";
