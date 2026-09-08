@@ -96,6 +96,18 @@ export function initializePostHog() {
     posthog.init(apiKey, {
       api_host: apiHost,
       defaults: POSTHOG_DEFAULTS,
+      capture_exceptions: {
+        capture_unhandled_errors: true,
+        capture_unhandled_rejections: true,
+        capture_console_errors: false,
+      },
+      session_recording: {
+        // Boasted can contain private career evidence. Keep replays useful for UI/debugging
+        // while masking user-entered and rendered text by default.
+        maskAllInputs: true,
+        maskTextSelector: "*",
+        blockSelector: "[data-posthog-block], [data-private], [data-confidential]",
+      },
     });
     posthog.register({
       app: "boasted",
