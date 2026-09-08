@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import { ANALYTICS_EVENTS, trackAnalyticsEvent } from "./analytics";
 import { downloadCareerPacket } from "./api";
 import CertificationPacketPages from "./CertificationPacketPages";
 import GenericPacketPages from "./GenericPacketPages.jsx";
@@ -71,6 +72,12 @@ function PerformancePacketPreview({ packet, onBack, backLabel = "Back to reports
       const { blob, filename } = await downloadCareerPacket(packet, format);
       if (!blob || Number(blob.size || 0) === 0) throw new Error("The generated file was empty.");
       const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = filename; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+      const packetKind = packet?.kind || "performance-review";
+      const savedProofCount = Number(scorecard.accomplishments || 0) + Number(scorecard.impact_receipts || 0);
+      trackAnalyticsEvent(ANALYTICS_EVENTS.CAREER_PACKET_EXPORTED, { packet_kind: packetKind, format });
+      if (savedProofCount > 0) {
+        trackAnalyticsEvent(ANALYTICS_EVENTS.EXISTING_PROOF_REUSED, { reuse_type: "career_packet", packet_kind: packetKind, format });
+      }
     } catch (error) {
       console.error(error);
       if (error.response?.status === 401) { localStorage.removeItem("bragstack_token"); window.location.href = "/login"; return; }
