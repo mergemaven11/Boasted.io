@@ -30,7 +30,7 @@ const REQUIRED_CLIENT_ROUTES = [
   "/legal/education-data",
 ];
 
-const NOINDEX_ROUTES = new Set(["/upgrade", "/verify-receipt"]);
+const NOINDEX_ROUTES = new Set(["/login", "/register", "/upgrade", "/verify-receipt"]);
 
 const ROUTE_META = Object.freeze({
   "/privacy": {
