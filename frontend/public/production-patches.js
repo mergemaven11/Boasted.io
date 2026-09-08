@@ -29,6 +29,13 @@
     "/impact-receipts": ["Impact Receipts | Evidence-Backed Work Accomplishments | Boasted", "Create structured proof of your contribution, result, evidence, skills, shared credit, and measurable career impact."],
     "/career-analytics": ["Career Analytics for Skills, Accomplishments & Impact | Boasted", "See patterns across your skills, work accomplishments, evidence coverage, ownership, and career impact over time."],
     "/public-proof-profiles": ["Public Career Proof Profiles for Hiring & Portfolios | Boasted", "Share selected accomplishments and Impact Receipts with recruiters, hiring managers, clients, and your network without exposing private work history."],
+    "/guides": ["Career Accomplishment Guides | Boasted", "Practical guides for tracking work accomplishments, building a brag document, preparing performance-review evidence, writing resume achievements, creating STAR interview stories, and organizing promotion proof."],
+    "/guides/brag-document": ["What Is a Brag Document? Work Accomplishment Guide | Boasted", "Learn how to build a brag document that captures wins, results, evidence, skills, and shared credit for reviews, resumes, interviews, and promotions."],
+    "/guides/track-work-accomplishments": ["How to Track Work Accomplishments | Boasted", "Use a simple system to track work accomplishments, measurable results, evidence, skills, and shared credit throughout the year instead of rebuilding your career story from memory."],
+    "/guides/performance-review-accomplishments": ["Performance Review Accomplishments Guide | Boasted", "Learn how to prepare specific performance-review accomplishments using scope, action, result, evidence, growth, collaboration, and measurable impact."],
+    "/guides/star-interview-stories": ["STAR Interview Stories: Method & Examples | Boasted", "Prepare STAR interview stories from real situations, actions, results, decisions, and lessons instead of memorized generic scripts."],
+    "/guides/resume-accomplishment-examples": ["Resume Accomplishment Examples & Writing Guide | Boasted", "Turn job duties into truthful resume accomplishment bullets using action, scope, results, metrics, and context across technical support, software, operations, service, and leadership work."],
+    "/guides/promotion-packet": ["Promotion Packet Guide: Evidence & Impact | Boasted", "Build a promotion packet around role criteria, sustained impact, increased scope, leadership, collaboration, growth, and supporting evidence collected over time."],
   };
 
   function setMeta(selector, attrs) {
@@ -46,7 +53,7 @@
   function applySeo() {
     const path = window.location.pathname.replace(/\/$/, "") || "/";
     const isPrivate = path.startsWith("/app") || ["/login", "/register", "/upgrade"].includes(path);
-    const canonicalPath = path.startsWith("/brag/") || routeMeta[path] ? path : "/";
+    const canonicalPath = path.startsWith("/brag/") || path.startsWith("/guides") || routeMeta[path] ? path : "/";
     const canonicalUrl = `${SITE_URL}${canonicalPath === "/" ? "/" : canonicalPath}`;
     setCanonical(canonicalUrl);
     setMeta('meta[name="robots"]', { name: "robots", content: isPrivate ? "noindex,nofollow" : "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" });
@@ -166,8 +173,9 @@
       if (docsPlaceholder && docsPlaceholder.tagName !== "A") { const docs = document.createElement("a"); docs.href = "/docs"; docs.textContent = "Docs"; docsPlaceholder.replaceWith(docs); }
       ensureFooterLink(resources, "How it works", "/how-it-works");
       ensureFooterLink(resources, "Use cases", "/use-cases");
+      ensureFooterLink(resources, "Career guides", "/guides");
       ensureFooterLink(resources, "Support Hub", "/support");
-      ensureFooterLink(resources, "Docs & guides", "/docs");
+      ensureFooterLink(resources, "Docs", "/docs");
       ensureFooterLink(resources, "Sign in", "/login");
       ensureFooterLink(resources, "Create account", "/register");
       ensureFooterLink(resources, "NDA & confidential work", "/nda-safety");
@@ -204,6 +212,8 @@
     const routes = {
       "how it works": "/how-it-works",
       "use cases": "/use-cases",
+      "career guides": "/guides",
+      "guides": "/guides",
       "support": "/support",
       "support hub": "/support",
       "contact": "/contact",

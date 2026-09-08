@@ -9,6 +9,8 @@ const searchMeta = read("src/useSearchAppearanceMeta.js");
 const sitelinksNav = read("src/SearchSitelinksNav.jsx");
 const sitelinksConfig = read("src/seoSitelinks.js");
 const seoLandingPages = read("src/SeoLandingPages.jsx");
+const seoLandingContent = read("src/seoLandingContent.js");
+const productionPatches = read("public/production-patches.js");
 const staticRouteShells = read("scripts/generate-static-route-shells.mjs");
 
 const publicSitelinks = [
@@ -18,6 +20,16 @@ const publicSitelinks = [
   "/career-portfolio",
   "/how-it-works",
   "/pricing",
+];
+
+const guidePaths = [
+  "/guides",
+  "/guides/brag-document",
+  "/guides/track-work-accomplishments",
+  "/guides/performance-review-accomplishments",
+  "/guides/star-interview-stories",
+  "/guides/resume-accomplishment-examples",
+  "/guides/promotion-packet",
 ];
 
 const sitemapUrls = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => match[1]);
@@ -43,9 +55,18 @@ for (const path of publicSitelinks) {
   assert.ok(sitelinksConfig.includes(`"${path}"`), `${path} must be represented in centralized sitelink metadata`);
 }
 
+for (const path of guidePaths) {
+  const canonicalUrl = `https://boasted.io${path}`;
+  assert.ok(sitemap.includes(`<loc>${canonicalUrl}</loc>`), `${path} must be present in sitemap.xml`);
+  assert.ok(seoLandingContent.includes(`"${path}"`), `${path} must have substantive route content`);
+  assert.ok(staticRouteShells.includes(`"${path}"`), `${path} must have explicit static crawl metadata`);
+  assert.ok(productionPatches.includes(`"${path}"`), `${path} must keep its canonical and metadata in production patches`);
+}
+
 assert.match(searchMeta, /PRIMARY_SITELINKS/);
 assert.match(sitelinksNav, /PRIMARY_SITELINKS/);
 assert.match(seoLandingPages, /PRIMARY_SITELINKS/);
+assert.match(seoLandingPages, /SEO_GUIDE_LINKS/);
 assert.match(seoLandingPages, /link\[rel="canonical"\]/);
 assert.match(seoLandingPages, /meta\[name="description"\]/);
 assert.match(seoLandingPages, /meta\[property="og:title"\]/);
@@ -53,6 +74,17 @@ assert.match(seoLandingPages, /meta\[property="og:description"\]/);
 assert.match(seoLandingPages, /meta\[property="og:url"\]/);
 assert.match(seoLandingPages, /meta\[name="twitter:title"\]/);
 assert.match(seoLandingPages, /meta\[name="twitter:description"\]/);
+assert.match(seoLandingPages, /"@type": "Article"/);
+assert.match(seoLandingPages, /"@type": "CollectionPage"/);
+assert.match(seoLandingPages, /"@type": "BreadcrumbList"/);
+assert.match(seoLandingPages, /seo-guide-faq/);
+assert.match(seoLandingPages, /seo-guide-section/);
+assert.match(seoLandingContent, /brag document/i);
+assert.match(seoLandingContent, /track work accomplishments/i);
+assert.match(seoLandingContent, /performance review accomplishments/i);
+assert.match(seoLandingContent, /STAR interview/i);
+assert.match(seoLandingContent, /resume accomplishment/i);
+assert.match(seoLandingContent, /promotion packet/i);
 assert.match(searchMeta, /NOINDEX_PREFIXES\s*=\s*\["\/app"\]/);
 assert.match(searchMeta, /"\/login"/);
 assert.match(searchMeta, /"\/register"/);
@@ -62,6 +94,8 @@ assert.match(searchMeta, /SiteNavigationElement/);
 assert.match(searchMeta, /max-image-preview:large/);
 assert.match(searchMeta, /https:\/\/boasted\.io/);
 assert.match(searchMeta, /Boasted\.io/);
+assert.match(productionPatches, /path\.startsWith\("\/guides"\)/);
+assert.match(productionPatches, /Career guides/);
 
 // Static HTML must expose route-specific crawl metadata before React executes.
 assert.match(staticRouteShells, /function routeShell\(indexHtml, route\)/);
@@ -86,4 +120,4 @@ for (const path of sitemapPaths) {
   assert.ok(staticRouteShells.includes(`"${path}"`), `${path} must have explicit static title/description metadata`);
 }
 
-console.log(`Search quality gates passed for ${publicSitelinks.length} priority routes and ${sitemapUrls.length} sitemap URLs.`);
+console.log(`Search quality gates passed for ${publicSitelinks.length} priority routes, ${guidePaths.length} guide routes, and ${sitemapUrls.length} sitemap URLs.`);
