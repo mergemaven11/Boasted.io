@@ -12,7 +12,7 @@
     "test:interview": "node --test src/interviewEngine*.test.js src/interviewTranscript.test.js src/interviewVoice.test.js",
     "test:resume": "node --test src/resumeStructured.test.js src/dashboardTags.test.js",
     "test:safety": "node --test src/ndaSafety.test.js src/ndaInformationGateSource.test.js src/ndaGuidanceSource.test.js src/ndaApiSource.test.js",
-    "test:seo": "node --test src/proofPortfolioSource.test.js src/marketingClaritySource.test.js && node scripts/verify-search-appearance.mjs",
+    "test:seo": "node --test src/proofPortfolioSource.test.js src/marketingClaritySource.test.js && node scripts/verify-search-appearance.mjs && node scripts/verify-production-public-routes.mjs",
     "test:settings": "node --test src/settingsAccountClosureSource.test.js src/settingsBackNavigationSource.test.js src/packetsPageSource.test.js src/appearanceUiAuditSource.test.js src/wholeAppUiAuditSource.test.js src/profileTemplateRegressionSource.test.js src/profileResponsiveSafetySource.test.js",
     "test:clicks": "node scripts/run-click-audit.mjs",
     "test:layout": "node scripts/audit-responsive-layout.mjs",
