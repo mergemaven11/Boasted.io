@@ -685,3 +685,18 @@
     break-after: page;
   }
 }
+
+
+.packet-preview-toolbar-actions button,
+.packet-preview-toolbar-actions button svg {
+  flex-shrink: 0;
+}
+.packet-preview-toolbar-actions button { white-space: nowrap; }
+.packet-preview-screen-note {
+  margin: 10px auto 0;
+  width: min(100%, 8.5in);
+  color: #64748b;
+  font-size: 12px;
+  text-align: center;
+}
+@media print { .packet-preview-screen-note { display: none !important; } }
