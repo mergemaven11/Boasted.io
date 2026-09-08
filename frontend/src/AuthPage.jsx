@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Lock, Mail, Sparkles, UserPlus } from "lucide-react";
+import { ANALYTICS_EVENTS, trackAnalyticsEvent } from "./analytics.js";
 import "./AuthPage.css";
 
 function getApiBaseUrl() {
@@ -9,6 +10,42 @@ function getApiBaseUrl() {
 
 const sleep = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 const API_WAKE_TIMEOUT_MS = 120000;
+const OAUTH_SIGNUP_ATTEMPT_KEY = "boasted_oauth_signup_attempt";
+const OAUTH_SIGNUP_ATTEMPT_MAX_AGE_MS = 30 * 60 * 1000;
+
+function rememberOAuthSignupAttempt(provider) {
+  try {
+    window.sessionStorage.setItem(OAUTH_SIGNUP_ATTEMPT_KEY, JSON.stringify({
+      provider,
+      started_at: Date.now(),
+    }));
+  } catch {
+    // Signup analytics state must never block authentication.
+  }
+}
+
+function clearOAuthSignupAttempt() {
+  try {
+    window.sessionStorage.removeItem(OAUTH_SIGNUP_ATTEMPT_KEY);
+  } catch {
+    // Signup analytics state must never block authentication.
+  }
+}
+
+function consumeOAuthSignupAttempt() {
+  try {
+    const raw = window.sessionStorage.getItem(OAUTH_SIGNUP_ATTEMPT_KEY);
+    window.sessionStorage.removeItem(OAUTH_SIGNUP_ATTEMPT_KEY);
+    if (!raw) return "";
+    const value = JSON.parse(raw);
+    const provider = String(value?.provider || "");
+    const startedAt = Number(value?.started_at || 0);
+    if (!provider || !startedAt || Date.now() - startedAt > OAUTH_SIGNUP_ATTEMPT_MAX_AGE_MS) return "";
+    return provider;
+  } catch {
+    return "";
+  }
+}
 
 async function waitForApiReady(apiBaseUrl, timeoutMs = API_WAKE_TIMEOUT_MS) {
   const deadline = Date.now() + timeoutMs;
@@ -88,11 +125,17 @@ function AuthPage({ mode = "login", onLogin }) {
     const resetTokenFromHash = hash.get("reset_token");
 
     if (oauthToken) {
+      const signupProvider = consumeOAuthSignupAttempt();
+      if (signupProvider) {
+        trackAnalyticsEvent(ANALYTICS_EVENTS.SIGN_UP, { method: signupProvider });
+      }
       localStorage.setItem("bragstack_token", oauthToken);
       history.replaceState(null, "", "/login");
       window.location.replace("/app");
       return;
     }
+
+    if (!isRegister) clearOAuthSignupAttempt();
 
     if (!isRegister && !verifyToken && !resetTokenFromHash && localStorage.getItem("bragstack_token")) {
       window.location.replace("/app");
@@ -140,6 +183,10 @@ function AuthPage({ mode = "login", onLogin }) {
       return;
     }
 
+    if (isRegister) {
+      trackAnalyticsEvent(ANALYTICS_EVENTS.SIGNUP_STARTED, { method: "email_password" });
+    }
+
     setIsSubmitting(true);
     setIsSlowSubmit(false);
     const slowSubmitTimer = window.setTimeout(() => setIsSlowSubmit(true), 1200);
@@ -160,6 +207,7 @@ function AuthPage({ mode = "login", onLogin }) {
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.detail || "Could not create your account. Try again.");
+        trackAnalyticsEvent(ANALYTICS_EVENTS.SIGN_UP, { method: "email_password" });
         setVerificationEmail(formData.email);
         setVerificationMessage(
           data.email_sent === false
@@ -217,8 +265,13 @@ function AuthPage({ mode = "login", onLogin }) {
       const ready = await ensureApiReady();
       if (!ready) throw new Error("Boasted is taking longer than expected to start. Please try again.");
       const consentQuery = isRegister ? "?accepted_terms=true&accepted_privacy=true" : "";
+      if (isRegister) {
+        trackAnalyticsEvent(ANALYTICS_EVENTS.SIGNUP_STARTED, { method: provider });
+        rememberOAuthSignupAttempt(provider);
+      }
       window.location.assign(`${apiBaseUrl}/auth/${provider}/login${consentQuery}`);
     } catch (error) {
+      if (isRegister) clearOAuthSignupAttempt();
       setErrorMessage(error.message || `Could not connect to ${provider}. Please try again.`);
       setConnectingProvider("");
       setOauthIsTakingLonger(false);
