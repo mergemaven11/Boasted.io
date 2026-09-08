@@ -177,13 +177,20 @@
 .sidebar-nav .sidebar-proof-profile svg { color: #7dd3fc; }
 .sidebar-nav .sidebar-proof-profile small {
   margin-left: auto;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
   padding: 3px 6px;
   border-radius: 999px;
   color: #86efac;
   background: rgba(34,197,94,.1);
   font-size: .58rem;
   font-weight: 900;
+  line-height: 1;
   letter-spacing: .05em;
+  white-space: nowrap;
   text-transform: uppercase;
 }
 .sidebar-nav .sidebar-proof-profile:hover { background: rgba(14,165,233,.1); border-color: rgba(125,211,252,.28); }
