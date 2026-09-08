@@ -1,2 +1,3 @@
-Boasted official search icon: /bragstack-logo-192.png
+Boasted official search icon: /favicon-48x48.png
+Boasted high-resolution brand icon: /boasted-logo-192.png
 Preferred branded search sitelinks: Resume Builder, Practice Interviewer, Pricing, Docs, Log in, Sign up.
