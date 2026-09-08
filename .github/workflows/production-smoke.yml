@@ -1,0 +1,83 @@
+name: Production Smoke
+
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-routes:
+    name: Public route availability
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check canonical and Render origins
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          failures=0
+          tmp_body="$(mktemp)"
+          trap 'rm -f "$tmp_body"' EXIT
+
+          check_200() {
+            local label="$1"
+            local url="$2"
+            local code
+
+            code="$(curl \
+              --silent \
+              --show-error \
+              --location \
+              --retry 2 \
+              --retry-delay 2 \
+              --retry-all-errors \
+              --connect-timeout 10 \
+              --max-time 30 \
+              --user-agent 'Boasted-Production-Smoke/1.0' \
+              --output "$tmp_body" \
+              --write-out '%{http_code}' \
+              "$url" || true)"
+
+            printf '%-24s %s %s\n' "$label" "$code" "$url"
+            if [[ "$code" != "200" ]]; then
+              echo "::error title=Production smoke failed::$label returned HTTP ${code:-curl_error} for $url"
+              failures=$((failures + 1))
+            fi
+          }
+
+          echo "=== Canonical frontend ==="
+          check_200 "home" "https://boasted.io/"
+          check_200 "resume" "https://boasted.io/resume-accomplishments"
+          check_200 "interview" "https://boasted.io/interview-preparation"
+          check_200 "impact receipts" "https://boasted.io/impact-receipts"
+          check_200 "how it works" "https://boasted.io/how-it-works"
+          check_200 "pricing" "https://boasted.io/pricing"
+          check_200 "proof profiles" "https://boasted.io/public-proof-profiles"
+          check_200 "support" "https://boasted.io/support"
+          check_200 "security" "https://boasted.io/security"
+          check_200 "privacy" "https://boasted.io/privacy"
+          check_200 "terms" "https://boasted.io/terms"
+
+          echo "=== Render frontend origin ==="
+          check_200 "render home" "https://bragstack.onrender.com/"
+          check_200 "render resume" "https://bragstack.onrender.com/resume-accomplishments"
+          check_200 "render receipts" "https://bragstack.onrender.com/impact-receipts"
+
+          echo "=== Canonical API ==="
+          check_200 "api health" "https://api.usebragstack.com/health"
+          check_200 "api ready" "https://api.usebragstack.com/ready"
+
+          echo "=== Render API origin ==="
+          check_200 "render api health" "https://bragstack-api-bxf3.onrender.com/health"
+          check_200 "render api ready" "https://bragstack-api-bxf3.onrender.com/ready"
+
+          if (( failures > 0 )); then
+            echo "::error::$failures production smoke check(s) failed. Compare canonical vs Render-origin rows to isolate edge/domain failures from origin failures."
+            exit 1
+          fi
+
+          echo "All production smoke checks returned HTTP 200."
