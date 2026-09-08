@@ -148,6 +148,34 @@ describe("Boasted analytics", () => {
     assert.equal(event[2].first_utm_source, "linkedin");
   });
 
+  it("rejects OAuth signup completion when the backend did not confirm account creation", () => {
+    initializeAnalytics();
+
+    assert.equal(trackAnalyticsEvent(ANALYTICS_EVENTS.SIGN_UP, { method: "google" }), false);
+    setUrl("/login#oauth_token=existing-token&oauth_created=0");
+    assert.equal(trackAnalyticsEvent(ANALYTICS_EVENTS.SIGN_UP, { method: "github" }), false);
+
+    assert.equal(productEvents(ANALYTICS_EVENTS.SIGN_UP).length, 0);
+    assert.equal(productEvents(ANALYTICS_EVENTS.SIGNUP_COMPLETED).length, 0);
+
+    trackAnalyticsEvent(ANALYTICS_EVENTS.ACCOMPLISHMENT_CREATED);
+    assert.equal(productEvents(ANALYTICS_EVENTS.FIRST_PROOF_CREATED).length, 0);
+  });
+
+  it("counts backend-confirmed OAuth account creation without leaking the callback token", () => {
+    setUrl("/login#oauth_token=private-callback-token&oauth_created=1");
+
+    const tracked = trackAnalyticsEvent(ANALYTICS_EVENTS.SIGN_UP, { method: "google" });
+
+    assert.equal(tracked, true);
+    assert.equal(productEvents(ANALYTICS_EVENTS.SIGN_UP).length, 1);
+    assert.equal(productEvents(ANALYTICS_EVENTS.SIGNUP_COMPLETED).length, 1);
+    assert.doesNotMatch(JSON.stringify(productEvents(ANALYTICS_EVENTS.SIGN_UP)[0]), /private-callback-token/);
+
+    trackAnalyticsEvent(ANALYTICS_EVENTS.ACCOMPLISHMENT_CREATED);
+    assert.equal(productEvents(ANALYTICS_EVENTS.FIRST_PROOF_CREATED).length, 1);
+  });
+
   it("drops sensitive product content while preserving structural metadata", () => {
     trackAnalyticsEvent(ANALYTICS_EVENTS.CAREER_PACKET_EXPORTED, {
       packet_type: "performance-review",
