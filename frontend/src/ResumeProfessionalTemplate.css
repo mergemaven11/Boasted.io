@@ -30,7 +30,7 @@
 }
 .resume-v2-paper-banner button { color:#1f4b7a !important; background:transparent !important; border:0 !important; text-decoration:underline; }
 .resume-v2-paper > header { order:-1; text-align:center; margin-bottom:14px; }
-.resume-v2-paper > header h1 { margin:0 0 5px !important; color:#111827 !important; font-family:Georgia,"Times New Roman",serif !important; font-size:28px !important; font-weight:700 !important; letter-spacing:.01em !important; }
+.resume-v2-paper > header h1 { margin:0 0 5px !important; color:#111827 !important; font-family:Arial,Helvetica,sans-serif !important; font-size:28px !important; font-weight:700 !important; letter-spacing:.01em !important; }
 .resume-v2-contact { justify-content:center !important; gap:6px 12px !important; color:#374151 !important; font-size:11px !important; }
 .resume-v2-contact span:not(:last-child)::after { content:" ·"; margin-left:10px; color:#9ca3af; }
 
