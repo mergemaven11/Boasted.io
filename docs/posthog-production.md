@@ -1,8 +1,8 @@
 # PostHog production setup
 
-Boasted uses PostHog in production for product analytics, web analytics, privacy-safe session replay, and client-side error tracking. GA4 remains enabled alongside PostHog.
+Boasted uses PostHog in production for product analytics, web analytics, privacy-controlled session replay, and client-side error tracking. GA4 remains enabled alongside PostHog.
 
-This setup is intentionally configured to get strong value from PostHog's free allowances without exposing the private career evidence users store in Boasted.
+This is an **engineering and operations document**. The customer-facing disclosure for analytics, diagnostics, and session replay belongs in the Boasted Privacy Policy at `/privacy` (`frontend/src/LegalPages.jsx`). Do not create a second customer-facing privacy policy in this document.
 
 ## Production project
 
@@ -15,6 +15,24 @@ This setup is intentionally configured to get strong value from PostHog's free a
 - PostHog is disabled on `localhost` and `127.0.0.1`.
 
 Do not commit the project key to the repository. Keep it in the production environment configuration.
+
+## Privacy boundary
+
+PostHog is for product measurement, reliability, and debugging. It is **not** a system for watching or surveilling people.
+
+Session replay reconstructs masked interactions with the Boasted interface from browser telemetry. It does **not** use a webcam or microphone and is not video or audio recording of a person.
+
+The production configuration must preserve these boundaries:
+
+- mask all form inputs
+- mask rendered text
+- block elements marked `data-posthog-block`, `data-private`, or `data-confidential`
+- do not intentionally capture accomplishment text, Impact Receipt text, evidence content, résumé content, private notes, uploaded document contents, passwords, access tokens, authentication headers, or other sensitive user payloads
+- keep network request and response bodies off by default
+- identify authenticated analytics with the application's internal user ID only, not a name or email address
+- use replay only for product behavior, usability, reliability, and debugging purposes
+
+If the production configuration changes in a way that materially changes what is collected, update `/privacy` before or alongside that release.
 
 ## What is captured
 
@@ -35,9 +53,7 @@ Authenticated users are identified with the application's internal user ID only.
 
 When a signed-in session ends, PostHog identity is reset so the next anonymous visitor does not inherit the previous user's identity.
 
-## Session replay
-
-Session replay is enabled for production debugging and UX analysis.
+## Privacy-controlled session replay
 
 In the PostHog project UI, keep:
 
@@ -47,6 +63,8 @@ In the PostHog project UI, keep:
 - **Performance capture:** ON
 - **Console logs:** ON when available in replay settings
 - **Network request/response bodies:** OFF unless a specific sanitized use case is reviewed first
+
+`Record user sessions` is PostHog's product-setting label. In Boasted documentation and user-facing copy, describe the feature as **privacy-controlled session replay** or **diagnostic session replay**, not as recording people.
 
 The browser SDK applies privacy-first replay masking:
 
@@ -58,9 +76,9 @@ session_recording: {
 }
 ```
 
-This means replay should preserve layout, navigation, clicks, timing, and UI behavior while hiding typed values and rendered text. Any especially sensitive surface should also use `data-posthog-block`, `data-private`, or `data-confidential`.
+This preserves useful layout, navigation, clicks, timing, and interface behavior while masking typed values and rendered text. Especially sensitive surfaces should also use `data-posthog-block`, `data-private`, or `data-confidential`.
 
-Do not weaken these masking defaults just to make recordings easier to read. Boasted can contain private career evidence, workplace details, and supporting proof.
+Do not weaken these masking defaults merely to make replays easier to read.
 
 ## Error tracking
 
@@ -125,22 +143,26 @@ After a production deployment:
 6. Confirm performance data is present for the replay.
 7. Trigger only a controlled test exception if needed and confirm it appears under Error Tracking.
 8. Verify GA4 still receives its normal events.
-9. Confirm no email address, name, proof text, or evidence body appears in PostHog event properties or replay content.
+9. Confirm no email address, name, proof text, evidence body, token, or network body appears in PostHog event properties or replay content.
+10. Confirm the customer-facing Privacy Policy still accurately describes the production behavior.
 
 ## Dashboards
 
-Use `Boasted Product Overview` as the primary product dashboard. Founder/growth and product-health dashboards should contain real Boasted event-backed insights rather than legacy BragStack placeholders.
+Boasted keeps three complementary dashboards rather than duplicate empty shells:
 
-Useful dashboard groups include:
+### Boasted Product Overview
 
-- acquisition and signup conversion
-- first proof/accomplishment creation
-- Impact Receipt adoption
-- activation and time-to-value
-- retention
-- sharing/export behavior
-- errors and affected sessions
-- replay-assisted UX issues
+High-level traffic, activity, retention, acquisition, and activation overview.
+
+### Boasted Product Health
+
+Operational view for active users, sessions, pageviews, engagement trends, retention, reliability, errors, and replay-assisted diagnosis.
+
+### Boasted Founder Growth
+
+Founder view for reach, weekly activity, retention, acquisition, and activation. As real Boasted product events become available, extend this dashboard with signup conversion, first accomplishment/proof creation, Impact Receipt adoption, sharing/export behavior, and upgrade intent.
+
+Only build charts from events actually verified in PostHog. Do not create placeholder metrics around event names that have not reached production.
 
 ## Deployment status
 
