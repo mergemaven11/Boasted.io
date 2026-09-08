@@ -28,7 +28,10 @@
 .proof-portfolio .portfolio-skill-cloud > span,
 .proof-portfolio .portfolio-evidence-list,
 .proof-portfolio .portfolio-passport-grid,
-.proof-portfolio .portfolio-passport-grid > * {
+.proof-portfolio .portfolio-passport-grid > *,
+.proof-portfolio .proof-controls,
+.proof-portfolio .proof-search,
+.proof-portfolio .proof-filter-row {
   min-width: 0;
   max-width: 100%;
 }
@@ -65,7 +68,8 @@
 
 .proof-portfolio .portfolio-topbar-actions,
 .proof-portfolio .portfolio-actions,
-.proof-portfolio .proof-pagination-controls {
+.proof-portfolio .proof-pagination-controls,
+.proof-portfolio .proof-filter-row {
   flex-wrap: wrap;
 }
 
@@ -95,6 +99,11 @@
 
   .proof-portfolio .portfolio-passport-grid {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+  }
+
+  .proof-portfolio .proof-controls,
+  .proof-portfolio .proof-filter-row {
+    width: 100%;
   }
 }
 
