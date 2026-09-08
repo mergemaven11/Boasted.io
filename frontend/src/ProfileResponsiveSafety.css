@@ -1,0 +1,128 @@
+/*
+ * Shared responsive safety contract for every public Proof Portfolio theme.
+ * Themes may change presentation, but they may not change these layout invariants.
+ */
+
+.proof-portfolio,
+.proof-portfolio .proof-profile-inner,
+.proof-portfolio .portfolio-topbar,
+.proof-portfolio .portfolio-topbar-actions,
+.proof-portfolio .portfolio-hero,
+.proof-portfolio .portfolio-identity,
+.proof-portfolio .portfolio-proof-passport,
+.proof-portfolio .portfolio-section,
+.proof-portfolio .portfolio-section-heading,
+.proof-portfolio .portfolio-section-heading > *,
+.proof-portfolio .portfolio-impact-grid,
+.proof-portfolio .portfolio-impact-card,
+.proof-portfolio .portfolio-impact-copy,
+.proof-portfolio .portfolio-impact-copy > *,
+.proof-portfolio .portfolio-work-grid,
+.proof-portfolio .portfolio-work-card,
+.proof-portfolio .portfolio-work-card-head,
+.proof-portfolio .portfolio-work-card-head > *,
+.proof-portfolio .portfolio-career-grid,
+.proof-portfolio .portfolio-career-column,
+.proof-portfolio .portfolio-career-item,
+.proof-portfolio .portfolio-skill-cloud,
+.proof-portfolio .portfolio-skill-cloud > span,
+.proof-portfolio .portfolio-evidence-list,
+.proof-portfolio .portfolio-passport-grid,
+.proof-portfolio .portfolio-passport-grid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* User-controlled text must wrap by words where possible and never force width. */
+.proof-portfolio .portfolio-identity h1,
+.proof-portfolio .proof-headline,
+.proof-portfolio .proof-bio,
+.proof-portfolio .proof-location,
+.proof-portfolio .portfolio-impact-card h3,
+.proof-portfolio .portfolio-impact-card p,
+.proof-portfolio .portfolio-work-card h3,
+.proof-portfolio .portfolio-work-card p,
+.proof-portfolio .portfolio-career-item h3,
+.proof-portfolio .portfolio-career-item p,
+.proof-portfolio .portfolio-section-heading h2,
+.proof-portfolio .portfolio-section-heading p,
+.proof-portfolio .portfolio-skill-cloud strong,
+.proof-portfolio .portfolio-skill-cloud small,
+.proof-portfolio .portfolio-passport-grid span,
+.proof-portfolio .portfolio-passport-note,
+.proof-portfolio .portfolio-evidence-list a,
+.proof-portfolio .portfolio-evidence-list > span,
+.proof-portfolio .proof-pagination-summary {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.proof-portfolio a,
+.proof-portfolio button,
+.proof-portfolio input {
+  max-width: 100%;
+}
+
+.proof-portfolio .portfolio-topbar-actions,
+.proof-portfolio .portfolio-actions,
+.proof-portfolio .proof-pagination-controls {
+  flex-wrap: wrap;
+}
+
+/* Interactive controls remain reachable by touch without hiding content. */
+.proof-portfolio .portfolio-share,
+.proof-portfolio .proof-action,
+.proof-portfolio .proof-filter-row button,
+.proof-portfolio .proof-pagination-controls button,
+.proof-portfolio .portfolio-footer button {
+  min-height: 44px;
+}
+
+@media (max-width: 640px) {
+  .proof-portfolio .portfolio-hero,
+  .proof-portfolio .portfolio-impact-grid,
+  .proof-portfolio .portfolio-impact-card.featured,
+  .proof-portfolio .portfolio-impact-copy,
+  .proof-portfolio .portfolio-work-grid,
+  .proof-portfolio .portfolio-career-grid,
+  .proof-portfolio .portfolio-skill-cloud {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .proof-portfolio .portfolio-section-heading {
+    min-width: 0;
+  }
+
+  .proof-portfolio .portfolio-passport-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .proof-portfolio .proof-profile-inner {
+    width: min(100% - 20px, 1180px);
+  }
+
+  .proof-portfolio .portfolio-topbar {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .proof-portfolio .portfolio-topbar-actions {
+    justify-content: flex-end;
+  }
+
+  .proof-portfolio .portfolio-hero,
+  .proof-portfolio .portfolio-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .proof-portfolio .portfolio-work-card-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .proof-portfolio .portfolio-work-index {
+    width: 39px;
+  }
+}
