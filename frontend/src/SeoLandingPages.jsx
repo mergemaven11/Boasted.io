@@ -11,6 +11,7 @@ function setMetaContent(selector, value) { const element = document.querySelecto
 function SeoLandingPage({ content }) {
   const Icon = ICONS[content.icon] || FileText;
   const path = window.location.pathname.replace(/\/$/, "") || "/";
+  const pageVariant = path === "/resume-accomplishments" ? "resume" : path === "/interview-preparation" ? "interview" : path === "/impact-receipts" ? "receipts" : "default";
   const relatedLinks = PRIMARY_SITELINKS.filter(({ href }) => href !== path && href !== "/login").slice(0, 4);
 
   useEffect(() => {
@@ -27,7 +28,7 @@ function SeoLandingPage({ content }) {
     if (canonical) canonical.href = canonicalUrl;
   }, [content, path]);
 
-  return <main className="landing-page seo-product-page">
+  return <main className={`landing-page seo-product-page seo-product-${pageVariant}`}>
     <header className="landing-nav">
       <a className="landing-logo" href="/" aria-label="Boasted home">Boasted</a>
       <nav className="landing-nav-links" aria-label="Boasted products"><a href="/resume-accomplishments">Resume Builder</a><a href="/interview-preparation">Interview Prep</a><a href="/impact-receipts">Impact Receipts</a><a href="/pricing">Pricing</a></nav>
