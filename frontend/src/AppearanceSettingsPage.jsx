@@ -168,12 +168,12 @@ export default function AppearanceSettingsPage() {
             <ArrowLeft size={16} /> Back to settings
           </a>
           <p className="profile-settings-eyebrow"><Palette size={14} /> Settings</p>
-          <h1>Profile appearance</h1>
+          <h1>Public profile appearance</h1>
           <p>Choose a flower layout, then apply a color palette. Layout and color stay independent so you can mix any template with any theme.</p>
         </div>
         {previewHref && (
           <a className="appearance-preview-link" href={previewHref}>
-            <Eye size={17} /> Preview selected design
+            <Eye size={17} /> Preview Public Proof Profile
           </a>
         )}
       </header>
@@ -303,7 +303,7 @@ export default function AppearanceSettingsPage() {
                 color: previewButtonText,
               }}
             >
-              <Eye size={16} /> Open full preview
+              <Eye size={16} /> Preview Public Proof Profile
             </a>
           </div>
         </div>
