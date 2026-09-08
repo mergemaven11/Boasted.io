@@ -78,6 +78,11 @@ def _authorization_query(params: dict[str, str]) -> str:
     return urlencode(params, quote_via=quote, safe="")
 
 
+def _with_oauth_creation_result(user: dict, *, created: bool) -> dict:
+    """Return an ephemeral callback result without persisting analytics state."""
+    return {**user, "_oauth_account_created": created}
+
+
 def _find_or_create_oauth_user(
     provider: str,
     provider_user_id: str,
@@ -92,6 +97,8 @@ def _find_or_create_oauth_user(
     Existing users can always sign in or link their provider. A brand-new OAuth
     account is created only when the exact OAuth attempt started after the user
     accepted the current Terms and Privacy Policy on the registration page.
+    The returned `_oauth_account_created` flag exists only in callback memory so
+    the browser can distinguish a real registration from an OAuth sign-in/link.
     """
     normalized_email = email.lower().strip()
     provider_field = f"oauth.{provider}_id"
@@ -112,7 +119,8 @@ def _find_or_create_oauth_user(
                 },
             },
         )
-        return users_collection.find_one({"_id": user["_id"]})
+        linked = users_collection.find_one({"_id": user["_id"]})
+        return _with_oauth_creation_result(linked, created=False)
 
     user = users_collection.find_one({"email": normalized_email})
     if user:
@@ -130,7 +138,8 @@ def _find_or_create_oauth_user(
                 },
             },
         )
-        return users_collection.find_one({"_id": user["_id"]})
+        linked = users_collection.find_one({"_id": user["_id"]})
+        return _with_oauth_creation_result(linked, created=False)
 
     if not accepted_terms or not accepted_privacy:
         raise HTTPException(
@@ -170,13 +179,15 @@ def _find_or_create_oauth_user(
         },
     }
     result = users_collection.insert_one(doc)
-    return users_collection.find_one({"_id": result.inserted_id})
+    created_user = users_collection.find_one({"_id": result.inserted_id})
+    return _with_oauth_creation_result(created_user, created=True)
 
 
 def _frontend_success_redirect(user: dict) -> RedirectResponse:
     token = create_access_token({"sub": str(user["_id"])})
+    created = "1" if user.get("_oauth_account_created") is True else "0"
     return RedirectResponse(
-        url=f"{FRONTEND_URL}/login#oauth_token={token}",
+        url=f"{FRONTEND_URL}/login#oauth_token={token}&oauth_created={created}",
         status_code=status.HTTP_302_FOUND,
     )
 
