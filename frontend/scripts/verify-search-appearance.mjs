@@ -78,7 +78,7 @@ assert.match(staticRouteShells, /<meta name="twitter:description"/);
 assert.match(staticRouteShells, /Missing static metadata for public route/);
 assert.match(staticRouteShells, /writeFile\(path\.join\(routeDir, "index\.html"\), routeShell\(indexHtml, route\)/);
 assert.doesNotMatch(staticRouteShells, /copyFile\(INDEX_FILE, path\.join\(routeDir, "index\.html"\)\)/);
-assert.match(staticRouteShells, /NOINDEX_ROUTES = new Set\(\["\/upgrade", "\/verify-receipt"\]\)/);
+assert.match(staticRouteShells, /NOINDEX_ROUTES = new Set\(\["\/login", "\/register", "\/upgrade", "\/verify-receipt"\]\)/);
 assert.match(staticRouteShells, /noindex,nofollow/);
 assert.ok(staticRouteShells.includes('"/support"'), "the public Support Hub needs a generated static shell");
 
