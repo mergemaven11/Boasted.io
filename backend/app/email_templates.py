@@ -51,15 +51,15 @@ def _shell(*, preheader: str, eyebrow: str, title: str, intro: str, content_html
     <meta name="supported-color-schemes" content="dark light">
     <title>{safe_title}</title>
     <style>
-      @media only screen and (max-width: 640px) {
-        .boasted-wrap { padding: 22px 12px !important; }
-        .boasted-card { padding: 26px 20px !important; border-radius: 18px !important; }
-        .boasted-title { font-size: 26px !important; }
-        .boasted-cta { display: block !important; text-align: center !important; }
-      }
-      @media (prefers-color-scheme: light) {
-        .boasted-page { background: #f8fafc !important; }
-      }
+      @media only screen and (max-width: 640px) {{
+        .boasted-wrap {{ padding: 22px 12px !important; }}
+        .boasted-card {{ padding: 26px 20px !important; border-radius: 18px !important; }}
+        .boasted-title {{ font-size: 26px !important; }}
+        .boasted-cta {{ display: block !important; text-align: center !important; }}
+      }}
+      @media (prefers-color-scheme: light) {{
+        .boasted-page {{ background: #f8fafc !important; }}
+      }}
     </style>
   </head>
   <body style="margin:0;padding:0;background:#020617;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#e2e8f0;">
