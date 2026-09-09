@@ -5,6 +5,7 @@ import "./index.css";
 import "./ReferencePolish.css";
 import "./MarketingFooterOrder.css";
 import "./ResponsiveLayoutGuard.css";
+import "./LandingPageMobileGuard.css";
 import "./ImpactReceiptsResponsive.css";
 import "./VerifiedImpact.css";
 import "./ProfileUploadPolish.css";
