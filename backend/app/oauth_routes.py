@@ -11,6 +11,7 @@ from fastapi.responses import RedirectResponse
 
 from app.auth import create_access_token
 from app.auth_routes import PRIVACY_VERSION, TERMS_VERSION
+from app.auth_sessions import create_auth_session
 from app.database import users_collection
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -174,7 +175,9 @@ def _find_or_create_oauth_user(
 
 
 def _frontend_success_redirect(user: dict) -> RedirectResponse:
-    token = create_access_token({"sub": str(user["_id"])})
+    user_id = str(user["_id"])
+    session_id = create_auth_session(user_id)
+    token = create_access_token({"sub": user_id, "sid": session_id})
     return RedirectResponse(
         url=f"{FRONTEND_URL}/login#oauth_token={token}",
         status_code=status.HTTP_302_FOUND,

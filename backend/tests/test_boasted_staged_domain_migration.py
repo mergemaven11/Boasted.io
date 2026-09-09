@@ -54,6 +54,7 @@ def test_boasted_frontend_keeps_legacy_github_callback(monkeypatch):
 
 def test_oauth_success_returns_existing_user_to_boasted(monkeypatch):
     monkeypatch.setattr(oauth_routes, "FRONTEND_URL", "https://boasted.io")
+    monkeypatch.setattr(oauth_routes, "create_auth_session", lambda _user_id: "test-session")
     monkeypatch.setattr(oauth_routes, "create_access_token", lambda _payload: "test-token")
 
     response = oauth_routes._frontend_success_redirect({"_id": "existing-user-id"})

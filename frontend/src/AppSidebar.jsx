@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { BarChart3, BrainCircuit, Building2, ChevronDown, FileCheck2, FileText, GraduationCap, Home, LifeBuoy, ListChecks, LogOut, Menu, ReceiptText, Settings, ShieldCheck, UserRound, Users, Video, X } from "lucide-react";
 import { getCurrentUser } from "./api";
+import { signOutAndRedirect } from "./authSessionApi.js";
 import { getOpsAccess } from "./opsApi";
+import { installAuthIdleGuard } from "./sessionIdleGuard.js";
 import "./AppShell.css";
 import "./SidebarCollapsible.css";
 
@@ -24,8 +26,9 @@ function AppSidebar() {
   const path = window.location.pathname; const search = window.location.search; const hash = window.location.hash;
   const careerToolsActive = path === "/app/resume-builder" || path === "/app/interview-practice" || path === "/app/reports";
   const [careerToolsOpen, setCareerToolsOpen] = useState(() => careerToolsActive || localStorage.getItem("bragstack_career_tools_nav") !== "closed");
+  useEffect(() => installAuthIdleGuard(), []);
   useEffect(() => { let mounted = true; (async () => { try { const data = await getCurrentUser(); if (!mounted) return; setUser(data); try { const access = await getOpsAccess(); if (mounted) setInternalAccess(access?.authorized ? access : null); } catch { if (mounted) setInternalAccess(null); } } catch (error) { if (error.response?.status === 401) { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); } } })(); return () => { mounted = false; }; }, []);
-  function logout() { localStorage.removeItem("bragstack_token"); window.location.assign("/login"); }
+  async function logout() { await signOutAndRedirect(); }
   function toolIsActive(href) { const target = new URL(href, window.location.origin); return path === target.pathname && search === target.search && hash === target.hash; }
   function toggleCareerTools(event) { const open = event.currentTarget.open; setCareerToolsOpen(open); localStorage.setItem("bragstack_career_tools_nav", open ? "open" : "closed"); }
   const isPro = Boolean(user?.entitlements?.advanced_reports);

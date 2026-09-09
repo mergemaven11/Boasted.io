@@ -9,6 +9,7 @@ db = client["bragstack"]
 
 entries_collection = db["entries"]
 users_collection = db["users"]
+auth_sessions_collection = db["auth_sessions"]
 impact_receipts_collection = db["impact_receipts"]
 receipt_verification_requests_collection = db["receipt_verification_requests"]
 packet_export_audit_collection = db["packet_export_audit"]
