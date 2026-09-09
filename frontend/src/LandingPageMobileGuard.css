@@ -1,0 +1,78 @@
+/* Mobile guardrails for the public Boasted marketing page.
+   Keep the existing brand system intact while preventing preview cards from
+   becoming cramped or unreadable on narrow phones. The .landing-page prefix
+   intentionally gives these narrow-screen rules higher specificity than the
+   lazy-loaded landing-page stylesheet. */
+
+@media (max-width: 720px) {
+  .landing-page .landing-feature-section {
+    padding: 1.25rem;
+    gap: 2rem;
+    border-radius: 24px;
+  }
+
+  .landing-page .feature-dashboard-preview {
+    width: 100%;
+    min-width: 0;
+    padding: 0.75rem;
+    border-radius: 20px;
+  }
+
+  .landing-page .feature-preview-header {
+    padding: 0.25rem;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .landing-page .feature-preview-header > div {
+    min-width: 0;
+    padding: 0.9rem 1rem;
+  }
+
+  .landing-page .feature-preview-header strong {
+    display: block;
+    font-size: clamp(1.25rem, 6vw, 1.5rem);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    overflow-wrap: anywhere;
+  }
+
+  .landing-page .feature-preview-entry {
+    min-width: 0;
+    padding: 1rem;
+  }
+
+  .landing-page .feature-preview-entry h3 {
+    font-size: 1.15rem;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  .landing-page .feature-preview-entry p {
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  .landing-page .feature-preview-tags {
+    gap: 0.35rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .landing-page .landing-feature-section {
+    padding: 1rem;
+  }
+
+  .landing-page .feature-dashboard-preview {
+    padding: 0.6rem;
+  }
+
+  .landing-page .feature-preview-header > div,
+  .landing-page .feature-preview-entry {
+    padding: 0.85rem;
+  }
+
+  .landing-page .feature-preview-entry > div:first-child {
+    gap: 0.5rem;
+  }
+}
