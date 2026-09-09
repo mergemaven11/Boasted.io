@@ -13,6 +13,7 @@ import "./UiUxFoundation.css";
 import "./ProfileTemplateRegressionFixes.css";
 import "./ProfileDesktopBalance.css";
 import "./ProfileResponsiveSafety.css";
+import AnalyticsConsentBanner from "./AnalyticsConsentBanner.jsx";
 import NDAInformationGate from "./NDAInformationGate.jsx";
 import PublicAuthHeader from "./PublicAuthHeader.jsx";
 import RootContent from "./RootContent.jsx";
@@ -25,6 +26,7 @@ installProfileAppearancePreview();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
+    <AnalyticsConsentBanner />
     <NDAInformationGate />
     <PublicAuthHeader />
     <RootContent />
