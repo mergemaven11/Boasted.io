@@ -16,6 +16,10 @@ def test_account_verification_email_is_branded_and_has_secure_cta():
     assert "24 hours" in html
     assert "https://boasted.io/login#verify_token=abc123" in html
     assert "boasted.io" in html
+    assert "BragStack" not in html
+    assert "Boasted · Career proof, organized" in html
+    assert "@media only screen and (max-width: 640px)" in html
+    assert 'class="boasted-cta"' in html
 
 
 def test_password_reset_email_is_branded_and_has_expiry_guidance():
