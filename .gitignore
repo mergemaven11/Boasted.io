@@ -1,34 +1,62 @@
+# Python
 __pycache__/
 *.pyc
-.env
 .venv/
-.idea/
-.vscode/
-.DS_Store
 
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+.envrc
+.direnv/
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.kdbx
+*.mobileprovision
+*.provisionprofile
+id_rsa*
+id_ed25519*
+credentials.json
+service-account*.json
+service_account*.json
+firebase-adminsdk*.json
+client_secret*.json
+secrets.json
+*.tfvars
+*.tfvars.json
+terraform.tfstate
+terraform.tfstate.*
+kubeconfig*
+*.kubeconfig
+.npmrc
+.pypirc
+.netrc
 
+# Node / frontend
 node_modules/
 dist/
-npm-debug.log*
-
-# Logs
-logs
-*.log
+dist-ssr/
+*.local
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Logs
+logs/
+*.log
 
-# Editor directories and files
+# Editors / OS
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
