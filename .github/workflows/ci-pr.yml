@@ -1,16 +1,13 @@
 name: CI PR
 
-# Protected-branch contexts are intentionally defined here; changing this
-# workflow triggers the full backend, frontend, and dependency validation set.
+# Protected-branch contexts are intentionally defined here. Run this workflow
+# for every pull request so required checks never remain permanently "Expected"
+# just because a change falls outside backend/frontend paths. The `changes` job
+# below still gates the expensive backend/frontend/dependency work. This also
+# keeps docs-only and config-only PRs compatible with strict required checks.
 
 on:
   pull_request:
-    paths:
-      - "backend/**"
-      - "frontend/**"
-      - ".github/workflows/ci-*.yml"
-      - ".github/workflows/production-smoke.yml"
-      - "docs/CI_BUDGET_POLICY.md"
 
 concurrency:
   group: ci-pr-${{ github.event.pull_request.number }}
@@ -44,7 +41,6 @@ jobs:
           if printf '%s\n' "$changed_files" | grep -Eq '^(backend/requirements\.txt|frontend/package\.json|frontend/package-lock\.json|\.github/workflows/ci-)'; then echo "dependencies=true" >> "$GITHUB_OUTPUT"; else echo "dependencies=false" >> "$GITHUB_OUTPUT"; fi
 
   backend-medium:
-    # Preserve the protected-branch context while using the cheaper medium PR tier.
     name: Run backend tests
     needs: changes
     if: needs.changes.outputs.backend == 'true'
@@ -79,7 +75,6 @@ jobs:
         run: python -m pytest
 
   frontend-medium:
-    # Preserve the protected-branch context while using the cheaper medium PR tier.
     name: Test, lint and build frontend
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
