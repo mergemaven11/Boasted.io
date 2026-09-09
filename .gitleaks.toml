@@ -1,0 +1,17 @@
+title = "Boasted Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Synthetic secret fixtures used by NDA safety tests"
+condition = "AND"
+regexTarget = "line"
+paths = ['''^frontend/src/ndaSafety\.test\.js$''']
+regexes = [
+  '''-----BEGIN (?:RSA |OPENSSH )?PRIVATE KEY-----''',
+  '''AKIAABCDEFGHIJKLMNOP''',
+  '''ghp_12345678901234567890''',
+  '''xoxb-1234567890-abcdefghij''',
+  '''sk-123456789012345678901234'''
+]
