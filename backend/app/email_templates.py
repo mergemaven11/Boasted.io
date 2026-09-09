@@ -50,29 +50,40 @@ def _shell(*, preheader: str, eyebrow: str, title: str, intro: str, content_html
     <meta name="color-scheme" content="dark light">
     <meta name="supported-color-schemes" content="dark light">
     <title>{safe_title}</title>
+    <style>
+      @media only screen and (max-width: 640px) {{
+        .boasted-wrap {{ padding: 22px 12px !important; }}
+        .boasted-card {{ padding: 26px 20px !important; border-radius: 18px !important; }}
+        .boasted-title {{ font-size: 26px !important; }}
+        .boasted-cta {{ display: block !important; text-align: center !important; }}
+      }}
+      @media (prefers-color-scheme: light) {{
+        .boasted-page {{ background: #f8fafc !important; }}
+      }}
+    </style>
   </head>
   <body style="margin:0;padding:0;background:#020617;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#e2e8f0;">
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">{safe_preheader}</div>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#020617;margin:0;padding:0;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" class="boasted-page" style="width:100%;background:#020617;margin:0;padding:0;">
       <tr>
-        <td align="center" style="padding:34px 16px;">
+        <td class="boasted-wrap" align="center" style="padding:34px 16px;">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:620px;">
             <tr>
               <td style="padding:0 4px 18px;text-align:left;">
-                <div style="font-size:21px;line-height:1;font-weight:900;letter-spacing:-0.04em;color:#f8fafc;">Brag<span style="color:#93c5fd;">Stack</span></div>
+                <a href="{BRAND_URL}" style="display:inline-block;color:#f8fafc;text-decoration:none;font-size:22px;line-height:1;font-weight:900;letter-spacing:-0.04em;">Boasted<span style="color:#93c5fd;">.io</span></a>
                 <div style="margin-top:7px;font-size:11px;line-height:1.4;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#64748b;">Career proof, organized</div>
               </td>
             </tr>
             <tr>
-              <td style="border:1px solid #1e293b;border-radius:24px;background:#0f172a;padding:34px 32px;box-shadow:0 24px 80px rgba(0,0,0,.28);">
+              <td class="boasted-card" style="border:1px solid #1e293b;border-radius:24px;background:#0f172a;padding:34px 32px;box-shadow:0 24px 80px rgba(0,0,0,.28);">
                 <div style="display:inline-block;margin-bottom:16px;padding:7px 10px;border-radius:999px;background:#172554;color:#bfdbfe;font-size:11px;line-height:1;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;">{safe_eyebrow}</div>
-                <h1 style="margin:0 0 14px;font-size:30px;line-height:1.12;letter-spacing:-0.045em;color:#f8fafc;font-weight:900;">{safe_title}</h1>
+                <h1 class="boasted-title" style="margin:0 0 14px;font-size:30px;line-height:1.12;letter-spacing:-0.045em;color:#f8fafc;font-weight:900;">{safe_title}</h1>
                 <p style="margin:0 0 24px;font-size:16px;line-height:1.65;color:#cbd5e1;">{safe_intro}</p>
                 {content_html}
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:28px 0 22px;">
                   <tr>
                     <td bgcolor="#2563eb" style="border-radius:14px;">
-                      <a href="{safe_cta_url}" style="display:inline-block;padding:14px 22px;border-radius:14px;background:#2563eb;color:#ffffff;text-decoration:none;font-size:15px;line-height:1;font-weight:900;">{safe_cta_label}</a>
+                      <a class="boasted-cta" href="{safe_cta_url}" style="display:inline-block;padding:14px 22px;border-radius:14px;background:#2563eb;color:#ffffff;text-decoration:none;font-size:15px;line-height:1;font-weight:900;">{safe_cta_label}</a>
                     </td>
                   </tr>
                 </table>
@@ -81,8 +92,9 @@ def _shell(*, preheader: str, eyebrow: str, title: str, intro: str, content_html
             </tr>
             <tr>
               <td style="padding:20px 4px 0;text-align:center;font-size:11px;line-height:1.6;color:#475569;">
-                <div>Boasted helps you turn real work into reusable career proof.</div>
-                <div style="margin-top:4px;"><a href="{BRAND_URL}" style="color:#64748b;text-decoration:none;">boasted.io</a></div>
+                <div style="font-weight:800;color:#64748b;">Boasted · Career proof, organized</div>
+                <div style="margin-top:5px;"><a href="{BRAND_URL}" style="color:#93c5fd;text-decoration:none;font-weight:800;">boasted.io</a></div>
+                <div style="margin-top:3px;color:#334155;">This message was sent by Boasted.</div>
               </td>
             </tr>
           </table>
