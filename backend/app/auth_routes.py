@@ -10,7 +10,19 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from app.auth import create_access_token, get_current_user, hash_password, serialize_user, verify_password
+from app.auth import (
+    create_access_token,
+    get_current_session_id,
+    get_current_user,
+    hash_password,
+    serialize_user,
+    verify_password,
+)
+from app.auth_sessions import (
+    create_auth_session,
+    revoke_all_auth_sessions,
+    revoke_auth_session,
+)
 from app.database import users_collection
 from app.email_templates import build_email_verification_html, build_password_reset_html
 
@@ -163,6 +175,17 @@ def _hash_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
+def _authenticated_response(user: dict) -> dict:
+    """Create a revocable session and issue its signed access token."""
+    user_id = str(user["_id"])
+    session_id = create_auth_session(user_id)
+    return {
+        "access_token": create_access_token({"sub": user_id, "sid": session_id}),
+        "token_type": "bearer",
+        "user": serialize_user(user),
+    }
+
+
 async def _send_email(to_email, subject, html, from_value):
     if not RESEND_API_KEY:
         raise HTTPException(status_code=503, detail="Email delivery is not configured yet.")
@@ -278,7 +301,7 @@ def confirm_email_verification(payload: EmailVerificationConfirm):
         {"$set": {"email_verified_at": datetime.now(timezone.utc).isoformat(), "email_verification_required": False}, "$unset": {"email_verification_token_hash": "", "email_verification_expires_at": ""}},
     )
     updated = users_collection.find_one({"_id": user["_id"]})
-    return {"access_token": create_access_token({"sub": str(user["_id"])}), "token_type": "bearer", "user": serialize_user(updated)}
+    return _authenticated_response(updated)
 
 
 @router.post("/login")
@@ -289,7 +312,18 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     if user.get("email_verification_required", False) and not user.get("email_verified_at"):
         raise HTTPException(status_code=403, detail="Please verify your email before signing in.")
-    return {"access_token": create_access_token({"sub": str(user["_id"])}), "token_type": "bearer", "user": serialize_user(user)}
+    return _authenticated_response(user)
+
+
+@router.post("/logout")
+def logout_user(
+    current_user: dict = Depends(get_current_user),
+    session_id: str = Depends(get_current_session_id),
+):
+    """Revoke the caller's active server-side session."""
+    del current_user
+    revoke_auth_session(session_id, "logout")
+    return {"message": "Signed out."}
 
 
 @router.post("/password-reset/request")
@@ -321,7 +355,8 @@ def confirm_password_reset(payload: PasswordResetConfirm):
     if expires < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="This reset link is invalid or expired.")
     users_collection.update_one({"_id": user["_id"]}, {"$set": {"hashed_password": hash_password(payload.password)}, "$unset": {"password_reset_token_hash": "", "password_reset_expires_at": ""}})
-    return {"message": "Password updated. You can now sign in."}
+    revoke_all_auth_sessions(str(user["_id"]), "password_reset")
+    return {"message": "Password updated. All existing sessions were signed out. You can now sign in."}
 
 
 @router.get("/me")
