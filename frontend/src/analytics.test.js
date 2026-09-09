@@ -2,11 +2,15 @@ import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
 import {
+  ANALYTICS_CONSENT_DENIED,
+  ANALYTICS_CONSENT_GRANTED,
   ANALYTICS_EVENTS,
   GA_MEASUREMENT_ID,
   captureCampaignAttribution,
+  getAnalyticsConsent,
   getCampaignEventParameters,
   initializeAnalytics,
+  setAnalyticsConsent,
   trackAnalyticsEvent,
 } from "./analytics.js";
 
@@ -25,6 +29,10 @@ class MemoryStorage {
 
   setItem(key, value) {
     this.values.set(key, String(value));
+  }
+
+  removeItem(key) {
+    this.values.delete(key);
   }
 }
 
@@ -61,12 +69,35 @@ function installBrowserFakes() {
 }
 
 function productEvents(name) {
-  return window.dataLayer.filter((entry) => entry[0] === "event" && entry[1] === name);
+  return (window.dataLayer || []).filter((entry) => entry[0] === "event" && entry[1] === name);
 }
 
 describe("Boasted analytics", () => {
   beforeEach(() => {
     installBrowserFakes();
+    setAnalyticsConsent(ANALYTICS_CONSENT_GRANTED);
+  });
+
+  it("keeps analytics off until the user explicitly allows it", () => {
+    installBrowserFakes();
+    setUrl("/?utm_source=linkedin&utm_campaign=launch");
+
+    assert.equal(getAnalyticsConsent(), null);
+    assert.equal(initializeAnalytics(), false);
+    assert.deepEqual(captureCampaignAttribution(), {});
+    assert.equal(trackAnalyticsEvent(ANALYTICS_EVENTS.SIGN_UP, { method: "email_password" }), false);
+    assert.equal(document.head.querySelectorAll("script[data-bragstack-analytics]").length, 0);
+    assert.equal(window.sessionStorage.getItem("bragstack_session_utm"), null);
+  });
+
+  it("honors Essential only and does not emit product events", () => {
+    setAnalyticsConsent(ANALYTICS_CONSENT_DENIED);
+
+    assert.equal(getAnalyticsConsent(), ANALYTICS_CONSENT_DENIED);
+    assert.equal(initializeAnalytics(), false);
+    assert.equal(trackAnalyticsEvent(ANALYTICS_EVENTS.ACCOMPLISHMENT_CREATED), false);
+    assert.equal(window[`ga-disable-${GA_MEASUREMENT_ID}`], true);
+    assert.equal(document.head.querySelectorAll("script[data-bragstack-analytics]").length, 0);
   });
 
   it("loads the Boasted GA4 tag and configures the measurement ID once", () => {

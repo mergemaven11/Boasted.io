@@ -1,4 +1,7 @@
 const GA_MEASUREMENT_ID = "G-MKGEER9N5C";
+export const ANALYTICS_CONSENT_KEY = "boasted_analytics_consent_v1";
+export const ANALYTICS_CONSENT_GRANTED = "granted";
+export const ANALYTICS_CONSENT_DENIED = "denied";
 
 const GA_NAME_PATTERN = /^[a-z][a-z0-9_]{0,39}$/;
 const UTM_FIELDS = [
@@ -24,6 +27,15 @@ const MAX_ATTRIBUTION_VALUE_LENGTH = 100;
 const SENSITIVE_PRODUCT_PARAMETER_PATTERN = /(^|_)(accomplishment|employer|evidence|url|company|organization|title|description|body|text|content)($|_)/i;
 const RETURN_SESSION_GAP_MS = 30 * 60 * 1000;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const ANALYTICS_STORAGE_KEYS = [
+  FIRST_TOUCH_UTM_KEY,
+  ACTIVATION_COHORT_KEY,
+  ACTIVATION_SIGNUP_AT_KEY,
+  ACTIVATION_LAST_SEEN_AT_KEY,
+  ACTIVATION_RETURN_TRACKED_KEY,
+  ACTIVATION_PROOF_COUNT_KEY,
+  ACTIVATION_RECEIPT_COUNT_KEY,
+];
 
 export const ANALYTICS_EVENTS = Object.freeze({
   SIGN_UP: "sign_up",
@@ -62,6 +74,62 @@ function safeStorageWrite(storage, key, value) {
   }
 }
 
+function safeStorageRemove(storage, key) {
+  try {
+    storage?.removeItem(key);
+  } catch {
+    // Privacy changes remain best effort when browser storage is unavailable.
+  }
+}
+
+function safeConsentRead() {
+  if (typeof window === "undefined") return null;
+  try {
+    const value = window.localStorage?.getItem(ANALYTICS_CONSENT_KEY);
+    return value === ANALYTICS_CONSENT_GRANTED || value === ANALYTICS_CONSENT_DENIED ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+export function getAnalyticsConsent() {
+  return safeConsentRead();
+}
+
+export function hasAnalyticsConsent() {
+  return safeConsentRead() === ANALYTICS_CONSENT_GRANTED;
+}
+
+function clearAnalyticsStorage() {
+  if (typeof window === "undefined") return;
+  ANALYTICS_STORAGE_KEYS.forEach((key) => safeStorageRemove(window.localStorage, key));
+  safeStorageRemove(window.sessionStorage, SESSION_UTM_KEY);
+}
+
+export function setAnalyticsConsent(choice) {
+  if (typeof window === "undefined") return false;
+  if (![ANALYTICS_CONSENT_GRANTED, ANALYTICS_CONSENT_DENIED].includes(choice)) return false;
+
+  try {
+    window.localStorage?.setItem(ANALYTICS_CONSENT_KEY, choice);
+  } catch {
+    return false;
+  }
+
+  const granted = choice === ANALYTICS_CONSENT_GRANTED;
+  window[`ga-disable-${GA_MEASUREMENT_ID}`] = !granted;
+
+  if (!granted) clearAnalyticsStorage();
+
+  if (typeof window.gtag === "function") {
+    window.gtag("consent", "update", {
+      analytics_storage: granted ? "granted" : "denied",
+    });
+  }
+
+  return true;
+}
+
 function readUtmParametersFromUrl() {
   if (typeof window === "undefined") return {};
 
@@ -75,7 +143,7 @@ function readUtmParametersFromUrl() {
 }
 
 export function captureCampaignAttribution() {
-  if (typeof window === "undefined") return {};
+  if (typeof window === "undefined" || !hasAnalyticsConsent()) return {};
 
   const incomingUtm = readUtmParametersFromUrl();
   if (!Object.keys(incomingUtm).length) {
@@ -93,7 +161,7 @@ export function captureCampaignAttribution() {
 }
 
 export function getCampaignEventParameters() {
-  if (typeof window === "undefined") return {};
+  if (typeof window === "undefined" || !hasAnalyticsConsent()) return {};
 
   const sessionUtm = captureCampaignAttribution();
   const firstTouchUtm = safeStorageRead(window.localStorage, FIRST_TOUCH_UTM_KEY) || {};
@@ -121,7 +189,7 @@ function sanitizeEventParameters(parameters = {}, { productParameters = false } 
 }
 
 function emitAnalyticsEvent(eventName, parameters = {}) {
-  if (typeof window?.gtag !== "function" || !GA_NAME_PATTERN.test(eventName)) return false;
+  if (!hasAnalyticsConsent() || typeof window?.gtag !== "function" || !GA_NAME_PATTERN.test(eventName)) return false;
   window.gtag(
     "event",
     eventName,
@@ -134,7 +202,7 @@ function emitAnalyticsEvent(eventName, parameters = {}) {
 }
 
 function trackReturnWithinSevenDays() {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !hasAnalyticsConsent()) return;
   const signupAt = Number(safeStorageRead(window.localStorage, ACTIVATION_SIGNUP_AT_KEY));
   const lastSeenAt = Number(safeStorageRead(window.localStorage, ACTIVATION_LAST_SEEN_AT_KEY));
   const alreadyTracked = safeStorageRead(window.localStorage, ACTIVATION_RETURN_TRACKED_KEY) === true;
@@ -157,7 +225,7 @@ function trackReturnWithinSevenDays() {
 }
 
 function trackActivationMilestones(eventName, parameters = {}) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !hasAnalyticsConsent()) return;
 
   if (eventName === ANALYTICS_EVENTS.SIGN_UP) {
     const now = Date.now();
@@ -193,10 +261,15 @@ function trackActivationMilestones(eventName, parameters = {}) {
 }
 
 export function initializeAnalytics() {
-  if (typeof window === "undefined" || typeof document === "undefined") return;
+  if (typeof window === "undefined" || typeof document === "undefined") return false;
+  if (!hasAnalyticsConsent()) {
+    window[`ga-disable-${GA_MEASUREMENT_ID}`] = true;
+    return false;
+  }
 
+  window[`ga-disable-${GA_MEASUREMENT_ID}`] = false;
   captureCampaignAttribution();
-  if (window.__bragstackGaInitialized) return;
+  if (window.__bragstackGaInitialized) return true;
 
   window.__bragstackGaInitialized = true;
   window.dataLayer = window.dataLayer || [];
@@ -204,6 +277,7 @@ export function initializeAnalytics() {
     window.dataLayer.push(arguments);
   };
 
+  window.gtag("consent", "default", { analytics_storage: "granted" });
   window.gtag("js", new Date());
   window.gtag("config", GA_MEASUREMENT_ID);
 
@@ -214,10 +288,11 @@ export function initializeAnalytics() {
   document.head.appendChild(script);
 
   trackReturnWithinSevenDays();
+  return true;
 }
 
 export function trackAnalyticsEvent(eventName, parameters = {}) {
-  if (typeof window === "undefined" || !GA_NAME_PATTERN.test(eventName)) return false;
+  if (typeof window === "undefined" || !GA_NAME_PATTERN.test(eventName) || !hasAnalyticsConsent()) return false;
 
   initializeAnalytics();
   if (!emitAnalyticsEvent(eventName, parameters)) return false;
