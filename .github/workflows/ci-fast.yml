@@ -1,50 +1,29 @@
 name: CI Fast
 
 on:
-  push:
-    branches-ignore:
-      - main
-    paths:
-      - "backend/**"
-      - "frontend/**"
-      - ".github/workflows/ci-*.yml"
-      - "docs/CI_BUDGET_POLICY.md"
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "Area to validate"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - backend
+          - frontend
 
 concurrency:
-  group: ci-fast-${{ github.ref }}
+  group: ci-fast-${{ github.ref }}-${{ inputs.scope }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  changes:
-    name: Detect changed areas
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    outputs:
-      backend: ${{ steps.filter.outputs.backend }}
-      frontend: ${{ steps.filter.outputs.frontend }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-      - id: filter
-        shell: bash
-        run: |
-          if git rev-parse HEAD^ >/dev/null 2>&1; then
-            changed_files="$(git diff --name-only HEAD^ HEAD)"
-          else
-            changed_files="$(git show --pretty='' --name-only HEAD)"
-          fi
-          printf '%s\n' "$changed_files"
-          if printf '%s\n' "$changed_files" | grep -Eq '^(backend/|\.github/workflows/ci-)'; then echo "backend=true" >> "$GITHUB_OUTPUT"; else echo "backend=false" >> "$GITHUB_OUTPUT"; fi
-          if printf '%s\n' "$changed_files" | grep -Eq '^(frontend/|\.github/workflows/ci-)'; then echo "frontend=true" >> "$GITHUB_OUTPUT"; else echo "frontend=false" >> "$GITHUB_OUTPUT"; fi
-
   backend-fast:
     name: Fast backend checks
-    needs: changes
-    if: needs.changes.outputs.backend == 'true'
+    if: inputs.scope == 'all' || inputs.scope == 'backend'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     defaults:
@@ -74,8 +53,7 @@ jobs:
 
   frontend-fast:
     name: Fast frontend checks
-    needs: changes
-    if: needs.changes.outputs.frontend == 'true'
+    if: inputs.scope == 'all' || inputs.scope == 'frontend'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     defaults:
