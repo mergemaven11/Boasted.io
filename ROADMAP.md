@@ -1,293 +1,358 @@
-# Boasted — Brand Reshape Sprint Roadmap
+# Boasted Product Roadmap
 
-**Sprint:** September 3–11, 2026  
-**Goal:** Reshape Boasted from a useful career tracker into a clear, trustworthy **career evidence network**: capture the work, prove the impact, package the story, and make it easy for the right people to engage.
-
-## North-star positioning
+**Status:** Living roadmap  
+**Last refreshed:** September 11, 2026  
+**Current product question:** Can a technical or support engineer turn one real accomplishment into structured proof, complete an Impact Receipt, and produce one immediately useful career output without founder coaching?
 
 > **Your work deserves receipts.**
 
-Boasted should own the evidence layer of a person's career. It is not another social feed and it is not an HR surveillance product. It is the portable record of what someone did, what they contributed, what changed, and what supports the claim.
+Boasted is a **career evidence system**: capture what happened, preserve what proves it, and reuse that evidence when a review, promotion, interview, résumé, profile, or other opportunity appears.
 
-### Product story
+This file is intentionally not a date-by-date feature wishlist. The previous September brand sprint has largely been overtaken by shipped work. This roadmap now separates:
 
-**Capture → Prove → Package → Share → Connect**
+1. what is already on `main`;
+2. what must be finished or hardened now;
+3. what must be validated with users before more expansion;
+4. what becomes eligible only after the core loop is proven.
 
-1. **Capture** accomplishments while they are fresh.
-2. **Prove** contribution and results with Impact Receipts, evidence, shared credit, and recognition.
-3. **Package** that evidence into review, promotion, interview, résumé, and career artifacts.
-4. **Share** selected proof through a professional public profile without exposing private evidence.
-5. **Connect** when an interested recruiter, manager, collaborator, or interviewer wants a deeper conversation.
+---
 
-## Sprint guardrails
+## North star
 
-- Private by default; public sharing is explicit.
-- No invented metrics, claims, verification, or employment scores.
-- No workplace-surveillance mechanics.
+### Core loop
+
+**Capture → Prove → Reuse → Share when useful**
+
+1. **Capture** a real accomplishment while it is still fresh.
+2. **Prove** the contribution and result with an Impact Receipt, evidence, skills, shared credit, and recognition where appropriate.
+3. **Reuse** the same saved proof in a résumé, interview, review, promotion case, packet, or other career artifact.
+4. **Share** only the proof the user intentionally chooses to publish or send.
+
+The activation test is not “did the user explore features?” It is:
+
+> **Did the user turn one real accomplishment into trusted proof and get something immediately useful back from it?**
+
+### Product principles
+
+- Private by default; sharing is explicit.
+- No invented metrics, outcomes, verification, credentials, employers, or career facts.
+- Evidence remains user-controlled and traceable to its source.
 - Shared work preserves shared credit.
-- Build on the existing evidence engine instead of rewriting working product foundations.
-- Keep expensive infrastructure optional; ship useful first-party foundations before adding paid vendors.
-- Every major feature must have a clear Free / Pro / Team / Enterprise entitlement story.
+- Boasted must not become workplace surveillance or opaque employment scoring.
+- Career-neutral data structures stay broad even while early validation begins with a narrow technical/support-engineering ICP.
+- Deterministic product behavior should solve a problem before expensive infrastructure or model inference is introduced.
+- AI may assist with evidence; it may never become the source of truth.
 
 ---
 
-## Phase 0 — Today: freeze the story and protect the foundation
+# Shipped baseline
 
-**Target: Sep 3**
+The items below are **already part of the repository baseline** and should not remain in the roadmap as unchecked future work.
 
-- [ ] Audit current landing page, navigation, profile, reports, packets, résumé builder, pricing, and onboarding against the new positioning.
-- [ ] Inventory open PRs and avoid mixing the rebrand with unrelated unfinished work.
-- [ ] Define canonical terminology: **Boasted**, **Impact Receipt**, **Proof Profile**, **Career Evidence**, **Professional Packet**.
-- [ ] Define the one-sentence pitch and homepage hierarchy.
-- [ ] Capture before screenshots / baseline UX notes for the key public and authenticated flows.
-- [ ] Add regression checklist for auth, privacy, packet generation, PDF export, profile visibility, and mobile navigation.
+## Career evidence foundation
 
-**Exit:** one product story, one vocabulary, no ambiguity about what Boasted is becoming.
+- Accomplishment capture, editing, search, pagination, categories, skills, dates, and public/private state.
+- Impact Receipts with contribution, result, measurable impact, evidence, skills, shared credit, recognition/confirmation, trust signals, and private-by-default evidence behavior.
+- Reports Hub with weekly, all-time, and custom-range career reporting.
+- Public Proof Profiles scoped to intentionally published user content.
+- Career-neutral packet regression coverage across professions.
 
----
+## Professional outputs
 
-## Phase 1 — Brand + landing-page reshape
+- Performance Review Packet.
+- Promotion Packet.
+- Interview Packet.
+- Certification / Licensure Packet.
+- Server-generated PDF export.
+- Packet Platform features including accomplishment selection/pinning, selective sections, user-authored annotations, themes, branding controls, export metadata, secure private sharing, and verified-recognition semantics.
 
-**Target: Sep 3–4**
+## Pro career tools
 
-- [ ] Rework hero around evidence and outcomes rather than generic accomplishment tracking.
-- [ ] Explain the Capture → Prove → Package → Share → Connect loop visually.
-- [ ] Make Impact Receipts the signature product concept.
-- [ ] Add role-neutral examples so the brand works beyond software/office careers.
-- [ ] Tighten visual system: typography, spacing, card language, proof/evidence motifs, CTA hierarchy, empty states, and product screenshots.
-- [ ] Rewrite feature copy so every feature answers: **what does this help me prove or do next?**
-- [ ] Make trust/privacy principles visible instead of burying them.
-- [ ] Refresh pricing-page narrative around outcomes and entitlements.
+- Resume Builder with structured import, evidence-backed matching, ATS-safe reconstruction/coaching, editing, saved versions, and export paths.
+- Practice Interviewer with catalog-backed questions, evidence-aware coaching, browser speech/device handling, and mobile support.
+- Career Intelligence v1 with deterministic skill evidence, quantified outcomes, proof-gap analysis, evidence/confirmation signals, and recommended actions without opaque readiness scoring.
 
-**Exit:** a visitor can understand the product, differentiator, trust model, and next action in under a minute.
+## Account, billing, and customer experience
 
----
+- Password authentication plus Google and GitHub OAuth.
+- Email verification and password reset.
+- Stripe Checkout/subscription lifecycle for Free/Pro entitlements.
+- Cancellation-at-period-end, paid-through access, and resume-subscription behavior.
+- Guided onboarding, settings organization, appearance controls, docs, legal pages, SEO/search assets, and analytics foundation.
 
-## Phase 2 — Proof Profile 2.0
+## Production, security, and operations
 
-**Target: Sep 4–7**
-
-- [ ] Redesign public profiles as professional evidence pages, not mini social profiles.
-- [ ] Add profile headline / positioning, selected highlights, featured Impact Receipts, skills, recognition, and selected packets/artifacts.
-- [ ] Add pinning/reordering for public accomplishments and receipts.
-- [ ] Add explicit profile preview so users see exactly what outsiders will see.
-- [ ] Add stronger public/private indicators throughout editing.
-- [ ] Add share controls and copyable profile link.
-- [ ] Design packet/profile expiration and revocation model; implement the safest achievable slice this sprint.
-- [ ] Keep private evidence metadata and sensitive workplace material out of public payloads by default.
-
-**Exit:** a user can confidently send their Boasted profile to a recruiter, hiring manager, interviewer, client, or collaborator.
-
----
-
-## Phase 3 — Smart Availability / “Open to Talk”
-
-**Target: Sep 7–9**
-
-- [ ] Add an opt-in **Open to Talk** state on Proof Profiles.
-- [ ] Support conversation types such as recruiter chat, technical deep dive, mentoring/networking, and consulting where appropriate.
-- [ ] Let the profile owner expose only intentional availability—not their private calendar.
-- [ ] Collect booking context: what the visitor wants to discuss and which accomplishment/receipt prompted the conversation.
-- [ ] Create a calendar-provider abstraction so Google/Outlook integrations can be added without coupling the profile UI to one vendor.
-- [ ] Start with a low-cost implementation path: external booking link and/or controlled availability blocks before building full scheduling infrastructure.
-- [ ] Add abuse/privacy controls: disable instantly, no private calendar details, bounded visitor inputs, and clear ownership of contact preferences.
-
-**Exit:** interest in someone's proof can turn into a conversation without Boasted becoming a calendar product.
+- Health/readiness probes, tested database indexes, and restore-validation safeguards.
+- Security headers, HSTS on HTTPS, tighter CORS, JWT lifecycle hardening, dependency/security CI, and auth recovery protections.
+- Production rate limiting and abuse protection.
+- Idempotent Stripe webhook processing.
+- Sanitized persistent operational observability with TTL retention and restricted Ops access.
+- Ops Console with backend-enforced RBAC, diagnostics, account lookup, and audited role management.
+- Route-level code splitting, production bundle budgets, branded loading states, SEO regression gates, and real-browser click audits.
+- Server-managed authentication sessions with revocation, inactivity timeout, absolute lifetime, logout revocation, and password-reset session revocation.
+- AI foundation modules for evidence-grounded contracts, feature flags, licensing gates, deterministic guards, and release evaluation.
 
 ---
 
-## Phase 4 — Packaging + sharing polish
+# NOW — Launch hygiene and production trust
 
-**Target: Sep 8–10**
+**Goal:** remove avoidable operational/security risk and make the current product dependable enough for observed beta use.
 
-- [ ] Bring Performance Review, Promotion, Interview, and Résumé surfaces under the same brand language.
-- [ ] Add branded packet themes and selective sections where feasible.
-- [ ] Improve calls-to-action from accomplishments/receipts into the appropriate packet.
-- [ ] Make the Resume Builder flow consistent with the evidence-first story.
-- [ ] Add share-ready packet metadata and clear privacy warnings.
-- [ ] Ensure PDFs and public views use consistent terminology and visual identity.
+## Repository and release hygiene
 
-**Exit:** Boasted feels like one product rather than a collection of career utilities.
+- [ ] Resolve and merge the CI-noise cleanup without weakening required pull-request, secret-scan, nightly, or canonical production checks.
+- [ ] Merge pre-public repository hardening before changing repository visibility, including history-aware secret scanning and security-reporting guidance.
+- [ ] Keep canonical Boasted production smoke tests blocking; treat legacy-origin probes as diagnostics only where appropriate.
+- [ ] Bring `CHANGELOG.md`, `README.md`, repository description, and this roadmap back into agreement after the current open hardening work lands.
+- [ ] Audit remaining legacy **BragStack** names, domains, copy, environment examples, and stale internal references so Boasted has one canonical identity.
 
----
+## Authentication follow-through
 
-## Phase 5 — Team/manager foundation without surveillance
+Server-managed idle sessions are the correct first production step, but bearer tokens still live in browser storage.
 
-**Target: Sep 9–10**
+- [ ] Move the production API to a same-site Boasted hostname such as `api.boasted.io`.
+- [ ] After same-site hosting is stable, migrate toward short-lived access tokens plus Secure/HttpOnly refresh cookies.
+- [ ] Preserve server-side revocation, inactivity limits, password-reset revocation, and OAuth session behavior during that migration.
+- [ ] Add rollout/regression coverage so auth changes do not break mobile browsers, OAuth callbacks, or cold-start flows.
 
-- [ ] Strengthen recognition/confirmation workflows around specific contributions.
-- [ ] Define manager/team review-cycle workflow using user-approved evidence.
-- [ ] Keep employee visibility and organization analytics clearly separated.
-- [ ] Document what managers can and cannot see.
-- [ ] Ensure enterprise analytics remain aggregate, bounded, and non-scoring.
+## Operational readiness
 
-**Exit:** the team story supports bottom-up adoption without weakening user ownership.
+- [ ] Keep production health/readiness, billing, auth, email, PDF generation, and core evidence flows covered by smoke tests.
+- [ ] Confirm backup/restore procedures with a repeatable operator checklist.
+- [ ] Keep observability privacy-safe: no auth secrets, raw evidence, employer-confidential content, or sensitive request bodies in telemetry.
+- [ ] Maintain a small incident/runbook set for auth, billing, database connectivity, email delivery, and production cold starts.
 
----
-
-## Phase 6 — Release hardening
-
-**Target: Sep 10–11**
-
-- [ ] Desktop + mobile walkthrough of landing → signup/login → capture → receipt → profile → packet → share/connect.
-- [ ] Accessibility pass: keyboard flow, focus, labels, contrast, reduced motion, responsive layout.
-- [ ] Security/privacy regression pass.
-- [ ] Backend tests, frontend lint/build, production bundle checks, and CI green on exact release head.
-- [ ] Verify public endpoints cannot leak private evidence.
-- [ ] Verify packet generators do not invent missing claims or metrics.
-- [ ] Update README, screenshots, docs, changelog, and release notes.
-- [ ] Remove stale copy and dead navigation from the previous brand story.
-
-**Exit:** release candidate ready by **Friday, September 11, 2026**.
+**Exit condition:** beta participants can use the production product without founder workarounds, avoidable CI/release noise, or known high-priority security gaps interfering with the session.
 
 ---
 
-## AI / ML Evidence Assistant
+# NOW — Founder beta validation
 
-AI is an **assistive evidence layer**, never the source of truth. Boasted should remain useful when AI is disabled or unavailable.
+**Goal:** validate the core Boasted loop before expanding the surface area.
 
-### Non-negotiable evidence rule
+The canonical research protocol is `docs/FOUNDER_BETA_OBSERVATION_PROTOCOL.md`.
+
+## Round 1: five observed sessions
+
+- [ ] Recruit **five qualifying technical/support engineers** with one recent accomplishment they can safely sanitize.
+- [ ] Observe the marketing page first impression without explaining the product.
+- [ ] Observe signup/onboarding without coaching the next step.
+- [ ] Have each participant create one real accomplishment from memory.
+- [ ] Have each participant complete an Impact Receipt.
+- [ ] Have each participant reuse that same saved proof for one useful output: résumé, interview, performance review, or shareable proof.
+- [ ] Record intervention points, confusion, abandonment, privacy concerns, and time-to-value.
+- [ ] Conduct the seven-day follow-up for each participant or explicitly mark it unavailable.
+
+## What to measure
+
+- Product understood from the marketing page without founder explanation.
+- Signup completed.
+- First proof created.
+- First Impact Receipt completed.
+- One useful output produced from existing proof.
+- Private/public state understood.
+- “Capture once, reuse later” understood afterward.
+- Whether the participant independently wants to save a second accomplishment.
+- Founder interventions and exact abandonment points.
+
+Do **not** send accomplishment text, employer information, evidence content, or sensitive URLs into analytics.
+
+## Synthesis order
+
+Repeated problems are prioritized in this order:
+
+1. blocks signup or first proof;
+2. blocks Impact Receipt completion;
+3. hides or weakens immediate reuse/output;
+4. creates privacy or trust confusion;
+5. prevents a second proof or later reuse;
+6. everything else.
+
+**Exit condition:** five end-to-end sessions are complete, D7 follow-up is complete or marked unavailable, repeated friction is separated from one-off preference, and the next changes can be tied to observed behavior.
+
+---
+
+# NEXT — Core-loop activation and retention
+
+**This section becomes active after Round 1 synthesis.** Do not pre-build every item below. Pull forward only the work supported by repeated beta behavior.
+
+## Reduce time-to-value
+
+- [ ] Make the shortest path from **accomplishment → Impact Receipt → useful output** obvious without founder coaching.
+- [ ] Remove fields, copy, or navigation decisions that repeatedly block first proof or first receipt completion.
+- [ ] Keep contribution vs. result language understandable to people who do not already think in résumé/STAR terminology.
+- [ ] Make evidence optional enough to begin quickly but valuable enough that users understand why stronger proof matters.
+- [ ] Preserve a visible connection between generated career material and the source evidence that supports it.
+
+## Measure activation safely
+
+- [ ] Add privacy-safe product events for milestone completion, not evidence content.
+- [ ] Measure first proof, first receipt, first reused output, second proof, export/share, and return behavior.
+- [ ] Separate “visited feature” from “completed useful outcome.”
+- [ ] Establish a small founder dashboard for core-loop conversion and return behavior without exposing private career data.
+
+## Earn the second accomplishment
+
+Potential retention work is eligible only if it addresses an observed return barrier:
+
+- [ ] clearer post-output next action;
+- [ ] lightweight reminder or weekly capture prompt;
+- [ ] faster repeat-entry flow;
+- [ ] safe import/capture assistance from user-controlled notes or artifacts;
+- [ ] proof-gap prompts that ask for missing support instead of inventing it.
+
+**Exit condition:** the core loop is understandable, repeatable, and measurably useful without founder coaching for the initial ICP.
+
+---
+
+# NEXT — Sharing and opportunity conversion
+
+Sharing is valuable only after users trust the evidence model and understand privacy.
+
+- [ ] Improve Proof Profile selection, preview, ordering, and privacy clarity based on beta behavior.
+- [ ] Make packet/profile sharing revocable and understandable.
+- [ ] Measure intentional shares and downstream engagement without turning public profiles into a social feed.
+- [ ] Re-test whether profile visitors understand what is verified, self-reported, private, or intentionally public.
+
+## Open to Talk — gated hypothesis
+
+The old roadmap treated **Open to Talk** as a scheduled sprint feature. It should now be treated as a hypothesis.
+
+Build it only if observed sharing behavior shows that users want a low-friction path from proof to conversation.
+
+Possible first slice:
+
+- opt-in availability state;
+- explicit conversation intent;
+- external booking link or controlled availability block;
+- no exposure of private calendar details;
+- instant disable/revocation;
+- bounded visitor input and abuse controls.
+
+Native Google/Outlook scheduling stays later unless the simpler path proves demand.
+
+---
+
+# LATER — Team and enterprise workflows
+
+Do not let enterprise surface area outrun individual product-market evidence.
+
+Eligible later work includes:
+
+- manager recognition around a specific contribution;
+- user-approved review-cycle workflows;
+- team evidence workflows without surveillance;
+- aggregate organization skill intelligence with bounded privacy rules;
+- HRIS integrations;
+- SSO, SCIM, audit, retention, and expanded RBAC;
+- policy controls for enterprise sharing and AI use.
+
+Non-negotiable rule: organization features must not silently expose private employee evidence or turn Boasted into an employee scoring system.
+
+---
+
+# LATER — AI evidence assistance
+
+The AI architecture foundation exists. Customer-facing AI expansion remains gated by measured quality and a clear user problem.
+
+## AI evidence rule
 
 **AI may extract, organize, classify, summarize, suggest, search, and rewrite. It may not manufacture career evidence.**
 
-AI must never invent metrics, verification, employers, dates, outcomes, credentials, evidence, employment history, customer results, or other career facts. Unsupported fields stay blank or become explicit questions for the user.
+Unsupported metrics, dates, employers, outcomes, credentials, verification, or other career facts remain blank or become explicit questions.
 
-### Initial capabilities
+## Eligible capabilities
 
-1. **Evidence extraction** — turn user-provided notes and artifacts into candidate contribution, result, skills, dates, people, and evidence references.
-2. **Impact Receipt drafting** — draft structured receipts using only captured evidence and retain links to supporting evidence IDs.
-3. **Evidence quality checks** — flag vague, unsupported, or internally inconsistent claims and ask for stronger support rather than fabricating specificity.
-4. **Grounded career writing** — create résumé bullets, review summaries, promotion narratives, and STAR/interview preparation from evidence the user explicitly selects.
-5. **Semantic evidence search** — support private queries such as “show examples where I demonstrated leadership” across the user's own evidence record.
-6. **Skill/category suggestions** — suggest classifications with transparent provenance; user confirmation is required before they become durable record data.
-7. **Optional local/private inference** — provide a path for sensitive evidence to be processed without requiring a paid hosted inference provider.
+- evidence extraction from user-provided notes/artifacts;
+- Impact Receipt drafting from known evidence;
+- evidence-quality checks and contradiction flags;
+- grounded résumé/review/interview writing from user-selected sources;
+- semantic search across the user’s own evidence;
+- skill/category suggestions with user confirmation;
+- optional local/private inference where practical.
 
-### Architecture
+## Release gates
 
-- Introduce a provider-neutral `AIProvider` / inference adapter; domain logic must not depend on one model vendor.
-- Prefer deterministic parsing/validation before invoking a model where rules can solve the task reliably.
-- Require structured model outputs and validate schemas server-side.
-- Pass evidence IDs/source references into generation and retain provenance with every suggestion.
-- Store generated content as **AI suggestion/draft state** until the user accepts it; AI output does not silently become evidence.
-- Add deterministic guards for unsupported numeric claims, verification language, credentials, and other high-risk factual fields.
-- Keep prompts/schema versions auditable so behavior can be reproduced during evaluation.
-- Put AI capabilities behind feature flags and entitlement boundaries for incremental rollout and instant rollback.
-- Core capture, receipts, profiles, and packets must have a non-AI path.
-- Do not train on user evidence by default. Any future training/feedback use requires an explicit policy, privacy review, and consent design.
+Every model/task must pass documented gates for:
 
-### Free/open-weight and licensing strategy
-
-Early development should favor local/self-hostable inference where practical so Boasted does not inherit a mandatory per-request AI bill.
-
-For every model considered for production, record:
-
-- exact model ID and version/revision;
-- upstream source/model card;
-- exact license and permanent license source where available;
-- commercial-use, modification, and redistribution rights;
-- attribution/notice requirements;
-- runtime requirements and expected hardware envelope;
-- intended Boasted task;
-- evaluation result and known limitations.
-
-Prefer models with clear commercially usable permissive terms such as Apache-2.0 or MIT **after model-by-model review**. A permissively licensed runtime does not make the model weights permissively licensed; both must pass the licensing gate independently. Models with unclear, research-only, noncommercial, use-restricted, or incompatible terms do not ship.
-
-Paid inference providers may be supported later through the same adapter, but they remain optional rather than architectural dependencies.
-
-### Evaluation gate before customer-facing AI
-
-No AI feature becomes customer-facing merely because its demo looks good. Each task needs a documented evaluation set and release threshold covering, where applicable:
-
-- groundedness / unsupported-claim rate;
-- numeric hallucination rate;
-- evidence citation/reference correctness;
+- groundedness and unsupported-claim rate;
+- numeric hallucination behavior;
+- evidence-reference correctness;
 - structured-output validity;
-- extraction precision and recall;
-- cross-profession fixtures so behavior is not optimized only for software/office careers;
 - privacy/redaction behavior;
-- adversarial prompt-injection tests for pasted/uploaded evidence;
-- latency and memory/compute envelope;
-- model/version regression testing;
-- documented limitations;
-- kill switch / rollback path.
+- prompt-injection/adversarial evidence tests;
+- cross-profession fixtures;
+- latency/runtime envelope;
+- exact model/license review;
+- rollback/kill-switch behavior.
 
-Use blinded fixtures for release evaluation where practical. Customer-facing proof generated with AI must still be traceable back to user-controlled evidence.
-
-### AI rollout order
-
-**P0 foundation:** architecture contract, evidence-grounding rules, provenance schema, licensing gate, evaluation harness design, feature flags. Do not delay the brand reshape to ship model inference.
-
-**P1:** evidence extraction and evidence-quality suggestions behind an experimental flag, followed by grounded Impact Receipt assistance after evaluation passes.
-
-**P2:** semantic evidence search, grounded résumé/review/interview assistance, and optional local inference packaging.
-
-**Later:** additional providers/models only when measured quality, privacy, cost, or hardware coverage justifies them.
+Boasted must remain useful when AI is disabled or unavailable.
 
 ---
 
-## Scope priority
+# PARKED — Expansion that should not distract from core validation
 
-### P0 — Must ship
+These ideas may be valuable, but they should not become the near-term roadmap simply because implementation has started somewhere.
 
-- Brand/landing-page reshape
-- Unified evidence-first terminology
-- Proof Profile 2.0 core presentation + privacy clarity
-- Open to Talk foundation
-- Cross-product navigation/copy consistency
-- AI evidence-grounding architecture contract + licensing/evaluation gates (not mandatory model inference)
-- Regression, privacy, accessibility, and CI hardening
+- Education/student/application expansion beyond the current validated career core.
+- Large new profession-specific workflows that bypass the universal evidence model.
+- Native calendar infrastructure before simple conversation/booking demand is proven.
+- Deep enterprise integrations before individual activation/retention is understood.
+- Paid model dependencies before a deterministic or lower-cost approach has been exhausted.
+- New “score” products that imply employment, promotion, or hiring predictions.
 
-### P1 — Ship if P0 is stable
-
-- Profile pinning/reordering
-- Better share controls
-- Branded/selective packet sections
-- Recognition workflow polish
-- External booking-link / controlled-availability implementation
-- Experimental evidence extraction / quality assistance after evaluation gates pass
-
-### P2 — Design now, implement after sprint if needed
-
-- Native Google/Outlook calendar sync
-- Full in-product scheduling engine
-- Rich packet expiration/revocation infrastructure
-- Deeper HRIS integrations
-- Advanced organization skill intelligence
-- SSO/SCIM/RBAC expansion
-- Semantic evidence search and broader local/open-weight AI assistance
+Any education/application expansion also requires explicit privacy, consent, age/safety, and legal review appropriate to the final product design before public claims are made.
 
 ---
 
-## Proposed entitlement shape
+# Roadmap decision rules
 
-| Capability | Free | Pro | Team | Enterprise |
-| --- | --- | --- | --- | --- |
-| Capture accomplishments | ✓ | ✓ | ✓ | ✓ |
-| Core Impact Receipts | ✓ | ✓ | ✓ | ✓ |
-| Public Proof Profile | ✓ | ✓ | ✓ | ✓ |
-| Featured/pinned proof | Limited | ✓ | ✓ | ✓ |
-| Advanced packets/PDFs | —/Limited | ✓ | ✓ | ✓ |
-| Open to Talk | Basic | Advanced | Advanced | Policy-controlled |
-| Recognition workflows | Basic | Basic | ✓ | ✓ |
-| Team review workflows | — | — | ✓ | ✓ |
-| Aggregate org intelligence | — | — | Limited | ✓ |
-| SSO/audit/governance | — | — | — | ✓ |
+A new major feature should enter **NOW** or **NEXT** only when at least one of these is true:
 
-Exact pricing remains separate from entitlement design.
+1. it fixes a repeated core-loop blocker observed in real users;
+2. it closes a concrete security, privacy, reliability, billing, or operational risk;
+3. it materially improves activation, repeat use, or trusted sharing and can be measured;
+4. it is required to support an already-validated workflow without creating a larger unrelated product surface.
+
+A feature should stay **LATER** or **PARKED** when it is primarily driven by novelty, competitor parity, implementation momentum, or founder enthusiasm without user evidence.
 
 ---
 
-## Definition of done
+# Current success signals
 
-The sprint is complete when a new visitor can answer these questions without explanation:
+The most important product signals are:
 
-1. **What is Boasted?** A career evidence system / network for portable proof of real work.
-2. **Why is it different?** It structures accomplishments into evidence-aware Impact Receipts instead of relying on self-promotional posts or annual memory.
-3. **What can I do with it?** Capture, prove, package, share, and use that proof to create opportunities.
-4. **Can I trust it with workplace information?** Private by default, explicit sharing, no invented verification, and no surveillance model.
-5. **What happens when someone likes my work?** They can explore the proof I chose to publish and, if I opt in, request a conversation through Open to Talk.
-6. **What does AI do?** It assists with organizing and using my evidence; it does not manufacture my career history or proof.
+1. first accomplishment saved;
+2. first Impact Receipt completed;
+3. first useful output generated from existing proof;
+4. second accomplishment saved;
+5. D7 return / reuse behavior;
+6. intentional export or share;
+7. qualified downstream engagement from shared proof.
 
-## After this sprint
+The first three measure activation. The next two measure whether Boasted becomes a habit instead of a one-time generator. The last two measure whether portable proof creates real-world utility.
 
-Next bets should be selected from observed activation and sharing behavior rather than feature count. The first metrics to watch are: first accomplishment captured, first Impact Receipt created, first packet generated, Proof Profile published, profile/packet shared, and qualified conversation intent generated.
+---
+
+# Definition of progress
+
+Boasted is moving in the right direction when a target user can say, without founder explanation:
+
+1. **What is Boasted?** A place to keep trustworthy proof of the work I have done.
+2. **Why would I save something here?** Because I can reuse the same evidence later instead of reconstructing my career from memory.
+3. **What is an Impact Receipt?** A structured record connecting what happened, what I contributed, what changed, and what supports the claim.
+4. **Can I trust it with workplace information?** My data is private by default, sharing is intentional, and Boasted does not invent verification or expose private evidence publicly.
+5. **What do I get back?** Career-ready outputs built from proof I already saved.
+6. **What does AI do?** It may help organize or write from my evidence, but it does not create facts about my career.
+
+---
+
+# Maintenance rule
+
+Refresh this roadmap after each meaningful validation round or strategic change, not after every pull request.
+
+- `CHANGELOG.md` records **what shipped**.
+- GitHub issues/PRs record **implementation work**.
+- This roadmap records **what problem Boasted is solving next and why**.
+
+When an item ships, move the capability into the shipped baseline or changelog instead of leaving it as a permanently checked roadmap task.
