@@ -14,8 +14,10 @@ function setMetaContent(selector, value) {
 
 function installContentSchema({ canonicalUrl, title, content }) {
   const scriptId = "boasted-seo-content-schema";
+  const staticScriptId = "boasted-static-content-schema";
   document.getElementById(scriptId)?.remove();
 
+  if (document.getElementById(staticScriptId)) return () => {};
   if (content.kind !== "guide" && content.kind !== "hub") return () => {};
 
   const organization = { "@id": "https://boasted.io/#organization" };
@@ -57,16 +59,33 @@ function installContentSchema({ canonicalUrl, title, content }) {
         },
       };
 
+  const graph = [
+    primaryNode,
+    {
+      "@type": "BreadcrumbList",
+      "@id": `${canonicalUrl}#breadcrumbs`,
+      itemListElement: breadcrumbItems,
+    },
+  ];
+
+  if (content.kind === "guide" && content.faq?.length) {
+    graph.push({
+      "@type": "FAQPage",
+      "@id": `${canonicalUrl}#faq`,
+      mainEntity: content.faq.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer,
+        },
+      })),
+    });
+  }
+
   const schema = {
     "@context": "https://schema.org",
-    "@graph": [
-      primaryNode,
-      {
-        "@type": "BreadcrumbList",
-        "@id": `${canonicalUrl}#breadcrumbs`,
-        itemListElement: breadcrumbItems,
-      },
-    ],
+    "@graph": graph,
   };
 
   const script = document.createElement("script");
