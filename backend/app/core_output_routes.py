@@ -6,7 +6,8 @@ from collections import Counter
 from datetime import date, datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from bson import ObjectId
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
 from app.auth import get_current_user
@@ -21,6 +22,7 @@ class ResumeTargetRequest(BaseModel):
     target_role: str = Field(..., min_length=2, max_length=200)
     target_description: str = Field(default="", max_length=12000)
     max_bullets: int = Field(default=8, ge=1, le=20)
+    source_receipt_ids: list[str] = Field(default_factory=list, max_length=20)
 
 
 def _clean(value: Any) -> str:
@@ -58,16 +60,7 @@ def _receipt_date(receipt: dict) -> date | None:
 
 
 def _receipts_for_user(user_id: str, start_date: date | None = None, end_date: date | None = None) -> list[dict]:
-    """Handle receipts for user.
-
-    Args:
-        user_id: Function argument.
-        start_date: Function argument.
-        end_date: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Return owned receipts, newest first, optionally constrained by date."""
     receipts = list(impact_receipts_collection.find({"user_id": user_id}).sort("created_at", -1))
     if start_date is None and end_date is None:
         return receipts
@@ -83,15 +76,76 @@ def _receipts_for_user(user_id: str, start_date: date | None = None, end_date: d
     return selected
 
 
+def _normalize_receipt_ids(receipt_ids: list[str] | None) -> list[str]:
+    """Validate and de-duplicate explicit receipt selectors while preserving order."""
+    normalized = []
+    seen = set()
+    for value in receipt_ids or []:
+        receipt_id = _clean(value)
+        if not receipt_id or not ObjectId.is_valid(receipt_id):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Invalid Impact Receipt selection.",
+            )
+        if receipt_id not in seen:
+            normalized.append(receipt_id)
+            seen.add(receipt_id)
+    return normalized
+
+
+def _selected_receipts_for_user(
+    user_id: str,
+    receipt_ids: list[str] | None,
+    start_date: date | None = None,
+    end_date: date | None = None,
+) -> list[dict]:
+    """Return exactly the requested owned receipts, or the normal owned set when unselected."""
+    normalized_ids = _normalize_receipt_ids(receipt_ids)
+    if not normalized_ids:
+        return _receipts_for_user(user_id, start_date, end_date)
+
+    object_ids = [ObjectId(receipt_id) for receipt_id in normalized_ids]
+    found = list(
+        impact_receipts_collection.find(
+            {
+                "user_id": user_id,
+                "_id": {"$in": object_ids},
+            }
+        )
+    )
+    by_id = {str(receipt["_id"]): receipt for receipt in found}
+
+    # One generic response avoids revealing which requested ID was missing or
+    # belonged to another user.
+    if len(by_id) != len(normalized_ids):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="One or more selected Impact Receipts are unavailable.",
+        )
+
+    selected = [by_id[receipt_id] for receipt_id in normalized_ids]
+    if start_date is None and end_date is None:
+        return selected
+
+    date_filtered = []
+    for receipt in selected:
+        created = _receipt_date(receipt)
+        if start_date is not None and (created is None or created < start_date):
+            continue
+        if end_date is not None and (created is None or created > end_date):
+            continue
+        date_filtered.append(receipt)
+
+    if len(date_filtered) != len(selected):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="One or more selected Impact Receipts are unavailable for this output period.",
+        )
+    return date_filtered
+
+
 def _metric_text(receipt: dict) -> list[str]:
-    """Handle metric text.
-
-    Args:
-        receipt: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle metric text."""
     values = []
     for metric in receipt.get("metrics", []) or []:
         label = _clean(metric.get("label"))
@@ -107,14 +161,7 @@ def _metric_text(receipt: dict) -> list[str]:
 
 
 def _evidence_summary(receipt: dict) -> list[dict]:
-    """Handle evidence summary.
-
-    Args:
-        receipt: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle evidence summary."""
     return [
         {
             "title": _clean(item.get("title")),
@@ -129,14 +176,7 @@ def _evidence_summary(receipt: dict) -> list[dict]:
 
 
 def _proof_strength(receipt: dict) -> int:
-    """Handle proof strength.
-
-    Args:
-        receipt: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle proof strength."""
     score = min(len(receipt.get("evidence", []) or []), 3)
     score += min(len(receipt.get("metrics", []) or []), 2)
     score += 1 if any(
@@ -147,14 +187,7 @@ def _proof_strength(receipt: dict) -> int:
 
 
 def _receipt_record(receipt: dict) -> dict:
-    """Handle receipt record.
-
-    Args:
-        receipt: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle receipt record."""
     created = _receipt_date(receipt)
     return {
         "receipt_id": str(receipt["_id"]),
@@ -171,14 +204,7 @@ def _receipt_record(receipt: dict) -> dict:
 
 
 def _tokenize(value: str) -> set[str]:
-    """Handle tokenize.
-
-    Args:
-        value: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle tokenize."""
     stop_words = {
         "and", "the", "with", "for", "from", "that", "this", "your", "you", "our", "are",
         "will", "have", "has", "into", "using", "use", "job", "role", "work", "team", "their",
@@ -191,15 +217,7 @@ def _tokenize(value: str) -> set[str]:
 
 
 def _resume_score(receipt: dict, target_tokens: set[str]) -> tuple[int, int]:
-    """Handle resume score.
-
-    Args:
-        receipt: Function argument.
-        target_tokens: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle resume score."""
     searchable = " ".join(
         [
             _clean(receipt.get("accomplishment")),
@@ -213,14 +231,7 @@ def _resume_score(receipt: dict, target_tokens: set[str]) -> tuple[int, int]:
 
 
 def _resume_bullet(receipt: dict) -> str:
-    """Handle resume bullet.
-
-    Args:
-        receipt: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle resume bullet."""
     contribution = _clean(receipt.get("contribution"))
     result = _clean(receipt.get("result"))
     accomplishment = _clean(receipt.get("accomplishment"))
@@ -236,12 +247,13 @@ def _resume_bullet(receipt: dict) -> str:
 def evidence_only_performance_review(
     start_date: date | None = Query(default=None),
     end_date: date | None = Query(default=None),
+    receipt_id: list[str] | None = Query(default=None),
     current_user: dict = Depends(get_current_user),
 ):
     """Build a performance-review packet exclusively from owned Impact Receipts."""
 
     user_id = str(current_user["_id"])
-    receipts = _receipts_for_user(user_id, start_date, end_date)
+    receipts = _selected_receipts_for_user(user_id, receipt_id, start_date, end_date)
     records = [_receipt_record(receipt) for receipt in receipts]
 
     skill_counts = Counter(skill for record in records for skill in record["skills"])
@@ -287,10 +299,11 @@ def evidence_only_resume_material(
     """Rank and format evidence-backed resume material for a target job."""
 
     user_id = str(current_user["_id"])
-    receipts = _receipts_for_user(user_id)
+    explicit_selection = bool(payload.source_receipt_ids)
+    receipts = _selected_receipts_for_user(user_id, payload.source_receipt_ids)
     target_tokens = _tokenize(f"{payload.target_role} {payload.target_description}")
 
-    ranked = sorted(
+    ranked = receipts if explicit_selection else sorted(
         receipts,
         key=lambda receipt: _resume_score(receipt, target_tokens),
         reverse=True,

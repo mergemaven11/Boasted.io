@@ -138,6 +138,7 @@ function ImpactReceiptsPage() {
   const [updatingId, setUpdatingId] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
+  const [showNextUses, setShowNextUses] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState(null);
@@ -186,13 +187,13 @@ function ImpactReceiptsPage() {
 
   async function submitReceipt(event) {
     event.preventDefault();
-    setIsCreating(true); setError(""); setSuccess("");
+    setIsCreating(true); setError(""); setSuccess(""); setShowNextUses(false);
     const skills = form.skills.split(",").map((skill) => skill.trim()).filter(Boolean);
     const metrics = form.metricLabel.trim() && form.metricValue.trim() ? [{ label: form.metricLabel.trim(), value: form.metricValue.trim(), context: form.metricContext.trim() || null }] : [];
     const evidence = normalizeEvidence(form.evidence).map((item) => ({ ...item, reference: item.reference.trim() || null, description: item.description.trim() || null, title: item.title.trim() }));
     try {
       await createImpactReceipt({ accomplishment: form.accomplishment.trim(), contribution: form.contribution.trim(), result: form.result.trim(), metrics, evidence, skills, credit: [], is_public: form.isPublic });
-      setForm(EMPTY_FORM); setShowCreate(false); setPage(1); setSuccess("Impact Receipt saved with evidence."); await loadReceipts();
+      setForm(EMPTY_FORM); setShowCreate(false); setPage(1); setSuccess("Impact Receipt saved with evidence."); setShowNextUses(true); await loadReceipts();
     } catch (err) {
       const detail = err.response?.data?.detail;
       setError(typeof detail === "string" ? detail : "Impact Receipt could not be saved. Check the required fields.");
@@ -274,6 +275,21 @@ function ImpactReceiptsPage() {
     {stats.confirmedCount > 0 && <div className="product-alert success"><CheckCircle2 size={17} /> Your proof has earned {stats.confirmedCount} third-party confirmation{stats.confirmedCount === 1 ? "" : "s"} across {stats.verifiedReceiptCount} verified Impact Receipt{stats.verifiedReceiptCount === 1 ? "" : "s"}.</div>}
     {error && <div className="product-alert error">{error}</div>}
     {success && <div className="product-alert success">{success}</div>}
+
+    {showNextUses && <section className="receipt-next-use-card" aria-labelledby="receipt-next-use-title">
+      <div className="receipt-next-use-copy">
+        <p className="mini-label">You captured this once</p>
+        <h2 id="receipt-next-use-title">Here are four things it can become.</h2>
+        <p>Your proof is saved. Keep the same evidence and move into the career moment you need next—without starting from a blank page.</p>
+      </div>
+      <div className="receipt-next-use-grid">
+        <a href="/app/resume-builder"><strong>Resume bullet</strong><span>Turn recorded proof into resume-ready material.</span><ExternalLink size={16} /></a>
+        <a href="/app/interview-practice"><strong>STAR answer</strong><span>Practice telling the same impact as an interview story.</span><ExternalLink size={16} /></a>
+        <a href="/app/reports?packets=1"><strong>Review statement</strong><span>Use your evidence in a review or career packet.</span><ExternalLink size={16} /></a>
+        <a href="/app/profile"><strong>Shareable proof</strong><span>Choose what belongs on your Public Proof Profile.</span><ExternalLink size={16} /></a>
+      </div>
+      <button type="button" className="receipt-next-use-dismiss" onClick={() => setShowNextUses(false)}>Not now</button>
+    </section>}
 
     {isLoading ? <BragStackLoader compact message="Loading your Impact Receipts…" detail="Gathering evidence-backed outcomes, proof, and confirmation signals." /> : receipts.length === 0 ? (
       <section className="product-empty"><h2>No receipts yet.</h2><p>Create your first evidence-backed receipt, or turn an existing accomplishment into one.</p><a href="/app/accomplishments">Create from an accomplishment <ExternalLink size={16} /></a></section>

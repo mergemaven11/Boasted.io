@@ -173,3 +173,37 @@ test("Impact Receipts prioritize verified proof, paginate the full library, and 
   assert.ok(impactReceiptsApiSource.includes("limit: API_PAGE_LIMIT, skip"), "receipt loader must request API pages explicitly");
   assert.ok(impactReceiptsApiSource.includes("data.has_more"), "receipt loader must continue until the full library is loaded");
 });
+
+test("a newly saved Impact Receipt immediately teaches the next four existing uses", () => {
+  assert.match(
+    impactReceiptsSource,
+    /setSuccess\("Impact Receipt saved with evidence\."\); setShowNextUses\(true\)/,
+    "the next-use panel must appear only after a successful receipt save",
+  );
+
+  for (const token of [
+    "You captured this once",
+    "Here are four things it can become.",
+    "Resume bullet",
+    "STAR answer",
+    "Review statement",
+    "Shareable proof",
+    'href="/app/resume-builder"',
+    'href="/app/interview-practice"',
+    'href="/app/reports?packets=1"',
+    'href="/app/profile"',
+  ]) {
+    assert.ok(impactReceiptsSource.includes(token), `receipt next-use guidance is missing: ${token}`);
+  }
+
+  for (const token of [
+    ".receipt-next-use-card",
+    ".receipt-next-use-grid",
+    "grid-template-columns: repeat(4, minmax(0, 1fr))",
+    "min-height: 44px",
+    "@media (max-width: 900px)",
+    "@media (max-width: 620px)",
+  ]) {
+    assert.ok(impactReceiptsStyles.includes(token), `receipt next-use responsive contract is missing: ${token}`);
+  }
+});
