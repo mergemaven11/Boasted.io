@@ -3,8 +3,8 @@ import { PRIMARY_SITELINKS } from "./primarySitelinks.js";
 
 const PUBLIC_META = {
   "/": {
-    title: "Boasted: Save It. Prove It. Use It.",
-    description: "Boasted helps you save your work, wins, projects, skills, and proof in one place, then reuse them for jobs, reviews, promotions, interviews, scholarships, and more.",
+    title: "Boasted | Work Accomplishment Tracker & Career Proof",
+    description: "Boasted is a work accomplishment tracker and career proof platform. Capture wins, results, skills, and evidence, then reuse them for resumes, performance reviews, promotions, interviews, portfolios, and opportunities.",
   },
   "/login": {
     title: "Sign In to Boasted | Career Proof",
@@ -160,7 +160,7 @@ export default function useSearchAppearanceMeta(path) {
           url: "https://boasted.io/",
           name: "Boasted",
           alternateName: ["Boasted.io", "Boasted Career Proof"],
-          description: "Boasted helps people save meaningful work and turn it into reusable career proof.",
+          description: "Boasted is a work accomplishment tracker and career proof platform that helps people capture wins, results, skills, and evidence and reuse them when opportunities arrive.",
           publisher: { "@id": "https://boasted.io/#organization" },
         },
         {
@@ -169,7 +169,7 @@ export default function useSearchAppearanceMeta(path) {
           name: "Boasted",
           alternateName: ["Boasted.io", "Boasted Career Proof"],
           url: "https://boasted.io/",
-          description: "Boasted is career evidence software for capturing accomplishments, outcomes, skills, and proof so people can reuse them when opportunities arrive.",
+          description: "Boasted is a work accomplishment tracker and career proof platform for capturing accomplishments, outcomes, skills, and evidence so people can reuse them when opportunities arrive.",
           founder: { "@id": "https://boasted.io/#founder" },
           logo: {
             "@type": "ImageObject",
@@ -178,6 +178,9 @@ export default function useSearchAppearanceMeta(path) {
             height: 192,
           },
           image: OFFICIAL_LOGO_URL,
+          sameAs: [
+            "https://github.com/mergemaven11/Boasted.io",
+          ],
         },
         {
           "@type": "Person",

@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
+const indexHtml = read("index.html");
 const robots = read("public/robots.txt");
 const sitemap = read("public/sitemap.xml");
 const searchMeta = read("src/useSearchAppearanceMeta.js");
@@ -49,6 +50,15 @@ assert.match(robots, /Disallow:\s+\/app\//);
 assert.doesNotMatch(robots, /Disallow:\s+\/login/);
 assert.doesNotMatch(robots, /Disallow:\s+\/register/);
 
+// Homepage search identity must stay explicit about the product category and brand.
+assert.match(indexHtml, /<title>Boasted \| Work Accomplishment Tracker & Career Proof<\/title>/);
+assert.match(indexHtml, /work accomplishment tracker and career proof platform/i);
+assert.match(indexHtml, /https:\/\/github\.com\/mergemaven11\/Boasted\.io/);
+assert.doesNotMatch(indexHtml, /<meta\s+name="keywords"/i);
+assert.match(searchMeta, /Boasted \| Work Accomplishment Tracker & Career Proof/);
+assert.match(searchMeta, /work accomplishment tracker and career proof platform/i);
+assert.match(searchMeta, /https:\/\/github\.com\/mergemaven11\/Boasted\.io/);
+
 for (const path of publicSitelinks) {
   const canonicalUrl = `https://boasted.io${path}`;
   assert.ok(sitemap.includes(`<loc>${canonicalUrl}</loc>`), `${path} must be present in sitemap.xml`);
@@ -77,6 +87,7 @@ assert.match(seoLandingPages, /meta\[name="twitter:description"\]/);
 assert.match(seoLandingPages, /"@type": "Article"/);
 assert.match(seoLandingPages, /"@type": "CollectionPage"/);
 assert.match(seoLandingPages, /"@type": "BreadcrumbList"/);
+assert.match(seoLandingPages, /"@type": "FAQPage"/);
 assert.match(seoLandingPages, /seo-guide-faq/);
 assert.match(seoLandingPages, /seo-guide-section/);
 assert.match(seoLandingContent, /brag document/i);
@@ -115,6 +126,10 @@ assert.doesNotMatch(staticRouteShells, /copyFile\(INDEX_FILE, path\.join\(routeD
 assert.match(staticRouteShells, /NOINDEX_ROUTES = new Set\(\["\/login", "\/register", "\/upgrade", "\/verify-receipt"\]\)/);
 assert.match(staticRouteShells, /noindex,nofollow/);
 assert.ok(staticRouteShells.includes('"/support"'), "the public Support Hub needs a generated static shell");
+assert.match(staticRouteShells, /SEO_LANDING_CONTENT/);
+assert.match(staticRouteShells, /function guideSchema\(route, meta\)/);
+assert.match(staticRouteShells, /boasted-static-content-schema/);
+assert.match(staticRouteShells, /"@type": "FAQPage"/);
 
 for (const path of sitemapPaths) {
   assert.ok(staticRouteShells.includes(`"${path}"`), `${path} must have explicit static title/description metadata`);
