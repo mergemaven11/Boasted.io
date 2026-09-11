@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { SEO_GUIDE_LINKS, SEO_LANDING_CONTENT } from "../src/seoLandingContent.js";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const FRONTEND_DIR = path.resolve(SCRIPT_DIR, "..");
@@ -199,6 +200,77 @@ function escapeHtmlAttribute(value) {
     .replaceAll(">", "&gt;");
 }
 
+function guideSchema(route, meta) {
+  const content = SEO_LANDING_CONTENT[route];
+  if (!content || (content.kind !== "guide" && content.kind !== "hub")) return null;
+
+  const canonicalUrl = `${SITE_ORIGIN}${route}`;
+  const organization = { "@id": `${SITE_ORIGIN}/#organization` };
+  const breadcrumbItems = [
+    { "@type": "ListItem", position: 1, name: "Boasted", item: `${SITE_ORIGIN}/` },
+    { "@type": "ListItem", position: 2, name: "Career Guides", item: `${SITE_ORIGIN}/guides` },
+  ];
+
+  if (content.kind === "guide") {
+    breadcrumbItems.push({ "@type": "ListItem", position: 3, name: content.eyebrow, item: canonicalUrl });
+  }
+
+  const primaryNode = content.kind === "guide"
+    ? {
+        "@type": "Article",
+        "@id": `${canonicalUrl}#article`,
+        headline: content.title,
+        description: content.description,
+        mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },
+        author: organization,
+        publisher: organization,
+        about: content.keywords || [],
+        isPartOf: { "@id": `${SITE_ORIGIN}/#website` },
+      }
+    : {
+        "@type": "CollectionPage",
+        "@id": canonicalUrl,
+        name: meta.title,
+        description: content.description,
+        isPartOf: { "@id": `${SITE_ORIGIN}/#website` },
+        mainEntity: {
+          "@type": "ItemList",
+          itemListElement: SEO_GUIDE_LINKS.map((guide, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            name: guide.label,
+            url: `${SITE_ORIGIN}${guide.href}`,
+          })),
+        },
+      };
+
+  const graph = [
+    primaryNode,
+    {
+      "@type": "BreadcrumbList",
+      "@id": `${canonicalUrl}#breadcrumbs`,
+      itemListElement: breadcrumbItems,
+    },
+  ];
+
+  if (content.kind === "guide" && content.faq?.length) {
+    graph.push({
+      "@type": "FAQPage",
+      "@id": `${canonicalUrl}#faq`,
+      mainEntity: content.faq.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer,
+        },
+      })),
+    });
+  }
+
+  return JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replaceAll("</", "<\\/");
+}
+
 function routeShell(indexHtml, route) {
   const canonicalUrl = `${SITE_ORIGIN}${route}`;
   const meta = ROUTE_META[route];
@@ -241,6 +313,14 @@ function routeShell(indexHtml, route) {
     html = html.replace(
       /<meta name="robots" content="[^"]*"\s*\/>/,
       '<meta name="robots" content="noindex,nofollow" />',
+    );
+  }
+
+  const staticSchema = guideSchema(route, meta);
+  if (staticSchema) {
+    html = html.replace(
+      "</head>",
+      `    <script id="boasted-static-content-schema" type="application/ld+json">${staticSchema}</script>\n  </head>`,
     );
   }
 
