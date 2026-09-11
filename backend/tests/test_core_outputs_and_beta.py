@@ -111,6 +111,49 @@ def test_performance_review_uses_only_receipts(output_context):
     assert data["review_highlights"][0]["evidence"][0]["reference"] == "INC-1042"
 
 
+def test_performance_review_can_use_one_selected_owned_receipt(output_context):
+    user, receipts, _ = output_context
+    ignored_id = insert_receipt(
+        receipts,
+        user,
+        accomplishment="Improved unrelated documentation",
+        result="Reduced onboarding questions by 10%",
+    )
+    selected_id = insert_receipt(
+        receipts,
+        user,
+        accomplishment="Stabilized production DNS",
+        contribution="Diagnosed and fixed production DNS failures",
+        result="Reduced DNS incident recurrence by 40%",
+    )
+
+    response = client.get(
+        "/outputs/performance-review",
+        params=[("receipt_id", str(selected_id))],
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["source_receipt_ids"] == [str(selected_id)]
+    assert str(ignored_id) not in data["source_receipt_ids"]
+    assert data["summary"]["receipt_count"] == 1
+    assert data["all_receipts"][0]["accomplishment"] == "Stabilized production DNS"
+
+
+def test_performance_review_preserves_explicit_receipt_order(output_context):
+    user, receipts, _ = output_context
+    first_id = insert_receipt(receipts, user, accomplishment="First selected proof")
+    second_id = insert_receipt(receipts, user, accomplishment="Second selected proof")
+
+    response = client.get(
+        "/outputs/performance-review",
+        params=[("receipt_id", str(second_id)), ("receipt_id", str(first_id))],
+    )
+
+    assert response.status_code == 200
+    assert response.json()["source_receipt_ids"] == [str(second_id), str(first_id)]
+
+
 def test_resume_target_can_rank_but_not_invent_claims(output_context):
     """Verify resume target can rank but not invent claims.
 
@@ -140,6 +183,97 @@ def test_resume_target_can_rank_but_not_invent_claims(output_context):
     assert "Terraform" not in bullet
     assert "AWS" not in bullet
     assert data["evidence_backed_skills"] == ["Docker", "Networking", "Troubleshooting"]
+
+
+def test_resume_material_does_not_broaden_an_explicit_selection(output_context):
+    user, receipts, _ = output_context
+    selected_id = insert_receipt(
+        receipts,
+        user,
+        accomplishment="Reduced Docker incidents",
+        contribution="Fixed container DNS failures",
+        result="Reduced recurring incidents by 25%",
+        skills=["Docker", "Networking"],
+    )
+    better_keyword_match_id = insert_receipt(
+        receipts,
+        user,
+        accomplishment="Migrated Kubernetes platform",
+        contribution="Migrated Kubernetes clusters",
+        result="Improved deployment reliability",
+        skills=["Kubernetes", "Terraform"],
+    )
+
+    response = client.post(
+        "/outputs/resume-material",
+        json={
+            "target_role": "Kubernetes Platform Engineer",
+            "target_description": "Kubernetes Terraform",
+            "source_receipt_ids": [str(selected_id)],
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["source_receipt_ids"] == [str(selected_id)]
+    assert str(better_keyword_match_id) not in data["source_receipt_ids"]
+    assert len(data["resume_bullets"]) == 1
+    assert "Kubernetes" not in data["resume_bullets"][0]["bullet"]
+
+
+def test_resume_material_preserves_selected_receipt_order(output_context):
+    user, receipts, _ = output_context
+    first_id = insert_receipt(receipts, user, accomplishment="First proof")
+    second_id = insert_receipt(receipts, user, accomplishment="Second proof")
+
+    response = client.post(
+        "/outputs/resume-material",
+        json={
+            "target_role": "Support Engineer",
+            "source_receipt_ids": [str(second_id), str(first_id)],
+            "max_bullets": 2,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["source_receipt_ids"] == [str(second_id), str(first_id)]
+
+
+def test_selected_output_rejects_invalid_receipt_id(output_context):
+    user, receipts, _ = output_context
+    insert_receipt(receipts, user)
+
+    response = client.get(
+        "/outputs/performance-review",
+        params=[("receipt_id", "not-an-object-id")],
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Invalid Impact Receipt selection."
+
+
+def test_selected_output_does_not_reveal_other_user_receipt(output_context):
+    user, receipts, _ = output_context
+    insert_receipt(receipts, user)
+    other_user = {"_id": ObjectId()}
+    other_receipt_id = insert_receipt(receipts, other_user)
+
+    performance_response = client.get(
+        "/outputs/performance-review",
+        params=[("receipt_id", str(other_receipt_id))],
+    )
+    resume_response = client.post(
+        "/outputs/resume-material",
+        json={
+            "target_role": "Support Engineer",
+            "source_receipt_ids": [str(other_receipt_id)],
+        },
+    )
+
+    assert performance_response.status_code == 404
+    assert resume_response.status_code == 404
+    assert performance_response.json()["detail"] == "One or more selected Impact Receipts are unavailable."
+    assert resume_response.json()["detail"] == "One or more selected Impact Receipts are unavailable."
 
 
 def test_resume_output_does_not_use_other_users_receipts(output_context):
