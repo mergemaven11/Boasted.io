@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
+const indexHtml = read("index.html");
 const robots = read("public/robots.txt");
 const sitemap = read("public/sitemap.xml");
 const searchMeta = read("src/useSearchAppearanceMeta.js");
@@ -48,6 +49,15 @@ assert.match(robots, /Sitemap:\s+https:\/\/boasted\.io\/sitemap\.xml/);
 assert.match(robots, /Disallow:\s+\/app\//);
 assert.doesNotMatch(robots, /Disallow:\s+\/login/);
 assert.doesNotMatch(robots, /Disallow:\s+\/register/);
+
+// Homepage search identity must stay explicit about the product category and brand.
+assert.match(indexHtml, /<title>Boasted \| Work Accomplishment Tracker & Career Proof<\/title>/);
+assert.match(indexHtml, /work accomplishment tracker and career proof platform/i);
+assert.match(indexHtml, /https:\/\/github\.com\/mergemaven11\/Boasted\.io/);
+assert.doesNotMatch(indexHtml, /<meta\s+name="keywords"/i);
+assert.match(searchMeta, /Boasted \| Work Accomplishment Tracker & Career Proof/);
+assert.match(searchMeta, /work accomplishment tracker and career proof platform/i);
+assert.match(searchMeta, /https:\/\/github\.com\/mergemaven11\/Boasted\.io/);
 
 for (const path of publicSitelinks) {
   const canonicalUrl = `https://boasted.io${path}`;
