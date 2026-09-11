@@ -87,6 +87,7 @@ assert.match(seoLandingPages, /meta\[name="twitter:description"\]/);
 assert.match(seoLandingPages, /"@type": "Article"/);
 assert.match(seoLandingPages, /"@type": "CollectionPage"/);
 assert.match(seoLandingPages, /"@type": "BreadcrumbList"/);
+assert.match(seoLandingPages, /"@type": "FAQPage"/);
 assert.match(seoLandingPages, /seo-guide-faq/);
 assert.match(seoLandingPages, /seo-guide-section/);
 assert.match(seoLandingContent, /brag document/i);
@@ -125,6 +126,10 @@ assert.doesNotMatch(staticRouteShells, /copyFile\(INDEX_FILE, path\.join\(routeD
 assert.match(staticRouteShells, /NOINDEX_ROUTES = new Set\(\["\/login", "\/register", "\/upgrade", "\/verify-receipt"\]\)/);
 assert.match(staticRouteShells, /noindex,nofollow/);
 assert.ok(staticRouteShells.includes('"/support"'), "the public Support Hub needs a generated static shell");
+assert.match(staticRouteShells, /SEO_LANDING_CONTENT/);
+assert.match(staticRouteShells, /function guideSchema\(route, meta\)/);
+assert.match(staticRouteShells, /boasted-static-content-schema/);
+assert.match(staticRouteShells, /"@type": "FAQPage"/);
 
 for (const path of sitemapPaths) {
   assert.ok(staticRouteShells.includes(`"${path}"`), `${path} must have explicit static title/description metadata`);
