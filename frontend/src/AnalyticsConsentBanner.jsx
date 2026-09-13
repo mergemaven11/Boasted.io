@@ -9,6 +9,8 @@ import {
 } from "./analytics.js";
 import "./AnalyticsConsentBanner.css";
 
+const ANALYTICS_CONSENT_EVENT = "boasted:analytics-consent-changed";
+
 export default function AnalyticsConsentBanner() {
   const [choice, setChoice] = useState(() => getAnalyticsConsent());
   const [editing, setEditing] = useState(() => getAnalyticsConsent() === null);
@@ -21,6 +23,7 @@ export default function AnalyticsConsentBanner() {
     if (!setAnalyticsConsent(nextChoice)) return;
     setChoice(nextChoice);
     setEditing(false);
+    window.dispatchEvent(new CustomEvent(ANALYTICS_CONSENT_EVENT, { detail: { choice: nextChoice } }));
     if (nextChoice === ANALYTICS_CONSENT_GRANTED) initializeAnalytics();
   }
 
@@ -43,8 +46,8 @@ export default function AnalyticsConsentBanner() {
         <strong>Privacy choices</strong>
         <p>
           Boasted uses essential browser storage for sign-in and core features. With your permission,
-          we also use analytics to understand product usage and campaign performance. Analytics stays
-          off unless you choose Allow analytics. See the <a href="/privacy">Privacy Policy</a>.
+          we also use analytics tools, including Google Analytics and HubSpot, to understand product usage
+          and campaign performance. Analytics stays off unless you choose Allow analytics. See the <a href="/privacy">Privacy Policy</a>.
         </p>
       </div>
       <div className="analytics-consent-actions">
