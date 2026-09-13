@@ -64,6 +64,7 @@ cors_origins = list(
             frontend_url,
             "https://boasted.io",
             "https://www.boasted.io",
+            "https://boasted-demo.netlify.app",
             "https://usebragstack.com",
             "https://www.usebragstack.com",
             "http://localhost:5173",
