@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/generate-static-route-shells.mjs",
+    "build": "vite build && node scripts/generate-static-route-shells.mjs && node scripts/inject-hubspot-loader.mjs",
     "lint": "eslint .",
-    "test:analytics": "node --test src/analytics.test.js src/behaviorAnalyticsSource.test.js",
+    "test:analytics": "node --test src/analytics.test.js src/behaviorAnalyticsSource.test.js src/hubspotTrackingSource.test.js",
     "test:education": "node --test src/applicationsHubSource.test.js src/accomplishmentsEducationSource.test.js src/educationToolkitSource.test.js src/educationOpportunitySource.test.js",
     "test:interview": "node --test src/interviewEngine*.test.js src/interviewTranscript.test.js src/interviewVoice.test.js",
     "test:resume": "node --test src/resumeStructured.test.js src/dashboardTags.test.js",
