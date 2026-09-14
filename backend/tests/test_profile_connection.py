@@ -67,9 +67,18 @@ def test_connection_update_rejects_unknown_conversation_type():
 
 
 def test_connection_update_rejects_non_web_url():
-    """Contact destinations must use normal HTTP(S) URLs."""
+    """Contact destinations must reject executable/non-web schemes."""
     with pytest.raises(ValidationError):
         ProfileConnectionUpdate(
             open_to_talk=True,
             open_to_talk_url="javascript:alert(1)",
+        )
+
+
+def test_connection_update_rejects_plain_http_url():
+    """New or edited public contact destinations must use encrypted HTTPS."""
+    with pytest.raises(ValidationError):
+        ProfileConnectionUpdate(
+            open_to_talk=True,
+            open_to_talk_url="http://example.com/contact",
         )
