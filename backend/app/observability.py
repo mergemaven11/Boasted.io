@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 import threading
 from datetime import datetime, timezone
 
@@ -13,6 +14,18 @@ from app.database import ops_events_collection
 _RETENTION_SECONDS = 14 * 24 * 60 * 60
 _index_lock = threading.Lock()
 _indexes_ready = False
+_SENSITIVE_PATH_PATTERNS = (
+    (re.compile(r"^(/shared/packets/)[^/]+"), r"\1:token"),
+    (re.compile(r"^(/receipt-verifications/)[^/]+"), r"\1:token"),
+)
+
+
+def sanitize_request_path(path: str) -> str:
+    """Remove bearer-like path values before telemetry, metrics, or fingerprints."""
+    sanitized = (path or "/").split("?", 1)[0]
+    for pattern, replacement in _SENSITIVE_PATH_PATTERNS:
+        sanitized = pattern.sub(replacement, sanitized)
+    return sanitized
 
 
 def _ensure_indexes() -> None:
@@ -33,19 +46,10 @@ def _ensure_indexes() -> None:
 
 
 def _fingerprint(*, method: str, path: str, error_type: str | None) -> str | None:
-    """Handle fingerprint.
-
-    Args:
-        method: Function argument.
-        path: Function argument.
-        error_type: Function argument.
-
-    Returns:
-        Function result.
-    """
+    """Handle fingerprint."""
     if not error_type:
         return None
-    material = f"{method.upper()}:{path}:{error_type}".encode("utf-8")
+    material = f"{method.upper()}:{sanitize_request_path(path)}:{error_type}".encode("utf-8")
     return hashlib.sha256(material).hexdigest()[:16]
 
 
@@ -59,6 +63,7 @@ def record_persistent_request(
     error_type: str | None = None,
 ) -> None:
     """Persist only sanitized operational metadata. Never request bodies, headers, tokens, or query strings."""
+    safe_path = sanitize_request_path(path)
     try:
         _ensure_indexes()
         ops_events_collection.insert_one(
@@ -66,11 +71,11 @@ def record_persistent_request(
                 "created_at": datetime.now(timezone.utc),
                 "request_id": request_id,
                 "method": method.upper(),
-                "path": path,
+                "path": safe_path,
                 "status_code": int(status_code),
                 "duration_ms": round(float(duration_ms), 2),
                 "error_type": error_type,
-                "error_fingerprint": _fingerprint(method=method, path=path, error_type=error_type),
+                "error_fingerprint": _fingerprint(method=method, path=safe_path, error_type=error_type),
                 "service": os.getenv("RENDER_SERVICE_NAME", "bragstack-api"),
                 "environment": os.getenv("APP_ENV") or ("production" if os.getenv("RENDER") else "local"),
                 "version": os.getenv("RENDER_GIT_COMMIT", "local")[:12],
