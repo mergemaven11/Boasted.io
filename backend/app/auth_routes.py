@@ -33,6 +33,7 @@ PASSWORD_RESET_FROM = os.getenv("PASSWORD_RESET_FROM", "Boasted <noreply@boasted
 EMAIL_VERIFICATION_FROM = os.getenv("EMAIL_VERIFICATION_FROM", PASSWORD_RESET_FROM)
 TERMS_VERSION = "2026-09-05"
 PRIVACY_VERSION = "2026-09-05"
+PASSWORD_MIN_LENGTH = 12
 PROFILE_THEMES = {
     "default",
     "clinical",
@@ -68,7 +69,7 @@ PROFILE_COLOR_FIELDS = {"profile_primary_color", "profile_secondary_color", "pro
 class RegisterRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=80)
     email: EmailStr
-    password: str = Field(..., min_length=8)
+    password: str = Field(..., min_length=PASSWORD_MIN_LENGTH, max_length=256)
     accepted_terms: bool
     accepted_privacy: bool
 
@@ -87,7 +88,7 @@ class PasswordResetRequest(BaseModel):
 
 class PasswordResetConfirm(BaseModel):
     token: str = Field(..., min_length=20, max_length=300)
-    password: str = Field(..., min_length=8, max_length=256)
+    password: str = Field(..., min_length=PASSWORD_MIN_LENGTH, max_length=256)
 
 
 class WorkExperienceItem(BaseModel):
@@ -143,8 +144,8 @@ class ProfileUpdateRequest(BaseModel):
     @classmethod
     def valid_project_urls(cls, value):
         for project in value or []:
-            if project.url and not project.url.startswith(("http://", "https://")):
-                raise ValueError("Project URLs must start with http:// or https://")
+            if project.url and not project.url.lower().startswith("https://"):
+                raise ValueError("Project URLs must use https://")
             project.skills = [skill.strip()[:60] for skill in project.skills if skill.strip()]
         return value
 
@@ -387,8 +388,8 @@ def update_profile(payload: ProfileUpdateRequest, current_user: dict = Depends(g
         raise HTTPException(status_code=422, detail="name cannot be empty")
 
     for field in ("github_url", "portfolio_url", "resume_url"):
-        if field in updates and updates[field] and not updates[field].startswith(("http://", "https://")):
-            raise HTTPException(status_code=422, detail=f"{field} must start with http:// or https://")
+        if field in updates and updates[field] and not updates[field].lower().startswith("https://"):
+            raise HTTPException(status_code=422, detail=f"{field} must use https://")
 
     if updates:
         users_collection.update_one({"_id": current_user["_id"]}, {"$set": updates})
