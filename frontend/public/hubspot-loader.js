@@ -5,6 +5,7 @@
   const ANALYTICS_CONSENT_KEY = "boasted_analytics_consent_v1";
   const ANALYTICS_CONSENT_GRANTED = "granted";
   const CONSENT_EVENT = "boasted:analytics-consent-changed";
+  const SENSITIVE_HASH_KEYS = new Set(["oauth_token", "verify_token", "reset_token"]);
 
   let lastTrackedPath = null;
 
@@ -16,12 +17,18 @@
     }
   }
 
+  function hasSensitiveAuthFragment() {
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    return [...SENSITIVE_HASH_KEYS].some((key) => hash.has(key));
+  }
+
   function currentPath() {
-    return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    // Never expose URL fragments or arbitrary query strings to third-party analytics.
+    return window.location.pathname || "/";
   }
 
   function trackSpaPageView() {
-    if (!analyticsAllowed() || !window._hsq) return;
+    if (!analyticsAllowed() || hasSensitiveAuthFragment() || !window._hsq) return;
     const path = currentPath();
     if (path === lastTrackedPath) return;
     lastTrackedPath = path;
@@ -48,8 +55,15 @@
     window.addEventListener("popstate", () => window.setTimeout(trackSpaPageView, 0));
   }
 
+  function disableHubSpotTracking() {
+    if (window._hsq) {
+      window._hsq.push(["doNotTrack"]);
+    }
+    lastTrackedPath = null;
+  }
+
   function loadHubSpot() {
-    if (!analyticsAllowed()) return false;
+    if (!analyticsAllowed() || hasSensitiveAuthFragment()) return false;
     if (document.getElementById(HUBSPOT_SCRIPT_ID)) return true;
 
     window._hsq = window._hsq || [];
@@ -62,8 +76,6 @@
     script.defer = true;
     script.src = HUBSPOT_SCRIPT_SRC;
     script.addEventListener("load", () => {
-      // HubSpot records the initial load. Remember it so SPA navigation does not
-      // immediately create a duplicate page view for the same URL.
       lastTrackedPath = currentPath();
     }, { once: true });
     document.head.appendChild(script);
@@ -71,9 +83,12 @@
   }
 
   function handleConsentChange(event) {
-    if (event?.detail?.choice === ANALYTICS_CONSENT_GRANTED || analyticsAllowed()) {
+    const choice = event?.detail?.choice;
+    if (choice === ANALYTICS_CONSENT_GRANTED || analyticsAllowed()) {
       loadHubSpot();
+      return;
     }
+    disableHubSpotTracking();
   }
 
   window.addEventListener(CONSENT_EVENT, handleConsentChange);
