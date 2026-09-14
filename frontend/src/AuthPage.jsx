@@ -9,6 +9,7 @@ function getApiBaseUrl() {
 
 const sleep = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 const API_WAKE_TIMEOUT_MS = 120000;
+const PASSWORD_MIN_LENGTH = 12;
 
 async function waitForApiReady(apiBaseUrl, timeoutMs = API_WAKE_TIMEOUT_MS) {
   const deadline = Date.now() + timeoutMs;
@@ -135,6 +136,11 @@ function AuthPage({ mode = "login", onLogin }) {
     setErrorMessage("");
     setVerificationMessage("");
 
+    if (isRegister && formData.password.length < PASSWORD_MIN_LENGTH) {
+      setErrorMessage(`Use at least ${PASSWORD_MIN_LENGTH} characters for your password.`);
+      return;
+    }
+
     if (isRegister && (!acceptedTerms || !acceptedPrivacy)) {
       setErrorMessage("Please accept the Terms and Privacy Policy before creating an account.");
       return;
@@ -252,7 +258,7 @@ function AuthPage({ mode = "login", onLogin }) {
   async function handleResetConfirm(event) {
     event.preventDefault();
     setResetMessage("");
-    if (newPassword.length < 8) { setResetMessage("Your new password must be at least 8 characters."); return; }
+    if (newPassword.length < PASSWORD_MIN_LENGTH) { setResetMessage(`Your new password must be at least ${PASSWORD_MIN_LENGTH} characters.`); return; }
     if (newPassword !== confirmPassword) { setResetMessage("The passwords do not match."); return; }
     setResetSubmitting(true);
     try {
@@ -309,7 +315,7 @@ function AuthPage({ mode = "login", onLogin }) {
 
           {isRegister && <label className="auth-field">Name<div><UserPlus size={17} /><input name="name" value={formData.name} onChange={handleChange} placeholder="Jordan Lee" required /></div></label>}
           <label className="auth-field">Email<div><Mail size={17} /><input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required /></div></label>
-          <label className="auth-field">Password<div><Lock size={17} /><input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" minLength={8} required /></div></label>
+          <label className="auth-field">Password<div><Lock size={17} /><input type="password" name="password" value={formData.password} onChange={handleChange} placeholder={isRegister ? "12+ characters" : "••••••••"} minLength={isRegister ? PASSWORD_MIN_LENGTH : 1} required /></div></label>
 
           {isRegister && (
             <div className="auth-legal-consent">
@@ -327,7 +333,7 @@ function AuthPage({ mode = "login", onLogin }) {
           {showReset && !isRegister && (
             <div className="auth-reset-panel">
               {resetToken ? (
-                <><strong>Choose a new password</strong><p>This reset link can be used once and expires after 30 minutes.</p><div className="auth-reset-stack"><input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="New password" minLength={8} /><input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Confirm new password" minLength={8} /><button type="button" onClick={handleResetConfirm} disabled={resetSubmitting || !newPassword || !confirmPassword}>{resetSubmitting ? "Updating..." : "Update password"}</button></div></>
+                <><strong>Choose a new password</strong><p>This reset link can be used once and expires after 30 minutes.</p><div className="auth-reset-stack"><input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="New password (12+ characters)" minLength={PASSWORD_MIN_LENGTH} /><input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Confirm new password" minLength={PASSWORD_MIN_LENGTH} /><button type="button" onClick={handleResetConfirm} disabled={resetSubmitting || !newPassword || !confirmPassword}>{resetSubmitting ? "Updating..." : "Update password"}</button></div></>
               ) : (
                 <><strong>Reset your password</strong><p>Enter the email address on your Boasted account.</p><div className="auth-reset-row"><input type="email" value={resetEmail} onChange={(event) => setResetEmail(event.target.value)} placeholder="you@example.com" /><button type="button" onClick={handleResetRequest} disabled={resetSubmitting || !resetEmail}>{resetSubmitting ? "Sending..." : "Send link"}</button></div></>
               )}

@@ -1,4 +1,4 @@
-"""Document this first-party Python module."""
+"""Profile persistence and public-link security regression tests."""
 from datetime import datetime, timezone
 
 import mongomock
@@ -16,14 +16,7 @@ client = TestClient(app)
 
 @pytest.fixture
 def profile_context(monkeypatch):
-    """Handle profile context.
-
-    Args:
-        monkeypatch: Function argument.
-
-    Yields:
-        Values produced by the function.
-    """
+    """Use isolated profile collections for each test."""
     mock_client = mongomock.MongoClient()
     mock_db = mock_client["bragstack_profile_test"]
     users = mock_db["users"]
@@ -55,11 +48,7 @@ def profile_context(monkeypatch):
 
 
 def test_profile_update_persists_and_is_visible_publicly(profile_context):
-    """Verify profile update persists and is visible publicly.
-
-    Args:
-        profile_context: Function argument.
-    """
+    """HTTPS profile links persist and remain visible publicly."""
     user, users = profile_context
 
     payload = {
@@ -93,22 +82,46 @@ def test_profile_update_persists_and_is_visible_publicly(profile_context):
     assert profile["github_url"] == payload["github_url"]
 
 
-def test_profile_update_rejects_non_http_links(profile_context):
-    """Verify profile update rejects non http links.
-
-    Args:
-        profile_context: Function argument.
-    """
+def test_profile_update_rejects_missing_url_scheme(profile_context):
+    """Public profile links must include an explicit secure scheme."""
     response = client.patch(
         "/auth/me/profile",
         json={
             "name": "Updated Name",
-            "headline": "",
-            "bio": "",
-            "location": "",
             "github_url": "github.com/example",
-            "portfolio_url": "",
-            "resume_url": "",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_profile_update_rejects_plain_http_links(profile_context):
+    """New or edited public profile links cannot downgrade visitors to HTTP."""
+    response = client.patch(
+        "/auth/me/profile",
+        json={
+            "name": "Updated Name",
+            "github_url": "http://github.com/example",
+        },
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == "github_url must use https://"
+
+
+def test_profile_projects_reject_plain_http_links(profile_context):
+    """Project links shown on public profiles also require HTTPS."""
+    response = client.patch(
+        "/auth/me/profile",
+        json={
+            "name": "Updated Name",
+            "profile_projects": [
+                {
+                    "name": "Insecure project",
+                    "url": "http://example.com/project",
+                    "skills": ["Python"],
+                }
+            ],
         },
     )
 
