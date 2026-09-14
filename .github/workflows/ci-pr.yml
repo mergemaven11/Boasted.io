@@ -66,13 +66,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.12.14"
           cache: pip
           cache-dependency-path: backend/requirements.txt
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
+      - name: Verify production index startup command
+        run: python -m scripts.ensure_core_indexes
       - name: Run backend regression suite
         run: python -m pytest
+      - name: Verify production Docker image builds
+        run: docker build -t boasted-api-ci .
 
   frontend-medium:
     name: Test, lint and build frontend
@@ -126,7 +130,7 @@ jobs:
       - uses: actions/setup-python@v5
         if: needs.changes.outputs.dependencies == 'true'
         with:
-          python-version: "3.12"
+          python-version: "3.12.14"
           cache: pip
           cache-dependency-path: backend/requirements.txt
       - name: Audit Python dependencies

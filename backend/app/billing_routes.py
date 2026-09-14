@@ -28,6 +28,7 @@ STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PRO_PRICE_ID = os.getenv("STRIPE_PRO_PRICE_ID", "")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 STRIPE_EVENT_LEASE_SECONDS = 300
+ENTITLED_SUBSCRIPTION_STATUSES = frozenset({"active", "trialing", "past_due"})
 
 
 def _require_stripe_checkout_config() -> None:
@@ -176,18 +177,7 @@ def _set_subscription_state(
     current_period_end: int | None = None,
     stripe_event_created: int | None = None,
 ) -> None:
-    """Handle set subscription state.
-
-    Args:
-        user_id: Function argument.
-        plan: Function argument.
-        billing_status: Function argument.
-        customer_id: Function argument.
-        subscription_id: Function argument.
-        cancel_at_period_end: Function argument.
-        current_period_end: Function argument.
-        stripe_event_created: Function argument.
-    """
+    """Persist authoritative Stripe subscription state for one user."""
     if not ObjectId.is_valid(user_id):
         return
 
@@ -214,6 +204,25 @@ def _set_subscription_state(
         ]
 
     users_collection.update_one(query, {"$set": updates})
+
+
+def _link_stripe_checkout(
+    user_id: str,
+    *,
+    customer_id: str | None = None,
+    subscription_id: str | None = None,
+) -> None:
+    """Link Stripe identifiers from Checkout without changing entitlement state."""
+    if not ObjectId.is_valid(user_id):
+        return
+
+    updates: dict[str, str] = {}
+    if customer_id:
+        updates["stripe_customer_id"] = customer_id
+    if subscription_id:
+        updates["stripe_subscription_id"] = subscription_id
+    if updates:
+        users_collection.update_one({"_id": ObjectId(user_id)}, {"$set": updates})
 
 
 def _user_id_from_subscription(subscription: dict) -> str | None:
@@ -326,6 +335,7 @@ async def create_checkout_session(current_user: dict = Depends(get_current_user)
     if get_plan_for_user(current_user) == "pro" and current_user.get("billing_status") in {
         "active",
         "trialing",
+        "past_due",
     }:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -396,10 +406,11 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
 
     subscription = await _update_stripe_subscription(subscription_id, cancel_at_period_end=True)
     user_id = str(current_user["_id"])
+    stripe_status = str(subscription.get("status") or current_user.get("billing_status") or "active")
     _set_subscription_state(
         user_id,
-        plan="pro",
-        billing_status=str(subscription.get("status") or current_user.get("billing_status") or "active"),
+        plan="pro" if stripe_status in ENTITLED_SUBSCRIPTION_STATUSES else "free",
+        billing_status=stripe_status,
         customer_id=subscription.get("customer"),
         subscription_id=subscription.get("id"),
         cancel_at_period_end=True,
@@ -428,10 +439,11 @@ async def resume_subscription(current_user: dict = Depends(get_current_user)):
 
     subscription = await _update_stripe_subscription(subscription_id, cancel_at_period_end=False)
     user_id = str(current_user["_id"])
+    stripe_status = str(subscription.get("status") or current_user.get("billing_status") or "active")
     _set_subscription_state(
         user_id,
-        plan="pro",
-        billing_status=str(subscription.get("status") or current_user.get("billing_status") or "active"),
+        plan="pro" if stripe_status in ENTITLED_SUBSCRIPTION_STATUSES else "free",
+        billing_status=stripe_status,
         customer_id=subscription.get("customer"),
         subscription_id=subscription.get("id"),
         cancel_at_period_end=False,
@@ -476,23 +488,20 @@ async def stripe_webhook(request: Request):
         if event_type == "checkout.session.completed":
             user_id = obj.get("client_reference_id") or (obj.get("metadata") or {}).get("user_id")
             if user_id:
-                _set_subscription_state(
+                _link_stripe_checkout(
                     str(user_id),
-                    plan="pro",
-                    billing_status="active",
                     customer_id=obj.get("customer"),
                     subscription_id=obj.get("subscription"),
-                    stripe_event_created=event_created,
                 )
 
         elif event_type in {"customer.subscription.created", "customer.subscription.updated"}:
             user_id = _user_id_from_subscription(obj)
             if user_id:
                 stripe_status = str(obj.get("status") or "unknown")
-                paid = stripe_status in {"active", "trialing"}
+                entitled = stripe_status in ENTITLED_SUBSCRIPTION_STATUSES
                 _set_subscription_state(
                     user_id,
-                    plan="pro" if paid else "free",
+                    plan="pro" if entitled else "free",
                     billing_status=stripe_status,
                     customer_id=obj.get("customer"),
                     subscription_id=obj.get("id"),
@@ -515,29 +524,13 @@ async def stripe_webhook(request: Request):
                     stripe_event_created=event_created,
                 )
 
-        elif event_type == "invoice.payment_failed":
-            user = _find_user_for_invoice(obj)
-            if user:
-                _set_subscription_state(
-                    str(user["_id"]),
-                    plan="free",
-                    billing_status="payment_failed",
-                    customer_id=obj.get("customer"),
-                    subscription_id=obj.get("subscription"),
-                    stripe_event_created=event_created,
-                )
-
-        elif event_type == "invoice.paid":
-            user = _find_user_for_invoice(obj)
-            if user:
-                _set_subscription_state(
-                    str(user["_id"]),
-                    plan="pro",
-                    billing_status="active",
-                    customer_id=obj.get("customer"),
-                    subscription_id=obj.get("subscription"),
-                    stripe_event_created=event_created,
-                )
+        elif event_type in {"invoice.payment_failed", "invoice.paid"}:
+            # Invoice events are intentionally informational for entitlement.
+            # Stripe subscription lifecycle events remain authoritative so a
+            # failed invoice can enter normal dunning/past_due grace without
+            # abruptly removing access, and a standalone paid invoice cannot
+            # independently grant Pro access.
+            pass
 
         _mark_stripe_event_processed(event_id)
     except Exception:
