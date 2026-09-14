@@ -82,3 +82,28 @@ def test_connection_update_rejects_plain_http_url():
             open_to_talk=True,
             open_to_talk_url="http://example.com/contact",
         )
+
+
+def test_public_connection_hides_legacy_plain_http_url():
+    """Legacy HTTP data remains stored but must never become a public link."""
+    user = {
+        "open_to_talk": True,
+        "open_to_talk_url": "http://example.com/contact",
+        "open_to_talk_note": "Contact me",
+        "open_to_talk_types": ["general-chat"],
+    }
+
+    public_settings = serialize_connection_settings(user, public=True)
+    private_settings = serialize_connection_settings(user, public=False)
+
+    assert public_settings["open_to_talk_url"] == ""
+    assert private_settings["open_to_talk_url"] == "http://example.com/contact"
+
+
+def test_connection_update_rejects_https_without_hostname():
+    """An HTTPS prefix alone is not a valid public destination."""
+    with pytest.raises(ValidationError):
+        ProfileConnectionUpdate(
+            open_to_talk=True,
+            open_to_talk_url="https://",
+        )
