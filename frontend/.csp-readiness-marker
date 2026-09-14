@@ -1,1 +1,0 @@
-CSP readiness is validated by scripts/verify-csp-ready-build.mjs during production builds.
