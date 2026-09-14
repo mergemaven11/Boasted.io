@@ -60,12 +60,12 @@ class ProfileConnectionUpdate(BaseModel):
     @field_validator("open_to_talk_url")
     @classmethod
     def validate_url(cls, value: str | None) -> str | None:
-        """Require a normal web URL when a legacy connection URL is supplied."""
+        """Require HTTPS when a legacy connection URL is supplied."""
         if value is None:
             return value
         normalized = value.strip()
-        if normalized and not normalized.startswith(("https://", "http://")):
-            raise ValueError("Open to Talk URL must start with http:// or https://")
+        if normalized and not normalized.startswith("https://"):
+            raise ValueError("Open to Talk URL must start with https://")
         return normalized
 
     @field_validator("calendly_url")
