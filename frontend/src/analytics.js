@@ -1,4 +1,4 @@
-const GA_MEASUREMENT_ID = "G-MKGEER9N5C";
+const GA_MEASUREMENT_ID = "G-F7T3YSH88N";
 export const ANALYTICS_CONSENT_KEY = "boasted_analytics_consent_v1";
 export const ANALYTICS_CONSENT_GRANTED = "granted";
 export const ANALYTICS_CONSENT_DENIED = "denied";
