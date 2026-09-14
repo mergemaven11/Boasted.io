@@ -164,4 +164,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
     if user is None:
         raise credentials_error
 
-    return user
+    authenticated_user = dict(user)
+    authenticated_user["_auth_iat"] = payload.get("iat")
+    return authenticated_user
