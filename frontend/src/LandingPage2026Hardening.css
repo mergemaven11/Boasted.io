@@ -1,0 +1,127 @@
+/* Final cascade guard for the 2026 marketing refresh.
+ *
+ * Legacy responsive files predate the new marketing system and intentionally
+ * use higher-specificity selectors. Keep those files stable for older surfaces,
+ * then neutralize only the rules that can make the public landing page unreadable.
+ */
+
+.landing-page .feature-preview-header strong,
+.landing-page .feature-preview-entry h3,
+.landing-page .feature-preview-entry p,
+.landing-page .landing-org-tabs button,
+.landing-page .pricing-card :where(h3, p, li, a),
+.landing-page .landing-thirty-thesis :where(span, strong) {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.landing-page :where(h1, h2, h3) {
+  text-wrap: balance;
+}
+
+.landing-page :where(p, li) {
+  text-wrap: pretty;
+}
+
+.landing-page :where(a, button) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.landing-page .landing-nav,
+.landing-page .impact-window,
+.landing-page .landing-org-panel,
+.landing-page .pricing-card,
+.landing-page .landing-final-cta,
+.landing-page .mega-footer {
+  isolation: isolate;
+}
+
+@media (max-width: 720px) {
+  /* Override the older mobile guard's emergency anywhere-wrapping behavior. */
+  .landing-page .feature-preview-header strong,
+  .landing-page .feature-preview-entry h3 {
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+  }
+
+  .landing-page .landing-feature-section {
+    padding: clamp(16px, 4vw, 22px);
+    gap: 24px;
+  }
+
+  .landing-page .feature-dashboard-preview {
+    padding: 10px;
+    border-radius: 18px;
+  }
+
+  .landing-page .feature-preview-header {
+    gap: 8px;
+  }
+
+  .landing-page .feature-preview-header > div,
+  .landing-page .feature-preview-entry {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .landing-page .feature-preview-header strong {
+    font-size: clamp(1.15rem, 5vw, 1.4rem);
+    line-height: 1.12;
+  }
+
+  .landing-page .feature-preview-entry h3 {
+    font-size: clamp(1.05rem, 4.5vw, 1.2rem);
+    line-height: 1.25;
+  }
+}
+
+@media (max-width: 420px) {
+  .landing-page .landing-feature-section {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .landing-page .feature-dashboard-preview {
+    padding: 8px;
+    border-radius: 16px;
+  }
+
+  .landing-page .feature-preview-header > div,
+  .landing-page .feature-preview-entry {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 370px) {
+  .landing-page .landing-nav {
+    padding-left: 12px;
+    padding-right: 8px;
+  }
+
+  .landing-page .landing-logo {
+    font-size: 0.84rem;
+  }
+
+  .landing-page .landing-btn-small {
+    padding-inline: 0.62rem;
+    font-size: 0.78rem;
+  }
+
+  .landing-page .landing-thirty-hero .landing-hero-copy h1 {
+    font-size: 2.6rem;
+    letter-spacing: -0.055em;
+  }
+}
+
+@supports (padding: max(0px)) {
+  @media (max-width: 780px) {
+    .landing-page .landing-nav {
+      margin-top: max(8px, env(safe-area-inset-top));
+    }
+
+    .landing-page .mega-footer {
+      margin-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+  }
+}
