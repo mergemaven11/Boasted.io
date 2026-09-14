@@ -24,18 +24,28 @@ function MiniResume({ template }) {
 
 export default function ResumeTemplateLibrary({ selectedId, onSelect, compact = false }) {
   return (
-    <section className={`resume-template-library ${compact ? "compact" : ""}`} aria-labelledby="resume-template-library-title">
+    <section
+      className={`resume-template-library ${compact ? "compact" : ""}`}
+      aria-labelledby="resume-template-library-title"
+    >
       <div className="resume-template-library-head">
-        <div>
-          <span className="resume-template-library-kicker"><ShieldCheck size={14} /> ATS-safe template library</span>
+        <div className="resume-template-library-heading-copy">
+          <span className="resume-template-library-kicker">
+            <ShieldCheck size={14} /> ATS-safe template library
+          </span>
           <h3 id="resume-template-library-title">Choose your presentation.</h3>
-          <p>All 12 designs use a single machine-readable content order. Style changes; your structured resume data does not.</p>
+          <p>
+            Pick the look that fits your story. Every design keeps the same clean,
+            machine-readable resume structure underneath.
+          </p>
         </div>
         <span className="resume-template-library-count">12 templates</span>
       </div>
+
       <div className="resume-template-grid">
         {RESUME_TEMPLATES.map((template) => {
           const selected = selectedId === template.id;
+
           return (
             <button
               type="button"
@@ -43,19 +53,41 @@ export default function ResumeTemplateLibrary({ selectedId, onSelect, compact = 
               className={`resume-template-card ${selected ? "selected" : ""}`}
               onClick={() => onSelect(template.id)}
               aria-pressed={selected}
+              aria-label={`${selected ? "Selected" : "Choose"} ${template.name} resume template`}
             >
-              <MiniResume template={template} />
+              <span className="resume-template-preview-shell">
+                <MiniResume template={template} />
+                {selected && (
+                  <span className="resume-template-selected-badge" aria-hidden="true">
+                    <Check size={13} /> Selected
+                  </span>
+                )}
+              </span>
+
               <span className="resume-template-card-copy">
-                <span className="resume-template-card-title"><strong>{template.name}</strong>{selected && <em><Check size={12} /> Selected</em>}</span>
+                <span className="resume-template-card-title">
+                  <strong>{template.name}</strong>
+                  <span className="resume-template-card-action" aria-hidden="true">
+                    {selected ? "Active" : "Choose"}
+                  </span>
+                </span>
                 <small>{template.audience}</small>
-                <span>{template.description}</span>
+                <span className="resume-template-card-description">{template.description}</span>
+                <span className="resume-template-card-meta" aria-hidden="true">
+                  <ShieldCheck size={13} /> ATS-safe
+                </span>
               </span>
             </button>
           );
         })}
       </div>
+
       <div className="resume-template-library-note">
-        No photos, skill bars, charts, sidebars, or multi-column reading traps. Templates are designed for clean PDF text extraction and easy correction in structured fields.
+        <ShieldCheck size={16} aria-hidden="true" />
+        <span>
+          Built for clean PDF text extraction: no photos, charts, skill bars, sidebars,
+          or multi-column reading traps.
+        </span>
       </div>
     </section>
   );
