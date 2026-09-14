@@ -52,10 +52,14 @@ from app.student_opportunity_routes import router as student_opportunity_router
 from app.verified_resume_routes import router as verified_resume_router
 from app.routes import router as entries_router
 
+production_mode = bool(os.getenv("RENDER")) or os.getenv("APP_ENV", "").strip().lower() == "production"
 app = FastAPI(
     title="Boasted API",
     description="Evidence-backed career proof for accomplishments, impact, and reports.",
     version="1.0.0",
+    docs_url=None if production_mode else "/docs",
+    redoc_url=None if production_mode else "/redoc",
+    openapi_url=None if production_mode else "/openapi.json",
 )
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 cors_origins = list(

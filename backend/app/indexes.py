@@ -19,6 +19,19 @@ def ensure_core_indexes(db) -> dict[str, list[str]]:
         users.create_index([("public_slug", ASCENDING)], name="uniq_users_public_slug", unique=True, sparse=True),
     ]
 
+    auth_sessions = db["auth_sessions"]
+    created["auth_sessions"] = [
+        auth_sessions.create_index(
+            [("user_id", ASCENDING), ("revoked_at", ASCENDING)],
+            name="auth_sessions_user_revoked",
+        ),
+        auth_sessions.create_index(
+            [("expires_at", ASCENDING)],
+            name="auth_sessions_expiry_ttl",
+            expireAfterSeconds=0,
+        ),
+    ]
+
     entries = db["entries"]
     created["entries"] = [
         entries.create_index([("user_id", ASCENDING), ("created_at", DESCENDING)], name="entries_user_created"),
