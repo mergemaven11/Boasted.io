@@ -5,6 +5,29 @@
  * then neutralize only the rules that can make the public landing page unreadable.
  */
 
+/* MarketingFooterOrder.css flattens .landing-page with display: contents so that
+ * RootContent can append showcase blocks before the footer. A display:contents
+ * element does not paint its own background, so the 2026 canvas must live on
+ * the actual #root box as well. */
+#root:has(> .landing-page) {
+  overflow-x: clip;
+  overflow-y: visible;
+  color: #f7f7f8;
+  background:
+    radial-gradient(circle at 15% -5%, rgba(124, 58, 237, 0.12), transparent 34rem),
+    radial-gradient(circle at 86% 10%, rgba(37, 99, 235, 0.08), transparent 30rem),
+    #07090d;
+}
+
+/* The legacy footer-order rule also forces the footer to 100% width. Restore
+ * the same modern content rail used by every other marketing section while
+ * preserving its final flex order. */
+#root:has(> .landing-page) > .landing-page > .mega-footer {
+  width: min(1180px, calc(100% - (2 * clamp(18px, 4vw, 40px))));
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .landing-page .feature-preview-header strong,
 .landing-page .feature-preview-entry h3,
 .landing-page .feature-preview-entry p,
@@ -34,6 +57,12 @@
 .landing-page .landing-final-cta,
 .landing-page .mega-footer {
   isolation: isolate;
+}
+
+@media (max-width: 780px) {
+  #root:has(> .landing-page) > .landing-page > .mega-footer {
+    width: calc(100% - 36px);
+  }
 }
 
 @media (max-width: 720px) {
@@ -73,6 +102,12 @@
   .landing-page .feature-preview-entry h3 {
     font-size: clamp(1.05rem, 4.5vw, 1.2rem);
     line-height: 1.25;
+  }
+}
+
+@media (max-width: 540px) {
+  #root:has(> .landing-page) > .landing-page > .mega-footer {
+    width: calc(100% - 28px);
   }
 }
 
