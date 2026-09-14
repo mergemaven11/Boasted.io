@@ -4,7 +4,8 @@ import { fileURLToPath } from "node:url";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const FRONTEND_DIR = path.resolve(SCRIPT_DIR, "..");
-const INDEX_FILE = path.join(FRONTEND_DIR, "dist", "index.html");
+const DIST_DIR = path.join(FRONTEND_DIR, "dist");
+const INDEX_FILE = path.join(DIST_DIR, "index.html");
 
 const replacements = [
   {
@@ -45,4 +46,39 @@ if (/<style(?:\s|>)/i.test(html)) {
 }
 
 await writeFile(INDEX_FILE, html, "utf8");
-console.log("Externalized production inline CSP blockers.");
+
+async function externalizeSingleStyle(relativeHtmlPath, publicCssPath) {
+  const htmlPath = path.join(DIST_DIR, relativeHtmlPath);
+  const cssPath = path.join(DIST_DIR, publicCssPath.replace(/^\//, ""));
+  let page = await readFile(htmlPath, "utf8");
+  const matches = [...page.matchAll(/<style(?:\s[^>]*)?>([\s\S]*?)<\/style>/gi)];
+  if (matches.length !== 1) {
+    throw new Error(`${relativeHtmlPath} expected exactly one inline style block, found ${matches.length}.`);
+  }
+  const css = matches[0][1].trim();
+  page = page.replace(matches[0][0], `<link rel="stylesheet" href="${publicCssPath}" />`);
+  await writeFile(cssPath, `${css}\n`, "utf8");
+  await writeFile(htmlPath, page, "utf8");
+}
+
+async function externalizeSingleScript(relativeHtmlPath, publicScriptPath) {
+  const htmlPath = path.join(DIST_DIR, relativeHtmlPath);
+  const scriptPath = path.join(DIST_DIR, publicScriptPath.replace(/^\//, ""));
+  let page = await readFile(htmlPath, "utf8");
+  const matches = [...page.matchAll(/<script(?![^>]*type=["']application\/ld\+json["'])([^>]*)>([\s\S]*?)<\/script>/gi)]
+    .filter((match) => !/\bsrc\s*=/.test(match[1]) && match[2].trim().length > 0);
+  if (matches.length !== 1) {
+    throw new Error(`${relativeHtmlPath} expected exactly one executable inline script block, found ${matches.length}.`);
+  }
+  const script = matches[0][2].trim();
+  page = page.replace(matches[0][0], `<script src="${publicScriptPath}"></script>`);
+  await writeFile(scriptPath, `${script}\n`, "utf8");
+  await writeFile(htmlPath, page, "utf8");
+}
+
+await externalizeSingleScript("auth/callback/index.html", "/auth/callback/callback.js");
+await externalizeSingleStyle("docs/troubleshooting.html", "/docs/troubleshooting.css");
+await externalizeSingleStyle("help/troubleshooting.html", "/help/troubleshooting.css");
+await externalizeSingleStyle("legal/georgia-consumer-notice.html", "/legal/georgia-consumer-notice.css");
+
+console.log("Externalized production inline CSP blockers, including static support/auth pages.");
