@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/generate-static-route-shells.mjs && node scripts/inject-hubspot-loader.mjs",
+    "build": "vite build && node scripts/externalize-csp-blocks.mjs && node scripts/generate-static-route-shells.mjs && node scripts/inject-hubspot-loader.mjs && node scripts/verify-csp-ready-build.mjs",
     "lint": "eslint .",
     "test:analytics": "node --test src/analytics.test.js src/behaviorAnalyticsSource.test.js src/hubspotTrackingSource.test.js",
     "test:education": "node --test src/applicationsHubSource.test.js src/accomplishmentsEducationSource.test.js src/educationToolkitSource.test.js src/educationOpportunitySource.test.js",
