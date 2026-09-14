@@ -7,6 +7,7 @@ import {
   initializeAnalytics,
   setAnalyticsConsent,
 } from "./analytics.js";
+import { clearPublicAnalyticsIdentity } from "./publicAnalytics.js";
 import "./AnalyticsConsentBanner.css";
 
 const ANALYTICS_CONSENT_EVENT = "boasted:analytics-consent-changed";
@@ -21,6 +22,7 @@ export default function AnalyticsConsentBanner() {
 
   function choose(nextChoice) {
     if (!setAnalyticsConsent(nextChoice)) return;
+    if (nextChoice === ANALYTICS_CONSENT_DENIED) clearPublicAnalyticsIdentity();
     setChoice(nextChoice);
     setEditing(false);
     window.dispatchEvent(new CustomEvent(ANALYTICS_CONSENT_EVENT, { detail: { choice: nextChoice } }));
