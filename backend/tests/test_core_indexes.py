@@ -14,6 +14,7 @@ def test_core_indexes_are_created_with_expected_shapes():
 
     assert set(created) == {
         "users",
+        "auth_sessions",
         "entries",
         "impact_receipts",
         "receipt_verification_requests",
@@ -28,6 +29,11 @@ def test_core_indexes_are_created_with_expected_shapes():
     assert user_indexes["uniq_users_email"]["unique"] is True
     assert user_indexes["uniq_users_public_slug"]["key"] == [("public_slug", 1)]
     assert user_indexes["uniq_users_public_slug"]["unique"] is True
+
+    session_indexes = db.auth_sessions.index_information()
+    assert session_indexes["auth_sessions_user_revoked"]["key"] == [("user_id", 1), ("revoked_at", 1)]
+    assert session_indexes["auth_sessions_expiry_ttl"]["key"] == [("expires_at", 1)]
+    assert session_indexes["auth_sessions_expiry_ttl"]["expireAfterSeconds"] == 0
 
     entry_indexes = db.entries.index_information()
     assert entry_indexes["entries_user_created"]["key"] == [("user_id", 1), ("created_at", -1)]
