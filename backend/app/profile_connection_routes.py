@@ -32,6 +32,14 @@ PUBLIC_PROFILE_EVENT_TYPES = {
 }
 
 
+def _is_https_url(value: str | None) -> bool:
+    """Return whether a URL has an HTTPS scheme and a valid hostname."""
+    if not value:
+        return False
+    parsed = urlparse(value.strip())
+    return parsed.scheme.lower() == "https" and bool(parsed.hostname)
+
+
 def _is_calendly_booking_url(value: str | None) -> bool:
     """Return whether a URL is an HTTPS Calendly scheduling page."""
     if not value:
@@ -64,8 +72,8 @@ class ProfileConnectionUpdate(BaseModel):
         if value is None:
             return value
         normalized = value.strip()
-        if normalized and not normalized.startswith("https://"):
-            raise ValueError("Open to Talk URL must start with https://")
+        if normalized and not _is_https_url(normalized):
+            raise ValueError("Open to Talk URL must be a valid HTTPS URL")
         return normalized
 
     @field_validator("calendly_url")
@@ -148,7 +156,10 @@ def serialize_connection_settings(user: dict, *, public: bool) -> dict:
     return {
         "open_to_talk": open_to_talk_enabled,
         "open_to_talk_url": open_to_talk_url
-        if (open_to_talk_enabled or not public)
+        if (
+            not public
+            or (open_to_talk_enabled and _is_https_url(open_to_talk_url))
+        )
         else "",
         "open_to_talk_note": user.get("open_to_talk_note", "")
         if (open_to_talk_enabled or not public)
