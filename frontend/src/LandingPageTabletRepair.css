@@ -1,0 +1,199 @@
+/* Tablet-specific repair for the 2026 Boasted marketing page.
+ *
+ * The prior refresh treated 781-1080px like a stretched phone layout. On iPad-
+ * class widths that made the brand look detached, injected Education into the
+ * action rail, oversized the hero, and forced the Impact Receipt into one very
+ * tall column. Keep phones intentionally stacked, but give tablets their own
+ * composition instead of inheriting mobile rules.
+ */
+
+/* Keep the header brand deterministic even though legacy production patches
+ * still wrap it in .landing-brand-lockup and append a Beta badge. */
+.landing-page .landing-nav .landing-brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-width: 0;
+  margin: 0 auto 0 0 !important;
+  gap: 0;
+}
+
+.landing-page .landing-nav .landing-beta-badge,
+.landing-page .landing-nav-actions .landing-education-mobile-link {
+  display: none !important;
+}
+
+.landing-page .landing-nav .landing-logo {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 40px !important;
+  margin: 0 !important;
+  padding: 0 4px !important;
+  color: #f7f7f8 !important;
+  background: none !important;
+  font-size: 1.06rem !important;
+  font-weight: 820 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1 !important;
+  text-transform: none !important;
+  white-space: nowrap;
+}
+
+.landing-page .landing-nav .landing-logo::before {
+  content: "✦";
+  display: inline-block !important;
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 10px 0 0 !important;
+  color: #a78bfa !important;
+  background: none !important;
+  filter: none !important;
+  font-size: 0.84rem;
+  line-height: 1;
+}
+
+/* Preserve a compact two-column receipt on iPads and larger small tablets.
+ * LandingPageSimple.css previously collapsed this at 850px, making the product
+ * preview several screens tall at common 768/820/834px tablet widths. */
+@media (min-width: 640px) and (max-width: 1080px) {
+  .landing-page .impact-shot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .landing-page .impact-shot-grid > div {
+    min-height: 92px;
+    padding: 12px !important;
+  }
+
+  .landing-page .impact-shot-grid p {
+    font-size: 0.76rem;
+    line-height: 1.45;
+  }
+}
+
+/* Full tablet: keep the navigation simple, shrink the hero to an intentional
+ * reading scale, and bring the product proof into view sooner. */
+@media (min-width: 781px) and (max-width: 1080px) {
+  .landing-page {
+    --mk-gutter: clamp(24px, 4vw, 34px);
+  }
+
+  .landing-page .landing-nav {
+    min-height: 68px !important;
+    margin-top: 12px !important;
+    padding: 10px 12px 10px 18px !important;
+  }
+
+  .landing-page .landing-nav-actions {
+    flex: 0 0 auto;
+    gap: 10px;
+  }
+
+  .landing-page .landing-nav-actions > a[href="/login"].landing-login-link {
+    display: inline-flex !important;
+  }
+
+  .landing-page .landing-nav-actions .landing-docs-link,
+  .landing-page .landing-nav-actions .landing-pricing-link,
+  .landing-page .landing-nav-actions .landing-education-mobile-link {
+    display: none !important;
+  }
+
+  .landing-page .landing-thirty-hero {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+    min-height: auto !important;
+    padding-top: 50px !important;
+    padding-bottom: 54px !important;
+  }
+
+  .landing-page .landing-hero-copy {
+    width: 100%;
+    max-width: 760px !important;
+    min-width: 0;
+  }
+
+  .landing-page .landing-thirty-hero .landing-hero-copy h1 {
+    max-width: 720px !important;
+    font-size: clamp(3.15rem, 7vw, 4rem) !important;
+    line-height: 1 !important;
+    letter-spacing: -0.055em !important;
+  }
+
+  .landing-page .landing-hero-description {
+    max-width: 700px !important;
+    margin-top: 18px !important;
+    font-size: 1.04rem !important;
+    line-height: 1.58 !important;
+  }
+
+  .landing-page .landing-hero-actions {
+    margin-top: 22px !important;
+  }
+
+  .landing-page .landing-trust-line {
+    margin-top: 13px !important;
+  }
+
+  .landing-page .landing-product-shot {
+    width: min(100%, 760px) !important;
+    max-width: 760px !important;
+    margin: 0 auto !important;
+  }
+
+  .landing-page .impact-window-body {
+    padding: 20px !important;
+  }
+
+  .landing-page .impact-window-body h2 {
+    max-width: 680px;
+    margin: 8px 0 16px !important;
+    font-size: clamp(1.6rem, 3.2vw, 2rem) !important;
+    line-height: 1.08 !important;
+  }
+
+  .landing-page .landing-product-shot-caption {
+    margin-top: 12px !important;
+  }
+}
+
+/* Small tablets still need materially smaller type than the previous 11.5vw
+ * rule, while retaining the compact receipt grid above. */
+@media (min-width: 541px) and (max-width: 780px) {
+  .landing-page .landing-thirty-hero {
+    gap: 28px !important;
+    padding-top: 46px !important;
+    padding-bottom: 52px !important;
+  }
+
+  .landing-page .landing-thirty-hero .landing-hero-copy h1 {
+    font-size: clamp(3rem, 7.5vw, 3.65rem) !important;
+    line-height: 1 !important;
+    letter-spacing: -0.055em !important;
+  }
+
+  .landing-page .landing-hero-description {
+    margin-top: 18px !important;
+    line-height: 1.58 !important;
+  }
+
+  .landing-page .landing-product-shot {
+    margin-top: 0 !important;
+  }
+}
+
+@media (max-width: 540px) {
+  .landing-page .landing-nav .landing-logo {
+    min-height: 36px !important;
+    padding-inline: 2px !important;
+    font-size: 0.96rem !important;
+  }
+
+  .landing-page .landing-nav .landing-logo::before {
+    margin-right: 8px !important;
+    font-size: 0.76rem;
+  }
+}
