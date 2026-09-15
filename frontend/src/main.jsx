@@ -17,6 +17,8 @@ import "./ProfileResponsiveSafety.css";
 import "./LandingPage2026.css";
 import "./LandingPage2026Hardening.css";
 import "./LandingPageTabletRepair.css";
+import "./LandingPageFooterPolish.css";
+import "./LandingPageBrandPolish.css";
 import AnalyticsConsentBanner from "./AnalyticsConsentBanner.jsx";
 import NDAInformationGate from "./NDAInformationGate.jsx";
 import PublicAuthHeader from "./PublicAuthHeader.jsx";
